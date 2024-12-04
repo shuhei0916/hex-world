@@ -7,6 +7,9 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
 			var global_clicked = event.position
+			print("global_clicked: " + str(global_clicked))
+			print("to_local(global_clicked): " + str(to_local(global_clicked)))
+			
 			var pos_clicked = local_to_map(to_local(global_clicked))
 			print(pos_clicked)
 			
