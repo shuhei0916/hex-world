@@ -3,12 +3,19 @@ extends Node2D
 const TILE_SCENE = preload("res://hex_tile.tscn")  # HexTileシーンをロード
 
 # 複数のセルで構成されたタイル（形状）の定義
-const TILE_SHAPES = [
-	[Vector2(0, 0)],                   # 単一セル
-	[Vector2(0, 0), Vector2(1, 0)],    # 水平2セル
-	[Vector2(0, 0), Vector2(0, 1)],    # 垂直2セル
-	[Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)]  # L字型
-]
+const TILE_SHAPES = {
+	"single": [Vector2(0, 0)],                   # 単一セル
+	"horizontal_2": [Vector2(0, 0), Vector2(1, 0)],    # 水平2セル
+	"vertical_2": [Vector2(0, 0), Vector2(0, 1)],    # 垂直2セル
+	"L_shape": [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)],  # L字型
+	"bar": [Vector2(0, 0), Vector2(1, 0), Vector2(2, 0), Vector2(3, 0)],  # 水平4セル (Tetrahex - bar)
+	"worm": [Vector2(0, 0), Vector2(0, 1), Vector2(0, 2), Vector2(0, 3)],  # 垂直4セル (Tetrahex - worm)
+	"pistol": [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(2, 1)],  # ジグザグ型 (Tetrahex - pistol)
+	"propeller": [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(2, 0)],  # T型 (Tetrahex - propeller)
+	"arch": [Vector2(0, 0), Vector2(1, 0), Vector2(1, -1), Vector2(2, 0)],  # アーチ型 (Tetrahex - arch)
+	"bee": [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 1)],  # 蜂型 (Tetrahex - bee)
+	"wave": [Vector2(0, 0), Vector2(1, 0), Vector2(2, -1), Vector2(3, -1)]  # 波型 (Tetrahex - wave)
+}
 
 func spawn_tile():
 	var tile_shape = get_random_shape()
@@ -26,7 +33,8 @@ func cell_to_world(cell):
 	return Vector2(x, y)
 	
 func get_random_shape():
-	return TILE_SHAPES[randi() % int(TILE_SHAPES.size())]
+	var keys = TILE_SHAPES.keys()
+	return TILE_SHAPES[keys[randi() % keys.size()]]
 	
 	
 func _ready():
