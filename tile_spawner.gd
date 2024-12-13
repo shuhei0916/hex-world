@@ -15,7 +15,7 @@ const TILE_SHAPES = {
 
 func spawn_tile():
 	#var tile_shape = get_random_shape()
-	var tile_shape = TILE_SHAPES["arch"]
+	var tile_shape = TILE_SHAPES["worm"]
 	var tile_node = TILE_SCENE.instantiate()
 	add_child(tile_node)
 	for cell in tile_shape:

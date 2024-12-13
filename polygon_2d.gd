@@ -15,6 +15,7 @@ func _ready():
 	color = Color(0, 1, 1, 1)
 	
 	# 外枠線の設定
+	#outline_colors = [Color(0, 0, 0, 1)]
 	#var outline_color = Color(0, 0, 0, 1)
 	#var outline_width = 2
 	#self.set_outline()
