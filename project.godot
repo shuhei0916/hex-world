@@ -11,6 +11,6 @@ config_version=5
 [application]
 
 config/name="hex-world"
-run/main_scene="res://tile_map.tscn"
+run/main_scene="res://hex_tile_map.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://hex_world_icon.svg"
