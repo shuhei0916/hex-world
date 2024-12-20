@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://d4b0bc4nmlu64"]
+[gd_scene load_steps=3 format=3 uid="uid://d4b0bc4nmlu64"]
 
 [ext_resource type="TileSet" uid="uid://blmsa6e3w0qk4" path="res://assets/hex_tile_set.tres" id="1_fl2vb"]
+[ext_resource type="Script" path="res://hex_tile_map.gd" id="2_wopgb"]
 
 [node name="TileMap" type="TileMap"]
 tile_set = ExtResource("1_fl2vb")
 format = 2
 layer_0/tile_data = PackedInt32Array(65539, 131072, 65536, 65540, 131072, 65536, 65541, 131072, 65536, 131075, 131072, 65536, 131076, 131072, 65536, 131077, 131072, 65536, 131078, 131072, 65536, 196610, 131072, 65536, 196611, 131072, 65536, 196612, 131072, 65536, 196613, 131072, 65536, 196614, 131072, 65536, 262147, 131072, 65536, 262148, 131072, 65536, 262149, 131072, 65536, 262150, 131072, 65536, 327683, 131072, 65536, 327684, 131072, 65536, 327685, 131072, 65536)
+script = ExtResource("2_wopgb")
