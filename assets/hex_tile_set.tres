@@ -1,6 +1,7 @@
-[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://blmsa6e3w0qk4"]
+[gd_resource type="TileSet" load_steps=5 format=3 uid="uid://blmsa6e3w0qk4"]
 
 [ext_resource type="Texture2D" uid="uid://crqmfvmjk10qv" path="res://tiles/WWT-01.png" id="1_0esnc"]
+[ext_resource type="Texture2D" uid="uid://bidss377bremp" path="res://tiles/hexagon_128x128_transparent.png" id="2_4nw1n"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0d3xt"]
 texture = ExtResource("1_0esnc")
@@ -10,7 +11,41 @@ texture_region_size = Vector2i(128, 128)
 0:0/1 = 1
 0:0/1/transpose = true
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c3c40"]
+texture = ExtResource("2_4nw1n")
+texture_region_size = Vector2i(620, 307)
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+
 [resource]
 tile_shape = 3
 tile_size = Vector2i(94, 110)
 sources/0 = SubResource("TileSetAtlasSource_0d3xt")
+sources/2 = SubResource("TileSetAtlasSource_c3c40")
