@@ -14,7 +14,7 @@ const POLYHEX = {
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	spawn_polyhex("wave")
+	spawn_polyhex("pistol")
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -26,6 +26,7 @@ func spawn_polyhex(selected_polyhex):
 	var max_x = -INF
 	for cell in get_used_cells(0):
 		max_x = max(max_x, cell.x)
+		#print(max_x)
 	
 	# Polyhexの基準位置（右横の開始位置）を設定
 	var base_position = Vector2(max_x + 1, 0)
@@ -36,4 +37,7 @@ func spawn_polyhex(selected_polyhex):
 	# 各タイルをTileMapに配置
 	for cell in tile_shape:
 		var spawn_position = base_position + cell
-		set_cell(0, spawn_position, 0)  # タイルIDは仮で1としています
+		print("Spawning at:", spawn_position)
+		set_cell(0, spawn_position, 0, Vector2i(0, 0), 1)
+		#set_cell()
+		#print("hehe")
