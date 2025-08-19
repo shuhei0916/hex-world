@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dkjr8b5ug8qtb"]
-
-[ext_resource type="Script" path="res://polygon_2d.gd" id="1_mr1y7"]
-
-[node name="HexTile" type="Node2D"]
-
-[node name="Polygon2D" type="Polygon2D" parent="."]
-script = ExtResource("1_mr1y7")
