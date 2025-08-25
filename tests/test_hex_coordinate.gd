@@ -140,4 +140,51 @@ func test_hex_line_draw():
 	assert_eq(line[5].q, 1, "線上の点5のq座標が正しい")
 	assert_eq(line[5].r, -5, "線上の点5のr座標が正しい")
 	assert_eq(line[5].s, 4, "線上の点5のs座標が正しい")
+
+func test_hex_round_comprehensive():
+	# Red Blob Games準拠: test_hex_round の完全実装
+	var a = HexCoordinate.new(0, 0, 0)
+	var b = HexCoordinate.new(1, -1, 0)
+	var c = HexCoordinate.new(0, -1, 1)
+	
+	# テスト1: 基本丸め処理
+	var lerped = HexCoordinate.lerp(HexCoordinate.new(0, 0, 0), HexCoordinate.new(10, -20, 10), 0.5)
+	var rounded = HexCoordinate.hex_round_fractional(lerped)
+	assert_eq(rounded.q, 5, "基本丸め処理のq座標が正しい")
+	assert_eq(rounded.r, -10, "基本丸め処理のr座標が正しい")
+	assert_eq(rounded.s, 5, "基本丸め処理のs座標が正しい")
+	
+	# テスト2-3: 境界値テスト
+	var lerp_low = HexCoordinate.lerp(a, b, 0.499)
+	var round_low = HexCoordinate.hex_round_fractional(lerp_low)
+	assert_eq(round_low.q, a.q, "境界値(0.499)でのq座標が正しい")
+	assert_eq(round_low.r, a.r, "境界値(0.499)でのr座標が正しい")
+	assert_eq(round_low.s, a.s, "境界値(0.499)でのs座標が正しい")
+	
+	var lerp_high = HexCoordinate.lerp(a, b, 0.501)
+	var round_high = HexCoordinate.hex_round_fractional(lerp_high)
+	assert_eq(round_high.q, b.q, "境界値(0.501)でのq座標が正しい")
+	assert_eq(round_high.r, b.r, "境界値(0.501)でのr座標が正しい")
+	assert_eq(round_high.s, b.s, "境界値(0.501)でのs座標が正しい")
+	
+	# テスト4-5: 重み付き平均のテスト
+	var weighted1 = HexCoordinate.HexFractional.new(
+		a.q * 0.4 + b.q * 0.3 + c.q * 0.3,
+		a.r * 0.4 + b.r * 0.3 + c.r * 0.3,
+		a.s * 0.4 + b.s * 0.3 + c.s * 0.3
+	)
+	var round_w1 = HexCoordinate.hex_round_fractional(weighted1)
+	assert_eq(round_w1.q, a.q, "重み付き平均1のq座標が正しい")
+	assert_eq(round_w1.r, a.r, "重み付き平均1のr座標が正しい")
+	assert_eq(round_w1.s, a.s, "重み付き平均1のs座標が正しい")
+	
+	var weighted2 = HexCoordinate.HexFractional.new(
+		a.q * 0.3 + b.q * 0.3 + c.q * 0.4,
+		a.r * 0.3 + b.r * 0.3 + c.r * 0.4,
+		a.s * 0.3 + b.s * 0.3 + c.s * 0.4
+	)
+	var round_w2 = HexCoordinate.hex_round_fractional(weighted2)
+	assert_eq(round_w2.q, c.q, "重み付き平均2のq座標が正しい")
+	assert_eq(round_w2.r, c.r, "重み付き平均2のr座標が正しい")
+	assert_eq(round_w2.s, c.s, "重み付き平均2のs座標が正しい")
 	

@@ -108,6 +108,10 @@ static func hex_round(q_frac: float, r_frac: float, s_frac: float) -> HexCoordin
 	
 	return HexCoordinate.new(int(q_round), int(r_round), int(s_round))
 
+# Red Blob Games準拠: HexFractional オブジェクトから丸め処理
+static func hex_round_fractional(hex_frac: HexFractional) -> HexCoordinate:
+	return hex_round(hex_frac.q, hex_frac.r, hex_frac.s)
+
 # Red Blob Games準拠: 分数座標クラス
 class HexFractional:
 	var q: float
@@ -118,6 +122,10 @@ class HexFractional:
 		q = q_val
 		r = r_val
 		s = s_val
+	
+	# Red Blob Games準拠: 分数座標から丸め処理
+	func round() -> HexCoordinate:
+		return HexCoordinate.hex_round_fractional(self)
 
 # Red Blob Games準拠: 線形補間
 static func lerp(hex_a: HexCoordinate, hex_b: HexCoordinate, t: float) -> HexFractional:
@@ -141,6 +149,8 @@ static func line_draw(hex_a: HexCoordinate, hex_b: HexCoordinate) -> Array[HexCo
 		var q_lerp = a_nudge.q * (1.0 - t) + b_nudge.q * t
 		var r_lerp = a_nudge.r * (1.0 - t) + b_nudge.r * t
 		var s_lerp = a_nudge.s * (1.0 - t) + b_nudge.s * t
-		results.append(hex_round(q_lerp, r_lerp, s_lerp))
+		# 統一されたAPIを使用
+		var lerp_frac = HexFractional.new(q_lerp, r_lerp, s_lerp)
+		results.append(hex_round_fractional(lerp_frac))
 	
 	return results
