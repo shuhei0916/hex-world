@@ -15,3 +15,6 @@ func is_valid() -> bool:
 
 func add(other: HexCoordinate) -> HexCoordinate:
 	return HexCoordinate.new(q + other.q, r + other.r, s + other.s)
+
+func subtract(other: HexCoordinate) -> HexCoordinate:
+	return HexCoordinate.new(q - other.q, r - other.r, s - other.s)
