@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:www.redblobgames.com)",
+      "Bash(mkdir:*)",
+      "Bash(godot:*)",
+      "WebFetch(domain:gut.readthedocs.io)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Read(//mnt/c/Users/Ito/Desktop/**)"
     ],
     "deny": [],
     "ask": []
