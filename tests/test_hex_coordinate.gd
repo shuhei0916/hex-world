@@ -41,4 +41,10 @@ func test_hex_coordinate_neighbor():
 	assert_eq(neighbor.q, 1, "隣接セル(方向2:左上)のq座標が正しい")
 	assert_eq(neighbor.r, -3, "隣接セル(方向2:左上)のr座標が正しい")
 	assert_eq(neighbor.s, 2, "隣接セル(方向2:左上)のs座標が正しい")
+
+func test_hex_coordinate_distance():
+	var hex1 = HexCoordinate.new(3, -7, 4)
+	var hex2 = HexCoordinate.new(0, 0, 0)
+	var distance = hex1.distance(hex2)
+	assert_eq(distance, 7, "六角形間の距離が正しく計算される")
 	

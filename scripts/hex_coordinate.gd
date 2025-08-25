@@ -35,3 +35,6 @@ func scale(factor: int) -> HexCoordinate:
 func neighbor(direction: int) -> HexCoordinate:
 	var dir = HEX_DIRECTIONS[direction]
 	return HexCoordinate.new(q + dir[0], r + dir[1], s + dir[2])
+
+func distance(other: HexCoordinate) -> int:
+	return (abs(q - other.q) + abs(r - other.r) + abs(s - other.s)) / 2
