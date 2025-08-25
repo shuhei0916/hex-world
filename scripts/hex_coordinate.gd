@@ -63,6 +63,13 @@ func diagonal_neighbor(direction: int) -> HexCoordinate:
 func distance(other: HexCoordinate) -> int:
 	return (abs(q - other.q) + abs(r - other.r) + abs(s - other.s)) / 2
 
+# Red Blob Games準拠: 六角形座標回転
+func rotate_left() -> HexCoordinate:
+	return HexCoordinate.new(-s, -q, -r)
+
+func rotate_right() -> HexCoordinate:
+	return HexCoordinate.new(-r, -s, -q)
+
 # Point-top hexagon pixel conversion (Red Blob Games implementation)
 func to_pixel(size: float, origin: Vector2) -> Vector2:
 	var sqrt3 = sqrt(3.0)

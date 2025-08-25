@@ -87,4 +87,20 @@ func test_hex_coordinate_invalid_creation():
 	assert_eq(valid_hex.q, 1, "有効座標のq値が正しい")
 	assert_eq(valid_hex.r, -2, "有効座標のr値が正しい")
 	assert_eq(valid_hex.s, 1, "有効座標のs値が正しい")
+
+func test_hex_rotate_left():
+	# Red Blob Games準拠: rotate_left(Hex(1, -3, 2)) → Hex(-2, -1, 3)
+	var hex = HexCoordinate.new(1, -3, 2)
+	var rotated = hex.rotate_left()
+	assert_eq(rotated.q, -2, "左回転後のq座標が正しい")
+	assert_eq(rotated.r, -1, "左回転後のr座標が正しい")
+	assert_eq(rotated.s, 3, "左回転後のs座標が正しい")
+
+func test_hex_rotate_right():
+	# Red Blob Games準拠: rotate_right(Hex(1, -3, 2)) → Hex(3, -2, -1)
+	var hex = HexCoordinate.new(1, -3, 2)
+	var rotated = hex.rotate_right()
+	assert_eq(rotated.q, 3, "右回転後のq座標が正しい")
+	assert_eq(rotated.r, -2, "右回転後のr座標が正しい")
+	assert_eq(rotated.s, -1, "右回転後のs座標が正しい")
 	
