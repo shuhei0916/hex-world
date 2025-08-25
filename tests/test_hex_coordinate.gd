@@ -27,4 +27,11 @@ func test_hex_coordinate_subtraction():
 	assert_eq(result.q, 1, "減算結果のq座標が正しい")
 	assert_eq(result.r, -2, "減算結果のr座標が正しい")
 	assert_eq(result.s, 1, "減算結果のs座標が正しい")
+
+func test_hex_coordinate_scaling():
+	var hex = HexCoordinate.new(1, -2, 1)
+	var result = hex.scale(2)
+	assert_eq(result.q, 2, "スケーリング結果のq座標が正しい")
+	assert_eq(result.r, -4, "スケーリング結果のr座標が正しい")
+	assert_eq(result.s, 2, "スケーリング結果のs座標が正しい")
 	

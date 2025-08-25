@@ -18,3 +18,6 @@ func add(other: HexCoordinate) -> HexCoordinate:
 
 func subtract(other: HexCoordinate) -> HexCoordinate:
 	return HexCoordinate.new(q - other.q, r - other.r, s - other.s)
+
+func scale(factor: int) -> HexCoordinate:
+	return HexCoordinate.new(q * factor, r * factor, s * factor)
