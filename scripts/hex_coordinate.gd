@@ -29,6 +29,16 @@ func _init(q_val: int, r_val: int, s_val: int):
 	q = q_val
 	r = r_val
 	s = s_val
+	# Red Blob Games準拠: 作成後すぐに制約を警告（ログ出力）
+	if not is_valid():
+		push_warning("HexCoordinate created with invalid constraint: q=%d, r=%d, s=%d (q+r+s=%d, should be 0)" % [q, r, s, q+r+s])
+
+# Red Blob Games準拠: 検証済み作成関数
+static func create_validated(q_val: int, r_val: int, s_val: int) -> HexCoordinate:
+	if q_val + r_val + s_val != 0:
+		push_error("Invalid hex coordinate: q + r + s must be 0, got q=%d, r=%d, s=%d (sum=%d)" % [q_val, r_val, s_val, q_val + r_val + s_val])
+		return null
+	return HexCoordinate.new(q_val, r_val, s_val)
 
 func is_valid() -> bool:
 	return q + r + s == 0

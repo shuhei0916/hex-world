@@ -71,4 +71,20 @@ func test_pixel_to_hex():
 	assert_eq(hex.q, 3, "pixel to hex q座標が正しい")
 	assert_eq(hex.r, 4, "pixel to hex r座標が正しい")
 	assert_eq(hex.s, -7, "pixel to hex s座標が正しい")
+
+func test_hex_coordinate_invalid_creation():
+	# Red Blob Games準拠: 無効な座標での作成を許可しない
+	var invalid_hex = HexCoordinate.new(1, 1, 1)  # q + r + s = 3 ≠ 0
+	assert_false(invalid_hex.is_valid(), "無効な座標(1,1,1)は is_valid() が false を返す")
+	
+	# より厳密なテスト: 作成時にエラーが発生することを確認
+	var should_fail = HexCoordinate.create_validated(1, 2, 3)  # q + r + s = 6 ≠ 0
+	assert_null(should_fail, "無効な座標での create_validated は null を返す")
+	
+	# 有効な座標は正常に作成される
+	var valid_hex = HexCoordinate.create_validated(1, -2, 1)  # q + r + s = 0
+	assert_not_null(valid_hex, "有効な座標での create_validated は座標を返す")
+	assert_eq(valid_hex.q, 1, "有効座標のq値が正しい")
+	assert_eq(valid_hex.r, -2, "有効座標のr値が正しい")
+	assert_eq(valid_hex.s, 1, "有効座標のs値が正しい")
 	
