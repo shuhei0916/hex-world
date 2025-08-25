@@ -107,3 +107,21 @@ static func hex_round(q_frac: float, r_frac: float, s_frac: float) -> HexCoordin
 		s_round = -q_round - r_round
 	
 	return HexCoordinate.new(int(q_round), int(r_round), int(s_round))
+
+# Red Blob Games準拠: 分数座標クラス
+class HexFractional:
+	var q: float
+	var r: float
+	var s: float
+	
+	func _init(q_val: float, r_val: float, s_val: float):
+		q = q_val
+		r = r_val
+		s = s_val
+
+# Red Blob Games準拠: 線形補間
+static func lerp(hex_a: HexCoordinate, hex_b: HexCoordinate, t: float) -> HexFractional:
+	var q_lerp = hex_a.q * (1.0 - t) + hex_b.q * t
+	var r_lerp = hex_a.r * (1.0 - t) + hex_b.r * t
+	var s_lerp = hex_a.s * (1.0 - t) + hex_b.s * t
+	return HexFractional.new(q_lerp, r_lerp, s_lerp)

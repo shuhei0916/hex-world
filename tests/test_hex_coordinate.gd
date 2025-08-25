@@ -110,4 +110,13 @@ func test_hex_direction():
 	assert_eq(direction_vec.q, 0, "方向2(左上)のq座標が正しい")
 	assert_eq(direction_vec.r, -1, "方向2(左上)のr座標が正しい")
 	assert_eq(direction_vec.s, 1, "方向2(左上)のs座標が正しい")
+
+func test_hex_lerp():
+	# Red Blob Games準拠: hex_lerp(Hex(0,0,0), Hex(10,-20,10), 0.5) → Hex(5,-10,5)
+	var hex_a = HexCoordinate.new(0, 0, 0)
+	var hex_b = HexCoordinate.new(10, -20, 10)
+	var lerped = HexCoordinate.lerp(hex_a, hex_b, 0.5)
+	assert_almost_eq(lerped.q, 5.0, 0.001, "線形補間のq座標が正しい")
+	assert_almost_eq(lerped.r, -10.0, 0.001, "線形補間のr座標が正しい")
+	assert_almost_eq(lerped.s, 5.0, 0.001, "線形補間のs座標が正しい")
 	
