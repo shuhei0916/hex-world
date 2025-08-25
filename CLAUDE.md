@@ -15,7 +15,7 @@ Hexグリッドの自動化ゲーム×パズルゲームをGodotで実装しま�
 
 ### TDD（テスト駆動開発）に従った開発
 
-t-wada と Kent Beck の TDD ワークフローを採用します：
+**重要**t-wada と Kent Beck の TDD ワークフローを採用します：
 
 1. 網羅したいテストシナリオのリスト（test_list.md）を書く
 2. テストリストの中から「ひとつだけ」選び出し、実際に、具体的で、実行可能なテストコードに翻訳し、テストが失敗することを確認する
@@ -25,12 +25,19 @@ t-wada と Kent Beck の TDD ワークフローを採用します：
 
 ### GDScriptでのテスト
 
-Godotでのテストは以下のアプローチを使用：
-- `gut` (Godot Unit Test) フレームワークを使用
-- テストファイルは `test/` ディレクトリに配置
-- テスト実行: `godot --headless --script addons/gut/gut_cmdln.gd`
+Godotでのテストは以下のアプローチを使用します：
+- `gut` (Godot Unit Test) フレームワークを使用すること
+- テストファイルは `test/` ディレクトリに配置すること
+- このコマンドを実行してGUTテストをコマンドラインで実行すること: `godot --headless --script addons/gut/gut_cmdln.gd -gdir=res://tests/ -gexit`
 
-## Git構成
+## Git
+
+### コミット
+- **重要**: 一つのTDDサイクルごとに一つのコミットを行うこと
+- コミットの形式はConventional Commitsに従うこと
+- **重要**: TDDの次のサイクルに移る前に必ずユーザーに確認を求めること
+
+###  Git構成
 
 - `.gitignore`はGodot 4+用に設定（`.godot/`, `/android/`, `/data/`を除外）
 - `.gitattributes`により改行コードをLFに統一
@@ -52,6 +59,3 @@ tests/                # テストファイル
 ## コミュニケーション
 
 - **重要**: 全ての回答とコミュニケーションは日本語で行うこと
-- 一つのTDDサイクルごとに一つのコミットを行うこと
-- コミットの形式はConventional Commitsに従うこと
-- TDDの次のサイクルに移る前に必ずユーザーに確認を求めること
