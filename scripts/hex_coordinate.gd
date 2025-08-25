@@ -12,3 +12,6 @@ func _init(q_val: int, r_val: int, s_val: int):
 
 func is_valid() -> bool:
 	return q + r + s == 0
+
+func add(other: HexCoordinate) -> HexCoordinate:
+	return HexCoordinate.new(q + other.q, r + other.r, s + other.s)
