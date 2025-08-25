@@ -54,4 +54,21 @@ func test_hex_diagonal_neighbor():
 	assert_eq(diagonal.q, -1, "対角隣接セル(方向3)のq座標が正しい")
 	assert_eq(diagonal.r, -1, "対角隣接セル(方向3)のr座標が正しい")
 	assert_eq(diagonal.s, 2, "対角隣接セル(方向3)のs座標が正しい")
+
+func test_hex_to_pixel():
+	var hex = HexCoordinate.new(3, 4, -7)
+	var size = 10.0
+	var origin = Vector2(35.0, 71.0)
+	var pixel = hex.to_pixel(size, origin)
+	assert_almost_eq(pixel.x, 121.602, 0.01, "hex to pixel X座標が正しい")
+	assert_almost_eq(pixel.y, 131.0, 0.001, "hex to pixel Y座標が正しい")
+
+func test_pixel_to_hex():
+	var pixel = Vector2(121.602, 131.0)
+	var size = 10.0
+	var origin = Vector2(35.0, 71.0)
+	var hex = HexCoordinate.from_pixel(pixel, size, origin)
+	assert_eq(hex.q, 3, "pixel to hex q座標が正しい")
+	assert_eq(hex.r, 4, "pixel to hex r座標が正しい")
+	assert_eq(hex.s, -7, "pixel to hex s座標が正しい")
 	

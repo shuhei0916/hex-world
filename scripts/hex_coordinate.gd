@@ -52,3 +52,36 @@ func diagonal_neighbor(direction: int) -> HexCoordinate:
 
 func distance(other: HexCoordinate) -> int:
 	return (abs(q - other.q) + abs(r - other.r) + abs(s - other.s)) / 2
+
+# Point-top hexagon pixel conversion (Red Blob Games implementation)
+func to_pixel(size: float, origin: Vector2) -> Vector2:
+	var sqrt3 = sqrt(3.0)
+	var x = size * (sqrt3 * q + sqrt3/2.0 * r)
+	var y = size * (3.0/2.0 * r)
+	return Vector2(x + origin.x, y + origin.y)
+
+static func from_pixel(pixel: Vector2, size: float, origin: Vector2) -> HexCoordinate:
+	var sqrt3 = sqrt(3.0)
+	var pt = Vector2(pixel.x - origin.x, pixel.y - origin.y)
+	var q_frac = (sqrt3/3.0 * pt.x - 1.0/3.0 * pt.y) / size
+	var r_frac = (2.0/3.0 * pt.y) / size
+	var s_frac = -q_frac - r_frac
+	return hex_round(q_frac, r_frac, s_frac)
+
+static func hex_round(q_frac: float, r_frac: float, s_frac: float) -> HexCoordinate:
+	var q_round = round(q_frac)
+	var r_round = round(r_frac)
+	var s_round = round(s_frac)
+	
+	var q_diff = abs(q_round - q_frac)
+	var r_diff = abs(r_round - r_frac)
+	var s_diff = abs(s_round - s_frac)
+	
+	if q_diff > r_diff and q_diff > s_diff:
+		q_round = -r_round - s_round
+	elif r_diff > s_diff:
+		r_round = -q_round - s_round
+	else:
+		s_round = -q_round - r_round
+	
+	return HexCoordinate.new(int(q_round), int(r_round), int(s_round))
