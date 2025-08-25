@@ -125,3 +125,22 @@ static func lerp(hex_a: HexCoordinate, hex_b: HexCoordinate, t: float) -> HexFra
 	var r_lerp = hex_a.r * (1.0 - t) + hex_b.r * t
 	var s_lerp = hex_a.s * (1.0 - t) + hex_b.s * t
 	return HexFractional.new(q_lerp, r_lerp, s_lerp)
+
+# Red Blob Games準拠: 線描画（2点間の六角形パス）
+static func line_draw(hex_a: HexCoordinate, hex_b: HexCoordinate) -> Array[HexCoordinate]:
+	var N = hex_a.distance(hex_b)
+	var results: Array[HexCoordinate] = []
+	
+	# nudge: 丸め誤差を避けるための微小な値
+	var a_nudge = HexFractional.new(hex_a.q + 1e-06, hex_a.r + 1e-06, hex_a.s - 2e-06)
+	var b_nudge = HexFractional.new(hex_b.q + 1e-06, hex_b.r + 1e-06, hex_b.s - 2e-06)
+	
+	var step = 1.0 / max(N, 1)
+	for i in range(N + 1):
+		var t = step * i
+		var q_lerp = a_nudge.q * (1.0 - t) + b_nudge.q * t
+		var r_lerp = a_nudge.r * (1.0 - t) + b_nudge.r * t
+		var s_lerp = a_nudge.s * (1.0 - t) + b_nudge.s * t
+		results.append(hex_round(q_lerp, r_lerp, s_lerp))
+	
+	return results

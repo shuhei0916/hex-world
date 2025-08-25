@@ -119,4 +119,25 @@ func test_hex_lerp():
 	assert_almost_eq(lerped.q, 5.0, 0.001, "線形補間のq座標が正しい")
 	assert_almost_eq(lerped.r, -10.0, 0.001, "線形補間のr座標が正しい")
 	assert_almost_eq(lerped.s, 5.0, 0.001, "線形補間のs座標が正しい")
+
+func test_hex_line_draw():
+	# Red Blob Games準拠: hex_linedraw(Hex(0,0,0), Hex(1,-5,4)) → 
+	# [Hex(0,0,0), Hex(0,-1,1), Hex(0,-2,2), Hex(1,-3,2), Hex(1,-4,3), Hex(1,-5,4)]
+	var hex_a = HexCoordinate.new(0, 0, 0)
+	var hex_b = HexCoordinate.new(1, -5, 4)
+	var line = HexCoordinate.line_draw(hex_a, hex_b)
+	assert_eq(line.size(), 6, "線描画の点数が正しい")
+	
+	# 各点をチェック
+	assert_eq(line[0].q, 0, "線上の点0のq座標が正しい")
+	assert_eq(line[0].r, 0, "線上の点0のr座標が正しい")
+	assert_eq(line[0].s, 0, "線上の点0のs座標が正しい")
+	
+	assert_eq(line[1].q, 0, "線上の点1のq座標が正しい")
+	assert_eq(line[1].r, -1, "線上の点1のr座標が正しい")
+	assert_eq(line[1].s, 1, "線上の点1のs座標が正しい")
+	
+	assert_eq(line[5].q, 1, "線上の点5のq座標が正しい")
+	assert_eq(line[5].r, -5, "線上の点5のr座標が正しい")
+	assert_eq(line[5].s, 4, "線上の点5のs座標が正しい")
 	
