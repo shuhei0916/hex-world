@@ -56,6 +56,11 @@ func neighbor(direction: int) -> HexCoordinate:
 	var dir = HEX_DIRECTIONS[direction]
 	return HexCoordinate.new(q + dir[0], r + dir[1], s + dir[2])
 
+# Red Blob Games準拠: 方向ベクトル取得
+static func direction(direction_index: int) -> HexCoordinate:
+	var dir = HEX_DIRECTIONS[direction_index]
+	return HexCoordinate.new(dir[0], dir[1], dir[2])
+
 func diagonal_neighbor(direction: int) -> HexCoordinate:
 	var diag = HEX_DIAGONALS[direction]
 	return HexCoordinate.new(q + diag[0], r + diag[1], s + diag[2])

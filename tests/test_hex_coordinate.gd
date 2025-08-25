@@ -103,4 +103,11 @@ func test_hex_rotate_right():
 	assert_eq(rotated.q, 3, "右回転後のq座標が正しい")
 	assert_eq(rotated.r, -2, "右回転後のr座標が正しい")
 	assert_eq(rotated.s, -1, "右回転後のs座標が正しい")
+
+func test_hex_direction():
+	# Red Blob Games準拠: hex_direction(2) → Hex(0, -1, 1)
+	var direction_vec = HexCoordinate.direction(2)
+	assert_eq(direction_vec.q, 0, "方向2(左上)のq座標が正しい")
+	assert_eq(direction_vec.r, -1, "方向2(左上)のr座標が正しい")
+	assert_eq(direction_vec.s, 1, "方向2(左上)のs座標が正しい")
 	
