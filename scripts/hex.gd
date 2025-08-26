@@ -1,11 +1,11 @@
 class_name Hex
 extends RefCounted
 
-var q: int
-var r: int  
-var s: int
+var q
+var r  
+var s
 
-func _init(q_val: int, r_val: int, s_val: int):
+func _init(q_val, r_val, s_val):
 	q = q_val
 	r = r_val
 	s = s_val
@@ -67,3 +67,25 @@ static func length(hex: Hex) -> int:
 
 static func distance(a: Hex, b: Hex) -> int:
 	return length(subtract(a, b))
+
+static func round(hex: Hex) -> Hex:
+	var rq = roundi(hex.q)
+	var rr = roundi(hex.r) 
+	var rs = roundi(hex.s)
+	var q_diff = abs(rq - hex.q)
+	var r_diff = abs(rr - hex.r)
+	var s_diff = abs(rs - hex.s)
+	if q_diff > r_diff and q_diff > s_diff:
+		rq = -rr - rs
+	elif r_diff > s_diff:
+		rr = -rq - rs
+	else:
+		rs = -rq - rr
+	return Hex.new(rq, rr, rs)
+
+static func lerp(a: Hex, b: Hex, t: float) -> Hex:
+	return Hex.new(
+		a.q * (1.0 - t) + b.q * t,
+		a.r * (1.0 - t) + b.r * t,
+		a.s * (1.0 - t) + b.s * t
+	)

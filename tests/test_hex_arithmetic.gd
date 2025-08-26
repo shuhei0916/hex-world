@@ -100,3 +100,23 @@ func test_hex_distance():
 	var expected = 7  # hex_length(hex_subtract(Hex(3, -7, 4), Hex(0, 0, 0))) = hex_length(Hex(3, -7, 4)) = 7
 	var result = Hex.distance(hex_a, hex_b)
 	assert_eq(result, expected, "hex_distance should return correct distance")
+
+func test_hex_round():
+	# テストリスト項目: hex_round関数の実装とテスト
+	# Python版のテスト: hex_round(hex_lerp(Hex(0, 0, 0), Hex(10, -20, 10), 0.5)) -> Hex(5, -10, 5)
+	var hex_float = Hex.new(5.0, -10.0, 5.0)  # 既に整数値なので丸めても同じ
+	var expected = Hex.new(5, -10, 5)
+	var result = Hex.round(hex_float)
+	assert_true(Hex.equals(result, expected), "hex_round should return correct rounded hex")
+
+func test_hex_lerp():
+	# テストリスト項目: hex_lerp関数の実装とテスト
+	# Python版: hex_lerp(a, b, t) return Hex(a.q * (1.0 - t) + b.q * t, a.r * (1.0 - t) + b.r * t, a.s * (1.0 - t) + b.s * t)
+	var hex_a = Hex.new(0, 0, 0)
+	var hex_b = Hex.new(10, -20, 10)
+	var t = 0.5
+	var expected = Hex.new(5.0, -10.0, 5.0)  # 中点の浮動小数点座標
+	var result = Hex.lerp(hex_a, hex_b, t)
+	assert_almost_eq(result.q, expected.q, 0.001, "hex_lerp q component should be correct")
+	assert_almost_eq(result.r, expected.r, 0.001, "hex_lerp r component should be correct") 
+	assert_almost_eq(result.s, expected.s, 0.001, "hex_lerp s component should be correct")
