@@ -73,3 +73,13 @@ func test_hex_neighbor():
 	var expected = Hex.new(1, -3, 2)  # hex_add(Hex(1, -2, 1), Hex(0, -1, 1))
 	var result = Hex.neighbor(hex_center, direction)
 	assert_true(Hex.equals(result, expected), "hex_neighbor should return correct neighbor")
+
+func test_hex_diagonal_neighbor():
+	# テストリスト項目: hex_diagonal_neighbor関数の実装とテスト
+	# Python版: def hex_diagonal_neighbor(hex, direction): return hex_add(hex, hex_diagonals[direction])
+	# hex_diagonals[3] = Hex(-2, 1, 1)
+	var hex_center = Hex.new(1, -2, 1)
+	var direction = 3
+	var expected = Hex.new(-1, -1, 2)  # hex_add(Hex(1, -2, 1), Hex(-2, 1, 1))
+	var result = Hex.diagonal_neighbor(hex_center, direction)
+	assert_true(Hex.equals(result, expected), "hex_diagonal_neighbor should return correct diagonal neighbor")

@@ -15,8 +15,8 @@
 - [x] hex_directions配列の実装
 - [x] hex_direction関数の実装とテスト
 - [x] hex_neighbor関数の実装とテスト
-- [ ] hex_diagonals配列の実装
-- [ ] hex_diagonal_neighbor関数の実装とテスト
+- [x] hex_diagonals配列の実装
+- [x] hex_diagonal_neighbor関数の実装とテスト
 
 ### Phase 3: 距離と補間
 - [ ] hex_length関数の実装とテスト

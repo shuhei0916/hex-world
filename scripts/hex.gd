@@ -47,3 +47,16 @@ static func direction(direction: int) -> Hex:
 
 static func neighbor(hex: Hex, direction: int) -> Hex:
 	return add(hex, direction(direction))
+
+# 六角形対角線方向システム（本家 redblob_hex.py に準拠）
+static var HEX_DIAGONALS = [
+	Hex.new(2, -1, -1),   # 対角線方向0
+	Hex.new(1, -2, 1),    # 対角線方向1
+	Hex.new(-1, -1, 2),   # 対角線方向2
+	Hex.new(-2, 1, 1),    # 対角線方向3
+	Hex.new(-1, 2, -1),   # 対角線方向4
+	Hex.new(1, 1, -2)     # 対角線方向5
+]
+
+static func diagonal_neighbor(hex: Hex, direction: int) -> Hex:
+	return add(hex, HEX_DIAGONALS[direction])
