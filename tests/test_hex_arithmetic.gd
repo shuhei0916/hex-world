@@ -21,3 +21,23 @@ func test_hex_subtract():
 	assert_eq(result.q, -2)
 	assert_eq(result.r, 4)
 	assert_eq(result.s, -2)
+
+func test_hex_scale():
+	# テストリスト項目: hex_scale関数の実装とテスト  
+	# Python版: hex_scale(a, k) return Hex(a.q * k, a.r * k, a.s * k)
+	var hex_a = Hex.new(2, -3, 1)
+	var k = 3
+	var result = Hex.scale(hex_a, k)
+	assert_eq(result.q, 6)
+	assert_eq(result.r, -9)
+	assert_eq(result.s, 3)
+
+func test_hex_equals():
+	# Hex等価判定の実装とテスト
+	# Python版: equal_hex関数 a.q == b.q and a.s == b.s and a.r == b.r
+	var hex_a = Hex.new(1, -2, 1)
+	var hex_b = Hex.new(1, -2, 1)  # 同じ座標
+	var hex_c = Hex.new(2, -3, 1)  # 異なる座標
+	
+	assert_true(Hex.equals(hex_a, hex_b), "Same coordinates should be equal")
+	assert_false(Hex.equals(hex_a, hex_c), "Different coordinates should not be equal")

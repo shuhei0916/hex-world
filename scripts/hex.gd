@@ -19,3 +19,9 @@ static func add(a: Hex, b: Hex) -> Hex:
 
 static func subtract(a: Hex, b: Hex) -> Hex:
 	return Hex.new(a.q - b.q, a.r - b.r, a.s - b.s)
+
+static func scale(a: Hex, k: int) -> Hex:
+	return Hex.new(a.q * k, a.r * k, a.s * k)
+
+static func equals(a: Hex, b: Hex) -> bool:
+	return a.q == b.q and a.r == b.r and a.s == b.s
