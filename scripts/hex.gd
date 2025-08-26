@@ -25,3 +25,6 @@ static func scale(a: Hex, k: int) -> Hex:
 
 static func equals(a: Hex, b: Hex) -> bool:
 	return a.q == b.q and a.r == b.r and a.s == b.s
+
+static func rotate_left(a: Hex) -> Hex:
+	return Hex.new(-a.s, -a.q, -a.r)

@@ -13,7 +13,7 @@
 - [x] hex_add関数の実装とテスト
 - [x] hex_subtract関数の実装とテスト
 - [x] hex_scale関数の実装とテスト
-- [ ] hex_rotate_left関数の実装とテスト
+- [x] hex_rotate_left関数の実装とテスト
 - [ ] hex_rotate_right関数の実装とテスト
 - [ ] hex_directions配列の実装
 - [ ] hex_direction関数の実装とテスト

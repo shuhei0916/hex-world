@@ -41,3 +41,11 @@ func test_hex_equals_different_coordinates():
 	var hex_a = Hex.new(1, -2, 1)
 	var hex_c = Hex.new(2, -3, 1)  # 異なる座標
 	assert_false(Hex.equals(hex_a, hex_c), "Different coordinates should not be equal")
+
+func test_hex_rotate_left():
+	# テストリスト項目: hex_rotate_left関数の実装とテスト
+	# Python版: hex_rotate_left(a) return Hex(-a.s, -a.q, -a.r)
+	var hex_a = Hex.new(1, -3, 2)
+	var expected = Hex.new(-2, -1, 3)  # (-a.s, -a.q, -a.r) = (-2, -1, 3)
+	var result = Hex.rotate_left(hex_a)
+	assert_true(Hex.equals(result, expected), "hex_rotate_left should return correct result")
