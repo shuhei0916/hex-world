@@ -43,3 +43,6 @@ static func direction(direction: int) -> Hex:
 		Hex.new(0, 1, -1)    # 方向5
 	]
 	return hex_directions[direction]
+
+static func neighbor(hex: Hex, direction: int) -> Hex:
+	return add(hex, direction(direction))

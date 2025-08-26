@@ -64,3 +64,12 @@ func test_hex_direction():
 	var expected = Hex.new(0, -1, 1)  # hex_directions[2]
 	var result = Hex.direction(2)
 	assert_true(Hex.equals(result, expected), "Direction 2 should return Hex(0, -1, 1)")
+
+func test_hex_neighbor():
+	# テストリスト項目: hex_neighbor関数の実装とテスト
+	# Python版: def hex_neighbor(hex, direction): return hex_add(hex, hex_direction(direction))
+	var hex_center = Hex.new(1, -2, 1)
+	var direction = 2  # hex_direction(2) = Hex(0, -1, 1)
+	var expected = Hex.new(1, -3, 2)  # hex_add(Hex(1, -2, 1), Hex(0, -1, 1))
+	var result = Hex.neighbor(hex_center, direction)
+	assert_true(Hex.equals(result, expected), "hex_neighbor should return correct neighbor")
