@@ -25,19 +25,6 @@
 - [x] hex_lerp関数の実装とテスト
 - [x] hex_linedraw関数の実装とテスト
 
-### Phase 4: 座標変換システム
-- [ ] OffsetCoordクラスの実装
-- [ ] EVEN/ODD定数の実装
-- [ ] qoffset_from_cube関数の実装とテスト
-- [ ] qoffset_to_cube関数の実装とテスト
-- [ ] roffset_from_cube関数の実装とテスト
-- [ ] roffset_to_cube関数の実装とテスト
-- [ ] DoubledCoordクラスの実装
-- [ ] qdoubled_from_cube関数の実装とテスト
-- [ ] qdoubled_to_cube関数の実装とテスト
-- [ ] rdoubled_from_cube関数の実装とテスト
-- [ ] rdoubled_to_cube関数の実装とテスト
-- [ ] オフセット-ダブル座標変換関数群の実装とテスト
 
 ### Phase 5: レイアウトとピクセル変換
 - [ ] Orientationクラスの実装
@@ -61,7 +48,7 @@
 - [ ] test_hex_rotate_left関数のテスト
 - [ ] test_hex_round関数のテスト
 - [ ] test_hex_linedraw関数のテスト
-- [ ] test_layout関数のテスト
+- [x] test_layout関数のテスト
 - [ ] test_offset_roundtrip関数のテスト
 - [ ] test_offset_from_cube関数のテスト
 - [ ] test_offset_to_cube関数のテスト
