@@ -89,3 +89,13 @@ static func lerp(a: Hex, b: Hex, t: float) -> Hex:
 		a.r * (1.0 - t) + b.r * t,
 		a.s * (1.0 - t) + b.s * t
 	)
+
+static func linedraw(a: Hex, b: Hex) -> Array[Hex]:
+	var N = distance(a, b)
+	var a_nudge = Hex.new(a.q + 1e-06, a.r + 1e-06, a.s - 2e-06)
+	var b_nudge = Hex.new(b.q + 1e-06, b.r + 1e-06, b.s - 2e-06)
+	var results: Array[Hex] = []
+	var step = 1.0 / max(N, 1)
+	for i in range(0, N + 1):
+		results.append(Hex.round(Hex.lerp(a_nudge, b_nudge, step * i)))
+	return results

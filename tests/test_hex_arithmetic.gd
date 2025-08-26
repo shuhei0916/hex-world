@@ -120,3 +120,14 @@ func test_hex_lerp():
 	assert_almost_eq(result.q, expected.q, 0.001, "hex_lerp q component should be correct")
 	assert_almost_eq(result.r, expected.r, 0.001, "hex_lerp r component should be correct") 
 	assert_almost_eq(result.s, expected.s, 0.001, "hex_lerp s component should be correct")
+
+func test_hex_linedraw():
+	# テストリスト項目: hex_linedraw関数の実装とテスト
+	# Python版テストと同じ: hex_linedraw(Hex(0, 0, 0), Hex(1, -5, 4))
+	var hex_a = Hex.new(0, 0, 0)
+	var hex_b = Hex.new(1, -5, 4)
+	var result = Hex.linedraw(hex_a, hex_b)
+	var expected = [Hex.new(0, 0, 0), Hex.new(0, -1, 1), Hex.new(0, -2, 2), Hex.new(1, -3, 2), Hex.new(1, -4, 3), Hex.new(1, -5, 4)]
+	assert_eq(result.size(), expected.size(), "hex_linedraw should return correct number of hexes")
+	for i in range(result.size()):
+		assert_true(Hex.equals(result[i], expected[i]), "hex_linedraw point " + str(i) + " should be correct")

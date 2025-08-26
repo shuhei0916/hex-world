@@ -23,7 +23,7 @@
 - [x] hex_distance関数の実装とテスト
 - [x] hex_round関数の実装とテスト
 - [x] hex_lerp関数の実装とテスト
-- [ ] hex_linedraw関数の実装とテスト
+- [x] hex_linedraw関数の実装とテスト
 
 ### Phase 4: 座標変換システム
 - [ ] OffsetCoordクラスの実装
