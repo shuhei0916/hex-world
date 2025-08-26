@@ -28,3 +28,6 @@ static func equals(a: Hex, b: Hex) -> bool:
 
 static func rotate_left(a: Hex) -> Hex:
 	return Hex.new(-a.s, -a.q, -a.r)
+
+static func rotate_right(a: Hex) -> Hex:
+	return Hex.new(-a.r, -a.s, -a.q)

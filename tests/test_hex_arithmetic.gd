@@ -49,3 +49,11 @@ func test_hex_rotate_left():
 	var expected = Hex.new(-2, -1, 3)  # (-a.s, -a.q, -a.r) = (-2, -1, 3)
 	var result = Hex.rotate_left(hex_a)
 	assert_true(Hex.equals(result, expected), "hex_rotate_left should return correct result")
+
+func test_hex_rotate_right():
+	# テストリスト項目: hex_rotate_right関数の実装とテスト
+	# Python版: hex_rotate_right(a) return Hex(-a.r, -a.s, -a.q)
+	var hex_a = Hex.new(1, -3, 2)
+	var expected = Hex.new(3, -2, -1)  # (-a.r, -a.s, -a.q) = (3, -2, -1)
+	var result = Hex.rotate_right(hex_a)
+	assert_true(Hex.equals(result, expected), "hex_rotate_right should return correct result")
