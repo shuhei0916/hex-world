@@ -60,3 +60,7 @@ static var HEX_DIAGONALS = [
 
 static func diagonal_neighbor(hex: Hex, direction: int) -> Hex:
 	return add(hex, HEX_DIAGONALS[direction])
+
+# 六角形距離と補間（本家 redblob_hex.py に準拠）
+static func length(hex: Hex) -> int:
+	return (abs(hex.q) + abs(hex.r) + abs(hex.s)) / 2

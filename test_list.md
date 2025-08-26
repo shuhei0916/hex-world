@@ -19,7 +19,7 @@
 - [x] hex_diagonal_neighbor関数の実装とテスト
 
 ### Phase 3: 距離と補間
-- [ ] hex_length関数の実装とテスト
+- [x] hex_length関数の実装とテスト
 - [ ] hex_distance関数の実装とテスト
 - [ ] hex_round関数の実装とテスト
 - [ ] hex_lerp関数の実装とテスト

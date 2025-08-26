@@ -83,3 +83,11 @@ func test_hex_diagonal_neighbor():
 	var expected = Hex.new(-1, -1, 2)  # hex_add(Hex(1, -2, 1), Hex(-2, 1, 1))
 	var result = Hex.diagonal_neighbor(hex_center, direction)
 	assert_true(Hex.equals(result, expected), "hex_diagonal_neighbor should return correct diagonal neighbor")
+
+func test_hex_length():
+	# テストリスト項目: hex_length関数の実装とテスト
+	# Python版: def hex_length(hex): return (abs(hex.q) + abs(hex.r) + abs(hex.s)) // 2
+	var hex_a = Hex.new(3, -7, 4)
+	var expected = 7  # (abs(3) + abs(-7) + abs(4)) // 2 = (3 + 7 + 4) // 2 = 14 // 2 = 7
+	var result = Hex.length(hex_a)
+	assert_eq(result, expected, "hex_length should return correct length")
