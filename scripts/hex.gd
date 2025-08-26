@@ -33,16 +33,17 @@ static func rotate_right(a: Hex) -> Hex:
 	return Hex.new(-a.r, -a.s, -a.q)
 
 # 六角形方向システム（本家 redblob_hex.py に準拠）
+static var HEX_DIRECTIONS = [
+	Hex.new(1, 0, -1),   # 方向0
+	Hex.new(1, -1, 0),   # 方向1
+	Hex.new(0, -1, 1),   # 方向2
+	Hex.new(-1, 0, 1),   # 方向3
+	Hex.new(-1, 1, 0),   # 方向4
+	Hex.new(0, 1, -1)    # 方向5
+]
+
 static func direction(direction: int) -> Hex:
-	var hex_directions = [
-		Hex.new(1, 0, -1),   # 方向0
-		Hex.new(1, -1, 0),   # 方向1
-		Hex.new(0, -1, 1),   # 方向2
-		Hex.new(-1, 0, 1),   # 方向3
-		Hex.new(-1, 1, 0),   # 方向4
-		Hex.new(0, 1, -1)    # 方向5
-	]
-	return hex_directions[direction]
+	return HEX_DIRECTIONS[direction]
 
 static func neighbor(hex: Hex, direction: int) -> Hex:
 	return add(hex, direction(direction))

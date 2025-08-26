@@ -3,11 +3,8 @@
 ## Red Blob Games 六角形ライブラリ移植計画
 
 ### Phase 1: 基本構造とデータ型
-- [x] Hexクラスの基本実装（q, r, s座標）
 - [x] Hex座標の制約チェック（q + r + s = 0）
 - [x] Vector2の使用（Pointクラスの代わりにGodotのBuilt-in使用）
-- [x] Hexクラスのコンストラクタテスト
-- [x] Vector2使用テスト
 
 ### Phase 2: 基本的な六角形操作
 - [x] hex_add関数の実装とテスト
