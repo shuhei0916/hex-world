@@ -10,8 +10,8 @@
 - [x] Vector2使用テスト
 
 ### Phase 2: 基本的な六角形操作
-- [ ] hex_add関数の実装とテスト
-- [ ] hex_subtract関数の実装とテスト
+- [x] hex_add関数の実装とテスト
+- [x] hex_subtract関数の実装とテスト
 - [ ] hex_scale関数の実装とテスト
 - [ ] hex_rotate_left関数の実装とテスト
 - [ ] hex_rotate_right関数の実装とテスト
