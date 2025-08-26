@@ -58,16 +58,6 @@ func test_hex_rotate_right():
 	var result = Hex.rotate_right(hex_a)
 	assert_true(Hex.equals(result, expected), "hex_rotate_right should return correct result")
 
-func test_hex_directions():
-	# テストリスト項目: hex_directions配列の実装
-	# Python版: hex_directions = [Hex(1, 0, -1), Hex(1, -1, 0), Hex(0, -1, 1), Hex(-1, 0, 1), Hex(-1, 1, 0), Hex(0, 1, -1)]
-	var directions = Hex.get_directions()
-	assert_eq(directions.size(), 6, "hex_directions should have 6 elements")
-	
-	# 方向0をテスト: Hex(1, 0, -1)
-	var expected_0 = Hex.new(1, 0, -1)
-	assert_true(Hex.equals(directions[0], expected_0), "Direction 0 should be Hex(1, 0, -1)")
-
 func test_hex_direction():
 	# テストリスト項目: hex_direction関数の実装とテスト
 	# Python版: def hex_direction(direction): return hex_directions[direction]

@@ -33,8 +33,8 @@ static func rotate_right(a: Hex) -> Hex:
 	return Hex.new(-a.r, -a.s, -a.q)
 
 # 六角形方向システム（本家 redblob_hex.py に準拠）
-static func get_directions() -> Array[Hex]:
-	return [
+static func direction(direction: int) -> Hex:
+	var hex_directions = [
 		Hex.new(1, 0, -1),   # 方向0
 		Hex.new(1, -1, 0),   # 方向1
 		Hex.new(0, -1, 1),   # 方向2
@@ -42,7 +42,4 @@ static func get_directions() -> Array[Hex]:
 		Hex.new(-1, 1, 0),   # 方向4
 		Hex.new(0, 1, -1)    # 方向5
 	]
-
-static func direction(direction: int) -> Hex:
-	var directions = get_directions()
-	return directions[direction]
+	return hex_directions[direction]
