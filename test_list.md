@@ -16,7 +16,7 @@
 - [x] hex_rotate_left関数の実装とテスト
 - [x] hex_rotate_right関数の実装とテスト
 - [x] hex_directions配列の実装
-- [ ] hex_direction関数の実装とテスト
+- [x] hex_direction関数の実装とテスト
 - [ ] hex_neighbor関数の実装とテスト
 - [ ] hex_diagonals配列の実装
 - [ ] hex_diagonal_neighbor関数の実装とテスト

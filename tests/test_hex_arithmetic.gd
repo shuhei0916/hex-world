@@ -67,3 +67,10 @@ func test_hex_directions():
 	# 方向0をテスト: Hex(1, 0, -1)
 	var expected_0 = Hex.new(1, 0, -1)
 	assert_true(Hex.equals(directions[0], expected_0), "Direction 0 should be Hex(1, 0, -1)")
+
+func test_hex_direction():
+	# テストリスト項目: hex_direction関数の実装とテスト
+	# Python版: def hex_direction(direction): return hex_directions[direction]
+	var expected = Hex.new(0, -1, 1)  # hex_directions[2]
+	var result = Hex.direction(2)
+	assert_true(Hex.equals(result, expected), "Direction 2 should return Hex(0, -1, 1)")

@@ -42,3 +42,7 @@ static func get_directions() -> Array[Hex]:
 		Hex.new(-1, 1, 0),   # 方向4
 		Hex.new(0, 1, -1)    # 方向5
 	]
+
+static func direction(direction: int) -> Hex:
+	var directions = get_directions()
+	return directions[direction]
