@@ -91,3 +91,12 @@ func test_hex_length():
 	var expected = 7  # (abs(3) + abs(-7) + abs(4)) // 2 = (3 + 7 + 4) // 2 = 14 // 2 = 7
 	var result = Hex.length(hex_a)
 	assert_eq(result, expected, "hex_length should return correct length")
+
+func test_hex_distance():
+	# テストリスト項目: hex_distance関数の実装とテスト
+	# Python版: def hex_distance(a, b): return hex_length(hex_subtract(a, b))
+	var hex_a = Hex.new(3, -7, 4)
+	var hex_b = Hex.new(0, 0, 0)
+	var expected = 7  # hex_length(hex_subtract(Hex(3, -7, 4), Hex(0, 0, 0))) = hex_length(Hex(3, -7, 4)) = 7
+	var result = Hex.distance(hex_a, hex_b)
+	assert_eq(result, expected, "hex_distance should return correct distance")

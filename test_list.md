@@ -20,7 +20,7 @@
 
 ### Phase 3: 距離と補間
 - [x] hex_length関数の実装とテスト
-- [ ] hex_distance関数の実装とテスト
+- [x] hex_distance関数の実装とテスト
 - [ ] hex_round関数の実装とテスト
 - [ ] hex_lerp関数の実装とテスト
 - [ ] hex_linedraw関数の実装とテスト
