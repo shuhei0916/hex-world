@@ -9,7 +9,8 @@
       "WebFetch(domain:gut.readthedocs.io)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Read(//mnt/c/Users/Ito/Desktop/**)"
+      "Read(//mnt/c/Users/Ito/Desktop/**)",
+      "Read(//mnt/c/Users/Ito/projects/UnityProjects/**)"
     ],
     "deny": [],
     "ask": []
