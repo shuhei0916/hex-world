@@ -164,6 +164,23 @@ class TestHexDistance:
 		for i in range(result.size()):
 			assert_true(Hex.equals(result[i], expected[i]), "hex_linedraw point " + str(i) + " should be correct")
 
+# 2引数コンストラクタテスト
+class TestHexTwoArgConstructor:
+	extends GutTest
+	
+	var test_hex: Hex
+	
+	func before_all():
+		test_hex = Hex.new(1, 2)
+	
+	func test_two_arg_constructor_s_calculation():
+		assert_eq(test_hex.s, -3)
+	
+	func test_two_arg_vs_three_arg_equivalence():
+		var hex2 = Hex.new(2, -1)
+		var hex3 = Hex.new(2, -1, -1)
+		assert_true(Hex.equals(hex2, hex3))
+
 # レイアウト・ピクセル変換テスト
 class TestLayout:
 	extends GutTest

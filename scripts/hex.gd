@@ -5,10 +5,15 @@ var q
 var r  
 var s
 
-func _init(q_val, r_val, s_val):
+func _init(q_val, r_val, s_val = null):
 	q = q_val
 	r = r_val
-	s = s_val
+	if s_val == null:
+		# 2引数コンストラクタ: s = -q - r で自動計算
+		s = -q_val - r_val
+	else:
+		# 3引数コンストラクタ: s値を直接設定
+		s = s_val
 
 func is_valid() -> bool:
 	return (q + r + s) == 0
