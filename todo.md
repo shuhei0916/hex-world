@@ -25,9 +25,9 @@
   - [ ] ゴースト表示システム
   - [ ] 配置検証ロジック
 
-- [ ] GridDisplay.gd - グリッド表示システム
-  - [ ] Hexグリッドの視覚化
-  - [ ] GridManagerとの連携
+- [x] GridDisplay.gd - グリッド表示システム ✅
+  - [x] Hexグリッドの視覚化
+  - [x] GridManagerとの連携
 
 ## Phase 4: シーン構成&統合
 - [ ] MainScene.tscn - メインゲームシーン
