@@ -6,12 +6,13 @@ extends Node2D
 
 var layout: Layout
 var grid_hexes: Array[Hex] = []
+var hex_tile_scene = preload("res://scenes/HexTile.tscn")  # hexPrefab相当
 
 func _init():
-	# レイアウト設定（Pieceと同じ設定で統一）
+	# レイアウト設定（視覚化用に大きめサイズ）
 	layout = Layout.new(
 		Layout.layout_pointy,
-		Vector2(0.6, 0.6),
+		Vector2(40.0, 40.0),  # より大きなサイズで視覚化
 		Vector2(0.0, 0.0)
 	)
 
@@ -40,7 +41,29 @@ func register_grid_with_manager():
 	for hex in grid_hexes:
 		GridManager.register_grid_hex(hex)
 
-# グリッドを視覚的に描画（将来の拡張用）
+# 既存のhex表示をクリア
+func clear_existing_hexes():
+	for child in get_children():
+		child.queue_free()
+
+# グリッドを視覚的に描画（Unity風Instantiate実装）
 func draw_grid():
-	# TODO: 実際の描画機能は後で実装
-	pass
+	print("draw_grid() started with %d hexes" % grid_hexes.size())
+	
+	# 既存のhex表示をクリア
+	clear_existing_hexes()
+	
+	# Unity: Instantiate(hexPrefab, pos, Quaternion.identity, transform)
+	for i in range(grid_hexes.size()):
+		var hex = grid_hexes[i]
+		var world_pos = hex_to_pixel(hex)  # pos相当
+		var hex_instance = hex_tile_scene.instantiate()  # Instantiate相当
+		hex_instance.position = world_pos  # Quaternion.identity + pos設定
+		add_child(hex_instance)  # transform相当でNode2Dツリーに追加
+		hex_instance.setup_hex(hex)  # hex座標情報設定
+		
+		# 最初の数個の座標をデバッグログ出力
+		if i < 3:
+			print("Hex[%d]: coord(%d,%d) -> world_pos(%s)" % [i, hex.q, hex.r, world_pos])
+	
+	print("draw_grid() completed. Child count: %d" % get_child_count())

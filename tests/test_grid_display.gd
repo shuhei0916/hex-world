@@ -31,6 +31,20 @@ func test_grid_manager_integration():
 	var is_registered = GridManager.is_inside_grid(test_hex)
 	assert_true(is_registered)
 
+func test_draw_gridが呼ばれたか():
+	var grid_display = GridDisplayClass.new()
+	grid_display.create_hex_grid(2)
+	# 例外なく呼べることを確認
+	grid_display.draw_grid()
+	assert_true(true)  # エラーが出なければ成功
+
+func test_draw_grid_creates_child_nodes():
+	var grid_display = GridDisplayClass.new()
+	grid_display.create_hex_grid(1)  # 7個のhex
+	grid_display.draw_grid()
+	# 子ノード数で間接的に確認
+	assert_eq(grid_display.get_child_count(), 7)
+
 func before_each():
 	if GridManager:
 		GridManager.clear_grid()

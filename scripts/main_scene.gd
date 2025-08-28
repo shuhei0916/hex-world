@@ -15,3 +15,7 @@ func setup_game():
 		grid_display.create_hex_grid(4)  # 半径4の六角形グリッド
 		grid_display.register_grid_with_manager()
 		print("Grid created with %d hexes" % grid_display.get_grid_hex_count())
+		
+		# グリッドを視覚的に描画
+		grid_display.draw_grid()
+		print("Grid drawing completed with %d visual tiles" % grid_display.get_child_count())
