@@ -10,7 +10,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Read(//mnt/c/Users/Ito/Desktop/**)",
-      "Read(//mnt/c/Users/Ito/projects/UnityProjects/**)"
+      "Read(//mnt/c/Users/Ito/projects/UnityProjects/**)",
+      "Read(//mnt/c/Users/Ito/projects/GodotProjects/godot-demo-projects-master/2d/hexagonal_map/**)"
     ],
     "deny": [],
     "ask": []
