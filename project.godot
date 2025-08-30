@@ -23,3 +23,7 @@ PieceSpawner="*res://scripts/piece_spawner.gd"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[rendering]
+
+environment/defaults/default_clear_color=Color(0.129412, 0.129412, 0.129412, 1)

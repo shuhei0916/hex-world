@@ -365,6 +365,14 @@ sources/3 = SubResource("TileSetAtlasSource_1wiy7")
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_x5v4h")
 
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.771373, 0.0888597, 0.0943841, 1)
+
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="GridDisplay" type="Node2D" parent="."]
