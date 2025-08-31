@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bxvgvb7qmpn8k"]
+[gd_scene load_steps=4 format=3 uid="uid://bxvgvb7qmpn8k"]
 
 [ext_resource type="Script" uid="uid://durvpwbuchrbg" path="res://scripts/main_scene.gd" id="1_x5v4h"]
 [ext_resource type="Script" uid="uid://b4lqmco8tjlxp" path="res://scripts/grid_display.gd" id="2_8m2j4"]
+[ext_resource type="Script" uid="uid://dxq2ijlv8bsae" path="res://scripts/player.gd" id="3_7k8m3"]
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_x5v4h")
@@ -10,6 +11,9 @@ script = ExtResource("1_x5v4h")
 
 [node name="GridDisplay" type="Node2D" parent="."]
 script = ExtResource("2_8m2j4")
+
+[node name="Player" type="Node2D" parent="."]
+script = ExtResource("3_7k8m3")
 
 [node name="DebugLabel" type="Label" parent="."]
 offset_left = -550.0
