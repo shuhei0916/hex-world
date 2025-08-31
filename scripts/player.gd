@@ -1,5 +1,5 @@
 class_name Player
-extends Node2D
+extends CharacterBody2D
 
 # Player - プレイヤーキャラクター
 # hex座標系での移動とゲーム操作を管理する

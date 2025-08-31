@@ -15,7 +15,7 @@ func after_each():
 
 func test_Playerクラスが正しく初期化される():
 	assert_not_null(player)
-	assert_true(player is Node2D)
+	assert_true(player is CharacterBody2D)
 
 func test_Playerは初期位置でhex座標00に配置される():
 	assert_eq(player.current_hex_position.q, 0)

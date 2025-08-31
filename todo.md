@@ -3,6 +3,11 @@
     - [x] hexにaxial座標をオーバーレイで表示する。
 - [x] playerを作成（画像はassets/icon.svgを使用）
     - [ ] playerの動きを作成：クリックした座標に向かう
+        - [x] Player基盤修正（CharacterBody2D対応）
+        - [ ] クリック検出システム実装
+        - [ ] Player移動システム実装
+        - [ ] 移動実行処理実装
+        - [ ] 移動完了処理実装
     - [ ] playerのインベントリを作成
 - [ ] playerのインベントリから建造物（tetrahexユニット）を配置できるようにする。
   
