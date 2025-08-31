@@ -25,3 +25,16 @@ func test_Playerはicon_svgスプライトを持つ():
 	var sprite = player.get_node_or_null("Sprite2D")
 	assert_not_null(sprite)
 	assert_not_null(sprite.texture)
+
+func test_move_to_hexで移動経路が設定される():
+	var target_hex = Hex.new(2, 1)
+	player.move_to_hex(target_hex)
+	
+	# 移動経路が設定されていることを確認
+	assert_not_null(player.movement_path)
+	assert_true(player.movement_path.size() > 0)
+	
+	# 経路の最終目標が正しいことを確認
+	var final_destination = player.movement_path[-1]
+	assert_eq(final_destination.q, 2)
+	assert_eq(final_destination.r, 1)
