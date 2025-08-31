@@ -91,4 +91,7 @@ func handle_mouse_click(click_position: Vector2):
 	# Playerに移動指示を送信
 	var player = get_node_or_null("Player")
 	if player and player.has_method("move_to_hex"):
+		# PlayerにGridDisplayのレイアウトを設定
+		if grid_display and grid_display.layout:
+			player.grid_layout = grid_display.layout
 		player.move_to_hex(target_hex)

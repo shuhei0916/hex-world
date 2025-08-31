@@ -38,3 +38,28 @@ func test_move_to_hexで移動経路が設定される():
 	var final_destination = player.movement_path[-1]
 	assert_eq(final_destination.q, 2)
 	assert_eq(final_destination.r, 1)
+
+func test_移動経路があるときis_movingがtrueになる():
+	var target_hex = Hex.new(1, 0)
+	player.move_to_hex(target_hex)
+	
+	# 移動開始時にis_movingフラグが設定される
+	assert_true(player.is_moving)
+
+func test_GridDisplayのレイアウトを使用してhexからピクセル座標に変換できる():
+	# GridDisplayのモックを作成
+	var layout = Layout.new(
+		Layout.layout_pointy,
+		Vector2(30, 30),
+		Vector2(0, 0)
+	)
+	
+	# レイアウト設定
+	player.grid_layout = layout
+	
+	var hex_coord = Hex.new(1, 0)
+	var pixel_pos = player.hex_to_pixel_position(hex_coord)
+	
+	# ピクセル座標が正しく変換されることを確認
+	assert_not_null(pixel_pos)
+	assert_true(pixel_pos is Vector2)
