@@ -365,38 +365,10 @@ sources/3 = SubResource("TileSetAtlasSource_1wiy7")
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_x5v4h")
 
-[node name="ColorRect" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.771373, 0.0888597, 0.0943841, 1)
-
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="GridDisplay" type="Node2D" parent="."]
 script = ExtResource("2_8m2j4")
-
-[node name="UI" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="ScoreLabel" type="Label" parent="UI"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -300.0
-offset_right = 180.0
-offset_bottom = -270.0
-grow_vertical = 0
-text = "Score: 0"
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 tile_set = SubResource("TileSet_u1u68")

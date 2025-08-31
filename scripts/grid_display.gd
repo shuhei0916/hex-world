@@ -12,7 +12,7 @@ func _init():
 	# レイアウト設定（視覚化用に大きめサイズ）
 	layout = Layout.new(
 		Layout.layout_pointy,
-		Vector2(40.0, 40.0),  # より大きなサイズで視覚化
+		Vector2(42.0, 42.0),  # より大きなサイズで視覚化
 		Vector2(0.0, 0.0)
 	)
 
@@ -61,6 +61,7 @@ func draw_grid():
 		hex_instance.position = world_pos  # Quaternion.identity + pos設定
 		add_child(hex_instance)  # transform相当でNode2Dツリーに追加
 		hex_instance.setup_hex(hex)  # hex座標情報設定
+		hex_instance.get_node("Sprite2D").modulate = Color("#3D3D3D")
 		
 		# 最初の数個の座標をデバッグログ出力
 		if i < 3:

@@ -19,3 +19,11 @@ func setup_game():
 		# グリッドを視覚的に描画
 		grid_display.draw_grid()
 		print("Grid drawing completed with %d visual tiles" % grid_display.get_child_count())
+
+# マウス座標からhex座標を取得
+func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
+	if grid_display:
+		return Layout.pixel_to_hex_rounded(grid_display.layout, mouse_position)
+	else:
+		# フォールバック: グリッドがない場合は原点のhexを返す
+		return Hex.new(0, 0)
