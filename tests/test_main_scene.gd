@@ -60,3 +60,72 @@ func test_update_debug_displayメソッドが存在する():
 	var scene_instance = MainScene.instantiate()
 	assert_true(scene_instance.has_method("update_debug_display"))
 	scene_instance.queue_free()
+
+func test_デバッグモード変数が初期化されている():
+	var scene_instance = MainScene.instantiate()
+	assert_true(scene_instance.has_method("get") and scene_instance.get("debug_mode") != null)
+	assert_false(scene_instance.debug_mode)  # 初期状態はfalse
+	scene_instance.queue_free()
+
+func test_toggle_debug_modeメソッドが存在する():
+	var scene_instance = MainScene.instantiate()
+	assert_true(scene_instance.has_method("toggle_debug_mode"))
+	scene_instance.queue_free()
+
+func test_デバッグモードをトグルできる():
+	var scene_instance = MainScene.instantiate()
+	
+	# 初期状態はfalse
+	assert_false(scene_instance.debug_mode)
+	
+	# トグル実行
+	scene_instance.toggle_debug_mode()
+	assert_true(scene_instance.debug_mode)
+	
+	# 再度トグル
+	scene_instance.toggle_debug_mode()
+	assert_false(scene_instance.debug_mode)
+	
+	scene_instance.queue_free()
+
+func test_デバッグモードONでhexタイルに座標オーバーレイが表示される():
+	var scene_instance = MainScene.instantiate()
+	add_child(scene_instance)  # シーンツリーに追加して@onreadyを実行
+	
+	# setup_gameが自動実行されるので、hex_tileが作成されていることを確認
+	var grid_display = scene_instance.get_node("GridDisplay")
+	assert_true(grid_display.get_child_count() > 0)
+	
+	# デバッグモードをONにする
+	scene_instance.debug_mode = true
+	scene_instance.update_hex_overlay_display()
+	
+	# hex_tileにLabelが追加されていることを確認
+	var first_hex_tile = grid_display.get_child(0)
+	var coord_label = first_hex_tile.get_node_or_null("CoordLabel")
+	assert_not_null(coord_label)
+	assert_true(coord_label.visible)
+	
+	scene_instance.queue_free()
+
+func test_デバッグモードOFFでhexタイルの座標オーバーレイが非表示になる():
+	var scene_instance = MainScene.instantiate()
+	add_child(scene_instance)  # シーンツリーに追加して@onreadyを実行
+	
+	# setup_gameが自動実行されるので、hex_tileが作成されていることを確認
+	var grid_display = scene_instance.get_node("GridDisplay")
+	assert_true(grid_display.get_child_count() > 0)
+	
+	# 一度ONにしてからOFFにする
+	scene_instance.debug_mode = true
+	scene_instance.update_hex_overlay_display()
+	scene_instance.debug_mode = false
+	scene_instance.update_hex_overlay_display()
+	
+	# hex_tileのLabelが非表示になっていることを確認
+	var first_hex_tile = grid_display.get_child(0)
+	var coord_label = first_hex_tile.get_node_or_null("CoordLabel")
+	assert_not_null(coord_label)  # Labelは存在する
+	assert_false(coord_label.visible)  # しかし非表示
+	
+	scene_instance.queue_free()
