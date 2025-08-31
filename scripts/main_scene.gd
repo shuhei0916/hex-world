@@ -17,6 +17,9 @@ func _input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_F2:
 			toggle_debug_mode()
+	elif event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			handle_mouse_click(event.position)
 
 func setup_game():
 	# グリッド設定（Unity版のような中規模グリッド）
@@ -79,3 +82,13 @@ func update_hex_overlay_display():
 				# デバッグモードOFF: Labelを非表示
 				if coord_label:
 					coord_label.visible = false
+
+# マウスクリック処理
+func handle_mouse_click(click_position: Vector2):
+	# クリック位置をhex座標に変換
+	var target_hex = get_hex_at_mouse_position(click_position)
+	
+	# Playerに移動指示を送信
+	var player = get_node_or_null("Player")
+	if player and player.has_method("move_to_hex"):
+		player.move_to_hex(target_hex)

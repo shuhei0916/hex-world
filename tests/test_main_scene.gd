@@ -65,3 +65,24 @@ func test_MainSceneにPlayerが追加される():
 	var player = scene_instance.get_node_or_null("Player")
 	assert_not_null(player)
 	assert_true(player is Player)
+
+func test_クリックでPlayerに移動指示が送られる():
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	# テスト用のマウスクリックイベントを作成
+	var click_event = InputEventMouseButton.new()
+	click_event.button_index = MOUSE_BUTTON_LEFT
+	click_event.pressed = true
+	click_event.position = Vector2(100, 50)  # グリッド上の任意の位置
+	
+	# Playerにmove_to_hexメソッドがあることを前提とする
+	var player = scene_instance.get_node("Player")
+	var initial_target = player.get("target_hex_position")
+	
+	# クリックイベントを送信
+	scene_instance._input(click_event)
+	
+	# 移動指示が設定されたことを確認
+	var new_target = player.get("target_hex_position")
+	assert_not_null(new_target)
