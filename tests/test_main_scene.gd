@@ -48,3 +48,15 @@ func test_マウス座標からhex座標に変換できる():
 	assert_eq(hex_coord.r, 0)
 	
 	scene_instance.queue_free()
+
+func test_DebugLabelノードがシーンに存在する():
+	var scene_instance = MainScene.instantiate()
+	var debug_label = scene_instance.get_node("DebugLabel")
+	assert_not_null(debug_label)
+	assert_true(debug_label is Label)
+	scene_instance.queue_free()
+
+func test_update_debug_displayメソッドが存在する():
+	var scene_instance = MainScene.instantiate()
+	assert_true(scene_instance.has_method("update_debug_display"))
+	scene_instance.queue_free()

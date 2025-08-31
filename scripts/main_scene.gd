@@ -9,6 +9,9 @@ func _ready():
 	print("MainScene initialized")
 	setup_game()
 
+func _process(_delta):
+	update_debug_display()
+
 func setup_game():
 	# グリッド設定（Unity版のような中規模グリッド）
 	if grid_display:
@@ -27,3 +30,11 @@ func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
 	else:
 		# フォールバック: グリッドがない場合は原点のhexを返す
 		return Hex.new(0, 0)
+
+# デバッグ表示を更新
+func update_debug_display():
+	var debug_label = get_node("DebugLabel")
+	if debug_label:
+		var mouse_pos = get_global_mouse_position()
+		var hex_coord = get_hex_at_mouse_position(mouse_pos)
+		debug_label.text = "Hex: (%d, %d)" % [hex_coord.q, hex_coord.r]

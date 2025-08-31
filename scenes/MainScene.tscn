@@ -370,5 +370,15 @@ script = ExtResource("1_x5v4h")
 [node name="GridDisplay" type="Node2D" parent="."]
 script = ExtResource("2_8m2j4")
 
+[node name="DebugLabel" type="Label" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -50.0
+offset_right = 300.0
+offset_bottom = -10.0
+text = "Hex: (0, 0)"
+
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 tile_set = SubResource("TileSet_u1u68")
