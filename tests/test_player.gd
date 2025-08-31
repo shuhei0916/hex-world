@@ -4,11 +4,11 @@ extends GutTest
 # ゲーム内プレイヤーキャラクターとして、hex座標系でのナビゲーションを提供する
 class_name TestPlayer
 
-const PlayerClass = preload("res://scripts/player.gd")
+const PlayerScene = preload("res://scenes/Player.tscn")
 var player: Player
 
 func before_each():
-	player = PlayerClass.new()
+	player = PlayerScene.instantiate()
 
 func after_each():
 	player.queue_free()
