@@ -19,7 +19,8 @@ func _input(event):
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			handle_mouse_click(event.position)
+			var mouse_pos = get_global_mouse_position() # NOTE: 本来はevent.positionを変換して使うべき
+			handle_mouse_click(mouse_pos)
 
 func setup_game():
 	# グリッド設定（Unity版のような中規模グリッド）
@@ -46,7 +47,7 @@ func update_debug_display():
 	if debug_label:
 		var mouse_pos = get_global_mouse_position()
 		var hex_coord = get_hex_at_mouse_position(mouse_pos)
-		debug_label.text = "Hex: (%d, %d)" % [hex_coord.q, hex_coord.r]
+		debug_label.text = "Hex: (%2d, %2d)" % [hex_coord.q, hex_coord.r]
 
 # デバッグモードをトグル
 func toggle_debug_mode():
@@ -87,6 +88,7 @@ func update_hex_overlay_display():
 func handle_mouse_click(click_position: Vector2):
 	# クリック位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(click_position)
+	print("Mouse clicked at %s, targeting hex (%d, %d)" % [click_position, target_hex.q, target_hex.r])
 	
 	# Playerに移動指示を送信
 	var player = get_node_or_null("Player")

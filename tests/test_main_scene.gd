@@ -86,3 +86,21 @@ func test_クリックでPlayerに移動指示が送られる():
 	# 移動指示が設定されたことを確認
 	var new_target = player.get("target_hex_position")
 	assert_not_null(new_target)
+
+func test_マウス座標変換が一貫して正確に行われる():
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	# GridDisplayのレイアウトから既知のhex座標のピクセル座標を取得
+	var grid_display = scene_instance.grid_display
+	if grid_display and grid_display.layout:
+		# 原点に近いhex座標を使用（より確実な変換のため）
+		var target_hex = Hex.new(1, 0)
+		var expected_pixel_position = Layout.hex_to_pixel(grid_display.layout, target_hex)
+		
+		# そのピクセル座標を使用してhex座標に逆変換
+		var actual_hex = scene_instance.get_hex_at_mouse_position(expected_pixel_position)
+		
+		# 逆変換が正確であることを確認
+		var distance_to_expected = Hex.distance(actual_hex, target_hex)
+		assert_true(distance_to_expected == 0, "座標変換の精度が期待値から外れています: 期待 %s 実際 %s" % [target_hex, actual_hex])
