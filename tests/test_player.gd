@@ -1,65 +1,129 @@
 extends GutTest
 
-# Player - 動作するドキュメント
-# ゲーム内プレイヤーキャラクターとして、hex座標系でのナビゲーションを提供する
 class_name TestPlayer
 
-const PlayerScene = preload("res://scenes/Player.tscn")
-var player: Player
-
-func before_each():
-	player = PlayerScene.instantiate()
-
-func after_each():
-	player.queue_free()
-
-func test_Playerクラスが正しく初期化される():
-	assert_not_null(player)
-	assert_true(player is CharacterBody2D)
-
-func test_Playerは初期位置でhex座標00に配置される():
-	assert_eq(player.current_hex_position.q, 0)
-	assert_eq(player.current_hex_position.r, 0)
-
-func test_Playerはicon_svgスプライトを持つ():
-	var sprite = player.get_node_or_null("Sprite2D")
-	assert_not_null(sprite)
-	assert_not_null(sprite.texture)
-
-func test_move_to_hexで移動経路が設定される():
-	var target_hex = Hex.new(2, 1)
-	player.move_to_hex(target_hex)
+class TestPlayerBasics:
+	extends GutTest
 	
-	# 移動経路が設定されていることを確認
-	assert_not_null(player.movement_path)
-	assert_true(player.movement_path.size() > 0)
+	const PlayerScene = preload("res://scenes/Player.tscn")
+	var player: Player
 	
-	# 経路の最終目標が正しいことを確認
-	var final_destination = player.movement_path[-1]
-	assert_eq(final_destination.q, 2)
-	assert_eq(final_destination.r, 1)
+	func before_each():
+		player = PlayerScene.instantiate()
+	
+	func after_each():
+		player.queue_free()
+	
+	func test_Playerクラスが正しく初期化される():
+		assert_not_null(player)
+		assert_true(player is CharacterBody2D)
+	
+	func test_Playerは初期位置でhex座標00に配置される():
+		assert_eq(player.current_hex_position.q, 0)
+		assert_eq(player.current_hex_position.r, 0)
+	
+	func test_Playerはicon_svgスプライトを持つ():
+		var sprite = player.get_node_or_null("Sprite2D")
+		assert_not_null(sprite)
+		assert_not_null(sprite.texture)
 
-func test_移動経路があるときis_movingがtrueになる():
-	var target_hex = Hex.new(1, 0)
-	player.move_to_hex(target_hex)
+class TestPlayerMovement:
+	extends GutTest
 	
-	# 移動開始時にis_movingフラグが設定される
-	assert_true(player.is_moving)
+	const PlayerScene = preload("res://scenes/Player.tscn")
+	var player: Player
+	
+	func before_each():
+		player = PlayerScene.instantiate()
+	
+	func after_each():
+		player.queue_free()
+	
+	func test_move_to_hexで移動経路が設定される():
+		var target_hex = Hex.new(2, 1)
+		player.move_to_hex(target_hex)
+		
+		assert_not_null(player.movement_path)
+		assert_true(player.movement_path.size() > 0)
+		
+		var final_destination = player.movement_path[-1]
+		assert_eq(final_destination.q, 2)
+		assert_eq(final_destination.r, 1)
+	
+	func test_移動経路があるときis_movingがtrueになる():
+		var target_hex = Hex.new(1, 0)
+		player.move_to_hex(target_hex)
+		
+		assert_true(player.is_moving)
+	
+	func test_GridDisplayのレイアウトを使用してhexからピクセル座標に変換できる():
+		var layout = Layout.new(
+			Layout.layout_pointy,
+			Vector2(30, 30),
+			Vector2(0, 0)
+		)
+		
+		player.grid_layout = layout
+		
+		var hex_coord = Hex.new(1, 0)
+		var pixel_pos = player.hex_to_pixel_position(hex_coord)
+		
+		assert_not_null(pixel_pos)
+		assert_true(pixel_pos is Vector2)
 
-func test_GridDisplayのレイアウトを使用してhexからピクセル座標に変換できる():
-	# GridDisplayのモックを作成
-	var layout = Layout.new(
-		Layout.layout_pointy,
-		Vector2(30, 30),
-		Vector2(0, 0)
-	)
+class TestPlayerHexPositioning:
+	extends GutTest
 	
-	# レイアウト設定
-	player.grid_layout = layout
+	const Player = preload("res://scripts/player.gd")
 	
-	var hex_coord = Hex.new(1, 0)
-	var pixel_pos = player.hex_to_pixel_position(hex_coord)
+	var player: Player
+	var grid_layout: Layout
 	
-	# ピクセル座標が正しく変換されることを確認
-	assert_not_null(pixel_pos)
-	assert_true(pixel_pos is Vector2)
+	func before_each():
+		var orientation = Layout.layout_pointy
+		var size = Vector2(36.37306, 36.37306)
+		var origin = Vector2(0, 0)
+		grid_layout = Layout.new(orientation, size, origin)
+		
+		player = Player.new()
+		add_child(player)
+	
+	func after_each():
+		if player:
+			player.queue_free()
+			remove_child(player)
+		player = null
+		grid_layout = null
+	
+	func test_Playerは初期化時にhex座標00の中央に配置される():
+		player.setup_grid_layout(grid_layout)
+		
+		var expected_center = Layout.hex_to_pixel(grid_layout, Hex.new(0, 0))
+		
+		assert_eq(player.global_position, expected_center)
+		assert_true(Hex.equals(player.current_hex_position, Hex.new(0, 0)))
+	
+	func test_setup_grid_layoutでグリッドレイアウトが設定される():
+		assert_null(player.grid_layout)
+		
+		player.setup_grid_layout(grid_layout)
+		
+		assert_not_null(player.grid_layout)
+		assert_eq(player.grid_layout, grid_layout)
+
+	func test_各hexステップでの中央位置補正が動作する():
+		player.setup_grid_layout(grid_layout)
+		
+		# 移動経路の各ステップでhexの中央に配置されることを検証
+		var hex_steps = [Hex.new(0, 0), Hex.new(1, 0), Hex.new(1, -1), Hex.new(2, -1)]
+		
+		for hex_step in hex_steps:
+			# current_hex_positionを設定し、中央位置に補正
+			player.current_hex_position = hex_step
+			player.update_position_to_hex_center()
+			
+			# 期待される中央位置を計算
+			var expected_center = Layout.hex_to_pixel(grid_layout, hex_step)
+			
+			# プレイヤーがhexの中央に正確に配置されていることを確認
+			assert_eq(player.global_position, expected_center)
