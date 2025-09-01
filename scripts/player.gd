@@ -56,14 +56,32 @@ func move_to_hex(hex_coord: Hex):
 	# 移動開始
 	start_movement()
 
+# プレビュー用の経路計算（実際の移動は行わない）
+func preview_path_to_hex(hex_coord: Hex) -> Array[Hex]:
+	if not hex_coord:
+		return []
+	
+	# 現在位置から指定位置への経路をA*で計算
+	var preview_path = pathfinder.find_path(hex_graph, current_hex_position, hex_coord)
+	
+	# パスが見つからなかった場合は直線経路にフォールバック
+	if preview_path.is_empty():
+		preview_path = Hex.linedraw(current_hex_position, hex_coord)
+	
+	# 現在位置は除外（既にいるため）
+	if preview_path.size() > 0 and Hex.equals(preview_path[0], current_hex_position):
+		preview_path.remove_at(0)
+	
+	return preview_path
+
 # 移動を開始
 func start_movement():
 	if movement_path.size() > 0:
 		is_moving = true
 		next_hex_index = 0
 		set_next_target_pixel()
-		# 移動経路のハイライト要求シグナルを発火
-		path_highlight_requested.emit(movement_path)
+		# 移動開始時はプレビューハイライトをクリア（実際の移動が開始されるため）
+		path_highlight_cleared.emit()
 
 # hexグリッド経路を計算（A*パスファインディング）
 func calculate_movement_path():
