@@ -9,12 +9,12 @@
         - [x] 移動実行処理実装
         - [ ] 移動完了処理実装
             - [ ] redblobgamesを参考に、pathfindingのコードを実装する。
-                - [ ] HexGraphクラスを作成（hex座標系のGraph実装）
-                - [ ] PriorityQueueクラスをGDScriptで実装
-                - [ ] A*アルゴリズム基本実装（AStarPathfinderクラス）
-                - [ ] Hex座標用ヒューリスティック関数実装
-                - [ ] パス復元機能実装
-                - [ ] Player.calculate_movement_path()をA*に置換
+                - [x] HexGraphクラスを作成（hex座標系のGraph実装）
+                - [x] PriorityQueueクラスをGDScriptで実装
+                - [x] A*アルゴリズム基本実装（AStarPathfinderクラス）
+                - [x] Hex座標用ヒューリスティック関数実装
+                - [x] パス復元機能実装
+                - [x] Player.calculate_movement_path()をA*に置換
                 - [ ] 障害物対応（GridManagerとの連携）
                 - [ ] 統合テストとパフォーマンス確認
         - [ ] playerがhexの中央に位置するようにする

@@ -4,6 +4,9 @@ extends CharacterBody2D
 # Player - プレイヤーキャラクター
 # hex座標系での移動とゲーム操作を管理する
 
+const HexGraph = preload("res://scripts/hex_graph.gd")
+const AStarPathfinder = preload("res://scripts/a_star_pathfinder.gd")
+
 var current_hex_position: Hex
 var target_hex_position: Hex
 var movement_path: Array[Hex] = []
@@ -13,9 +16,20 @@ var move_speed: float = 200.0  # ピクセル/秒
 var current_target_pixel: Vector2
 var next_hex_index: int = 0
 
+# A*パスファインディング用
+var hex_graph: HexGraph
+var pathfinder: AStarPathfinder
+
 func _init():
 	# 初期位置は中央hex座標(0,0)
 	current_hex_position = Hex.new(0, 0)
+	
+	# A*パスファインディングコンポーネントを初期化
+	hex_graph = HexGraph.new()
+	pathfinder = AStarPathfinder.new()
+	
+	# グリッドの境界を設定（現在は半径4のグリッドを使用）
+	hex_graph.set_bounds(4)
 
 func move_to_hex(hex_coord: Hex):
 	# 移動目標を設定
@@ -32,23 +46,31 @@ func start_movement():
 		next_hex_index = 0
 		set_next_target_pixel()
 
-# hexグリッド経路を計算（直線経路）
+# hexグリッド経路を計算（A*パスファインディング）
 func calculate_movement_path():
 	if not target_hex_position:
 		return
 	
 	movement_path.clear()
 	
-	# 現在位置から目標位置への直線経路を生成
+	# 現在位置から目標位置への最適経路をA*で計算
 	var start = current_hex_position
 	var end = target_hex_position
 	
-	# linedraw関数を使用して経路を計算
-	movement_path = Hex.linedraw(start, end)
+	# A*アルゴリズムを使用して経路を計算
+	movement_path = pathfinder.find_path(hex_graph, start, end)
+	
+	# パスが見つからなかった場合は直線経路にフォールバック
+	if movement_path.is_empty():
+		print("A*パスが見つからないため直線経路を使用: ", start, " -> ", end)
+		movement_path = Hex.linedraw(start, end)
 	
 	# 現在位置は除外（既にいるため）
 	if movement_path.size() > 0 and Hex.equals(movement_path[0], start):
 		movement_path.remove_at(0)
+	
+	# デバッグ出力
+	print("計算された経路 (", movement_path.size(), "ステップ): ", movement_path)
 
 # hex座標からピクセル座標に変換
 func hex_to_pixel_position(hex_coord: Hex) -> Vector2:
