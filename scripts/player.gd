@@ -4,6 +4,10 @@ extends CharacterBody2D
 # Player - プレイヤーキャラクター
 # hex座標系での移動とゲーム操作を管理する
 
+# 移動経路ハイライト用シグナル
+signal path_highlight_requested(path: Array[Hex])
+signal path_highlight_cleared()
+
 const HexGraph = preload("res://scripts/hex_graph.gd")
 const AStarPathfinder = preload("res://scripts/a_star_pathfinder.gd")
 
@@ -58,6 +62,8 @@ func start_movement():
 		is_moving = true
 		next_hex_index = 0
 		set_next_target_pixel()
+		# 移動経路のハイライト要求シグナルを発火
+		path_highlight_requested.emit(movement_path)
 
 # hexグリッド経路を計算（A*パスファインディング）
 func calculate_movement_path():

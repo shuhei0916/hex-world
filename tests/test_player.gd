@@ -71,6 +71,28 @@ class TestPlayerMovement:
 		assert_not_null(pixel_pos)
 		assert_true(pixel_pos is Vector2)
 
+	func test_移動経路ハイライト用のシグナルが存在する():
+		# Playerクラスが移動経路をハイライト要求するシグナルを持つことを確認
+		assert_true(player.has_signal("path_highlight_requested"))
+		assert_true(player.has_signal("path_highlight_cleared"))
+
+	func test_move_to_hex実行時にpath_highlight_requestedシグナルが発火される():
+		# シグナル発火を監視
+		watch_signals(player)
+		
+		# 移動指示を実行
+		var target_hex = Hex.new(2, 1)
+		player.move_to_hex(target_hex)
+		
+		# path_highlight_requestedシグナルが発火されたことを確認
+		assert_signal_emitted(player, "path_highlight_requested")
+		
+		# シグナルパラメータに移動経路が含まれることを確認
+		var signal_args = get_signal_parameters(player, "path_highlight_requested")
+		assert_not_null(signal_args)
+		assert_true(signal_args.size() > 0)
+		assert_true(signal_args[0] is Array)
+
 class TestPlayerHexPositioning:
 	extends GutTest
 	
