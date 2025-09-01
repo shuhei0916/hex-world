@@ -32,6 +32,12 @@ func setup_game():
 		# グリッドを視覚的に描画
 		grid_display.draw_grid()
 		print("Grid drawing completed with %d visual tiles" % grid_display.get_child_count())
+		
+		# Playerにグリッドレイアウトを設定し、初期位置を設定
+		var player = get_node_or_null("Player")
+		if player and player.has_method("setup_grid_layout") and grid_display.layout:
+			player.setup_grid_layout(grid_display.layout)
+			print("Player初期位置を hex(0,0) の中央に設定")
 
 # マウス座標からhex座標を取得
 func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
@@ -95,5 +101,5 @@ func handle_mouse_click(click_position: Vector2):
 	if player and player.has_method("move_to_hex"):
 		# PlayerにGridDisplayのレイアウトを設定
 		if grid_display and grid_display.layout:
-			player.grid_layout = grid_display.layout
+			player.setup_grid_layout(grid_display.layout)
 		player.move_to_hex(target_hex)

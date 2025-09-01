@@ -17,7 +17,7 @@
                 - [x] Player.calculate_movement_path()をA*に置換
                 - [ ] 障害物対応（GridManagerとの連携）
                 - [ ] 統合テストとパフォーマンス確認
-        - [ ] playerがhexの中央に位置するようにする
+        - [x] playerがhexの中央に位置するようにする
         - [ ] 移動する際、道のりをハイライトするようにする。
     - [ ] playerのインベントリを作成
 - [ ] playerのインベントリから建造物（tetrahexユニット）を配置できるようにする。

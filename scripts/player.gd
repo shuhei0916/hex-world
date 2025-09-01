@@ -31,6 +31,19 @@ func _init():
 	# グリッドの境界を設定（現在は半径4のグリッドを使用）
 	hex_graph.set_bounds(4)
 
+# グリッドレイアウトを設定し、プレイヤーを正しい位置に配置
+func setup_grid_layout(layout: Layout):
+	grid_layout = layout
+	# 現在のhex座標に基づいてピクセル位置を設定
+	update_position_to_hex_center()
+
+# プレイヤーを現在のhex座標の中央に正確に配置
+func update_position_to_hex_center():
+	if grid_layout and current_hex_position:
+		var center_position = hex_to_pixel_position(current_hex_position)
+		global_position = center_position
+		print("プレイヤーを hex(", current_hex_position.q, ",", current_hex_position.r, ") の中央 ", center_position, " に配置")
+
 func move_to_hex(hex_coord: Hex):
 	# 移動目標を設定
 	target_hex_position = hex_coord
@@ -100,15 +113,18 @@ func process_movement(delta):
 		# 次のhex位置に移動完了
 		if next_hex_index < movement_path.size():
 			current_hex_position = movement_path[next_hex_index]
+			# プレイヤーをhexの中央に正確に配置
+			update_position_to_hex_center()
 			next_hex_index += 1
 			
 			# まだ経路が残っている場合は次の目標を設定
 			if next_hex_index < movement_path.size():
 				set_next_target_pixel()
 			else:
-				# 全経路完了
+				# 全経路完了 - 最終位置もhexの中央に配置
 				is_moving = false
 				movement_path.clear()
+				update_position_to_hex_center()
 	else:
 		# 目標に向かって移動
 		var direction = global_position.direction_to(current_target_pixel)
