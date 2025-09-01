@@ -21,7 +21,7 @@
             - [x] test_Playerは初期化時にhex座標00の中央に配置される
             - [x] test_setup_grid_layoutでグリッドレイアウトが設定される
             - [x] test_update_position_to_hex_centerで正確な中央位置に配置される
-            - [ ] test_移動完了時にhexの中央に配置される
+            - [x] test_移動完了時にhexの中央に配置される
             - [x] test_各hexステップでの中央位置補正が動作する
         - [ ] 移動する際、道のりをハイライトするようにする。
     - [ ] playerのインベントリを作成

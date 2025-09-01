@@ -127,3 +127,30 @@ class TestPlayerHexPositioning:
 			
 			# プレイヤーがhexの中央に正確に配置されていることを確認
 			assert_eq(player.global_position, expected_center)
+
+	func test_移動完了時にhexの中央に配置される():
+		player.setup_grid_layout(grid_layout)
+		
+		# 目標hex座標への移動を開始
+		var target_hex = Hex.new(2, -1)
+		player.move_to_hex(target_hex)
+		
+		# 移動が完了するまでprocess_movementを実行
+		# プレイヤーが目標位置に到達し、移動状態が完了することを確認
+		var max_iterations = 1000  # 無限ループ防止
+		var iterations = 0
+		
+		while player.is_moving and iterations < max_iterations:
+			# 移動を1フレーム進行（delta=0.016は約60FPSを想定）
+			player.process_movement(0.016)
+			iterations += 1
+		
+		# 移動完了を確認
+		assert_false(player.is_moving)
+		
+		# 最終位置が目標hexの中央に正確に配置されていることを確認
+		var expected_final_position = Layout.hex_to_pixel(grid_layout, target_hex)
+		assert_eq(player.global_position, expected_final_position)
+		
+		# current_hex_positionも更新されていることを確認
+		assert_true(Hex.equals(player.current_hex_position, target_hex))
