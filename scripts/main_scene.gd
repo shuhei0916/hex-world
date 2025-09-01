@@ -38,6 +38,9 @@ func setup_game():
 		if player and player.has_method("setup_grid_layout") and grid_display.layout:
 			player.setup_grid_layout(grid_display.layout)
 			print("Player初期位置を hex(0,0) の中央に設定")
+			
+			# Playerのパスハイライトシグナルを接続
+			setup_path_highlight_signals(player)
 
 # マウス座標からhex座標を取得
 func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
@@ -103,3 +106,24 @@ func handle_mouse_click(click_position: Vector2):
 		if grid_display and grid_display.layout:
 			player.setup_grid_layout(grid_display.layout)
 		player.move_to_hex(target_hex)
+
+# Playerのパスハイライトシグナルを設定
+func setup_path_highlight_signals(player):
+	if player.has_signal("path_highlight_requested"):
+		if not player.path_highlight_requested.is_connected(_on_path_highlight_requested):
+			player.path_highlight_requested.connect(_on_path_highlight_requested)
+	if player.has_signal("path_highlight_cleared"):
+		if not player.path_highlight_cleared.is_connected(_on_path_highlight_cleared):
+			player.path_highlight_cleared.connect(_on_path_highlight_cleared)
+
+# パスハイライト要求時の処理
+func _on_path_highlight_requested(hex_path: Array[Hex]):
+	if grid_display:
+		grid_display.highlight_path(hex_path)
+		print("Path highlighted with %d hexes" % hex_path.size())
+
+# パスハイライトクリア時の処理  
+func _on_path_highlight_cleared():
+	if grid_display:
+		grid_display.clear_path_highlight()
+		print("Path highlight cleared")

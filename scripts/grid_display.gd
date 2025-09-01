@@ -60,11 +60,35 @@ func draw_grid():
 		var hex_instance = hex_tile_scene.instantiate()  # Instantiate相当
 		hex_instance.position = world_pos  # Quaternion.identity + pos設定
 		add_child(hex_instance)  # transform相当でNode2Dツリーに追加
-		hex_instance.setup_hex(hex)  # hex座標情報設定
-		hex_instance.get_node("Sprite2D").modulate = Color("#3D3D3D")
+		hex_instance.setup_hex(hex)  # hex座標情報設定（デフォルト色設定も含む）
 		
 		# 最初の数個の座標をデバッグログ出力
 		if i < 3:
 			print("Hex[%d]: coord(%d,%d) -> world_pos(%s)" % [i, hex.q, hex.r, world_pos])
 	
 	print("draw_grid() completed. Child count: %d" % get_child_count())
+
+# 経路をハイライト表示
+func highlight_path(hex_path: Array[Hex]):
+	# 既存のハイライトをクリア
+	clear_path_highlight()
+	
+	# 経路上の各hexをハイライト
+	for hex in hex_path:
+		var hex_tile = find_hex_tile(hex)
+		if hex_tile:
+			hex_tile.set_highlight(true)
+
+# ハイライトをクリア
+func clear_path_highlight():
+	for child in get_children():
+		if child.has_method("set_highlight"):
+			child.set_highlight(false)
+
+# hex座標に対応するHexTileを検索
+func find_hex_tile(target_hex: Hex) -> HexTile:
+	for child in get_children():
+		if child.has_method("setup_hex") and child.hex_coordinate:
+			if Hex.equals(child.hex_coordinate, target_hex):
+				return child
+	return null

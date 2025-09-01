@@ -5,7 +5,21 @@ extends Node2D
 # Unity版のhexPrefab相当
 
 var hex_coordinate: Hex
+var is_highlighted: bool = false
+var normal_color: Color = Color("#3D3D3D")
+var highlight_color: Color = Color("#FFD700")  # より明るいゴールド色で経路を強調
 
 func setup_hex(hex: Hex):
 	hex_coordinate = hex
-	# 将来的にテクスチャ設定やビジュアル調整
+	# デフォルト色を設定
+	set_highlight(false)
+
+# ハイライト状態を設定
+func set_highlight(highlighted: bool):
+	is_highlighted = highlighted
+	var sprite = get_node_or_null("Sprite2D")
+	if sprite:
+		if highlighted:
+			sprite.modulate = highlight_color
+		else:
+			sprite.modulate = normal_color
