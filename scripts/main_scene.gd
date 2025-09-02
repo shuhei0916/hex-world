@@ -19,7 +19,7 @@ func _input(event):
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = event.position  # テストでも正しく動作するようにイベント位置を使用
+			var mouse_pos = get_global_mouse_position() # event.position  # テストでも正しく動作するようにイベント位置を使用
 			handle_mouse_click(mouse_pos)
 	elif event is InputEventMouseMotion:
 		var mouse_pos = get_global_mouse_position()
