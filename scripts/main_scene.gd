@@ -121,15 +121,21 @@ func handle_mouse_click(click_position: Vector2):
 
 # マウスホバー処理（経路プレビュー）
 func handle_mouse_hover(hover_position: Vector2):
+	# Playerの移動状態をチェック - 移動中はハイライト無効
+	var player = get_node_or_null("Player")
+	if player and player.is_moving:
+		if grid_display:
+			grid_display.clear_path_highlight()
+		return
+	
 	# ホバー位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(hover_position)
 	
-	# Playerから現在位置への移動経路をプレビュー表示（移動中でも継続）
-	var player = get_node_or_null("Player")
+	# Playerから現在位置への移動経路をプレビュー表示
 	if player and player.has_method("preview_path_to_hex") and grid_display:
 		var preview_path = player.preview_path_to_hex(target_hex)
 		if preview_path and preview_path.size() > 0:
-			grid_display.highlight_path(preview_path)
+			grid_display.highlight_path_with_start(preview_path, player.current_hex_position)
 		else:
 			grid_display.clear_path_highlight()
 

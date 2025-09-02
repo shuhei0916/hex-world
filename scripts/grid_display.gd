@@ -15,6 +15,7 @@ func _init():
 		Vector2(42.0, 42.0),  # より大きなサイズで視覚化
 		Vector2(0.0, 0.0)
 	)
+	
 
 # 六角形グリッドを作成（半径指定）
 func create_hex_grid(radius: int):
@@ -79,11 +80,30 @@ func highlight_path(hex_path: Array[Hex]):
 		if hex_tile:
 			hex_tile.set_highlight(true)
 
+# 経路を始点付きでハイライト表示
+func highlight_path_with_start(hex_path: Array[Hex], start_hex: Hex):
+	# 既存のハイライトをクリア
+	clear_path_highlight()
+	
+	# 始点（プレイヤーの現在地）をハイライト
+	if start_hex:
+		var start_tile = find_hex_tile(start_hex)
+		if start_tile:
+			start_tile.set_highlight(true)
+	
+	# 経路上の各hexをハイライト
+	for hex in hex_path:
+		var hex_tile = find_hex_tile(hex)
+		if hex_tile:
+			hex_tile.set_highlight(true)
+
 # ハイライトをクリア
 func clear_path_highlight():
 	for child in get_children():
 		if child.has_method("set_highlight"):
 			child.set_highlight(false)
+	
+
 
 # hex座標に対応するHexTileを検索
 func find_hex_tile(target_hex: Hex) -> HexTile:

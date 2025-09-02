@@ -7,7 +7,7 @@ extends Node2D
 var hex_coordinate: Hex
 var is_highlighted: bool = false
 var normal_color: Color = Color("#3D3D3D")
-var highlight_color: Color = Color("#FFD700")  # より明るいゴールド色で経路を強調
+var highlight_color: Color = Color("#7c7c7c")
 
 func setup_hex(hex: Hex):
 	hex_coordinate = hex
