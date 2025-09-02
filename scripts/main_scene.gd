@@ -98,6 +98,12 @@ func update_hex_overlay_display():
 
 # マウスクリック処理
 func handle_mouse_click(click_position: Vector2):
+	# Playerの移動状態をチェック
+	var player = get_node_or_null("Player")
+	if player and player.is_moving:
+		print("Player is currently moving. Click input ignored.")
+		return
+	
 	# クリック位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(click_position)
 	print("Mouse clicked at %s, targeting hex (%d, %d)" % [click_position, target_hex.q, target_hex.r])
@@ -107,7 +113,6 @@ func handle_mouse_click(click_position: Vector2):
 		grid_display.clear_path_highlight()
 	
 	# Playerに移動指示を送信
-	var player = get_node_or_null("Player")
 	if player and player.has_method("move_to_hex"):
 		# PlayerにGridDisplayのレイアウトを設定
 		if grid_display and grid_display.layout:
@@ -119,7 +124,7 @@ func handle_mouse_hover(hover_position: Vector2):
 	# ホバー位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(hover_position)
 	
-	# Playerから現在位置への移動経路をプレビュー表示
+	# Playerから現在位置への移動経路をプレビュー表示（移動中でも継続）
 	var player = get_node_or_null("Player")
 	if player and player.has_method("preview_path_to_hex") and grid_display:
 		var preview_path = player.preview_path_to_hex(target_hex)
