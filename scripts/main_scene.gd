@@ -19,7 +19,7 @@ func _input(event):
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = get_global_mouse_position() # NOTE: 本来はevent.positionを変換して使うべき
+			var mouse_pos = event.position  # テストでも正しく動作するようにイベント位置を使用
 			handle_mouse_click(mouse_pos)
 	elif event is InputEventMouseMotion:
 		var mouse_pos = get_global_mouse_position()
@@ -40,6 +40,11 @@ func setup_game():
 		var player = get_node_or_null("Player")
 		if player and player.has_method("setup_grid_layout") and grid_display.layout:
 			player.setup_grid_layout(grid_display.layout)
+			
+			# Playerのパスファインディングにグリッド境界を設定
+			if player.has_method("set_grid_bounds"):
+				player.set_grid_bounds(grid_display.grid_radius)
+			
 			print("Player初期位置を hex(0,0) の中央に設定")
 			
 			# Playerのパスハイライトシグナルを接続
@@ -108,6 +113,11 @@ func handle_mouse_click(click_position: Vector2):
 	var target_hex = get_hex_at_mouse_position(click_position)
 	print("Mouse clicked at %s, targeting hex (%d, %d)" % [click_position, target_hex.q, target_hex.r])
 	
+	# 境界チェック - グリッド境界外への移動を防止
+	if grid_display and not grid_display.is_within_bounds(target_hex):
+		print("Target hex (%d, %d) is outside grid boundaries. Movement ignored." % [target_hex.q, target_hex.r])
+		return
+	
 	# プレビューハイライトをクリア
 	if grid_display:
 		grid_display.clear_path_highlight()
@@ -130,6 +140,11 @@ func handle_mouse_hover(hover_position: Vector2):
 	
 	# ホバー位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(hover_position)
+	
+	# 境界チェック - グリッド境界外ではプレビュー無効化
+	if grid_display and not grid_display.is_within_bounds(target_hex):
+		grid_display.clear_path_highlight()
+		return
 	
 	# Playerから現在位置への移動経路をプレビュー表示
 	if player and player.has_method("preview_path_to_hex") and grid_display:

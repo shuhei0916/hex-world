@@ -41,6 +41,11 @@ func setup_grid_layout(layout: Layout):
 	# 現在のhex座標に基づいてピクセル位置を設定
 	update_position_to_hex_center()
 
+# グリッド境界を設定（GridDisplayから呼び出される）
+func set_grid_bounds(radius: int):
+	if hex_graph:
+		hex_graph.set_bounds(radius)
+
 # プレイヤーを現在のhex座標の中央に正確に配置
 func update_position_to_hex_center():
 	if grid_layout and current_hex_position:

@@ -7,6 +7,7 @@ extends Node2D
 var layout: Layout
 var grid_hexes: Array[Hex] = []
 var hex_tile_scene = preload("res://scenes/HexTile.tscn")  # hexPrefab相当
+var grid_radius: int = 4  # デフォルトのグリッド半径
 
 func _init():
 	# レイアウト設定（視覚化用に大きめサイズ）
@@ -19,6 +20,7 @@ func _init():
 
 # 六角形グリッドを作成（半径指定）
 func create_hex_grid(radius: int):
+	grid_radius = radius  # グリッド半径を保存
 	grid_hexes.clear()
 	
 	# 中心を原点として半径内のすべてのhexを生成
@@ -112,3 +114,14 @@ func find_hex_tile(target_hex: Hex) -> HexTile:
 			if Hex.equals(child.hex_coordinate, target_hex):
 				return child
 	return null
+
+# hex座標がグリッド境界内かを判定
+func is_within_bounds(hex_coord: Hex) -> bool:
+	if not hex_coord:
+		return false
+	
+	# hex座標の原点からの距離を計算
+	var distance = Hex.distance(Hex.new(0, 0), hex_coord)
+	
+	# グリッド半径以内であれば境界内
+	return distance <= grid_radius
