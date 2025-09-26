@@ -1,9 +1,10 @@
 extends Node2D
 
-# MainScene - メインゲームシーン制御
-# HexFRVRゲームのメインシーン管理
+# MainScene - 工場設計ゲームのメインシーン制御
+# Hex工場設計システムのメインシーン管理
 
 @onready var grid_display = $GridDisplay
+@onready var camera = $Camera2D
 var debug_mode: bool = false
 
 func _ready():
@@ -19,36 +20,29 @@ func _input(event):
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = get_global_mouse_position() # event.position  # テストでも正しく動作するようにイベント位置を使用
-			handle_mouse_click(mouse_pos)
+			var mouse_pos = get_global_mouse_position()
+			handle_grid_click(mouse_pos)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_camera(1.1)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_camera(0.9)
 	elif event is InputEventMouseMotion:
-		var mouse_pos = get_global_mouse_position()
-		handle_mouse_hover(mouse_pos)
+		if Input.is_action_pressed("ui_select"):  # マウス中ボタンでカメラパン
+			pan_camera(-event.relative)
 
 func setup_game():
-	# グリッド設定（Unity版のような中規模グリッド）
+	# グリッド設定（工場設計用の中規模グリッド）
 	if grid_display:
-		grid_display.create_hex_grid(4)  # 半径4の六角形グリッド
+		grid_display.create_hex_grid(4)  # 半径6の六角形グリッド（工場設計用に拡大）
 		grid_display.register_grid_with_manager()
-		print("Grid created with %d hexes" % grid_display.get_grid_hex_count())
+		print("Factory grid created with %d hexes" % grid_display.get_grid_hex_count())
 		
 		# グリッドを視覚的に描画
 		grid_display.draw_grid()
 		print("Grid drawing completed with %d visual tiles" % grid_display.get_child_count())
 		
-		# Playerにグリッドレイアウトを設定し、初期位置を設定
-		var player = get_node_or_null("Player")
-		if player and player.has_method("setup_grid_layout") and grid_display.layout:
-			player.setup_grid_layout(grid_display.layout)
-			
-			# Playerのパスファインディングにグリッド境界を設定
-			if player.has_method("set_grid_bounds"):
-				player.set_grid_bounds(grid_display.grid_radius)
-			
-			print("Player初期位置を hex(0,0) の中央に設定")
-			
-			# Playerのパスハイライトシグナルを接続
-			setup_path_highlight_signals(player)
+		# カメラの初期設定
+		setup_camera()
 
 # マウス座標からhex座標を取得
 func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
@@ -101,76 +95,38 @@ func update_hex_overlay_display():
 				if coord_label:
 					coord_label.visible = false
 
-# マウスクリック処理
-func handle_mouse_click(click_position: Vector2):
-	# Playerの移動状態をチェック
-	var player = get_node_or_null("Player")
-	if player and player.is_moving:
-		print("Player is currently moving. Click input ignored.")
-		return
-	
+# グリッドクリック処理（工場設計用）
+func handle_grid_click(click_position: Vector2):
 	# クリック位置をhex座標に変換
 	var target_hex = get_hex_at_mouse_position(click_position)
-	print("Mouse clicked at %s, targeting hex (%d, %d)" % [click_position, target_hex.q, target_hex.r])
+	print("Grid clicked at %s, hex (%d, %d)" % [click_position, target_hex.q, target_hex.r])
 	
-	# 境界チェック - グリッド境界外への移動を防止
+	# 境界チェック
 	if grid_display and not grid_display.is_within_bounds(target_hex):
-		print("Target hex (%d, %d) is outside grid boundaries. Movement ignored." % [target_hex.q, target_hex.r])
+		print("Target hex (%d, %d) is outside grid boundaries." % [target_hex.q, target_hex.r])
 		return
 	
-	# プレビューハイライトをクリア
+	# TODO: 工場施設配置処理をここに実装
+	# 現在は選択されたhexをハイライト表示
+	highlight_selected_hex(target_hex)
+
+# カメラ操作機能
+func setup_camera():
+	camera.position = Vector2.ZERO
+	camera.zoom = Vector2(1.0, 1.0)
+
+func zoom_camera(zoom_factor: float):
+	var new_zoom = camera.zoom * zoom_factor
+	# ズーム制限
+	new_zoom.x = clamp(new_zoom.x, 0.3, 3.0)
+	new_zoom.y = clamp(new_zoom.y, 0.3, 3.0)
+	camera.zoom = new_zoom
+
+func pan_camera(offset: Vector2):
+	camera.position += offset * (1.0 / camera.zoom.x)
+
+# 選択されたhexをハイライト表示
+func highlight_selected_hex(hex_coord: Hex):
 	if grid_display:
-		grid_display.clear_path_highlight()
-	
-	# Playerに移動指示を送信
-	if player and player.has_method("move_to_hex"):
-		# PlayerにGridDisplayのレイアウトを設定
-		if grid_display and grid_display.layout:
-			player.setup_grid_layout(grid_display.layout)
-		player.move_to_hex(target_hex)
-
-# マウスホバー処理（経路プレビュー）
-func handle_mouse_hover(hover_position: Vector2):
-	# Playerの移動状態をチェック - 移動中はハイライト無効
-	var player = get_node_or_null("Player")
-	if player and player.is_moving:
-		if grid_display:
-			grid_display.clear_path_highlight()
-		return
-	
-	# ホバー位置をhex座標に変換
-	var target_hex = get_hex_at_mouse_position(hover_position)
-	
-	# 境界チェック - グリッド境界外ではプレビュー無効化
-	if grid_display and not grid_display.is_within_bounds(target_hex):
-		grid_display.clear_path_highlight()
-		return
-	
-	# Playerから現在位置への移動経路をプレビュー表示
-	if player and player.has_method("preview_path_to_hex") and grid_display:
-		var preview_path = player.preview_path_to_hex(target_hex)
-		if preview_path and preview_path.size() > 0:
-			grid_display.highlight_path_with_start(preview_path, player.current_hex_position)
-		else:
-			grid_display.clear_path_highlight()
-
-# Playerのパスハイライトシグナルを設定
-func setup_path_highlight_signals(player):
-	if player.has_signal("path_highlight_requested"):
-		if not player.path_highlight_requested.is_connected(_on_path_highlight_requested):
-			player.path_highlight_requested.connect(_on_path_highlight_requested)
-	if player.has_signal("path_highlight_cleared"):
-		if not player.path_highlight_cleared.is_connected(_on_path_highlight_cleared):
-			player.path_highlight_cleared.connect(_on_path_highlight_cleared)
-
-# パスハイライト要求時の処理
-func _on_path_highlight_requested(hex_path: Array[Hex]):
-	if grid_display:
-		grid_display.highlight_path(hex_path)
-		print("Path highlighted with %d hexes" % hex_path.size())
-
-# パスハイライトクリア時の処理  
-func _on_path_highlight_cleared():
-	if grid_display:
-		grid_display.clear_path_highlight()
-		print("Path highlight cleared")
+		# TODO: 単一hexハイライト機能を実装
+		print("Selected hex (%d, %d) for factory placement" % [hex_coord.q, hex_coord.r])

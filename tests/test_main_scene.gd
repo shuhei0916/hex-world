@@ -59,26 +59,6 @@ func test_デバッグモードOFFで座標表示が隠れる():
 	
 	assert_false(coord_label.visible)
 
-func test_MainSceneにPlayerが追加される():
-	scene_instance._ready()
-	
-	var player = scene_instance.get_node_or_null("Player")
-	assert_not_null(player)
-	assert_true(player is Player)
-
-func test_クリックでPlayerに移動指示が送られる():
-	scene_instance._ready()
-	add_child(scene_instance)
-	
-	var player = scene_instance.get_node("Player")
-	
-	assert_false(player.is_moving)
-	assert_eq(player.movement_path.size(), 0)
-	
-	var target_pixel = scene_instance.grid_display.hex_to_pixel(Hex.new(1, 0))
-	scene_instance.handle_mouse_click(target_pixel)
-	
-	assert_true(player.is_moving or player.movement_path.size() > 0)
 
 func test_マウス座標変換が一貫して正確に行われる():
 	scene_instance._ready()
@@ -137,48 +117,3 @@ class TestGridBounds:
 		
 		assert_true(grid_display.is_within_bounds(inside_small))
 		assert_false(grid_display.is_within_bounds(outside_small))
-
-
-class TestClickBoundaryCheck:
-	extends GutTest
-	
-	const MainScene = preload("res://scenes/MainScene.tscn")
-	var scene_instance: Node2D
-	
-	func before_each():
-		scene_instance = MainScene.instantiate()
-		scene_instance._ready()
-		add_child(scene_instance)
-	
-	func after_each():
-		scene_instance.queue_free()
-	
-	func test_境界内クリックは移動指示が送られる():
-		var player = scene_instance.get_node("Player")
-		
-		assert_false(player.is_moving)
-		assert_eq(player.movement_path.size(), 0)
-		
-		var boundary_inside_pixel = scene_instance.grid_display.hex_to_pixel(Hex.new(2, 0))
-		scene_instance.handle_mouse_click(boundary_inside_pixel)
-		
-		assert_true(player.is_moving or player.movement_path.size() > 0)
-	
-	func test_境界外クリックは移動指示が送られない():
-		var player = scene_instance.get_node("Player")
-		
-		assert_false(player.is_moving)
-		assert_eq(player.movement_path.size(), 0)
-		
-		var boundary_outside_pixel = scene_instance.grid_display.hex_to_pixel(Hex.new(5, 0))
-		scene_instance.handle_mouse_click(boundary_outside_pixel)
-		
-		assert_false(player.is_moving)
-		assert_eq(player.movement_path.size(), 0)
-	
-	func test_境界外クリック時にフィードバックメッセージが出力される():
-		var boundary_outside_pixel = scene_instance.grid_display.hex_to_pixel(Hex.new(6, 0))
-		
-		scene_instance.handle_mouse_click(boundary_outside_pixel)
-		
-		assert_true(true, "Boundary feedback test completed successfully")
