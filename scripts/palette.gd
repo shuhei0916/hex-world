@@ -53,3 +53,8 @@ func _update_highlight(index: int, state: bool):
 	if index < 0 or index >= slots.size():
 		return
 	slots[index]["is_highlighted"] = state
+
+func is_slot_highlighted(index: int) -> bool:
+	if index < 0 or index >= slots.size():
+		return false
+	return slots[index].get("is_highlighted", false)

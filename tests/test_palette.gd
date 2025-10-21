@@ -14,3 +14,8 @@ func test_数字キー入力で対応スロットがアクティブになる():
 	var palette = Palette.new()
 	palette.handle_number_key_input(KEY_3)
 	assert_eq(palette.get_active_index(), 2)
+
+func test_無効な数字キー入力ではアクティブスロットがハイライトされたまま():
+	var palette = Palette.new()
+	palette.handle_number_key_input(KEY_0)
+	assert_true(palette.is_slot_highlighted(0))
