@@ -5,6 +5,7 @@ extends Node2D
 
 @onready var grid_display = $GridDisplay
 @onready var camera = $Camera2D
+@onready var palette_ui = $UILayer/PaletteUI
 var debug_mode: bool = false
 
 func _ready():
@@ -15,6 +16,8 @@ func _process(_delta):
 	update_debug_display()
 
 func _input(event):
+	if palette_ui:
+		palette_ui.process_input_event(event)
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_F2:
 			toggle_debug_mode()

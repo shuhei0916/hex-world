@@ -1,6 +1,8 @@
 class_name Palette
 extends Node
 
+signal active_slot_changed(new_index: int, old_index: int)
+
 const DEFAULT_SLOT_COUNT := 9
 
 var slots: Array = []
@@ -28,6 +30,12 @@ func get_slot_count() -> int:
 func get_active_index() -> int:
 	return active_index
 
+func get_highlighted_index() -> int:
+	for i in range(slots.size()):
+		if slots[i].get("is_highlighted", false):
+			return i
+	return -1
+
 func handle_number_key_input(keycode: int):
 	var target_index = _keycode_to_slot_index(keycode)
 	if target_index == -1:
@@ -54,9 +62,11 @@ func _set_active_index(index: int):
 		return
 	if index < 0 or index >= slots.size():
 		return
+	var previous_index = active_index
 	_update_highlight(active_index, false)
 	active_index = index
 	_update_highlight(active_index, true)
+	emit_signal("active_slot_changed", active_index, previous_index)
 
 func _update_highlight(index: int, state: bool):
 	if index < 0 or index >= slots.size():

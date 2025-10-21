@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bxvgvb7qmpn8k"]
+[gd_scene load_steps=4 format=3 uid="uid://bxvgvb7qmpn8k"]
 
 [ext_resource type="Script" uid="uid://durvpwbuchrbg" path="res://scripts/main_scene.gd" id="1_x5v4h"]
 [ext_resource type="Script" uid="uid://b4lqmco8tjlxp" path="res://scripts/grid_display.gd" id="2_8m2j4"]
+[ext_resource type="PackedScene" uid="uid://cv8s6wthl4qap" path="res://scenes/PaletteUI.tscn" id="3_qcy8h"]
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_x5v4h")
@@ -17,3 +18,8 @@ offset_top = 300.0
 offset_right = -474.0
 offset_bottom = 323.0
 text = "Hex: (0, 0)"
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="PaletteUI" parent="UILayer" instance=ExtResource("3_qcy8h")]

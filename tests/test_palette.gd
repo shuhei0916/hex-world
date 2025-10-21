@@ -29,3 +29,9 @@ func test_マウスホイール下回しで前スロットに循環する():
 	var palette = Palette.new()
 	palette.handle_wheel_input(-1)
 	assert_eq(palette.get_active_index(), Palette.DEFAULT_SLOT_COUNT - 1)
+
+func test_アクティブスロット変更時にハイライトも移動する():
+	var palette = Palette.new()
+	palette.handle_number_key_input(KEY_2)
+	assert_false(palette.is_slot_highlighted(0))
+	assert_true(palette.is_slot_highlighted(1))
