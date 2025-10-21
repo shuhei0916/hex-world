@@ -34,6 +34,15 @@ func handle_number_key_input(keycode: int):
 		return
 	_set_active_index(target_index)
 
+func handle_wheel_input(step: int):
+	if step == 0 or slots.is_empty():
+		return
+	var slot_count = slots.size()
+	var new_index = (active_index + step) % slot_count
+	if new_index < 0:
+		new_index += slot_count
+	_set_active_index(new_index)
+
 func _keycode_to_slot_index(keycode: int) -> int:
 	var numeric_value = keycode - KEY_0
 	if numeric_value <= 0 or numeric_value > DEFAULT_SLOT_COUNT:

@@ -19,3 +19,13 @@ func test_無効な数字キー入力ではアクティブスロットがハイ�
 	var palette = Palette.new()
 	palette.handle_number_key_input(KEY_0)
 	assert_true(palette.is_slot_highlighted(0))
+
+func test_マウスホイール上回しで次スロットに循環する():
+	var palette = Palette.new()
+	palette.handle_wheel_input(1)
+	assert_eq(palette.get_active_index(), 1)
+
+func test_マウスホイール下回しで前スロットに循環する():
+	var palette = Palette.new()
+	palette.handle_wheel_input(-1)
+	assert_eq(palette.get_active_index(), Palette.DEFAULT_SLOT_COUNT - 1)
