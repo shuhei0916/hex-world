@@ -24,3 +24,6 @@ func _create_slot(index: int) -> Dictionary:
 
 func get_slot_count() -> int:
 	return slots.size()
+
+func get_active_index() -> int:
+	return active_index
