@@ -3,9 +3,12 @@ extends Node2D
 # MainScene - 工場設計ゲームのメインシーン制御
 # Hex工場設計システムのメインシーン管理
 
+const HEX_TILE_SCENE := preload("res://scenes/HexTile.tscn")
+
 @onready var grid_display = $GridDisplay
 @onready var camera = $Camera2D
 @onready var palette_ui = $UILayer/PaletteUI
+@onready var pieces_layer = $PiecesLayer
 var debug_mode: bool = false
 
 func _ready():
@@ -109,9 +112,23 @@ func handle_grid_click(click_position: Vector2):
 		print("Target hex (%d, %d) is outside grid boundaries." % [target_hex.q, target_hex.r])
 		return
 	
-	# TODO: 工場施設配置処理をここに実装
-	# 現在は選択されたhexをハイライト表示
-	highlight_selected_hex(target_hex)
+	var piece_data = {}
+	if palette_ui:
+		piece_data = palette_ui.get_active_piece_data()
+	if piece_data.is_empty():
+		highlight_selected_hex(target_hex)
+		return
+	
+	var shape: Array = piece_data.get("shape", [])
+	if shape.is_empty():
+		highlight_selected_hex(target_hex)
+		return
+	
+	if GridManager.can_place(shape, target_hex):
+		GridManager.place_piece(shape, target_hex)
+		_render_piece(piece_data, target_hex)
+	else:
+		print("Cannot place piece at (%d, %d); space occupied or invalid." % [target_hex.q, target_hex.r])
 
 # カメラ操作機能
 func setup_camera():
@@ -133,3 +150,26 @@ func highlight_selected_hex(hex_coord: Hex):
 	if grid_display:
 		# TODO: 単一hexハイライト機能を実装
 		print("Selected hex (%d, %d) for factory placement" % [hex_coord.q, hex_coord.r])
+
+func _render_piece(piece_data: Dictionary, base_hex: Hex):
+	if not pieces_layer:
+		return
+	var piece_root = Node2D.new()
+	piece_root.name = "PlacedPiece_%s_%d" % [piece_data.get("type", "Unknown"), pieces_layer.get_child_count()]
+	pieces_layer.add_child(piece_root)
+	
+	var color: Color = piece_data.get("color", Color.WHITE)
+	var shape: Array = piece_data.get("shape", [])
+	for offset in shape:
+		var target_hex = Hex.add(base_hex, offset)
+		var hex_tile = HEX_TILE_SCENE.instantiate()
+		if hex_tile is HexTile:
+			hex_tile.setup_hex(target_hex)
+			hex_tile.normal_color = color
+			hex_tile.set_highlight(false)
+		var sprite: Sprite2D = hex_tile.get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.modulate = color
+			sprite.z_index = 2
+		hex_tile.position = grid_display.hex_to_pixel(target_hex)
+		piece_root.add_child(hex_tile)

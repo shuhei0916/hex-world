@@ -14,8 +14,11 @@ func _init():
 
 func _initialize_slots():
 	slots.clear()
+	var assigned_types = _get_default_piece_assignments()
 	for index in range(DEFAULT_SLOT_COUNT):
-		slots.append(_create_slot(index))
+		var slot_data = _create_slot(index)
+		slot_data["piece_type"] = assigned_types[index] if index < assigned_types.size() else null
+		slots.append(slot_data)
 
 func _create_slot(index: int) -> Dictionary:
 	return {
@@ -35,6 +38,24 @@ func get_highlighted_index() -> int:
 		if slots[i].get("is_highlighted", false):
 			return i
 	return -1
+
+func get_piece_type_for_slot(slot_index: int):
+	if slot_index < 0 or slot_index >= slots.size():
+		return null
+	return slots[slot_index].get("piece_type", null)
+
+func get_piece_data_for_slot(slot_index: int) -> Dictionary:
+	var piece_type = get_piece_type_for_slot(slot_index)
+	if piece_type == null:
+		return {}
+	var definition = TetrahexShapes.TetrahexData.definitions.get(piece_type, null)
+	if definition == null:
+		return {}
+	return {
+		"type": piece_type,
+		"shape": definition.shape,
+		"color": definition.color
+	}
 
 func handle_number_key_input(keycode: int):
 	var target_index = _keycode_to_slot_index(keycode)
@@ -68,3 +89,14 @@ func is_slot_highlighted(index: int) -> bool:
 	if index < 0 or index >= slots.size():
 		return false
 	return slots[index].get("is_highlighted", false)
+
+func _get_default_piece_assignments() -> Array:
+	return [
+		TetrahexShapes.TetrahexType.BAR,
+		TetrahexShapes.TetrahexType.WORM,
+		TetrahexShapes.TetrahexType.PISTOL,
+		TetrahexShapes.TetrahexType.PROPELLER,
+		TetrahexShapes.TetrahexType.ARCH,
+		TetrahexShapes.TetrahexType.BEE,
+		TetrahexShapes.TetrahexType.WAVE
+	]

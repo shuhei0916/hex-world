@@ -74,6 +74,52 @@ func test_マウス座標変換が一貫して正確に行われる():
 		var distance_to_expected = Hex.distance(actual_hex, target_hex)
 		assert_true(distance_to_expected == 0, "座標変換の精度が期待値から外れています: 期待 %s 実際 %s" % [target_hex, actual_hex])
 
+func test_左クリックでBARピースが配置される():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var base_hex = Hex.new(0, 0)
+	var click_pos = scene_instance.grid_display.hex_to_pixel(base_hex)
+	scene_instance.handle_grid_click(click_pos)
+	
+	var piece_data = scene_instance.palette_ui.get_palette().get_piece_data_for_slot(0)
+	var shape: Array = piece_data["shape"]
+	for offset in shape:
+		var target_hex = Hex.add(base_hex, offset)
+		assert_true(GridManager.is_occupied(target_hex), "Hex %s should be occupied after placement" % target_hex)
+
+func test_占有済みの位置には再配置できない():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var base_hex = Hex.new(0, 0)
+	var click_pos = scene_instance.grid_display.hex_to_pixel(base_hex)
+	scene_instance.handle_grid_click(click_pos)
+	
+	var piece_data = scene_instance.palette_ui.get_palette().get_piece_data_for_slot(0)
+	var shape: Array = piece_data["shape"]
+	assert_false(GridManager.can_place(shape, base_hex))
+
+func test_ピースを切り替えると配置される形状が変わる():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var palette = scene_instance.palette_ui.get_palette()
+	palette.handle_number_key_input(KEY_3) # PISTOL
+	
+	var base_hex = Hex.new(0, 0)
+	var click_pos = scene_instance.grid_display.hex_to_pixel(base_hex)
+	scene_instance.handle_grid_click(click_pos)
+	
+	var piece_data = palette.get_piece_data_for_slot(2)
+	var shape: Array = piece_data["shape"]
+	for offset in shape:
+		var target_hex = Hex.add(base_hex, offset)
+		assert_true(GridManager.is_occupied(target_hex), "Hex %s should be occupied for selected piece" % target_hex)
+
 
 class TestGridBounds:
 	extends GutTest

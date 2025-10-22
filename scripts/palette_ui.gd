@@ -81,3 +81,6 @@ func process_input_event(event: InputEvent):
 
 func get_palette() -> Palette:
 	return palette
+
+func get_active_piece_data() -> Dictionary:
+	return palette.get_piece_data_for_slot(palette.get_active_index())

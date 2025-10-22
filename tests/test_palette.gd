@@ -25,3 +25,24 @@ func test_アクティブスロット変更時にハイライトも移動する(
 	palette.handle_number_key_input(KEY_2)
 	assert_false(palette.is_slot_highlighted(0))
 	assert_true(palette.is_slot_highlighted(1))
+
+func test_スロット1から7には決まったピースが割り当てられている():
+	var palette = Palette.new()
+	var expected_types = [
+		TetrahexShapes.TetrahexType.BAR,
+		TetrahexShapes.TetrahexType.WORM,
+		TetrahexShapes.TetrahexType.PISTOL,
+		TetrahexShapes.TetrahexType.PROPELLER,
+		TetrahexShapes.TetrahexType.ARCH,
+		TetrahexShapes.TetrahexType.BEE,
+		TetrahexShapes.TetrahexType.WAVE
+	]
+	for i in range(expected_types.size()):
+		assert_eq(palette.get_piece_type_for_slot(i), expected_types[i], "スロット%dのピースタイプが期待値と異なります" % (i + 1))
+
+func test_スロットピース取得APIで形状データが返る():
+	var palette = Palette.new()
+	var data = palette.get_piece_data_for_slot(0)
+	assert_not_null(data)
+	assert_true(data.has("shape"))
+	assert_true(data.has("color"))
