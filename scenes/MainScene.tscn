@@ -23,3 +23,5 @@ text = "Hex: (0, 0)"
 layer = 1
 
 [node name="PaletteUI" parent="UILayer" instance=ExtResource("3_qcy8h")]
+layout_mode = 3
+anchors_preset = 0

@@ -78,11 +78,6 @@ func process_input_event(event: InputEvent):
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			palette.handle_number_key_input(event.keycode)
-	elif event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			palette.handle_wheel_input(1)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			palette.handle_wheel_input(-1)
 
 func get_palette() -> Palette:
 	return palette
