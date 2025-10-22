@@ -22,7 +22,6 @@ text = "Hex: (0, 0)"
 [node name="PiecesLayer" type="Node2D" parent="."]
 
 [node name="UILayer" type="CanvasLayer" parent="."]
-layer = 1
 
 [node name="PaletteUI" parent="UILayer" instance=ExtResource("3_qcy8h")]
 layout_mode = 3
