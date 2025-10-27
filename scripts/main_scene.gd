@@ -8,15 +8,28 @@ const HEX_TILE_SCENE := preload("res://scenes/HexTile.tscn")
 @onready var grid_display = $GridDisplay
 @onready var camera = $Camera2D
 @onready var palette_ui = $UILayer/PaletteUI
+@onready var preview_layer = $PreviewLayer
 @onready var pieces_layer = $PiecesLayer
 var debug_mode: bool = false
+var preview_root: Node2D = null
+var preview_piece_data: Dictionary = {}
+var preview_target_hex: Hex = null
+var preview_cells: Array[Hex] = []
+const PREVIEW_ALPHA := 0.4
 
 func _ready():
 	print("MainScene initialized")
 	setup_game()
+	if palette_ui:
+		var palette = palette_ui.get_palette()
+		if palette:
+			palette.connect("active_slot_changed", Callable(self, "_on_active_palette_slot_changed"))
+	_update_preview_piece()
+	_update_preview_for_current_mouse()
 
 func _process(_delta):
 	update_debug_display()
+	_update_preview_for_current_mouse()
 
 func _input(event):
 	if palette_ui:
@@ -25,9 +38,8 @@ func _input(event):
 		if event.keycode == KEY_F2:
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			var mouse_pos = get_global_mouse_position()
-			handle_grid_click(mouse_pos)
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			place_preview_piece()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom_camera(1.1)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -173,3 +185,121 @@ func _render_piece(piece_data: Dictionary, base_hex: Hex):
 			sprite.z_index = 2
 		hex_tile.position = grid_display.hex_to_pixel(target_hex)
 		piece_root.add_child(hex_tile)
+
+func get_preview_piece_data() -> Dictionary:
+	if preview_piece_data.is_empty():
+		_update_preview_piece()
+	return preview_piece_data.duplicate(true)
+
+func get_preview_cells() -> Array:
+	return preview_cells.duplicate()
+
+func update_preview_for_hex(target_hex: Hex):
+	if not grid_display:
+		return
+	_update_preview_piece()
+	if preview_piece_data.is_empty():
+		preview_target_hex = null
+		preview_cells.clear()
+		_clear_preview_visuals()
+		return
+	if target_hex == null:
+		preview_target_hex = null
+		preview_cells.clear()
+		_clear_preview_visuals()
+		return
+	if grid_display and not grid_display.is_within_bounds(target_hex):
+		preview_target_hex = null
+		preview_cells.clear()
+		_clear_preview_visuals()
+		return
+	preview_target_hex = Hex.new(target_hex.q, target_hex.r, target_hex.s)
+	preview_cells.clear()
+	var shape: Array = preview_piece_data.get("shape", [])
+	for offset in shape:
+		var cell = Hex.add(preview_target_hex, offset)
+		preview_cells.append(cell)
+	_render_preview_visuals()
+
+func place_preview_piece():
+	if preview_piece_data.is_empty() or preview_target_hex == null:
+		return
+	var shape: Array = preview_piece_data.get("shape", [])
+	if shape.is_empty():
+		return
+	if not GridManager.can_place(shape, preview_target_hex):
+		return
+	GridManager.place_piece(shape, preview_target_hex)
+	_render_piece(preview_piece_data, preview_target_hex)
+	_update_preview_for_current_mouse()
+
+func _on_active_palette_slot_changed(new_index: int, _old_index: int):
+	new_index = new_index # unused parameter placeholder
+	_update_preview_piece()
+	if preview_target_hex:
+		update_preview_for_hex(preview_target_hex)
+	else:
+		_update_preview_for_current_mouse()
+
+func _update_preview_piece():
+	preview_piece_data = {}
+	if not palette_ui:
+		return
+	var data = palette_ui.get_active_piece_data()
+	if data.is_empty():
+		return
+	var shape: Array = data.get("shape", [])
+	var shape_copy: Array = []
+	for offset in shape:
+		shape_copy.append(Hex.new(offset.q, offset.r, offset.s))
+	preview_piece_data = {
+		"type": data.get("type", null),
+		"shape": shape_copy,
+		"color": data.get("color", Color.WHITE)
+	}
+
+func _update_preview_for_current_mouse():
+	if not grid_display:
+		return
+	var mouse_pos = get_global_mouse_position()
+	var hex = get_hex_at_mouse_position(mouse_pos)
+	update_preview_for_hex(hex)
+
+func _ensure_preview_root() -> Node2D:
+	if not preview_layer:
+		return null
+	if preview_root and is_instance_valid(preview_root):
+		return preview_root
+	preview_root = Node2D.new()
+	preview_root.name = "PreviewPiece"
+	preview_layer.add_child(preview_root)
+	return preview_root
+
+func _clear_preview_visuals():
+	var root = _ensure_preview_root()
+	if not root:
+		return
+	for child in root.get_children():
+		child.queue_free()
+
+func _render_preview_visuals():
+	var root = _ensure_preview_root()
+	if not root or not grid_display:
+		return
+	_clear_preview_visuals()
+	if preview_cells.is_empty():
+		return
+	var color: Color = preview_piece_data.get("color", Color.WHITE)
+	var preview_color = Color(color.r, color.g, color.b, PREVIEW_ALPHA)
+	for cell in preview_cells:
+		var hex_tile = HEX_TILE_SCENE.instantiate()
+		if hex_tile is HexTile:
+			hex_tile.setup_hex(cell)
+			hex_tile.normal_color = preview_color
+			hex_tile.set_highlight(false)
+		var sprite: Sprite2D = hex_tile.get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.modulate = preview_color
+			sprite.z_index = 3
+		hex_tile.position = grid_display.hex_to_pixel(cell)
+		root.add_child(hex_tile)

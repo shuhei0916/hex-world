@@ -19,6 +19,8 @@ offset_right = -474.0
 offset_bottom = 323.0
 text = "Hex: (0, 0)"
 
+[node name="PreviewLayer" type="Node2D" parent="."]
+
 [node name="PiecesLayer" type="Node2D" parent="."]
 
 [node name="UILayer" type="CanvasLayer" parent="."]

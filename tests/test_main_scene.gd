@@ -74,6 +74,75 @@ func test_マウス座標変換が一貫して正確に行われる():
 		var distance_to_expected = Hex.distance(actual_hex, target_hex)
 		assert_true(distance_to_expected == 0, "座標変換の精度が期待値から外れています: 期待 %s 実際 %s" % [target_hex, actual_hex])
 
+func test_プレビューは選択したピースの形状を表示する():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var preview_data = scene_instance.get_preview_piece_data()
+	assert_not_null(preview_data)
+	assert_eq(preview_data["type"], TetrahexShapes.TetrahexType.BAR)
+	
+	scene_instance.update_preview_for_hex(Hex.new(0, 0))
+	var preview_cells: Array[Hex] = scene_instance.get_preview_cells()
+	var expected_shape: Array = preview_data["shape"]
+	assert_eq(preview_cells.size(), expected_shape.size())
+	
+	var preview_keys: Array[String] = []
+	for h in preview_cells:
+		preview_keys.append("%d,%d,%d" % [h.q, h.r, h.s])
+	preview_keys.sort()
+	
+	var shape_keys: Array[String] = []
+	for h in expected_shape:
+		shape_keys.append("%d,%d,%d" % [h.q, h.r, h.s])
+	shape_keys.sort()
+	
+	assert_eq(preview_keys, shape_keys)
+
+func test_右クリックでプレビュー位置にピースが配置される():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var base_hex = Hex.new(0, 0)
+	scene_instance.update_preview_for_hex(base_hex)
+	scene_instance.place_preview_piece()
+	
+	var piece_data = scene_instance.get_preview_piece_data()
+	var shape: Array = piece_data["shape"]
+	for offset in shape:
+		var target_hex = Hex.add(base_hex, offset)
+		assert_true(GridManager.is_occupied(target_hex), "Hex %s should be occupied after placement" % target_hex)
+
+func test_占有済みの位置ではプレビュー配置が無視される():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var base_hex = Hex.new(0, 0)
+	scene_instance.update_preview_for_hex(base_hex)
+	scene_instance.place_preview_piece()
+	assert_true(GridManager.is_occupied(base_hex))
+	
+	var occupancy_before = GridManager.is_occupied(base_hex)
+	scene_instance.update_preview_for_hex(base_hex)
+	scene_instance.place_preview_piece()
+	assert_true(GridManager.is_occupied(base_hex))
+	assert_true(occupancy_before)
+
+func test_ピース切り替えでプレビュー形状が変わる():
+	GridManager.clear_grid()
+	scene_instance._ready()
+	add_child(scene_instance)
+	
+	var palette = scene_instance.palette_ui.get_palette()
+	palette.handle_number_key_input(KEY_3) # PISTOL
+	scene_instance.update_preview_for_hex(Hex.new(1, 0))
+	
+	var preview_data = scene_instance.get_preview_piece_data()
+	assert_eq(preview_data["type"], TetrahexShapes.TetrahexType.PISTOL)
+
 func test_左クリックでBARピースが配置される():
 	GridManager.clear_grid()
 	scene_instance._ready()
