@@ -60,6 +60,14 @@ func test_デバッグモードOFFで座標表示が隠れる():
 	assert_false(coord_label.visible)
 
 
+func test_ツリー外でもプレビュー用パレットデータを取得できる():
+	var scene = MainScene.instantiate()
+	scene._ready()
+	var preview = scene.get_preview_piece_data()
+	assert_not_null(preview)
+	scene.queue_free()
+
+
 func test_マウス座標変換が一貫して正確に行われる():
 	scene_instance._ready()
 	add_child(scene_instance)

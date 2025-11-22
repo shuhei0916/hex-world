@@ -72,6 +72,8 @@ func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
 
 # デバッグ表示を更新
 func update_debug_display():
+	if not is_inside_tree():
+		return
 	var debug_label = get_node("DebugLabel")
 	if debug_label:
 		var mouse_pos = get_global_mouse_position()
@@ -260,6 +262,8 @@ func _update_preview_piece():
 
 func _update_preview_for_current_mouse():
 	if not grid_display:
+		return
+	if not is_inside_tree():
 		return
 	var mouse_pos = get_global_mouse_position()
 	var hex = get_hex_at_mouse_position(mouse_pos)

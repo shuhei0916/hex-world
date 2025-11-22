@@ -11,17 +11,24 @@ var slot_rects: Array[ColorRect] = []
 var highlighted_index: int = 0
 var _is_initialized: bool = false
 
+func _ensure_palette_initialized():
+	if palette:
+		return
+	palette = Palette.new()
+	palette.connect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+
 func _ready():
 	if _is_initialized:
 		return
 	_is_initialized = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	palette = Palette.new()
-	palette.connect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+	_ensure_palette_initialized()
 	_create_slots()
 	_refresh_slots()
 	_update_slot_positions()
-	get_viewport().connect("size_changed", Callable(self, "_on_viewport_resized"))
+	var viewport = get_viewport()
+	if viewport:
+		viewport.connect("size_changed", Callable(self, "_on_viewport_resized"))
 
 func _create_slots():
 	for rect in slot_rects:
@@ -55,6 +62,7 @@ func _update_slot_positions():
 			rect.set_size(slot_size)
 
 func _refresh_slots():
+	_ensure_palette_initialized()
 	highlighted_index = palette.get_highlighted_index()
 	for i in range(slot_rects.size()):
 		var rect := slot_rects[i]
@@ -74,13 +82,14 @@ func get_slot_count() -> int:
 func get_highlighted_index() -> int:
 	return highlighted_index
 
-func process_input_event(event: InputEvent):
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-			palette.handle_number_key_input(event.keycode)
+	#if event is InputEventKey and event.pressed and not event.echo:
+		#if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+			#palette.handle_number_key_input(event.keycode)
 
 func get_palette() -> Palette:
+	_ensure_palette_initialized()
 	return palette
 
 func get_active_piece_data() -> Dictionary:
+	_ensure_palette_initialized()
 	return palette.get_piece_data_for_slot(palette.get_active_index())
