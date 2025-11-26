@@ -2,11 +2,11 @@
 
 ## Refactor: Rebuild Grid Display
 - [x] GridDisplay: GridManagerへの直接依存を削除する
-    - [x] GridDisplay: グリッド生成時に `grid_updated` シグナルを発行する
-    - [x] GridDisplay: `register_grid_with_manager` メソッドを削除する（責任範囲外）
+	- [x] GridDisplay: グリッド生成時に `grid_updated` シグナルを発行する
+	- [x] GridDisplay: `register_grid_with_manager` メソッドを削除する（責任範囲外）
 - [x] GameLevel (New MainScene): グリッド表示を統合する
-    - [x] GameLevel: シーンインスタンス化時にGridDisplayが含まれている（スクリプト内で生成）
-    - [x] GameLevel: GridDisplayの `grid_updated` シグナルを受け取り、GridManagerに登録する
+	- [x] GameLevel: シーンインスタンス化時にGridDisplayが含まれている（スクリプト内で生成）
+	- [x] GameLevel: GridDisplayの `grid_updated` シグナルを受け取り、GridManagerに登録する
 
 ## 工場設計システム (Legacy Context)
 - [ ] 工場施設配置システムを実装する
