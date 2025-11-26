@@ -82,10 +82,6 @@ func get_slot_count() -> int:
 func get_highlighted_index() -> int:
 	return highlighted_index
 
-	#if event is InputEventKey and event.pressed and not event.echo:
-		#if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-			#palette.handle_number_key_input(event.keycode)
-
 func get_palette() -> Palette:
 	_ensure_palette_initialized()
 	return palette

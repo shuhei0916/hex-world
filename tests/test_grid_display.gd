@@ -28,13 +28,23 @@ func test_hex座標1マイナス1は正確なピクセル位置に変換され�
 	assert_almost_eq(pixel_pos.x, 36.373, 0.01)
 	assert_almost_eq(pixel_pos.y, -63.0, 0.01)
 
-func test_中央hexはGridManagerに正しく登録される():
+func test_グリッド生成時にgrid_updatedシグナルが発行される():
 	var grid_display = GridDisplayClass.new()
-	grid_display.create_hex_grid(2)
-	grid_display.register_grid_with_manager()
+	watch_signals(grid_display)
 	
-	var center_hex = Hex.new(0, 0)
-	assert_true(GridManager.is_inside_grid(center_hex))
+	grid_display.create_hex_grid(2)
+	
+	assert_signal_emitted(grid_display, "grid_updated")
+	# シグナルの引数を検証
+	var emitted_args = get_signal_parameters(grid_display, "grid_updated")
+	# emitted_args は [ [Arg1, Arg2...], [Arg1, Arg2...] ] のような配列の配列（発火回数分）
+	# 今回は1回だけ発火しているはずなのでインデックス0を見る
+	if emitted_args != null and emitted_args.size() > 0:
+		var args = emitted_args[0]
+		var hexes = args[0]
+		assert_eq(hexes.size(), 19) # 半径2 = 19個
+	else:
+		fail_test("Signal grid_updated was not emitted with parameters")
 
 func test_半径1グリッドの描画で7つの子ノードが生成される():
 	var grid_display = GridDisplayClass.new()

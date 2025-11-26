@@ -23,7 +23,8 @@ func _ready():
 	if palette_ui:
 		var palette = palette_ui.get_palette()
 		if palette:
-			palette.connect("active_slot_changed", Callable(self, "_on_active_palette_slot_changed"))
+			if not palette.is_connected("active_slot_changed", Callable(self, "_on_active_palette_slot_changed")):
+				palette.connect("active_slot_changed", Callable(self, "_on_active_palette_slot_changed"))
 	_update_preview_piece()
 	_update_preview_for_current_mouse()
 
@@ -32,10 +33,13 @@ func _process(_delta):
 	_update_preview_for_current_mouse()
 
 func _input(event):
-	if palette_ui:
-		palette_ui.process_input_event(event)
-	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_F2:
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+			if palette_ui:
+				var palette = palette_ui.get_palette()
+				if palette:
+					palette.handle_number_key_input(event.keycode)
+		elif event.keycode == KEY_F2:
 			toggle_debug_mode()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_RIGHT:
@@ -49,18 +53,9 @@ func _input(event):
 			pan_camera(-event.relative)
 
 func setup_game():
-	# グリッド設定（工場設計用の中規模グリッド）
-	if grid_display:
-		grid_display.create_hex_grid(4)  # 半径6の六角形グリッド（工場設計用に拡大）
-		grid_display.register_grid_with_manager()
-		print("Factory grid created with %d hexes" % grid_display.get_grid_hex_count())
-		
-		# グリッドを視覚的に描画
-		grid_display.draw_grid()
-		print("Grid drawing completed with %d visual tiles" % grid_display.get_child_count())
-		
-		# カメラの初期設定
-		setup_camera()
+	# グリッド設定と描画はGridDisplayが@toolで自動的に行う
+	# MainSceneはカメラのセットアップのみ担当
+	setup_camera()
 
 # マウス座標からhex座標を取得
 func get_hex_at_mouse_position(mouse_position: Vector2) -> Hex:
