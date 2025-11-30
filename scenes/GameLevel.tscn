@@ -1,9 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://new_game_level_v1"]
+[gd_scene load_steps=4 format=3 uid="uid://0m30r3y3nes6"]
 
-[ext_resource type="Script" path="res://scripts/game_level.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b4lych0hgwlc4" path="res://scripts/game_level.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bcpl4euiuawxf" path="res://scripts/camera_controller.gd" id="2_qx85r"]
+[ext_resource type="PackedScene" uid="uid://qqa8dhve6xp8" path="res://scenes/hud.tscn" id="3_xyt4e"]
 
 [node name="GameLevel" type="Node2D"]
 script = ExtResource("1_script")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.5, 0.5)
+script = ExtResource("2_qx85r")
+
+[node name="HUD" parent="." instance=ExtResource("3_xyt4e")]

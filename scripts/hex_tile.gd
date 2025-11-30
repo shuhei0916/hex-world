@@ -1,3 +1,4 @@
+@tool
 class_name HexTile
 extends Node2D
 

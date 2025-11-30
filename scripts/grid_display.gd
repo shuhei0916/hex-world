@@ -29,10 +29,8 @@ func _init():
 		Vector2(0.0, 0.0)
 	)
 
-
 func _ready():
 	_update_grid_visuals()
-
 
 func _update_grid_visuals():
 	# 既存のhex表示をクリア
@@ -43,7 +41,6 @@ func _update_grid_visuals():
 
 	create_hex_grid(grid_radius)
 	draw_grid()
-
 
 # 六角形グリッドを作成（半径指定）
 func create_hex_grid(radius: int):
