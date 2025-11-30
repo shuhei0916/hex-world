@@ -1,7 +1,7 @@
 extends GutTest
 
-const PaletteUIScene = preload("res://scenes/PaletteUI.tscn")
-const Palette = preload("res://scripts/palette.gd")
+const PaletteUIScene = preload("res://scenes/ui/palette/PaletteUI.tscn")
+const Palette = preload("res://scenes/ui/palette/palette.gd")
 
 func test_パレットUIは9つのスロットを生成する():
 	var ui = PaletteUIScene.instantiate()

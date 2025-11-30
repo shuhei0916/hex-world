@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cv8s6wthl4qap"]
-
-[ext_resource type="Script" path="res://scripts/palette_ui.gd" id="1_l27fa"]
-
-[node name="PaletteUI" type="Control"]
-script = ExtResource("1_l27fa")

@@ -3,11 +3,13 @@ extends GutTest
 # GridManagerのテスト
 class_name TestGridManager
 
-const GridManagerClass = preload("res://scripts/grid_manager.gd")
+const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
 var grid_manager_instance: GridManagerClass
 
 func before_each():
 	grid_manager_instance = GridManagerClass.new()
+	# テスト内でHexTile.tscnへの参照を設定
+	grid_manager_instance.hex_tile_scene = preload("res://scenes/components/grid/hex_tile/HexTile.tscn")
 	add_child_autofree(grid_manager_instance)
 	grid_manager_instance.clear_grid() # 既存のクリアロジックを呼び出す
 

@@ -11,13 +11,9 @@ config_version=5
 [application]
 
 config/name="hex-world"
-run/main_scene="res://scenes/GameLevel.tscn"
+run/main_scene="res://scenes/main/GameLevel.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="uid://faqbk150qifl"
-
-[autoload]
-
-TetrahexShapes="*res://scripts/tetrahex_shapes.gd"
 
 [editor_plugins]
 

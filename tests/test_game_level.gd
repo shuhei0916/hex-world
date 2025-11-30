@@ -2,11 +2,8 @@ extends GutTest
 
 class_name TestGameLevel
 
-const GameLevelScene = preload("res://scenes/GameLevel.tscn")
-const GameLevelClass = preload("res://scripts/game_level.gd")
-const GridManagerClass = preload("res://scripts/grid_manager.gd") # GridDisplayClassから変更
-const PaletteClass = preload("res://scripts/palette.gd")
-const HUDClass = preload("res://scripts/hud.gd")
+const GameLevelScene = preload("res://scenes/main/GameLevel.tscn")
+const HUDClass = preload("res://scenes/ui/hud/hud.gd")
 
 var game_level
 

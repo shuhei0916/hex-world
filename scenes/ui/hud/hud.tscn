@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://qqa8dhve6xp8"]
+
+[ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
+[ext_resource type="PackedScene" uid="uid://cv8s6wthl4qap" path="res://scenes/ui/palette/PaletteUI.tscn" id="2_bo48s"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hqnrr")
+
+[node name="PaletteUI" parent="." instance=ExtResource("2_bo48s")]

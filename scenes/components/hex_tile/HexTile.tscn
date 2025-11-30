@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://b4p6v8nxmwfkl"]
+
+[ext_resource type="Script" uid="uid://cd0rke38ikw4u" path="res://scenes/components/hex_tile/hex_tile.gd" id="1_5tgm5"]
+[ext_resource type="Texture2D" uid="uid://csjhm08ihlvlf" path="res://assets/HexagonPointedTop.png" id="2_7g0ow"]
+
+[node name="HexTile" type="Node2D"]
+script = ExtResource("1_5tgm5")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2_7g0ow")

@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://ct4kjs1027ys8"]
+
+[ext_resource type="Script" path="res://scripts/main_scene.gd" id="1_e5gpt"]
+[ext_resource type="Script" path="res://scripts/grid_display.gd" id="2_trlxp"]
+[ext_resource type="PackedScene" uid="uid://cv8s6wthl4qap" path="res://scenes/ui/palette/PaletteUI.tscn" id="3_lww0p"]
+
+[node name="MainScene" type="Node2D"]
+script = ExtResource("1_e5gpt")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="GridDisplay" type="Node2D" parent="."]
+script = ExtResource("2_trlxp")
+
+[node name="DebugLabel" type="Label" parent="."]
+offset_left = -550.0
+offset_top = 300.0
+offset_right = -474.0
+offset_bottom = 323.0
+text = "Hex: (0, 0)"
+
+[node name="PreviewLayer" type="Node2D" parent="."]
+
+[node name="PiecesLayer" type="Node2D" parent="."]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="PaletteUI" parent="UILayer" instance=ExtResource("3_lww0p")]
+layout_mode = 3
+anchors_preset = 0

@@ -2,7 +2,7 @@ extends GutTest
 
 class_name TestCameraController
 
-const CameraControllerClass = preload("res://scripts/camera_controller.gd")
+const CameraControllerClass = preload("res://scenes/components/camera_controller.gd")
 
 var camera: CameraControllerClass
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-const Palette = preload("res://scripts/palette.gd")
+const Palette = preload("res://scenes/ui/palette/palette.gd")
 
 func test_パレットはデフォルトで9スロットを持つ():
 	var palette = Palette.new()

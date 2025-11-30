@@ -5,8 +5,8 @@ extends Node2D
 # GameLevel - ゲームの統合コントローラー
 # 各コンポーネントを統括し、データの受け渡しを行う
 
-const PaletteScript = preload("res://scripts/palette.gd")
-const GridManagerClass = preload("res://scripts/grid_manager.gd")
+const PaletteScript = preload("res://scenes/ui/palette/palette.gd")
+const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
 
 # エディタで配置されたノードへの参照
 @onready var hud: HUD = $HUD
