@@ -12,17 +12,25 @@ func test_パレットのアクティブスロットは初期状態で0番():
 
 func test_数字キー入力で対応スロットがアクティブになる():
 	var palette = Palette.new()
-	palette.handle_number_key_input(KEY_3)
+	# インデックス2 (3番目のスロット) を選択
+	palette.select_slot(2)
 	assert_eq(palette.get_active_index(), 2)
 
-func test_無効な数字キー入力ではアクティブスロットがハイライトされたまま():
+func test_無効なインデックス指定ではアクティブスロットが変更されない():
 	var palette = Palette.new()
-	palette.handle_number_key_input(KEY_0)
-	assert_true(palette.is_slot_highlighted(0))
+	# 初期状態は0
+	assert_eq(palette.get_active_index(), 0)
+	# 無効なインデックス (-1)
+	palette.select_slot(-1)
+	assert_eq(palette.get_active_index(), 0)
+	
+	# 無効なインデックス (範囲外)
+	palette.select_slot(99)
+	assert_eq(palette.get_active_index(), 0)
 
 func test_アクティブスロット変更時にハイライトも移動する():
 	var palette = Palette.new()
-	palette.handle_number_key_input(KEY_2)
+	palette.select_slot(1)
 	assert_false(palette.is_slot_highlighted(0))
 	assert_true(palette.is_slot_highlighted(1))
 

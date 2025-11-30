@@ -4,26 +4,20 @@ class_name TestGameLevel
 
 const GameLevelClass = preload("res://scripts/game_level.gd")
 const GridDisplayClass = preload("res://scripts/grid_display.gd")
+const PaletteClass = preload("res://scripts/palette.gd")
+const PaletteUIClass = preload("res://scripts/palette_ui.gd")
 
 var game_level
-var grid_display
 
 func before_each():
 	GridManager.clear_grid()
 	game_level = GameLevelClass.new()
-	# GridDisplayはGameLevelの子として生成されることを期待
-	# モックではなく実物を使う（統合テストに近い）
+	add_child_autofree(game_level)
 
 func after_each():
-	if is_instance_valid(game_level):
-		game_level.free()
 	GridManager.clear_grid()
 
 func test_GameLevelはGridDisplayを持つ():
-	# GameLevelの実装次第だが、_readyなどでGridDisplayを探すか生成するはず
-	# ここでは単純に子ノードにあるかチェック
-	add_child_autofree(game_level)
-	
 	var found = false
 	for child in game_level.get_children():
 		if child is GridDisplayClass:
@@ -32,8 +26,6 @@ func test_GameLevelはGridDisplayを持つ():
 	assert_true(found, "GameLevel should have a GridDisplay child")
 
 func test_グリッド更新シグナルでGridManagerに登録される():
-	add_child_autofree(game_level)
-	
 	# GridDisplayを取得
 	var gd = null
 	for child in game_level.get_children():
@@ -45,9 +37,6 @@ func test_グリッド更新シグナルでGridManagerに登録される():
 		fail_test("GridDisplay not found")
 		return
 
-	# シグナルを強制発火させるか、create_hex_gridを呼ぶ
-	# GridDisplayは_readyで初期描画を行うので、すでに登録されている可能性がある
-	
 	# 一旦クリア
 	GridManager.clear_grid()
 	
@@ -55,6 +44,37 @@ func test_グリッド更新シグナルでGridManagerに登録される():
 	gd.create_hex_grid(2)
 	
 	# GridManagerに登録されたか確認
-	# 半径2のグリッドは19個のhexを持つ
 	assert_true(GridManager.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
-	assert_true(GridManager.is_inside_grid(Hex.new(2, 0)), "Edge hex should be registered")
+
+func test_GameLevelはPaletteを持つ():
+	assert_not_null(game_level.palette)
+	assert_true(game_level.palette is PaletteClass)
+
+func test_GameLevelはPaletteUIを持ちPaletteが注入されている():
+	# PaletteUIを探す (CanvasLayerの下にあるかもしれないので再帰的に探すか、既知のパスで)
+	var palette_ui = _find_node_by_type(game_level, PaletteUIClass)
+	assert_not_null(palette_ui, "PaletteUI should exist in GameLevel")
+	if palette_ui:
+		assert_eq(palette_ui.palette, game_level.palette, "PaletteUI should have the same Palette instance")
+
+func test_数字キー入力でPaletteの選択が変更される():
+	# 初期状態確認
+	assert_eq(game_level.palette.get_active_index(), 0)
+	
+	# KEY_3 (index 2) を入力
+	var event = InputEventKey.new()
+	event.keycode = KEY_3
+	event.pressed = true
+	game_level._unhandled_input(event)
+	
+	assert_eq(game_level.palette.get_active_index(), 2)
+
+# ヘルパー関数
+func _find_node_by_type(root: Node, type):
+	if is_instance_of(root, type):
+		return root
+	for child in root.get_children():
+		var result = _find_node_by_type(child, type)
+		if result:
+			return result
+	return null

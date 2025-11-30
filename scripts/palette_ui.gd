@@ -6,35 +6,54 @@ extends Control
 @export var inactive_color: Color = Color(0.2, 0.2, 0.2, 0.85)
 @export var active_color: Color = Color(0.9, 0.9, 0.3, 1.0)
 
-var palette: Palette
+var palette: Palette : set = set_palette
 var slot_rects: Array[ColorRect] = []
 var highlighted_index: int = 0
 var _is_initialized: bool = false
 
-func _ensure_palette_initialized():
-	if palette:
-		return
-	palette = Palette.new()
-	palette.connect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
-
 func _ready():
-	if _is_initialized:
-		return
-	_is_initialized = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ensure_palette_initialized()
-	_create_slots()
-	_refresh_slots()
-	_update_slot_positions()
 	var viewport = get_viewport()
 	if viewport:
 		viewport.connect("size_changed", Callable(self, "_on_viewport_resized"))
+	
+	# すでにパレットがセットされている場合は初期化
+	if palette:
+		_initialize_ui()
+
+func set_palette(new_palette: Palette):
+	if palette == new_palette:
+		return
+	
+	if palette:
+		if palette.is_connected("active_slot_changed", Callable(self, "_on_active_slot_changed")):
+			palette.disconnect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+	
+	palette = new_palette
+	
+	if palette:
+		palette.connect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+		if is_node_ready():
+			_initialize_ui()
+
+func _initialize_ui():
+	if not palette:
+		return
+	
+	_create_slots()
+	_refresh_slots()
+	_update_slot_positions()
+	_is_initialized = true
 
 func _create_slots():
 	for rect in slot_rects:
 		if rect:
 			rect.queue_free()
 	slot_rects.clear()
+	
+	if not palette:
+		return
+
 	var slot_count = palette.get_slot_count()
 	for i in range(slot_count):
 		var rect := ColorRect.new()
@@ -62,7 +81,9 @@ func _update_slot_positions():
 			rect.set_size(slot_size)
 
 func _refresh_slots():
-	_ensure_palette_initialized()
+	if not palette:
+		return
+		
 	highlighted_index = palette.get_highlighted_index()
 	for i in range(slot_rects.size()):
 		var rect := slot_rects[i]
@@ -82,10 +103,7 @@ func get_slot_count() -> int:
 func get_highlighted_index() -> int:
 	return highlighted_index
 
-func get_palette() -> Palette:
-	_ensure_palette_initialized()
-	return palette
-
 func get_active_piece_data() -> Dictionary:
-	_ensure_palette_initialized()
+	if not palette:
+		return {}
 	return palette.get_piece_data_for_slot(palette.get_active_index())
