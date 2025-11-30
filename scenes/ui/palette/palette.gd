@@ -1,6 +1,8 @@
 class_name Palette
 extends Node
 
+const TetrahexShapesScript = preload("res://scenes/utils/tetrahex_shapes.gd")
+
 signal active_slot_changed(new_index: int, old_index: int)
 
 const DEFAULT_SLOT_COUNT := 9
@@ -48,7 +50,7 @@ func get_piece_data_for_slot(slot_index: int) -> Dictionary:
 	var piece_type = get_piece_type_for_slot(slot_index)
 	if piece_type == null:
 		return {}
-	var definition = TetrahexShapes.TetrahexData.definitions.get(piece_type, null)
+	var definition = TetrahexShapesScript.TetrahexData.definitions.get(piece_type, null)
 	if definition == null:
 		return {}
 	return {
@@ -80,11 +82,11 @@ func is_slot_highlighted(index: int) -> bool:
 
 func _get_default_piece_assignments() -> Array:
 	return [
-		TetrahexShapes.TetrahexType.BAR,
-		TetrahexShapes.TetrahexType.WORM,
-		TetrahexShapes.TetrahexType.PISTOL,
-		TetrahexShapes.TetrahexType.PROPELLER,
-		TetrahexShapes.TetrahexType.ARCH,
-		TetrahexShapes.TetrahexType.BEE,
-		TetrahexShapes.TetrahexType.WAVE
+		TetrahexShapesScript.TetrahexType.BAR,
+		TetrahexShapesScript.TetrahexType.WORM,
+		TetrahexShapesScript.TetrahexType.PISTOL,
+		TetrahexShapesScript.TetrahexType.PROPELLER,
+		TetrahexShapesScript.TetrahexType.ARCH,
+		TetrahexShapesScript.TetrahexType.BEE,
+		TetrahexShapesScript.TetrahexType.WAVE
 	]
