@@ -1,7 +1,15 @@
 # todo
 - [ ] プロジェクトの構造をgodotのベストプラクティスに準拠させる。
 - [ ] grid displayの命名変更
-- [ ] 
+- [ ] GridManagerシングルトンを廃止し、シーンに配置するGridManagerノードに統合する
+	- [ ] project.godotからGridManagerのAutoload設定を削除する
+	- [ ] scripts/grid_manager.gdをNode2Dを継承するクラスにリファクタリングし、GridDisplayの描画ロジックを統合する
+	- [ ] scripts/grid_display.gdを削除する
+	- [ ] GameLevelで新しいGridManagerノードを参照し、GridDisplayの動的生成を削除する
+	- [ ] 他のクラス（PieceSpawner, MainSceneなど）から新しいGridManagerノード経由でアクセスするように修正する
+	- [ ] test_grid_manager.gdを新しいGridManagerノードをインスタンス化するテストに書き換える
+	- [ ] test_grid_display.gdを削除する
+	- [ ] test_game_level.gdが新しいGridManagerノードを正しく参照しているか検証する
 
 ## その他
 - [ ] マウスホイールで１から９のピースを指定できる

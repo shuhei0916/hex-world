@@ -18,7 +18,6 @@ config/icon="uid://faqbk150qifl"
 [autoload]
 
 TetrahexShapes="*res://scripts/tetrahex_shapes.gd"
-GridManager="*res://scripts/grid_manager.gd"
 PieceSpawner="*res://scripts/piece_spawner.gd"
 
 [editor_plugins]

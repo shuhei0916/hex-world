@@ -4,47 +4,36 @@ class_name TestGameLevel
 
 const GameLevelScene = preload("res://scenes/GameLevel.tscn")
 const GameLevelClass = preload("res://scripts/game_level.gd")
-const GridDisplayClass = preload("res://scripts/grid_display.gd")
+const GridManagerClass = preload("res://scripts/grid_manager.gd") # GridDisplayClassから変更
 const PaletteClass = preload("res://scripts/palette.gd")
 const HUDClass = preload("res://scripts/hud.gd")
 
 var game_level
 
 func before_each():
-	GridManager.clear_grid()
-	# シーンからインスタンス化
+	GridManager.clear_grid() # シングルトンではないが、クリアメソッドを呼んでおく
 	game_level = GameLevelScene.instantiate()
-	# ツリーに追加して_readyを走らせ、@onready変数を解決させる
 	add_child_autofree(game_level)
 
 func after_each():
 	GridManager.clear_grid()
 
-func test_GameLevelはGridDisplayを持つ():
-	# GridDisplayは動的生成なので子ノードから探す
-	var found = false
-	for child in game_level.get_children():
-		if child is GridDisplayClass:
-			found = true
-			break
-	assert_true(found, "GameLevel should have a GridDisplay child")
+func test_GameLevelはGridManagerを持つ(): # GridDisplayから変更
+	assert_not_null(game_level.grid_manager)
+	assert_true(game_level.grid_manager is GridManagerClass)
 
-func test_グリッド更新シグナルでGridManagerに登録される():
-	var gd = game_level.grid_display
-	# @onreadyが効いてない場合、動的生成されたものを探す
-	if gd == null:
-		for child in game_level.get_children():
-			if child is GridDisplayClass:
-				gd = child
-				break
-	
-	if gd == null:
-		fail_test("GridDisplay not found")
+func test_グリッド更新シグナルでGridManagerに登録される(): # 変更なし
+	var gm = game_level.grid_manager # GridDisplayからGridManagerに変更
+	if gm == null:
+		fail_test("GridManager not found")
 		return
 
-	GridManager.clear_grid()
-	gd.create_hex_grid(2)
-	assert_true(GridManager.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
+	# GridManagerは自身のclear_gridを持つ
+	gm.clear_grid()
+	
+	# create_hex_gridを呼ぶことで、gm._registered_hexesにhexが登録される
+	gm.create_hex_grid(2)
+	assert_true(gm.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
 
 func test_GameLevelはPaletteを持つ():
 	assert_not_null(game_level.palette)
@@ -53,7 +42,7 @@ func test_GameLevelはPaletteを持つ():
 func test_GameLevelはHUDを持ちPaletteが注入されている():
 	# HUDの存在確認 (@onready var hud が解決されているはず)
 	var hud = game_level.hud
-	assert_not_null(hud, "HUD node should be linked in GameLevel via @onready")
+	assert_not_null(hud, "HUD node should be linked in GameLevel (Check if HUD is added to GameLevel scene)")
 	
 	if hud:
 		assert_true(hud is HUDClass)
