@@ -3,24 +3,26 @@ extends GutTest
 class_name TestGameLevel
 
 const GameLevelScene = preload("res://scenes/main/GameLevel.tscn")
+const GameLevelClass = preload("res://scenes/main/game_level.gd")
+const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
+const PaletteClass = preload("res://scenes/ui/palette/palette.gd")
 const HUDClass = preload("res://scenes/ui/hud/hud.gd")
 
 var game_level
 
 func before_each():
-	GridManager.clear_grid() # シングルトンではないが、クリアメソッドを呼んでおく
 	game_level = GameLevelScene.instantiate()
 	add_child_autofree(game_level)
 
 func after_each():
-	GridManager.clear_grid()
+	pass
 
-func test_GameLevelはGridManagerを持つ(): # GridDisplayから変更
+func test_GameLevelはGridManagerを持つ():
 	assert_not_null(game_level.grid_manager)
 	assert_true(game_level.grid_manager is GridManagerClass)
 
-func test_グリッド更新シグナルでGridManagerに登録される(): # 変更なし
-	var gm = game_level.grid_manager # GridDisplayからGridManagerに変更
+func test_グリッド更新シグナルでGridManagerに登録される():
+	var gm = game_level.grid_manager
 	if gm == null:
 		fail_test("GridManager not found")
 		return
