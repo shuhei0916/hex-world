@@ -6,8 +6,9 @@ const MainClass = preload("res://scenes/main/main.gd")
 const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
 const PaletteClass = preload("res://scenes/ui/palette/palette.gd")
 const HUDClass = preload("res://scenes/ui/hud/hud.gd")
+const HexTileScript = preload("res://scenes/components/hex_tile/hex_tile.gd")
 
-var main
+var main: MainClass
 
 func before_each():
 	main = MainScene.instantiate()
@@ -15,6 +16,10 @@ func before_each():
 
 func after_each():
 	pass
+
+func test_MainはGridManagerを持つ():
+	assert_not_null(main.grid_manager)
+	assert_true(main.grid_manager is GridManagerClass)
 
 func test_グリッド更新シグナルでGridManagerに登録される():
 	var gm = main.grid_manager
@@ -26,6 +31,10 @@ func test_グリッド更新シグナルでGridManagerに登録される():
 	
 	gm.create_hex_grid(2)
 	assert_true(gm.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
+
+func test_MainはPaletteを持つ():
+	assert_not_null(main.palette)
+	assert_true(main.palette is PaletteClass)
 
 func test_MainはHUDを持ちPaletteが注入されている():
 	var hud = main.hud
@@ -47,3 +56,70 @@ func test_数字キー入力でPaletteの選択が変更される():
 	main._unhandled_input(event)
 	
 	assert_eq(main.palette.get_active_index(), 2)
+
+func test_選択したピースのプレビューがMainに生成される():
+	# ピースを選択
+	main.palette.select_slot(0) # BARピースを選択
+	
+	# プレビュー層にプレビューピースが生成されていることを確認
+	var preview_root = main.get_node_or_null("PreviewLayer/CurrentPiecePreview")
+	assert_not_null(preview_root, "PreviewLayer/CurrentPiecePreview node should be generated in Main")
+	
+	# 選択されたピースの形状を取得
+	var selected_piece_data = main.palette.get_piece_data_for_slot(0)
+	var expected_hex_count = selected_piece_data.shape.size()
+	
+	# プレビューピースの子ノード（HexTileのインスタンス）の数を確認
+	assert_eq(preview_root.get_child_count(), expected_hex_count, "Preview piece should have correct number of HexTiles")
+	
+	# 各子ノードがHexTileのインスタンスであることも確認（オプション）
+	for child in preview_root.get_children():
+		assert_true(child is HexTileScript, "Each preview child should be a HexTile instance")
+
+func test_プレビューピースがマウスカーソルに追随する():
+	# ピースを選択してプレビューを表示
+	main.palette.select_slot(0)
+	var preview_root = main.get_node("PreviewLayer/CurrentPiecePreview")
+	
+	# マウス移動イベントをシミュレート
+	var mouse_pos = Vector2(100, 200)
+	var event = InputEventMouseMotion.new()
+	event.position = mouse_pos
+	main._unhandled_input(event)
+	
+	# プレビューの位置がマウス位置に更新されていることを確認
+	# Mainがテスト環境でどこに配置されているか不明なため、make_input_localの結果と比較する
+	var expected_pos = main.make_input_local(event).position
+	assert_eq(preview_root.position, expected_pos, "Preview piece should follow mouse cursor")
+
+func test_クリックでピースを配置できる():
+	# ピースを選択
+	main.palette.select_slot(0) # BARピースを選択
+	
+	# 配置対象となるHex座標と、それに相当するスクリーン座標を決定
+	var target_hex = Hex.new(0, 0)
+	var target_pixel_pos = main.grid_manager.hex_to_pixel(target_hex)
+	
+	# マウス移動をシミュレートし、プレビューを目的のHexの位置に置く（確認のため）
+	var mouse_event_motion = InputEventMouseMotion.new()
+	mouse_event_motion.position = target_pixel_pos
+	main._unhandled_input(mouse_event_motion)
+	
+	# 配置前にGridManagerがそのHexを占有していないことを確認
+	var piece_data_pre = main.palette.get_piece_data_for_slot(0)
+	for offset_hex_pre in piece_data_pre["shape"]:
+		var check_hex_pre = Hex.add(target_hex, offset_hex_pre)
+		assert_false(main.grid_manager.is_occupied(check_hex_pre), "Hex at %s should not be occupied before placement" % check_hex_pre.to_string())
+	
+	# クリックイベントをシミュレート
+	var mouse_event_click = InputEventMouseButton.new()
+	mouse_event_click.button_index = MOUSE_BUTTON_LEFT
+	mouse_event_click.pressed = true
+	mouse_event_click.position = target_pixel_pos # クリック位置も同じく設定
+	main._unhandled_input(mouse_event_click)
+	
+	# 配置後、GridManagerがそのHexを占有していることを確認
+	var piece_data_post = main.palette.get_piece_data_for_slot(0)
+	for offset_hex_post in piece_data_post["shape"]:
+		var placed_hex = Hex.add(target_hex, offset_hex_post)
+		assert_true(main.grid_manager.is_occupied(placed_hex), "Hex at %s should be occupied after placement" % placed_hex.to_string())
