@@ -9,7 +9,7 @@ var grid_manager_instance: GridManagerClass
 func before_each():
 	grid_manager_instance = GridManagerClass.new()
 	# テスト内でHexTile.tscnへの参照を設定
-	grid_manager_instance.hex_tile_scene = preload("res://scenes/components/hex_tile/HexTile.tscn")
+	grid_manager_instance.hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 	add_child_autofree(grid_manager_instance)
 	grid_manager_instance.clear_grid() # 既存のクリアロジックを呼び出す
 

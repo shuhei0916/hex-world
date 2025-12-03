@@ -13,7 +13,7 @@ var _occupied_hexes: Dictionary = {} # GridManagerから移動
 # 視覚グリッドの状態
 var layout: Layout # GridDisplayから移動
 var _drawn_hexes: Array[Hex] = [] # GridDisplayのgrid_hexesからリネーム
-var hex_tile_scene = preload("res://scenes/components/hex_tile/HexTile.tscn") # GridDisplayから移動
+var hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 @export var grid_radius: int = 4: # GridDisplayから移動
 	set(value):

@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://cv8s6wthl4qap"]
+[gd_scene load_steps=2 format=3 uid="uid://diwr3bs5f7jxt"]
 
 [ext_resource type="Script" uid="uid://p04rnynwo74n" path="res://scenes/ui/palette/palette_ui.gd" id="1_yb2lm"]
 

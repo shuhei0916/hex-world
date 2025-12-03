@@ -1,8 +1,8 @@
 @tool
-class_name GameLevel
+class_name Main
 extends Node2D
 
-# GameLevel - ゲームの統合コントローラー
+# Main - ゲームの統合コントローラー
 # 各コンポーネントを統括し、データの受け渡しを行う
 
 const PaletteScript = preload("res://scenes/ui/palette/palette.gd")
@@ -28,7 +28,7 @@ func _ready():
 		if hud:
 			hud.setup_ui(palette)
 		else:
-			push_warning("GameLevel: HUD node not found. Check if HUD is added to GameLevel scene.")
+			push_warning("Main: HUD node not found. Check if HUD is added to Main scene.")
 
 func _unhandled_input(event):
 	if Engine.is_editor_hint():
