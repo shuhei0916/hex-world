@@ -24,12 +24,18 @@ func _ready():
 	_update_preview(palette.get_active_index())
 
 func _unhandled_input(event):
+	_handle_key_input(event)
+	_handle_mouse_motion(event)
+	_handle_mouse_click(event)
+
+func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-			if palette:
-				var index = event.keycode - KEY_1
-				palette.select_slot(index)
-	elif event is InputEventMouseMotion:
+			var index = event.keycode - KEY_1
+			palette.select_slot(index)
+
+func _handle_mouse_motion(event):
+	if event is InputEventMouseMotion:
 		if current_piece_preview:
 			var local_mouse_pos = make_input_local(event).position
 			var hex_coord = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
@@ -37,7 +43,9 @@ func _unhandled_input(event):
 			
 			var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
 			current_piece_preview.position = snapped_pos
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+
+func _handle_mouse_click(event):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# 左クリックでピースを配置
 		if current_hovered_hex != null: # ホバーしているHexがあれば配置を試みる
 			place_selected_piece(current_hovered_hex)

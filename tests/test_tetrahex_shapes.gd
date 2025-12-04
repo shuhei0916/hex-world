@@ -31,18 +31,18 @@ func test_全ての形状データが定義されている():
 func test_BAR形状が正しく定義されている():
 	var bar_def = TetrahexShapes.TetrahexData.definitions[TetrahexShapes.TetrahexType.BAR]
 	assert_eq(bar_def.shape.size(), 4)
-	assert_true(Hex.equals(bar_def.shape[0], Hex.new(0, 0, 0)))
-	assert_true(Hex.equals(bar_def.shape[1], Hex.new(1, 0, -1)))
-	assert_true(Hex.equals(bar_def.shape[2], Hex.new(2, 0, -2)))
-	assert_true(Hex.equals(bar_def.shape[3], Hex.new(3, 0, -3)))
+	assert_true(Hex.equals(bar_def.shape[0], Hex.new(-1, 0, 1)))
+	assert_true(Hex.equals(bar_def.shape[1], Hex.new(0, 0, 0)))
+	assert_true(Hex.equals(bar_def.shape[2], Hex.new(1, 0, -1)))
+	assert_true(Hex.equals(bar_def.shape[3], Hex.new(2, 0, -2)))
 
 func test_WORM形状が正しく定義されている():
 	var worm_def = TetrahexShapes.TetrahexData.definitions[TetrahexShapes.TetrahexType.WORM]
 	assert_eq(worm_def.shape.size(), 4)
-	assert_true(Hex.equals(worm_def.shape[0], Hex.new(0, 0, 0)))
-	assert_true(Hex.equals(worm_def.shape[1], Hex.new(1, 0, -1)))
-	assert_true(Hex.equals(worm_def.shape[2], Hex.new(2, 0, -2)))
-	assert_true(Hex.equals(worm_def.shape[3], Hex.new(2, 1, -3)))
+	assert_true(Hex.equals(worm_def.shape[0], Hex.new(-2, 0, 2)))
+	assert_true(Hex.equals(worm_def.shape[1], Hex.new(-1, 0, 1)))
+	assert_true(Hex.equals(worm_def.shape[2], Hex.new(0, 0, 0)))
+	assert_true(Hex.equals(worm_def.shape[3], Hex.new(0, 1, -1)))
 
 func test_全ての形状が4つのhexを持つ():
 	for type in TetrahexShapes.TetrahexType.values():

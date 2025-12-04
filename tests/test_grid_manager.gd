@@ -52,7 +52,7 @@ func test_単一hexを配置可能か判定できる():
 	
 	assert_true(grid_manager_instance.can_place(shape, base_hex))
 	
-	grid_manager_instance.place_piece(shape, base_hex)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
 	assert_false(grid_manager_instance.can_place(shape, base_hex))
 
 func test_複数hex形状の配置可能判定ができる():
@@ -97,7 +97,7 @@ func test_ピースを配置できる():
 		var target = Hex.add(base_hex, offset)
 		assert_false(grid_manager_instance.is_occupied(target))
 	
-	grid_manager_instance.place_piece(shape, base_hex)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
 	
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -114,7 +114,7 @@ func test_ピースを解除できる():
 		var target = Hex.add(base_hex, offset)
 		grid_manager_instance.register_grid_hex(target)
 	
-	grid_manager_instance.place_piece(shape, base_hex)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
 	
 	grid_manager_instance.unplace_piece(shape, base_hex)
 	
@@ -156,4 +156,3 @@ func test_ピース配置時にグリッド色がピース色に変わる():
 		assert_not_null(hex_tile, "HexTile should exist for " + target_hex.to_string())
 		
 		assert_eq(hex_tile.get_color(), piece_color, "HexTile color should match piece color after placement")
-
