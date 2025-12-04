@@ -74,9 +74,9 @@ func _update_preview(slot_index: int):
 		hex_tile.position = pos
 		hex_tile.setup_hex(hex_coord)
 		
-		var sprite = hex_tile.get_node_or_null("Sprite2D")
-		if sprite:
-			sprite.modulate = color
+		# 色と透過度を設定
+		hex_tile.set_color(color)
+		hex_tile.set_transparency(0.5)
 
 # 新しいメソッド：選択中のピースを指定したHex座標に配置する
 func place_selected_piece(target_hex: Hex) -> bool:

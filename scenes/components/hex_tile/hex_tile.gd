@@ -31,6 +31,11 @@ func set_color(color: Color):
 func get_color() -> Color:
 	return _current_color
 
+# 透明度を設定
+func set_transparency(alpha: float):
+	_current_color.a = clampf(alpha, 0.0, 1.0) # アルファ値を0.0から1.0の範囲に制限
+	_update_sprite_color()
+
 # スプライトの色を更新するヘルパー
 func _update_sprite_color():
 	var sprite = get_node_or_null("Sprite2D")
