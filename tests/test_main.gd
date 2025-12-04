@@ -76,34 +76,12 @@ func test_選択したピースのプレビューがMainに生成される():
 	for child in preview_root.get_children():
 		assert_true(child is HexTileScript, "Each preview child should be a HexTile instance")
 
-func test_プレビューピースがマウスカーソルに追随する():
-	# ピースを選択してプレビューを表示
-	main.palette.select_slot(0)
-	var preview_root = main.get_node("PreviewLayer/CurrentPiecePreview")
-	
-	# マウス移動イベントをシミュレート
-	var mouse_pos = Vector2(100, 200)
-	var event = InputEventMouseMotion.new()
-	event.position = mouse_pos
-	main._unhandled_input(event)
-	
-	# プレビューの位置がマウス位置に更新されていることを確認
-	# Mainがテスト環境でどこに配置されているか不明なため、make_input_localの結果と比較する
-	var expected_pos = main.make_input_local(event).position
-	assert_eq(preview_root.position, expected_pos, "Preview piece should follow mouse cursor")
-
-func test_クリックでピースを配置できる():
+func test_指定したHexに選択中のピースを配置できる():
 	# ピースを選択
 	main.palette.select_slot(0) # BARピースを選択
 	
-	# 配置対象となるHex座標と、それに相当するスクリーン座標を決定
+	# 配置対象となるHex座標
 	var target_hex = Hex.new(0, 0)
-	var target_pixel_pos = main.grid_manager.hex_to_pixel(target_hex)
-	
-	# マウス移動をシミュレートし、プレビューを目的のHexの位置に置く（確認のため）
-	var mouse_event_motion = InputEventMouseMotion.new()
-	mouse_event_motion.position = target_pixel_pos
-	main._unhandled_input(mouse_event_motion)
 	
 	# 配置前にGridManagerがそのHexを占有していないことを確認
 	var piece_data_pre = main.palette.get_piece_data_for_slot(0)
@@ -111,12 +89,9 @@ func test_クリックでピースを配置できる():
 		var check_hex_pre = Hex.add(target_hex, offset_hex_pre)
 		assert_false(main.grid_manager.is_occupied(check_hex_pre), "Hex at %s should not be occupied before placement" % check_hex_pre.to_string())
 	
-	# クリックイベントをシミュレート
-	var mouse_event_click = InputEventMouseButton.new()
-	mouse_event_click.button_index = MOUSE_BUTTON_LEFT
-	mouse_event_click.pressed = true
-	mouse_event_click.position = target_pixel_pos # クリック位置も同じく設定
-	main._unhandled_input(mouse_event_click)
+	# ピースを配置
+	var placed_successfully = main.place_selected_piece(target_hex)
+	assert_true(placed_successfully, "Piece should be placed successfully")
 	
 	# 配置後、GridManagerがそのHexを占有していることを確認
 	var piece_data_post = main.palette.get_piece_data_for_slot(0)

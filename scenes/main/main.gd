@@ -10,6 +10,7 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 var palette: Palette
 var preview_layer: Node2D
 var current_piece_preview: Node2D
+var current_hovered_hex: Hex # 追加
 
 func _init():
 	palette = PaletteScript.new()
@@ -39,28 +40,16 @@ func _unhandled_input(event):
 				palette.select_slot(index)
 	elif event is InputEventMouseMotion:
 		if current_piece_preview:
-			var local_event = make_input_local(event)
-			current_piece_preview.position = local_event.position
+			var local_mouse_pos = make_input_local(event).position
+			var hex_coord = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
+			current_hovered_hex = hex_coord # current_hovered_hexを更新
+			
+			var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
+			current_piece_preview.position = snapped_pos
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# 左クリックでピースを配置
-		var local_mouse_pos = make_input_local(event).position
-		var clicked_hex = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
-		
-		var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-		if not selected_piece_data.is_empty():
-			var shape = selected_piece_data["shape"]
-			
-			if grid_manager.can_place(shape, clicked_hex):
-				grid_manager.place_piece(shape, clicked_hex)
-				print("piece has been placed!")
-				# ピース配置後、プレビューを非表示にするなどの処理が必要になるが、
-				# まずはテストを通すことに集中
-				# TODO: プレビューを非表示にするロジックを追加
-				# 例: _update_preview(-1) のようにして選択を解除するか、
-				# preview_layer.visible = false にする
-			else:
-				print("piece cannot be placed...")
-				
+		if current_hovered_hex != null: # ホバーしているHexがあれば配置を試みる
+			place_selected_piece(current_hovered_hex)
 
 func _on_active_slot_changed(new_index: int, _old_index: int):
 	_update_preview(new_index)
@@ -88,3 +77,20 @@ func _update_preview(slot_index: int):
 		var sprite = hex_tile.get_node_or_null("Sprite2D")
 		if sprite:
 			sprite.modulate = color
+
+# 新しいメソッド：選択中のピースを指定したHex座標に配置する
+func place_selected_piece(target_hex: Hex) -> bool:
+	var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
+	if selected_piece_data.is_empty():
+		return false
+	
+	var shape = selected_piece_data["shape"]
+	
+	if grid_manager.can_place(shape, target_hex):
+		grid_manager.place_piece(shape, target_hex)
+		print("piece has been placed at ", target_hex.to_string())
+		# TODO: 配置されたピースを画面に表示する
+		return true
+	else:
+		print("piece cannot be placed at ", target_hex.to_string())
+		return false
