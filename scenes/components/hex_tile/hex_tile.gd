@@ -9,18 +9,33 @@ var hex_coordinate: Hex
 var is_highlighted: bool = false
 var normal_color: Color = Color("#3D3D3D")
 var highlight_color: Color = Color("#7c7c7c")
+var _current_color: Color # 追加: 現在のHexの色 (ピースの色が優先される)
 
 func setup_hex(hex: Hex):
 	hex_coordinate = hex
-	# デフォルト色を設定
+	_current_color = normal_color # 初期色を設定
+	_update_sprite_color() # スプライトの色を更新
 	set_highlight(false)
 
 # ハイライト状態を設定
 func set_highlight(highlighted: bool):
 	is_highlighted = highlighted
+	_update_sprite_color()
+
+# ピースの色を設定
+func set_color(color: Color):
+	_current_color = color
+	_update_sprite_color()
+
+# 現在のピースの色を取得
+func get_color() -> Color:
+	return _current_color
+
+# スプライトの色を更新するヘルパー
+func _update_sprite_color():
 	var sprite = get_node_or_null("Sprite2D")
 	if sprite:
-		if highlighted:
+		if is_highlighted:
 			sprite.modulate = highlight_color
 		else:
-			sprite.modulate = normal_color
+			sprite.modulate = _current_color

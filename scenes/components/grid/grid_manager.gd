@@ -85,10 +85,15 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 	return true
 
 # ピースを配置する (旧 GridManager.place_piece)
-func place_piece(shape: Array, base_hex: Hex):
+func place_piece(shape: Array, base_hex: Hex, piece_color: Color):
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
+		
+		# 配置されたHexTileの色を更新
+		var hex_tile = find_hex_tile(target)
+		if hex_tile:
+			hex_tile.set_color(piece_color)
 
 # ピースを解除する (旧 GridManager.unplace_piece)
 func unplace_piece(shape: Array, base_hex: Hex):

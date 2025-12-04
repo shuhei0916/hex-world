@@ -134,3 +134,26 @@ func test_グリッド状態をクリアできる():
 	
 	assert_false(grid_manager_instance.is_inside_grid(hex))
 	assert_false(grid_manager_instance.is_occupied(hex))
+
+func test_ピース配置時にグリッド色がピース色に変わる():
+	# グリッドを作成 (テストで利用できるように)
+	grid_manager_instance.create_hex_grid(1) # 小さなグリッドで十分
+	
+	# 配置するピースの形状と色を定義
+	var piece_shape = [Hex.new(0, 0), Hex.new(1, 0)]
+	var piece_color = Color.RED # 例として赤色
+
+	# ピースを配置
+	grid_manager_instance.place_piece(piece_shape, Hex.new(0, 0), piece_color) # piece_colorも渡せるようにする
+	
+	# 配置後、Hexが占有されていることを確認
+	for hex_offset in piece_shape:
+		var target_hex = Hex.add(Hex.new(0,0), hex_offset)
+		assert_true(grid_manager_instance.is_occupied(target_hex))
+		
+		# 配置されたHexに対応するHexTileの色が変わっていることを確認 (REDになる箇所)
+		var hex_tile = grid_manager_instance.find_hex_tile(target_hex)
+		assert_not_null(hex_tile, "HexTile should exist for " + target_hex.to_string())
+		
+		assert_eq(hex_tile.get_color(), piece_color, "HexTile color should match piece color after placement")
+

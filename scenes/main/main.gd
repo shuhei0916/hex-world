@@ -85,9 +85,10 @@ func place_selected_piece(target_hex: Hex) -> bool:
 		return false
 	
 	var shape = selected_piece_data["shape"]
+	var color = selected_piece_data["color"] # ピースの色を取得
 	
 	if grid_manager.can_place(shape, target_hex):
-		grid_manager.place_piece(shape, target_hex)
+		grid_manager.place_piece(shape, target_hex, color) # color引数を追加
 		print("piece has been placed at ", target_hex.to_string())
 		# TODO: 配置されたピースを画面に表示する
 		return true
