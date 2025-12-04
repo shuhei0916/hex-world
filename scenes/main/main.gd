@@ -6,25 +6,16 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 @onready var hud: HUD = $HUD
 @onready var grid_manager:= $GridManager
+@onready var preview_layer = $PreviewLayer
+@onready var current_piece_preview = $PreviewLayer/CurrentPiecePreview
 
 var palette: Palette
-var preview_layer: Node2D
-var current_piece_preview: Node2D
-var current_hovered_hex: Hex # 追加
+var current_hovered_hex: Hex
 
 func _init():
 	palette = PaletteScript.new()
 
 func _ready():
-	# Create Preview Layer
-	preview_layer = Node2D.new()
-	preview_layer.name = "PreviewLayer"
-	add_child(preview_layer)
-	
-	current_piece_preview = Node2D.new()
-	current_piece_preview.name = "CurrentPiecePreview"
-	preview_layer.add_child(current_piece_preview)
-	
 	grid_manager.create_hex_grid(grid_manager.grid_radius)
 	
 	hud.setup_ui(palette)
