@@ -62,7 +62,7 @@ func test_選択したピースのプレビューがMainに生成される():
 	main.palette.select_slot(0) # BARピースを選択
 	
 	# プレビュー層にプレビューピースが生成されていることを確認
-	var preview_root = main.get_node_or_null("PreviewLayer/CurrentPiecePreview")
+	var preview_root = main.get_node_or_null("PiecePlacer/PreviewLayer/CurrentPiecePreview")
 	assert_not_null(preview_root, "PreviewLayer/CurrentPiecePreview node should be generated in Main")
 	
 	# 選択されたピースの形状を取得
