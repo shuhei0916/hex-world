@@ -10,7 +10,8 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 @onready var current_piece_preview = $PreviewLayer/CurrentPiecePreview
 
 var palette: Palette
-var current_hovered_hex: Hex
+var current_hovered_hex: Hex 
+var current_piece_shape: Array[Hex] = [] # 現在のプレビューピースの形状（回転適用済み）
 
 func _init():
 	palette = PaletteScript.new()
@@ -33,6 +34,8 @@ func _handle_key_input(event):
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var index = event.keycode - KEY_1
 			palette.select_slot(index)
+		elif event.keycode == KEY_R:
+			rotate_current_piece()
 
 func _handle_mouse_motion(event):
 	if event is InputEventMouseMotion:
@@ -54,18 +57,27 @@ func _on_active_slot_changed(new_index: int, _old_index: int):
 	_update_preview(new_index)
 
 func _update_preview(slot_index: int):
-	# Clear existing preview
-	for child in current_piece_preview.get_children():
-		child.queue_free()
-	
 	var piece_data = palette.get_piece_data_for_slot(slot_index)
 	if piece_data.is_empty():
+		current_piece_shape = []
+		_clear_preview()
 		return
 	
-	var shape = piece_data["shape"]
-	var color = piece_data["color"]
+	# 形状を初期化（パレットからコピー）
+	current_piece_shape = piece_data["shape"].duplicate()
+	_draw_preview()
+
+# 現在の形状に基づいてプレビューを描画
+func _draw_preview():
+	_clear_preview()
 	
-	for hex_coord in shape:
+	if current_piece_shape.is_empty():
+		return
+
+	var piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
+	var color = piece_data["color"] # 色はパレットから取得（回転しても色は変わらない）
+	
+	for hex_coord in current_piece_shape:
 		var hex_tile = HexTileScene.instantiate()
 		current_piece_preview.add_child(hex_tile)
 		
@@ -77,20 +89,39 @@ func _update_preview(slot_index: int):
 		hex_tile.set_color(color)
 		hex_tile.set_transparency(0.5)
 
+# プレビューをクリア
+func _clear_preview():
+	for child in current_piece_preview.get_children():
+		child.queue_free()
+
 # 新しいメソッド：選択中のピースを指定したHex座標に配置する
 func place_selected_piece(target_hex: Hex) -> bool:
-	var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-	if selected_piece_data.is_empty():
+	if current_piece_shape.is_empty():
 		return false
 	
-	var shape = selected_piece_data["shape"]
+	var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
 	var color = selected_piece_data["color"] # ピースの色を取得
 	
-	if grid_manager.can_place(shape, target_hex):
-		grid_manager.place_piece(shape, target_hex, color) # color引数を追加
+	# shapeはcurrent_piece_shapeを使う（回転が反映されている）
+	if grid_manager.can_place(current_piece_shape, target_hex):
+		grid_manager.place_piece(current_piece_shape, target_hex, color) 
 		print("piece has been placed at ", target_hex.to_string())
 		# TODO: 配置されたピースを画面に表示する
 		return true
 	else:
 		print("piece cannot be placed at ", target_hex.to_string())
 		return false
+
+# 新しいメソッド：現在のプレビューピースを回転させる
+func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
+	var rotated_shape: Array[Hex] = []
+	for hex_offset in original_shape:
+		rotated_shape.append(Hex.rotate_right(hex_offset))
+	return rotated_shape
+
+func rotate_current_piece():
+	if current_piece_shape.is_empty():
+		return
+	
+	current_piece_shape = _get_rotated_piece_shape(current_piece_shape)
+	_draw_preview()

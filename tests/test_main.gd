@@ -98,3 +98,43 @@ func test_指定したHexに選択中のピースを配置できる():
 	for offset_hex_post in piece_data_post["shape"]:
 		var placed_hex = Hex.add(target_hex, offset_hex_post)
 		assert_true(main.grid_manager.is_occupied(placed_hex), "Hex at %s should be occupied after placement" % placed_hex.to_string())
+
+func test_ピース回転処理が正しい形状を返す():
+	# ピースを選択（形状データの取得元としてpaletteを使用）
+	main.palette.select_slot(0) # BARピースを選択
+	
+	# 初期形状を取得
+	var initial_piece_data = main.palette.get_piece_data_for_slot(0)
+	var initial_shape_hexes = initial_piece_data.shape.duplicate() # 元の形状が変更されないように複製
+
+	# 期待される回転後の形状を計算
+	var expected_rotated_shape_hexes = []
+	for hex_offset in initial_shape_hexes:
+		expected_rotated_shape_hexes.append(Hex.rotate_right(hex_offset))
+
+	# main.gdに実装する想定の回転処理メソッドを呼び出す（このメソッドはまだ存在しないためREDになる）
+	var actual_rotated_shape_hexes = main._get_rotated_piece_shape(initial_shape_hexes)
+	
+	# 結果が期待値と一致するか検証
+	assert_eq(actual_rotated_shape_hexes.size(), expected_rotated_shape_hexes.size(), "Rotated shape should have same number of hexes")
+	for i in range(expected_rotated_shape_hexes.size()):
+		assert_true(Hex.equals(actual_rotated_shape_hexes[i], expected_rotated_shape_hexes[i]), \
+			"Rotated hex at index %d should match expected rotated hex" % i)
+
+func test_回転メソッドを呼ぶと現在の形状が更新される():
+	main.palette.select_slot(0)
+	# current_piece_shapeはまだ実装されていないが、パレット選択時に初期化されることを期待
+	var initial_shape = main.current_piece_shape.duplicate()
+	
+	# 回転メソッドを呼ぶ
+	main.rotate_current_piece()
+	
+	# 期待値の計算
+	var expected_shape = []
+	for h in initial_shape:
+		expected_shape.append(Hex.rotate_right(h))
+	
+	# 検証
+	assert_eq(main.current_piece_shape.size(), expected_shape.size())
+	for i in range(expected_shape.size()):
+		assert_true(Hex.equals(main.current_piece_shape[i], expected_shape[i]), "Shape should be rotated")
