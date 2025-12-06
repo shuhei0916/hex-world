@@ -108,6 +108,13 @@ func rotate_current_piece():
 	current_piece_shape = _get_rotated_piece_shape(current_piece_shape)
 	_draw_preview()
 
+# 指定した座標にあるピースを削除する
+func remove_piece_at_hex(target_hex: Hex) -> bool:
+	if grid_manager.remove_piece_at(target_hex):
+		print("piece removed at ", target_hex.to_string())
+		return true
+	return false
+
 func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
 	var rotated_shape: Array[Hex] = []
 	for hex_offset in original_shape:

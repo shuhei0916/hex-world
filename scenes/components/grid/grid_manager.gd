@@ -9,6 +9,7 @@ signal grid_updated(hexes: Array[Hex]) # GridDisplayから移動
 # 論理グリッドの状態
 var _registered_hexes: Dictionary = {} # GridManagerから移動
 var _occupied_hexes: Dictionary = {} # GridManagerから移動
+var _hex_to_piece_map: Dictionary = {} # 追加: Hex座標 -> ピース情報のマッピング
 
 # 視覚グリッドの状態
 var layout: Layout # GridDisplayから移動
@@ -28,6 +29,7 @@ func _init():
 	# GridManagerの_init: シングルトンからノードになったので、毎回クリアする意味は薄いが、念のため残す
 	_registered_hexes.clear()
 	_occupied_hexes.clear()
+	_hex_to_piece_map.clear()
 	
 	# GridDisplayの_init: レイアウト設定（視覚化用に大きめサイズ）
 	layout = Layout.new(
@@ -86,16 +88,53 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 
 # ピースを配置する (旧 GridManager.place_piece)
 func place_piece(shape: Array, base_hex: Hex, piece_color: Color):
+	var occupied_hexes = []
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
+		occupied_hexes.append(target)
 		
 		# 配置されたHexTileの色を更新
 		var hex_tile = find_hex_tile(target)
 		if hex_tile:
 			hex_tile.set_color(piece_color)
+	
+	# ピース情報を保存
+	var piece_data = {
+		"occupied_hexes": occupied_hexes,
+		"color": piece_color
+	}
+	for hex in occupied_hexes:
+		var key = _hex_to_key(hex)
+		_hex_to_piece_map[key] = piece_data
 
-# ピースを解除する (旧 GridManager.unplace_piece)
+# 指定した座標にあるピースを削除する
+func remove_piece_at(target_hex: Hex) -> bool:
+	var key = _hex_to_key(target_hex)
+	if not _hex_to_piece_map.has(key):
+		return false
+	
+	var piece_data = _hex_to_piece_map[key]
+	var hexes_to_remove = piece_data["occupied_hexes"]
+	
+	# マップから削除し、各Hexの状態をリセット
+	for hex in hexes_to_remove:
+		var h_key = _hex_to_key(hex)
+		_hex_to_piece_map.erase(h_key)
+		_unplace_single_hex(hex)
+		
+	return true
+
+# 単一のHexの占有状態と色をリセットするヘルパー
+func _unplace_single_hex(hex: Hex):
+	var key = _hex_to_key(hex)
+	_occupied_hexes.erase(key)
+	
+	var hex_tile = find_hex_tile(hex)
+	if hex_tile:
+		hex_tile.reset_color()
+
+# ピースを解除する (旧 GridManager.unplace_piece) - 互換性のため残すが非推奨
 func unplace_piece(shape: Array, base_hex: Hex):
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -106,6 +145,7 @@ func unplace_piece(shape: Array, base_hex: Hex):
 func clear_grid():
 	_registered_hexes.clear()
 	_occupied_hexes.clear()
+	_hex_to_piece_map.clear()
 
 # HexをDictionary keyに変換するヘルパー (旧 GridManager._hex_to_key)
 func _hex_to_key(hex: Hex) -> String:

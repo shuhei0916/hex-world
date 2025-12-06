@@ -42,8 +42,12 @@ func _handle_mouse_motion(event):
 		piece_placer.update_hover(local_mouse_pos)
 
 func _handle_mouse_click(event):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		piece_placer.place_current_piece()
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			piece_placer.place_current_piece()
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			if piece_placer.current_hovered_hex != null:
+				piece_placer.remove_piece_at_hex(piece_placer.current_hovered_hex)
 
 func place_selected_piece(target_hex: Hex) -> bool:
 	return piece_placer.place_piece_at_hex(target_hex)
