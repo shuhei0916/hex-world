@@ -19,6 +19,9 @@ func _init(q_val, r_val, s_val = null):
 func is_valid() -> bool:
 	return (q + r + s) == 0
 
+func _to_string() -> String:
+	return "(%s, %s, %s)" % [q, r, s]
+
 # 六角形算術演算（本家 redblob_hex.py に準拠）
 static func add(a: Hex, b: Hex) -> Hex:
 	return Hex.new(a.q + b.q, a.r + b.r, a.s + b.s)

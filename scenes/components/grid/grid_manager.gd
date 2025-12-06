@@ -42,10 +42,6 @@ func _ready():
 	# GridManagerの_ready: 無し
 	# GridDisplayの_ready: ビジュアルを更新
 	_update_grid_visuals()
-	
-	# エディタで実行時のみメッセージ
-	if not Engine.is_editor_hint():
-		print("GridManager (Node2D) initialized")
 
 # ==============================================================================
 # 論理グリッド管理 (旧 GridManager の機能)
@@ -194,9 +190,6 @@ func hex_to_pixel(hex: Hex) -> Vector2:
 
 # グリッドを視覚的に描画 (旧 GridDisplay.draw_grid)
 func draw_grid():
-	if not Engine.is_editor_hint():
-		print("draw_grid() started with %d hexes" % _drawn_hexes.size())
-
 	# Unity: Instantiate(hexPrefab, pos, Quaternion.identity, transform)
 	for i in range(_drawn_hexes.size()):
 		var hex = _drawn_hexes[i]
@@ -205,13 +198,6 @@ func draw_grid():
 		hex_instance.position = world_pos # Quaternion.identity + pos設定
 		add_child(hex_instance) # transform相当でNode2Dツリーに追加
 		hex_instance.setup_hex(hex) # hex座標情報設定（デフォルト色設定も含む）
-
-		# 最初の数個の座標をデバッグログ出力
-		if not Engine.is_editor_hint() and i < 3:
-			print("Hex[%d]: coord(%d,%d) -> world_pos(%s)" % [i, hex.q, hex.r, world_pos])
-
-	if not Engine.is_editor_hint():
-		print("draw_grid() completed. Child count: %d" % get_child_count())
 
 # 経路をハイライト表示 (旧 GridDisplay.highlight_path)
 func highlight_path(hex_path: Array[Hex]):
