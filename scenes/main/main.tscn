@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://h4o14c2spov4"]
+[gd_scene load_steps=6 format=3 uid="uid://h4o14c2spov4"]
 
 [ext_resource type="Script" uid="uid://b4lych0hgwlc4" path="res://scenes/main/main.gd" id="1_l3cfh"]
 [ext_resource type="Script" uid="uid://bcpl4euiuawxf" path="res://scenes/components/camera_controller.gd" id="2_6q06x"]
 [ext_resource type="PackedScene" uid="uid://qqa8dhve6xp8" path="res://scenes/ui/hud/hud.tscn" id="3_ow5a4"]
 [ext_resource type="Script" uid="uid://o5snqylsxhj3" path="res://scenes/components/grid/grid_manager.gd" id="4_hujxm"]
+[ext_resource type="Script" uid="uid://dyow6gxqtnhfj" path="res://scenes/components/piece_placer/piece_placer.gd" id="5_6q06x"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_l3cfh")
@@ -20,3 +21,6 @@ script = ExtResource("4_hujxm")
 [node name="PreviewLayer" type="Node2D" parent="."]
 
 [node name="CurrentPiecePreview" type="Node2D" parent="PreviewLayer"]
+
+[node name="PiecePlacer" type="Node2D" parent="."]
+script = ExtResource("5_6q06x")

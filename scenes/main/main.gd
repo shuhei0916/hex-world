@@ -6,9 +6,9 @@ const PiecePlacerScript = preload("res://scenes/components/piece_placer/piece_pl
 
 @onready var hud: HUD = $HUD
 @onready var grid_manager:= $GridManager
+@onready var piece_placer = $PiecePlacer
 
 var palette: Palette
-var piece_placer
 
 # テスト互換性のためのプロパティアクセサ
 var current_piece_shape: Array[Hex]:
@@ -23,10 +23,6 @@ func _ready():
 	
 	hud.setup_ui(palette)
 	
-	# PiecePlacerの初期化
-	piece_placer = PiecePlacerScript.new()
-	piece_placer.name = "PiecePlacer"
-	add_child(piece_placer)
 	piece_placer.setup(grid_manager, palette)
 
 func _unhandled_input(event):
@@ -51,14 +47,11 @@ func _handle_mouse_click(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		piece_placer.place_current_piece()
 
-# テスト互換性のためのラッパーメソッド
 func place_selected_piece(target_hex: Hex) -> bool:
 	return piece_placer.place_piece_at_hex(target_hex)
 
-# テスト互換性のためのラッパーメソッド
 func rotate_current_piece():
 	piece_placer.rotate_current_piece()
 
-# テスト互換性のためのラッパーメソッド
 func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
 	return piece_placer._get_rotated_piece_shape(original_shape)
