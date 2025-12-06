@@ -15,7 +15,7 @@ func before_each():
 	add_child_autofree(main)
 
 func after_each():
-	pass
+	await get_tree().process_frame
 
 func test_MainはGridManagerを持つ():
 	assert_not_null(main.grid_manager)

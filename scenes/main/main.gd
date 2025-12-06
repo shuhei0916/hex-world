@@ -20,8 +20,15 @@ func _init():
 
 func _ready():
 	grid_manager.create_hex_grid(grid_manager.grid_radius)
+	
+	# Paletteを子ノードとして追加し、自動解放されるようにする
+	if not palette.get_parent():
+		add_child(palette)
+	
 	hud.setup_ui(palette)
-	piece_placer.setup(grid_manager, palette)
+	
+	palette.active_slot_changed.connect(_on_active_slot_changed)
+	_update_preview(palette.get_active_index())
 
 func _unhandled_input(event):
 	_handle_key_input(event)

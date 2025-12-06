@@ -45,7 +45,6 @@ func before_each():
 
 func after_each():
 	await get_tree().process_frame
-	await get_tree().process_frame
 
 func test_指定したHexに選択中のピースを配置できる():
 	# ピースを選択

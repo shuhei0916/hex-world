@@ -13,6 +13,9 @@ func before_each():
 	add_child_autofree(grid_manager_instance)
 	grid_manager_instance.clear_grid() # 既存のクリアロジックを呼び出す
 
+func after_each():
+	await get_tree().process_frame
+
 func test_グリッドhexを登録できる():
 	var hex = Hex.new(0, 0, 0)
 	grid_manager_instance.register_grid_hex(hex)
