@@ -11,7 +11,6 @@ var piece_placer
 var grid_manager
 var palette
 
-# テスト用データ
 var shape_arch: Array[Hex]
 var shape_arch_rotated: Array[Hex]
 
@@ -29,6 +28,7 @@ func before_all():
 		Hex.new(-1, 1, 0)
 	]
 
+
 func before_each():
 	grid_manager = GridManagerScript.new()
 	# GridManagerの依存関係設定
@@ -43,27 +43,26 @@ func before_each():
 	add_child_autofree(piece_placer)
 	piece_placer.setup(grid_manager, palette)
 
+
 func after_each():
 	await get_tree().process_frame
 
+
 func test_指定したHexに選択中のピースを配置できる():
-	# ピースを選択
 	palette.select_slot(0) # BARピースを選択
 	
 	var target_hex = Hex.new(0, 0)
 	
-	# 配置
 	var result = piece_placer.place_piece_at_hex(target_hex)
 	assert_true(result, "Should return true on success")
 	
-	# 確認
 	var piece_data = palette.get_piece_data_for_slot(0)
 	for offset in piece_data["shape"]:
 		var h = Hex.add(target_hex, offset)
 		assert_true(grid_manager.is_occupied(h))
 
+
 func test_ピース回転処理が正しい形状を返す():
-	# privateメソッドだがテスト対象として呼び出す
 	var rotated = piece_placer._get_rotated_piece_shape(shape_arch)
 	
 	assert_eq(rotated.size(), shape_arch_rotated.size(), "Rotated shape size mismatch")
@@ -71,37 +70,30 @@ func test_ピース回転処理が正しい形状を返す():
 		assert_true(Hex.equals(rotated[i], shape_arch_rotated[i]), 
 			"Rotated hex at index %d should be %s but was %s" % [i, str(shape_arch_rotated[i]), str(rotated[i])])
 
+
 func test_回転メソッドを呼ぶと現在の形状が更新される():
-	# 初期形状をARCH型（相当）に設定
 	piece_placer.current_piece_shape = shape_arch
-	
-	# 回転メソッドを呼ぶ
 	piece_placer.rotate_current_piece()
-	
 	var current_shape = piece_placer.current_piece_shape
-	
 	assert_eq(current_shape.size(), shape_arch_rotated.size())
 	for i in range(shape_arch_rotated.size()):
 		assert_true(Hex.equals(current_shape[i], shape_arch_rotated[i]), "Rotated hex at index %d should be correct" % i)
+
 
 func test_指定した座標のピースを削除できる():
 	grid_manager.create_hex_grid(2)
 	var target_hex = Hex.new(0, 0)
 	
-	# まず配置
 	palette.select_slot(0)
 	piece_placer.place_piece_at_hex(target_hex)
 	
 	assert_true(grid_manager.is_occupied(target_hex), "Hex should be occupied")
 	
-	# 削除
 	var result = piece_placer.remove_piece_at_hex(target_hex)
 	assert_true(result, "Remove should return true")
 	
-	# 確認
 	assert_false(grid_manager.is_occupied(target_hex), "Hex should be empty")
 	
-	# 形状の他の部分も消えているか確認
 	var piece_data = palette.get_piece_data_for_slot(0)
 	for offset in piece_data["shape"]:
 		var h = Hex.add(target_hex, offset)
