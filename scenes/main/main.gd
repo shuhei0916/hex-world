@@ -20,9 +20,7 @@ func _init():
 
 func _ready():
 	grid_manager.create_hex_grid(grid_manager.grid_radius)
-	
 	hud.setup_ui(palette)
-	
 	piece_placer.setup(grid_manager, palette)
 
 func _unhandled_input(event):
