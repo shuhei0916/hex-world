@@ -15,7 +15,7 @@
 
 ## リファクタリング
 - [ ] 不要なデバッグログ消す
-- [ ] test_piece_placerの回転のテストを書き直す
+- [x] test_piece_placerの回転のテストを書き直す
 - [ ] piece_placerの子ノードとしてpreviewピースなどを生成するようにする。
 - [ ] 
 

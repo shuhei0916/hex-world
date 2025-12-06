@@ -13,16 +13,21 @@ var palette
 
 func before_each():
 	grid_manager = GridManagerScript.new()
-	# GridManagerの依存関係設定
 	grid_manager.hex_tile_scene = HexTileScene
 	add_child_autofree(grid_manager)
 	grid_manager.create_hex_grid(2)
 	
 	palette = PaletteScript.new()
+	add_child_autofree(palette)
 	
 	piece_placer = PiecePlacerScript.new()
 	add_child_autofree(piece_placer)
 	piece_placer.setup(grid_manager, palette)
+#
+
+func after_each():
+	await get_tree().process_frame
+
 
 func test_指定したHexに選択中のピースを配置できる():
 	# ピースを選択
@@ -40,21 +45,14 @@ func test_指定したHexに選択中のピースを配置できる():
 		var h = Hex.add(target_hex, offset)
 		assert_true(grid_manager.is_occupied(h))
 
-func test_ピース回転処理が正しい形状を返す():
-	palette.select_slot(0)
-	var initial_shape = palette.get_piece_data_for_slot(0).shape
-	print(initial_shape)
-	
-	# privateメソッドだがテスト対象として呼び出す
-	var rotated = piece_placer._get_rotated_piece_shape(initial_shape)
-	
-	var expected = []
-	for h in initial_shape:
-		expected.append(Hex.rotate_right(h))
-		
-	assert_eq(rotated.size(), expected.size())
+
+func test_回転されたピースが正しい形状を返す():
+	var original_shape: Array[Hex] = [Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]
+	var rotated = piece_placer._get_rotated_piece_shape(original_shape)
+	var expected = [Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1), Hex.new(-1, 1, 0)]
 	for i in range(expected.size()):
-		assert_true(Hex.equals(rotated[i], expected[i]))
+		assert_true(Hex.equals(rotated[i], expected[i]), "Rotated hex at index %d should be correct" % i)
+
 
 func test_回転メソッドを呼ぶと現在の形状が更新される():
 	palette.select_slot(0)
