@@ -10,21 +10,10 @@ var palette: Palette
 # 内部状態
 var current_piece_shape: Array[Hex] = []
 var current_hovered_hex: Hex
-var preview_layer: Node2D
-var current_piece_preview: Node2D
 
 func setup(grid_manager_ref, palette_ref: Palette):
 	grid_manager = grid_manager_ref
 	palette = palette_ref
-	
-	# プレビュー用ノードのセットアップ
-	preview_layer = Node2D.new()
-	preview_layer.name = "PreviewLayer"
-	add_child(preview_layer)
-	
-	current_piece_preview = Node2D.new()
-	current_piece_preview.name = "CurrentPiecePreview"
-	preview_layer.add_child(current_piece_preview)
 	
 	# パレットのシグナル接続
 	palette.active_slot_changed.connect(_on_active_slot_changed)
@@ -56,7 +45,7 @@ func _draw_preview():
 	
 	for hex_coord in current_piece_shape:
 		var hex_tile = HexTileScene.instantiate()
-		current_piece_preview.add_child(hex_tile)
+		add_child(hex_tile) # 直接子ノードとして追加
 		
 		var pos = grid_manager.hex_to_pixel(hex_coord)
 		hex_tile.position = pos
@@ -66,16 +55,15 @@ func _draw_preview():
 		hex_tile.set_transparency(0.5)
 
 func _clear_preview():
-	for child in current_piece_preview.get_children():
+	for child in get_children():
 		child.queue_free()
 
 func update_hover(local_mouse_pos: Vector2):
-	if current_piece_preview:
-		var hex_coord = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
-		current_hovered_hex = hex_coord
-		
-		var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
-		current_piece_preview.position = snapped_pos
+	var hex_coord = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
+	current_hovered_hex = hex_coord
+	
+	var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
+	position = snapped_pos # PiecePlacer自体を移動
 
 func place_current_piece() -> bool:
 	if current_hovered_hex == null:
