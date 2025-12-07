@@ -20,3 +20,7 @@ script = ExtResource("4_hujxm")
 
 [node name="PiecePlacer" type="Node2D" parent="."]
 script = ExtResource("5_6q06x")
+
+[node name="GhostPreviewContainer" type="Node2D" parent="PiecePlacer"]
+
+[node name="MousePreviewContainer" type="Node2D" parent="PiecePlacer"]

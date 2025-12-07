@@ -7,6 +7,8 @@ const PiecePlacerScript = preload("res://scenes/components/piece_placer/piece_pl
 @onready var hud: HUD = $HUD
 @onready var grid_manager:= $GridManager
 @onready var piece_placer = $PiecePlacer
+@onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
+@onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
 
 var palette: Palette
 
@@ -21,9 +23,9 @@ func _init():
 func _ready():
 	grid_manager.create_hex_grid(grid_manager.grid_radius)
 	add_child(palette)
-
+	
 	hud.setup_ui(palette)
-	piece_placer.setup(grid_manager, palette)
+	piece_placer.setup(grid_manager, palette, mouse_preview_container, ghost_preview_container)
 
 func _unhandled_input(event):
 	_handle_key_input(event)

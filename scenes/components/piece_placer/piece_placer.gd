@@ -10,21 +10,14 @@ var palette: Palette
 # 内部状態
 var current_piece_shape: Array[Hex] = []
 var current_hovered_hex: Hex
-var _cursor_container: Node2D
-var _ghost_container: Node2D
+var mouse_preview_container: Node2D
+var ghost_preview_container: Node2D
 
-func setup(grid_manager_ref, palette_ref: Palette):
+func setup(grid_manager_ref, palette_ref: Palette, mouse_container_ref: Node2D, ghost_container_ref: Node2D):
 	grid_manager = grid_manager_ref
 	palette = palette_ref
-	
-	# コンテナの初期化
-	_ghost_container = Node2D.new()
-	_ghost_container.name = "GhostContainer"
-	add_child(_ghost_container)
-	
-	_cursor_container = Node2D.new()
-	_cursor_container.name = "CursorContainer"
-	add_child(_cursor_container)
+	mouse_preview_container = mouse_container_ref
+	ghost_preview_container = ghost_container_ref
 	
 	# パレットのシグナル接続
 	palette.active_slot_changed.connect(_on_active_slot_changed)
@@ -59,24 +52,24 @@ func _draw_preview():
 		
 		# カーソル用タイル (手持ち)
 		var cursor_tile = HexTileScene.instantiate()
-		_cursor_container.add_child(cursor_tile)
+		mouse_preview_container.add_child(cursor_tile)
 		cursor_tile.position = pos
 		cursor_tile.setup_hex(hex_coord)
 		cursor_tile.set_color(color)
-		cursor_tile.set_transparency(0.8)
+		cursor_tile.set_transparency(1.0)
 		
 		# ゴースト用タイル (スナップ)
 		var ghost_tile = HexTileScene.instantiate()
-		_ghost_container.add_child(ghost_tile)
+		ghost_preview_container.add_child(ghost_tile)
 		ghost_tile.position = pos
 		ghost_tile.setup_hex(hex_coord)
-		ghost_tile.set_color(color)
+		ghost_tile.set_color(Color.GHOST_WHITE)
 		ghost_tile.set_transparency(0.5)
 
 func _clear_preview():
-	for child in _cursor_container.get_children():
+	for child in mouse_preview_container.get_children():
 		child.queue_free()
-	for child in _ghost_container.get_children():
+	for child in ghost_preview_container.get_children():
 		child.queue_free()
 
 func update_hover(local_mouse_pos: Vector2):
@@ -86,8 +79,8 @@ func update_hover(local_mouse_pos: Vector2):
 	var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
 	
 	# コンテナの位置を更新
-	_cursor_container.position = local_mouse_pos
-	_ghost_container.position = snapped_pos
+	mouse_preview_container.position = local_mouse_pos
+	ghost_preview_container.position = snapped_pos
 
 func place_current_piece() -> bool:
 	if current_hovered_hex == null:
