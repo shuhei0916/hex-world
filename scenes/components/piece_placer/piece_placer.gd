@@ -10,10 +10,21 @@ var palette: Palette
 # 内部状態
 var current_piece_shape: Array[Hex] = []
 var current_hovered_hex: Hex
+var _cursor_container: Node2D
+var _ghost_container: Node2D
 
 func setup(grid_manager_ref, palette_ref: Palette):
 	grid_manager = grid_manager_ref
 	palette = palette_ref
+	
+	# コンテナの初期化
+	_ghost_container = Node2D.new()
+	_ghost_container.name = "GhostContainer"
+	add_child(_ghost_container)
+	
+	_cursor_container = Node2D.new()
+	_cursor_container.name = "CursorContainer"
+	add_child(_cursor_container)
 	
 	# パレットのシグナル接続
 	palette.active_slot_changed.connect(_on_active_slot_changed)
@@ -41,24 +52,31 @@ func _draw_preview():
 		return
 
 	var piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-	if piece_data.is_empty():
-		return
-		
-	var color = piece_data["color"]
+	var color = piece_data.get("color", Color.WHITE)
 	
 	for hex_coord in current_piece_shape:
-		var hex_tile = HexTileScene.instantiate()
-		add_child(hex_tile) # 直接子ノードとして追加
-		
 		var pos = grid_manager.hex_to_pixel(hex_coord)
-		hex_tile.position = pos
-		hex_tile.setup_hex(hex_coord)
 		
-		hex_tile.set_color(color)
-		hex_tile.set_transparency(0.5)
+		# カーソル用タイル (手持ち)
+		var cursor_tile = HexTileScene.instantiate()
+		_cursor_container.add_child(cursor_tile)
+		cursor_tile.position = pos
+		cursor_tile.setup_hex(hex_coord)
+		cursor_tile.set_color(color)
+		cursor_tile.set_transparency(0.8)
+		
+		# ゴースト用タイル (スナップ)
+		var ghost_tile = HexTileScene.instantiate()
+		_ghost_container.add_child(ghost_tile)
+		ghost_tile.position = pos
+		ghost_tile.setup_hex(hex_coord)
+		ghost_tile.set_color(color)
+		ghost_tile.set_transparency(0.5)
 
 func _clear_preview():
-	for child in get_children():
+	for child in _cursor_container.get_children():
+		child.queue_free()
+	for child in _ghost_container.get_children():
 		child.queue_free()
 
 func update_hover(local_mouse_pos: Vector2):
@@ -66,7 +84,10 @@ func update_hover(local_mouse_pos: Vector2):
 	current_hovered_hex = hex_coord
 	
 	var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
-	position = snapped_pos # PiecePlacer自体を移動
+	
+	# コンテナの位置を更新
+	_cursor_container.position = local_mouse_pos
+	_ghost_container.position = snapped_pos
 
 func place_current_piece() -> bool:
 	if current_hovered_hex == null:

@@ -98,3 +98,29 @@ func test_指定した座標のピースを削除できる():
 	for offset in piece_data["shape"]:
 		var h = Hex.add(target_hex, offset)
 		assert_false(grid_manager.is_occupied(h), "All parts of piece should be removed")
+
+func test_マウス追従とスナップの2つのプレビューが表示される():
+	palette.select_slot(0)
+	
+	# Hex(0,0)の中心座標は(0,0)
+	# マウスを少しずらした位置に設定
+	var mouse_pos = Vector2(10, 10)
+	var expected_snap_pos = Vector2(0, 0) # Hex(0,0)の中心
+	
+	piece_placer.update_hover(mouse_pos)
+	
+	var cursor_container = piece_placer.get_node_or_null("CursorContainer")
+	var ghost_container = piece_placer.get_node_or_null("GhostContainer")
+	
+	assert_not_null(cursor_container, "CursorContainer should exist")
+	assert_not_null(ghost_container, "GhostContainer should exist")
+	
+	# カーソルはマウス位置に追随
+	assert_eq(cursor_container.position, mouse_pos, "CursorContainer should follow mouse")
+	
+	# ゴーストはスナップ位置
+	assert_eq(ghost_container.position, expected_snap_pos, "GhostContainer should snap to grid")
+	
+	# 中身があるか確認
+	assert_gt(cursor_container.get_child_count(), 0, "CursorContainer should have tiles")
+	assert_gt(ghost_container.get_child_count(), 0, "GhostContainer should have tiles")
