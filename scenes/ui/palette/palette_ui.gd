@@ -1,6 +1,8 @@
 class_name PaletteUI
 extends Control
 
+const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+
 @export var slot_size: Vector2 = Vector2(48, 48)
 @export var slot_margin: float = 8.0
 @export var inactive_color: Color = Color(0.2, 0.2, 0.2, 0.85)
@@ -62,8 +64,34 @@ func _create_slots():
 		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rect.custom_minimum_size = slot_size
 		rect.set_size(slot_size)
+		
+		# ピースのプレビューを追加
+		var piece_data = palette.get_piece_data_for_slot(i)
+		if not piece_data.is_empty():
+			_create_piece_icon(rect, piece_data)
+			
 		add_child(rect)
 		slot_rects.append(rect)
+
+func _create_piece_icon(parent: Control, piece_data: Dictionary):
+	var icon_root = Node2D.new()
+	icon_root.name = "IconRoot"
+	icon_root.position = slot_size / 2.0
+	icon_root.scale = Vector2(0.15, 0.15)
+	parent.add_child(icon_root)
+	
+	var shape = piece_data["shape"]
+	var color = piece_data["color"]
+	
+	# UI表示用のレイアウト（サイズはGridManagerと合わせるか適当に）
+	var layout = Layout.new(Layout.layout_pointy, Vector2(42, 42), Vector2(0, 0))
+	
+	for hex in shape:
+		var tile = HexTileScene.instantiate()
+		icon_root.add_child(tile)
+		tile.position = Layout.hex_to_pixel(layout, hex)
+		tile.setup_hex(hex)
+		tile.set_color(color)
 
 func _update_slot_positions():
 	var viewport_size = get_viewport_rect().size
