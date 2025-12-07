@@ -41,6 +41,9 @@ func _draw_preview():
 		return
 
 	var piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
+	if piece_data.is_empty():
+		return
+		
 	var color = piece_data["color"]
 	
 	for hex_coord in current_piece_shape:

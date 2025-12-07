@@ -48,7 +48,7 @@ func test_MainはHUDを持ちPaletteが注入されている():
 			assert_eq(ui.palette, main.palette, "PaletteUI should have the same Palette instance")
 
 func test_数字キー入力でPaletteの選択が変更される():
-	assert_eq(main.palette.get_active_index(), 0)
+	assert_eq(main.palette.get_active_index(), -1)
 	
 	var event = InputEventKey.new()
 	event.keycode = KEY_3

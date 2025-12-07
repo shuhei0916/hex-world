@@ -8,11 +8,11 @@ signal active_slot_changed(new_index: int, old_index: int)
 const DEFAULT_SLOT_COUNT := 9
 
 var slots: Array = []
-var active_index: int = 0
+var active_index: int = -1 # 初期状態は非選択
 
 func _init():
+	active_index = -1
 	_initialize_slots()
-	active_index = 0
 
 func _initialize_slots():
 	slots.clear()
@@ -60,15 +60,23 @@ func get_piece_data_for_slot(slot_index: int) -> Dictionary:
 	}
 
 func select_slot(index: int):
-	if index == active_index:
-		return
 	if index < 0 or index >= slots.size():
 		return
+	
 	var previous_index = active_index
-	_update_highlight(active_index, false)
-	active_index = index
-	_update_highlight(active_index, true)
-	emit_signal("active_slot_changed", active_index, previous_index)
+	
+	if index == active_index:
+		# 同じスロットを選択した場合は非選択にする（トグル）
+		active_index = -1
+		_update_highlight(previous_index, false)
+		emit_signal("active_slot_changed", active_index, previous_index)
+	else:
+		# 新しいスロットを選択
+		if previous_index != -1:
+			_update_highlight(previous_index, false)
+		active_index = index
+		_update_highlight(active_index, true)
+		emit_signal("active_slot_changed", active_index, previous_index)
 
 func _update_highlight(index: int, state: bool):
 	if index < 0 or index >= slots.size():

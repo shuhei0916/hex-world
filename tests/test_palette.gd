@@ -11,24 +11,25 @@ func before_each():
 func test_パレットはデフォルトで9スロットを持つ():
 	assert_eq(palette.get_slot_count(), 9)
 
-func test_パレットのアクティブスロットは初期状態で0番():
-	assert_eq(palette.get_active_index(), 0)
+func test_パレットのアクティブスロットは初期状態で非選択():
+	assert_eq(palette.get_active_index(), -1)
+
+func test_選択中のスロットを再度選択すると非選択になる():
+	palette.select_slot(2)
+	assert_eq(palette.get_active_index(), 2)
+	palette.select_slot(2)
+	assert_eq(palette.get_active_index(), -1)
 
 func test_数字キー入力で対応スロットがアクティブになる():
-	# インデックス2 (3番目のスロット) を選択
 	palette.select_slot(2)
 	assert_eq(palette.get_active_index(), 2)
 
 func test_無効なインデックス指定ではアクティブスロットが変更されない():
-	# 初期状態は0
-	assert_eq(palette.get_active_index(), 0)
-	# 無効なインデックス (-1)
-	palette.select_slot(-1)
-	assert_eq(palette.get_active_index(), 0)
+	palette.select_slot(-2)
+	assert_eq(palette.get_active_index(), -1)
 	
-	# 無効なインデックス (範囲外)
 	palette.select_slot(99)
-	assert_eq(palette.get_active_index(), 0)
+	assert_eq(palette.get_active_index(), -1)
 
 func test_アクティブスロット変更時にハイライトも移動する():
 	palette.select_slot(1)

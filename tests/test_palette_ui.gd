@@ -18,7 +18,7 @@ func test_パレットUIは9つのスロットを生成する():
 	assert_eq(ui.get_slot_count(), 9)
 
 func test_アクティブスロット変更でUIハイライトが更新される():
-	assert_eq(ui.get_highlighted_index(), 0)
+	assert_eq(ui.get_highlighted_index(), -1)
 	
 	# パレットモデルを操作
 	palette.select_slot(3)
