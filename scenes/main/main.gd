@@ -37,7 +37,7 @@ func _handle_key_input(event):
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var index = event.keycode - KEY_1
 			palette.select_slot(index)
-		elif event.keycode == KEY_R:
+		elif event.is_action_pressed("rotate_piece"):
 			piece_placer.rotate_current_piece()
 
 func _handle_mouse_motion(event):
