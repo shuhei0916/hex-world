@@ -17,7 +17,7 @@ func _ready():
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var viewport = get_viewport()
 	if viewport:
-		viewport.connect("size_changed", Callable(self, "_on_viewport_resized"))
+		viewport.size_changed.connect(_on_viewport_resized)
 	
 	# すでにパレットがセットされている場合は初期化
 	if palette:
@@ -28,13 +28,13 @@ func set_palette(new_palette: Palette):
 		return
 	
 	if palette:
-		if palette.is_connected("active_slot_changed", Callable(self, "_on_active_slot_changed")):
-			palette.disconnect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+		if palette.active_slot_changed.is_connected(_on_active_slot_changed):
+			palette.active_slot_changed.disconnect(_on_active_slot_changed)
 	
 	palette = new_palette
 	
 	if palette:
-		palette.connect("active_slot_changed", Callable(self, "_on_active_slot_changed"))
+		palette.active_slot_changed.connect(_on_active_slot_changed)
 		if is_node_ready():
 			_initialize_ui()
 
