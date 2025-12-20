@@ -9,12 +9,13 @@ signal grid_updated(hexes: Array[Hex]) # GridDisplayから移動
 # 論理グリッドの状態
 var _registered_hexes: Dictionary = {} # GridManagerから移動
 var _occupied_hexes: Dictionary = {} # GridManagerから移動
-var _hex_to_piece_map: Dictionary = {} # 追加: Hex座標 -> ピース情報のマッピング
+var _hex_to_piece_map: Dictionary = {} # 追加: Hex座標 -> Pieceノードのマッピング
 
 # 視覚グリッドの状態
 var layout: Layout # GridDisplayから移動
 var _drawn_hexes: Array[Hex] = [] # GridDisplayのgrid_hexesからリネーム
 var hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+var piece_scene = preload("res://scenes/components/piece/piece.tscn")
 
 @export var grid_radius: int = 4: # GridDisplayから移動
 	set(value):
@@ -83,8 +84,8 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 	return true
 
 # ピースを配置する (旧 GridManager.place_piece)
-func place_piece(shape: Array, base_hex: Hex, piece_color: Color):
-	var occupied_hexes = []
+func place_piece(shape: Array, base_hex: Hex, piece_color: Color, piece_type: int = 0):
+	var occupied_hexes: Array[Hex] = []
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
@@ -95,14 +96,27 @@ func place_piece(shape: Array, base_hex: Hex, piece_color: Color):
 		if hex_tile:
 			hex_tile.set_color(piece_color)
 	
-	# ピース情報を保存
-	var piece_data = {
-		"occupied_hexes": occupied_hexes,
-		"color": piece_color
+	# Pieceノードを生成
+	var piece = piece_scene.instantiate()
+	
+	# データセットアップ
+	var data = {
+		"type": piece_type,
+		"hex_coordinates": occupied_hexes
 	}
+	if piece.has_method("setup"):
+		piece.setup(data)
+	
+	# 座標設定（基準Hexの位置に配置）
+	piece.position = hex_to_pixel(base_hex)
+	
+	# シーンツリーに追加
+	add_child(piece)
+	
+	# マップに登録
 	for hex in occupied_hexes:
 		var key = _hex_to_key(hex)
-		_hex_to_piece_map[key] = piece_data
+		_hex_to_piece_map[key] = piece
 
 # 指定した座標にあるピースを削除する
 func remove_piece_at(target_hex: Hex) -> bool:
@@ -110,14 +124,26 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	if not _hex_to_piece_map.has(key):
 		return false
 	
-	var piece_data = _hex_to_piece_map[key]
-	var hexes_to_remove = piece_data["occupied_hexes"]
+	var piece = _hex_to_piece_map[key]
+	
+	# Pieceノードでない場合（古いデータなど）のガード
+	if not is_instance_valid(piece) or not piece is Node:
+		_hex_to_piece_map.erase(key)
+		return false
+
+	# 占有していたHexを取得
+	var hexes_to_remove = []
+	if "hex_coordinates" in piece:
+		hexes_to_remove = piece.hex_coordinates
 	
 	# マップから削除し、各Hexの状態をリセット
 	for hex in hexes_to_remove:
 		var h_key = _hex_to_key(hex)
 		_hex_to_piece_map.erase(h_key)
 		_unplace_single_hex(hex)
+	
+	# ノードを削除
+	piece.queue_free()
 		
 	return true
 

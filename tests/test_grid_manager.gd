@@ -4,6 +4,8 @@ extends GutTest
 class_name TestGridManager
 
 const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
+const Piece = preload("res://scenes/components/piece/piece.gd")
+const TetrahexShapes = preload("res://scenes/utils/tetrahex_shapes.gd")
 var grid_manager_instance: GridManagerClass
 
 func before_each():
@@ -159,3 +161,34 @@ func test_ピース配置時にグリッド色がピース色に変わる():
 		assert_not_null(hex_tile, "HexTile should exist for " + target_hex.to_string())
 		
 		assert_eq(hex_tile.get_color(), piece_color, "HexTile color should match piece color after placement")
+
+func test_ピースを配置するとPieceノードが生成される():
+	grid_manager_instance.create_hex_grid(1)
+	var shape: Array[Hex] = [Hex.new(0, 0), Hex.new(1, 0)]
+	var base_hex = Hex.new(0, 0)
+	var piece_color = Color.BLUE
+	var piece_type = TetrahexShapes.TetrahexType.BAR
+	
+	# place_pieceにpiece_typeを渡す（まだ実装前だがテストでは渡しておく）
+	# 実装時にシグネチャを変更する
+	# GDScriptでは引数が多くてもエラーにならない場合があるが、安全のため3引数で呼んでおくか
+	# いや、TDDなので「こう呼び出したい」というインターフェースを先に書くべき。
+	# よって4引数で呼ぶ。
+	grid_manager_instance.place_piece(shape, base_hex, piece_color, piece_type)
+	
+	# Pieceノードが追加されたことを確認
+	var found_piece = null
+	for child in grid_manager_instance.get_children():
+		if child is Piece:
+			found_piece = child
+			break
+	
+	assert_not_null(found_piece, "Pieceノードが生成され、GridManagerに追加されるべき")
+	if found_piece:
+		assert_true(found_piece is Piece, "生成されたノードはPiece型であるべき")
+		assert_eq(found_piece.piece_type, piece_type, "Pieceタイプが正しく設定されるべき")
+		assert_eq(found_piece.hex_coordinates.size(), shape.size(), "Pieceの座標リストサイズが一致すべき")
+		
+		# 座標の確認
+		var expected_pos = grid_manager_instance.hex_to_pixel(base_hex)
+		assert_eq(found_piece.position, expected_pos, "Piece should be placed at correct position")
