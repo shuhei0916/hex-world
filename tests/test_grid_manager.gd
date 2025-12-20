@@ -192,3 +192,30 @@ func test_ピースを配置するとPieceノードが生成される():
 		# 座標の確認
 		var expected_pos = grid_manager_instance.hex_to_pixel(base_hex)
 		assert_eq(found_piece.position, expected_pos, "Piece should be placed at correct position")
+
+func test_remove_piece_frees_piece_node():
+	grid_manager_instance.create_hex_grid(1)
+	var shape: Array[Hex] = [Hex.new(0, 0)]
+	var base_hex = Hex.new(0, 0)
+	var color = Color.BLUE
+	
+	grid_manager_instance.place_piece(shape, base_hex, color)
+	
+	# Pieceノードを取得
+	var piece_node = null
+	for child in grid_manager_instance.get_children():
+		if child is Piece:
+			piece_node = child
+			break
+	
+	assert_not_null(piece_node, "削除前のPieceノードが存在すべき")
+	
+	# 削除実行
+	grid_manager_instance.remove_piece_at(base_hex)
+	
+	# queue_freeが呼ばれたか確認
+	# is_queued_for_deletion() は queue_free() が呼ばれた直後に true になる
+	assert_true(piece_node.is_queued_for_deletion(), "Pieceノードは削除キューに入っているべき")
+	
+	# マップからも消えているか確認 (間接的だが、再度削除しようとしてfalseが返るか等)
+	assert_false(grid_manager_instance.remove_piece_at(base_hex), "既に削除されたPieceは再削除できないべき")
