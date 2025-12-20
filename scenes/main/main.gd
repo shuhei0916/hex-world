@@ -1,12 +1,9 @@
 class_name Main
 extends Node2D
 
-const PaletteScript = preload("res://scenes/ui/palette/palette.gd")
-const PiecePlacerScript = preload("res://scenes/components/piece_placer/piece_placer.gd")
-
 @onready var hud: HUD = $HUD
-@onready var grid_manager:= $GridManager
-@onready var piece_placer = $PiecePlacer
+@onready var grid_manager: GridManager = $GridManager
+@onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
 @onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
 
@@ -18,7 +15,7 @@ var current_piece_shape: Array[Hex]:
 		return piece_placer.current_piece_shape
 
 func _init():
-	palette = PaletteScript.new()
+	palette = Palette.new()
 
 func _ready():
 	grid_manager.create_hex_grid(grid_manager.grid_radius)

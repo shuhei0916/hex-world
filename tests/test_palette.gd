@@ -1,8 +1,6 @@
 extends GutTest
 
-const Palette = preload("res://scenes/ui/palette/palette.gd")
-
-var palette
+var palette: Palette
 
 func before_each():
 	palette = Palette.new()

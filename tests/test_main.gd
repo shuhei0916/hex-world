@@ -2,13 +2,8 @@ extends GutTest
 class_name TestMain
 
 const MainScene = preload("res://scenes/main/main.tscn")
-const MainClass = preload("res://scenes/main/main.gd")
-const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
-const PaletteClass = preload("res://scenes/ui/palette/palette.gd")
-const HUDClass = preload("res://scenes/ui/hud/hud.gd")
-const HexTileScript = preload("res://scenes/components/hex_tile/hex_tile.gd")
 
-var main: MainClass
+var main: Main
 
 func before_each():
 	main = MainScene.instantiate()
@@ -19,7 +14,7 @@ func after_each():
 
 func test_MainはGridManagerを持つ():
 	assert_not_null(main.grid_manager)
-	assert_true(main.grid_manager is GridManagerClass)
+	assert_true(main.grid_manager is GridManager)
 
 func test_グリッド更新シグナルでGridManagerに登録される():
 	var gm = main.grid_manager
@@ -34,14 +29,14 @@ func test_グリッド更新シグナルでGridManagerに登録される():
 
 func test_MainはPaletteを持つ():
 	assert_not_null(main.palette)
-	assert_true(main.palette is PaletteClass)
+	assert_true(main.palette is Palette)
 
 func test_MainはHUDを持ちPaletteが注入されている():
 	var hud = main.hud
 	assert_not_null(hud, "HUD node should be linked in Main (Check if HUD is added to Main scene)")
 	
 	if hud:
-		assert_true(hud is HUDClass)
+		assert_true(hud is HUD)
 		var ui = hud.palette_ui
 		assert_not_null(ui, "PaletteUI should exist in HUD")
 		if ui:

@@ -1,10 +1,9 @@
 extends GutTest
 
 const PaletteUIScene = preload("res://scenes/ui/palette/palette_ui.tscn")
-const Palette = preload("res://scenes/ui/palette/palette.gd")
 
-var ui
-var palette
+var ui: PaletteUI
+var palette: Palette
 
 func before_each():
 	ui = PaletteUIScene.instantiate()
@@ -33,5 +32,4 @@ func test_スロットにピースのアイコンが表示される():
 	assert_not_null(slot0)
 	
 	# スロット内にプレビュー用のノードが生成されているか確認
-	# 実装前なので0のはず（RED）
 	assert_gt(slot0.get_child_count(), 0, "Slot should contain icon nodes")

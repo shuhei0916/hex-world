@@ -3,13 +3,10 @@ extends GutTest
 # GridManagerのテスト
 class_name TestGridManager
 
-const GridManagerClass = preload("res://scenes/components/grid/grid_manager.gd")
-const Piece = preload("res://scenes/components/piece/piece.gd")
-const TetrahexShapes = preload("res://scenes/utils/tetrahex_shapes.gd")
-var grid_manager_instance: GridManagerClass
+var grid_manager_instance: GridManager
 
 func before_each():
-	grid_manager_instance = GridManagerClass.new()
+	grid_manager_instance = GridManager.new()
 	# テスト内でHexTile.tscnへの参照を設定
 	grid_manager_instance.hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 	add_child_autofree(grid_manager_instance)
@@ -51,18 +48,18 @@ func test_hexを占有状態にできる():
 
 func test_単一hexを配置可能か判定できる():
 	var base_hex = Hex.new(2, 2, -4)
-	var shape = [Hex.new(0, 0, 0)]
+	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 	
 	grid_manager_instance.register_grid_hex(base_hex)
 	
 	assert_true(grid_manager_instance.can_place(shape, base_hex))
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
 	assert_false(grid_manager_instance.can_place(shape, base_hex))
 
 func test_複数hex形状の配置可能判定ができる():
 	var base_hex = Hex.new(0, 0, 0)
-	var shape = [
+	var shape: Array[Hex] = [
 		Hex.new(0, 0, 0),
 		Hex.new(1, 0, -1),
 		Hex.new(2, 0, -2)
@@ -76,7 +73,7 @@ func test_複数hex形状の配置可能判定ができる():
 
 func test_一部がグリッド外の場合配置不可能と判定される():
 	var base_hex = Hex.new(0, 0, 0)
-	var shape = [
+	var shape: Array[Hex] = [
 		Hex.new(0, 0, 0),
 		Hex.new(1, 0, -1),
 		Hex.new(-1, 0, 1)
@@ -89,7 +86,7 @@ func test_一部がグリッド外の場合配置不可能と判定される():
 
 func test_ピースを配置できる():
 	var base_hex = Hex.new(0, 0, 0)
-	var shape = [
+	var shape: Array[Hex] = [
 		Hex.new(0, 0, 0),
 		Hex.new(1, 0, -1)
 	]
@@ -102,7 +99,7 @@ func test_ピースを配置できる():
 		var target = Hex.add(base_hex, offset)
 		assert_false(grid_manager_instance.is_occupied(target))
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
 	
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -110,7 +107,7 @@ func test_ピースを配置できる():
 
 func test_ピースを解除できる():
 	var base_hex = Hex.new(0, 0, 0)
-	var shape = [
+	var shape: Array[Hex] = [
 		Hex.new(0, 0, 0),
 		Hex.new(0, 1, -1)
 	]
@@ -119,9 +116,9 @@ func test_ピースを解除できる():
 		var target = Hex.add(base_hex, offset)
 		grid_manager_instance.register_grid_hex(target)
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
 	
-	grid_manager_instance.unplace_piece(shape, base_hex)
+	grid_manager_instance.remove_piece_at(base_hex)
 	
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -145,11 +142,11 @@ func test_ピース配置時にグリッド色がピース色に変わる():
 	grid_manager_instance.create_hex_grid(1) # 小さなグリッドで十分
 	
 	# 配置するピースの形状と色を定義
-	var piece_shape = [Hex.new(0, 0), Hex.new(1, 0)]
+	var piece_shape: Array[Hex] = [Hex.new(0, 0), Hex.new(1, 0)]
 	var piece_color = Color.RED # 例として赤色
 
 	# ピースを配置
-	grid_manager_instance.place_piece(piece_shape, Hex.new(0, 0), piece_color) # piece_colorも渡せるようにする
+	grid_manager_instance.place_piece(piece_shape, Hex.new(0, 0), piece_color, TetrahexShapes.TetrahexType.BAR) # piece_colorも渡せるようにする
 	
 	# 配置後、Hexが占有されていることを確認
 	for hex_offset in piece_shape:
@@ -166,15 +163,10 @@ func test_ピースを配置するとPieceノードが生成される():
 	grid_manager_instance.create_hex_grid(1)
 	var shape: Array[Hex] = [Hex.new(0, 0), Hex.new(1, 0)]
 	var base_hex = Hex.new(0, 0)
-	var piece_color = Color.BLUE
+	var color = Color.BLUE
 	var piece_type = TetrahexShapes.TetrahexType.BAR
 	
-	# place_pieceにpiece_typeを渡す（まだ実装前だがテストでは渡しておく）
-	# 実装時にシグネチャを変更する
-	# GDScriptでは引数が多くてもエラーにならない場合があるが、安全のため3引数で呼んでおくか
-	# いや、TDDなので「こう呼び出したい」というインターフェースを先に書くべき。
-	# よって4引数で呼ぶ。
-	grid_manager_instance.place_piece(shape, base_hex, piece_color, piece_type)
+	grid_manager_instance.place_piece(shape, base_hex, color, piece_type)
 	
 	# Pieceノードが追加されたことを確認
 	var found_piece = null
@@ -199,7 +191,7 @@ func test_remove_piece_frees_piece_node():
 	var base_hex = Hex.new(0, 0)
 	var color = Color.BLUE
 	
-	grid_manager_instance.place_piece(shape, base_hex, color)
+	grid_manager_instance.place_piece(shape, base_hex, color, TetrahexShapes.TetrahexType.BAR)
 	
 	# Pieceノードを取得
 	var piece_node = null

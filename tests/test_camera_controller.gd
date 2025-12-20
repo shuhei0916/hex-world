@@ -2,12 +2,10 @@ extends GutTest
 
 class_name TestCameraController
 
-const CameraControllerClass = preload("res://scenes/components/camera_controller.gd")
-
-var camera: CameraControllerClass
+var camera: CameraController
 
 func before_each():
-	camera = CameraControllerClass.new()
+	camera = CameraController.new()
 	add_child_autofree(camera)
 
 func test_ホイールダウンでズームアウトする():
