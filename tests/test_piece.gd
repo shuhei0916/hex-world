@@ -1,9 +1,12 @@
 extends GutTest
 
-func test_setupでタイプと座標を保持できる():
-	var piece = Piece.new()
+var piece: Piece
+
+func before_each():
+	piece = Piece.new()
 	add_child_autofree(piece)
-	
+
+func test_setupでタイプと座標を保持できる():
 	var dummy_type = TetrahexShapes.TetrahexType.BAR
 	var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
 	
@@ -24,9 +27,6 @@ func test_setupでタイプと座標を保持できる():
 		assert_true(Hex.equals(piece.hex_coordinates[0], dummy_coords[0]))
 
 func test_インベントリにアイテムを追加できる():
-	var piece = Piece.new()
-	add_child_autofree(piece)
-	
 	# 初期状態は0
 	assert_eq(piece.get_item_count("iron"), 0, "初期状態のアイテム数は0であるべき")
 	
@@ -44,9 +44,6 @@ func test_インベントリにアイテムを追加できる():
 	assert_eq(piece.get_item_count("iron"), 8, "別のアイテムを追加しても既存のアイテム数は変わらないべき")
 
 func test_アイテム追加時にラベルが更新される():
-	var piece = Piece.new()
-	add_child_autofree(piece)
-	
 	# InventoryLabelをダミーで作成して追加
 	var label = Label.new()
 	label.name = "InventoryLabel"
@@ -60,9 +57,6 @@ func test_アイテム追加時にラベルが更新される():
 	assert_true("10" in label.text, "Label should contain item count")
 
 func test_BARタイプは時間経過で鉄を生産する():
-	var piece = Piece.new()
-	add_child_autofree(piece)
-	
 	# BARタイプとしてセットアップ
 	var data = {
 		"type": TetrahexShapes.TetrahexType.BAR,
@@ -86,9 +80,6 @@ func test_BARタイプは時間経過で鉄を生産する():
 	assert_eq(piece.get_item_count("iron"), 2)
 
 func test_WORMタイプは鉄を生産しない():
-	var piece = Piece.new()
-	add_child_autofree(piece)
-	
 	# WORMタイプとしてセットアップ
 	var data = {
 		"type": TetrahexShapes.TetrahexType.WORM,
@@ -103,9 +94,6 @@ func test_WORMタイプは鉄を生産しない():
 	assert_eq(piece.get_item_count("iron"), 0, "WORMタイプは鉄を生産すべきではない")
 
 func test_未初期化のPieceは鉄を生産しない():
-	var piece = Piece.new()
-	add_child_autofree(piece)
-	
 	# setupを呼ばない状態（piece_typeは初期値のまま）
 	piece.tick(1.0)
 	
