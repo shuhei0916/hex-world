@@ -97,13 +97,12 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	
 	var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
 	var color = selected_piece_data["color"]
+	var piece_type = selected_piece_data.get("type", 0)
 	
 	if grid_manager.can_place(current_piece_shape, target_hex):
-		grid_manager.place_piece(current_piece_shape, target_hex, color)
-		print("piece has been placed at ", target_hex.to_string())
+		grid_manager.place_piece(current_piece_shape, target_hex, color, piece_type)
 		return true
 	else:
-		print("piece cannot be placed at ", target_hex.to_string())
 		return false
 
 func rotate_current_piece():
@@ -116,7 +115,6 @@ func rotate_current_piece():
 # 指定した座標にあるピースを削除する
 func remove_piece_at_hex(target_hex: Hex) -> bool:
 	if grid_manager.remove_piece_at(target_hex):
-		print("piece removed at ", target_hex.to_string())
 		return true
 	return false
 

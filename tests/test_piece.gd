@@ -58,3 +58,56 @@ func test_アイテム追加時にラベルが更新される():
 	# ラベルのテキストを確認
 	assert_true("iron" in label.text, "Label should contain item name")
 	assert_true("10" in label.text, "Label should contain item count")
+
+func test_BARタイプは時間経過で鉄を生産する():
+	var piece = Piece.new()
+	add_child_autofree(piece)
+	
+	# BARタイプとしてセットアップ
+	var data = {
+		"type": TetrahexShapes.TetrahexType.BAR,
+		"hex_coordinates": []
+	}
+	piece.setup(data)
+	
+	# 初期状態
+	assert_eq(piece.get_item_count("iron"), 0)
+	
+	# 0.5秒経過 -> まだ生産されない
+	piece.tick(0.5)
+	assert_eq(piece.get_item_count("iron"), 0)
+	
+	# さらに0.5秒経過 (計1.0秒) -> 生産される
+	piece.tick(0.5)
+	assert_eq(piece.get_item_count("iron"), 1)
+	
+	# 連続で呼び出し
+	piece.tick(1.0)
+	assert_eq(piece.get_item_count("iron"), 2)
+
+func test_WORMタイプは鉄を生産しない():
+	var piece = Piece.new()
+	add_child_autofree(piece)
+	
+	# WORMタイプとしてセットアップ
+	var data = {
+		"type": TetrahexShapes.TetrahexType.WORM,
+		"hex_coordinates": []
+	}
+	piece.setup(data)
+	
+	# 時間経過
+	piece.tick(2.0) # 2秒経過
+	
+	# インベントリは0のままであるべき
+	assert_eq(piece.get_item_count("iron"), 0, "WORMタイプは鉄を生産すべきではない")
+
+func test_未初期化のPieceは鉄を生産しない():
+	var piece = Piece.new()
+	add_child_autofree(piece)
+	
+	# setupを呼ばない状態（piece_typeは初期値のまま）
+	piece.tick(1.0)
+	
+	# インベントリは0のままであるべき
+	assert_eq(piece.get_item_count("iron"), 0, "未初期化のPiece（タイプ不明）が鉄を生産すべきではない")
