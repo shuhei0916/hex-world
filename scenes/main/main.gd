@@ -47,7 +47,9 @@ func _handle_mouse_click(event):
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			piece_placer.place_current_piece()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if piece_placer.current_hovered_hex != null:
+			if palette.get_active_index() != -1:
+				palette.deselect()
+			elif piece_placer.current_hovered_hex != null:
 				piece_placer.remove_piece_at_hex(piece_placer.current_hovered_hex)
 
 func place_selected_piece(target_hex: Hex) -> bool:

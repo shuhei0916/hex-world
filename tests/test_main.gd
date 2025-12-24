@@ -43,11 +43,131 @@ func test_MainはHUDを持ちPaletteが注入されている():
 			assert_eq(ui.palette, main.palette, "PaletteUI should have the same Palette instance")
 
 func test_数字キー入力でPaletteの選択が変更される():
+
 	assert_eq(main.palette.get_active_index(), -1)
+
 	
+
 	var event = InputEventKey.new()
+
 	event.keycode = KEY_3
+
 	event.pressed = true
+
 	main._unhandled_input(event)
+
 	
+
 	assert_eq(main.palette.get_active_index(), 2)
+
+
+
+func test_ピース選択中に右クリックで選択解除される():
+
+	# まずピースを選択
+
+	main.palette.select_slot(0)
+
+	assert_eq(main.palette.get_active_index(), 0)
+
+	
+
+	# 右クリックイベント
+
+	var event = InputEventMouseButton.new()
+
+	event.button_index = MOUSE_BUTTON_RIGHT
+
+	event.pressed = true
+
+	main._unhandled_input(event)
+
+	
+
+	assert_eq(main.palette.get_active_index(), -1, "右クリックで選択が解除されるべき")
+
+
+
+func test_未選択時に右クリックでピース削除される():
+
+	# ピースを配置（(0,0)を含む形状）
+
+	var hex = Hex.new(0, 0)
+
+	main.palette.select_slot(0) # BAR
+
+	main.place_selected_piece(hex)
+
+	assert_true(main.grid_manager.is_occupied(hex), "ピースが配置されているべき")
+
+	
+
+	# 選択解除
+
+	main.palette.deselect()
+
+	
+
+	# マウス位置を(0,0)に更新
+
+	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
+
+	
+
+	# 右クリックイベント
+
+	var event = InputEventMouseButton.new()
+
+	event.button_index = MOUSE_BUTTON_RIGHT
+
+	event.pressed = true
+
+	main._unhandled_input(event)
+
+	
+
+	assert_false(main.grid_manager.is_occupied(hex), "素手状態の右クリックでピースが削除されるべき")
+
+
+
+func test_ピース選択中に右クリックで削除は行われない():
+
+	# ピースを配置
+
+	var hex = Hex.new(0, 0)
+
+	main.palette.select_slot(1) # WORM
+
+	main.place_selected_piece(hex)
+
+	
+
+	# 別のピースを選択中
+
+	main.palette.select_slot(0) # BAR
+
+	assert_eq(main.palette.get_active_index(), 0)
+
+	
+
+	# マウス位置を(0,0)に更新
+
+	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
+
+	
+
+	# 右クリックイベント
+
+	var event = InputEventMouseButton.new()
+
+	event.button_index = MOUSE_BUTTON_RIGHT
+
+	event.pressed = true
+
+	main._unhandled_input(event)
+
+	
+
+	assert_eq(main.palette.get_active_index(), -1, "まず選択が解除される")
+
+	assert_true(main.grid_manager.is_occupied(hex), "選択解除が優先され、削除は行われないべき")

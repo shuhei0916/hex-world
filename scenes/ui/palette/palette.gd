@@ -65,9 +65,7 @@ func select_slot(index: int):
 	
 	if index == active_index:
 		# 同じスロットを選択した場合は非選択にする（トグル）
-		active_index = -1
-		_update_highlight(previous_index, false)
-		emit_signal("active_slot_changed", active_index, previous_index)
+		deselect()
 	else:
 		# 新しいスロットを選択
 		if previous_index != -1:
@@ -75,6 +73,15 @@ func select_slot(index: int):
 		active_index = index
 		_update_highlight(active_index, true)
 		emit_signal("active_slot_changed", active_index, previous_index)
+
+func deselect():
+	var previous_index = active_index
+	if previous_index == -1:
+		return
+		
+	active_index = -1
+	_update_highlight(previous_index, false)
+	emit_signal("active_slot_changed", active_index, previous_index)
 
 func _update_highlight(index: int, state: bool):
 	if index < 0 or index >= slots.size():
