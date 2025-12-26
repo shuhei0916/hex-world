@@ -94,12 +94,23 @@ func is_slot_highlighted(index: int) -> bool:
 	return slots[index].get("is_highlighted", false)
 
 func _get_default_piece_assignments() -> Array:
+
 	return [
+
 		TetrahexShapes.TetrahexType.BAR,
+
 		TetrahexShapes.TetrahexType.WORM,
+
 		TetrahexShapes.TetrahexType.PISTOL,
+
 		TetrahexShapes.TetrahexType.PROPELLER,
+
 		TetrahexShapes.TetrahexType.ARCH,
+
 		TetrahexShapes.TetrahexType.BEE,
-		TetrahexShapes.TetrahexType.WAVE
+
+		TetrahexShapes.TetrahexType.WAVE,
+
+		TetrahexShapes.TetrahexType.CHEST
+
 	]

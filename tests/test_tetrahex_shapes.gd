@@ -44,10 +44,13 @@ func test_WORM形状が正しく定義されている():
 	assert_true(Hex.equals(worm_def.shape[2], Hex.new(0, 0, 0)))
 	assert_true(Hex.equals(worm_def.shape[3], Hex.new(0, 1, -1)))
 
-func test_全ての形状が4つのhexを持つ():
+func test_全ての形状が適切なhex数を持つ():
 	for type in TetrahexShapes.TetrahexType.values():
 		var definition = TetrahexShapes.TetrahexData.definitions[type]
-		assert_eq(definition.shape.size(), 4)
+		if type == TetrahexShapes.TetrahexType.CHEST:
+			assert_eq(definition.shape.size(), 1, "CHESTは1Hexであるべき")
+		else:
+			assert_eq(definition.shape.size(), 4, "Type %d は4Hexであるべき" % type)
 
 func test_各形状が異なる色を持つ():
 	var colors = {}

@@ -149,6 +149,16 @@ func clear_grid():
 func _hex_to_key(hex: Hex) -> String:
 	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
 
+func get_piece_at_hex(hex: Hex) -> Piece:
+	var key = _hex_to_key(hex)
+	return _hex_to_piece_map.get(key, null)
+
+func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
+	var neighbor_hex = Hex.neighbor(hex, direction)
+	if not is_inside_grid(neighbor_hex):
+		return null
+	return get_piece_at_hex(neighbor_hex)
+
 # ==============================================================================
 # 視覚グリッド管理
 # ==============================================================================

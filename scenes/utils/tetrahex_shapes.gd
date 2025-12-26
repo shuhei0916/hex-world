@@ -9,7 +9,8 @@ enum TetrahexType {
 	PROPELLER,
 	ARCH,
 	BEE,
-	WAVE
+	WAVE,
+	CHEST
 }
 
 # TetrahexDefinition構造体
@@ -51,5 +52,9 @@ class TetrahexData:
 		TetrahexType.WAVE: TetrahexDefinition.new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			Color("#85F7F2")
+		),
+		TetrahexType.CHEST: TetrahexDefinition.new(
+			[Hex.new(0, 0, 0)],
+			Color("#999999") # グレー系の色
 		)
 	}

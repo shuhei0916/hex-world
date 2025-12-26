@@ -211,3 +211,32 @@ func test_remove_piece_frees_piece_node():
 	
 	# マップからも消えているか確認 (間接的だが、再度削除しようとしてfalseが返るか等)
 	assert_false(grid_manager_instance.remove_piece_at(base_hex), "既に削除されたPieceは再削除できないべき")
+
+func test_指定した方向の隣接Pieceを取得できる():
+	grid_manager_instance.create_hex_grid(2)
+	
+	# 2つのピースを隣接して配置
+	# Piece A: (0,0) - CHEST
+	var shape_a = [Hex.new(0, 0)]
+	grid_manager_instance.place_piece(shape_a, Hex.new(0, 0), Color.RED, TetrahexShapes.TetrahexType.CHEST)
+	
+	# Piece B: (1, -1) - CHEST (右上の隣)
+	var shape_b = [Hex.new(0, 0)]
+	var pos_b = Hex.new(1, -1)
+	grid_manager_instance.place_piece(shape_b, pos_b, Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+	
+	# Piece A を取得
+	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
+	assert_not_null(piece_a, "Piece A should exist")
+	
+	# Piece B を取得
+	var piece_b = grid_manager_instance.get_piece_at_hex(pos_b)
+	assert_not_null(piece_b, "Piece B should exist")
+	
+	# Piece A から見て、方向1 (右上) にある隣接ピースを取得
+	var neighbor = grid_manager_instance.get_neighbor_piece(Hex.new(0, 0), 1)
+	assert_eq(neighbor, piece_b, "Should retrieve Piece B as neighbor in direction 1")
+	
+	# 存在しない方向 (例: 方向3 - 左下)
+	var no_neighbor = grid_manager_instance.get_neighbor_piece(Hex.new(0, 0), 3)
+	assert_null(no_neighbor, "Should return null if no piece exists in direction")

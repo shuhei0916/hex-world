@@ -99,3 +99,17 @@ func test_未初期化のPieceは鉄を生産しない():
 	
 	# インベントリは0のままであるべき
 	assert_eq(piece.get_item_count("iron"), 0, "未初期化のPiece（タイプ不明）が鉄を生産すべきではない")
+
+func test_CHESTタイプはアイテムを生産しない():
+	# CHESTタイプとしてセットアップ
+	var data = {
+		"type": TetrahexShapes.TetrahexType.CHEST,
+		"hex_coordinates": [Hex.new(0, 0)]
+	}
+	piece.setup(data)
+	
+	# 時間経過
+	piece.tick(2.0)
+	
+	# インベントリは0のままであるべき
+	assert_eq(piece.get_item_count("iron"), 0, "CHESTタイプは自動生産を行わないべき")

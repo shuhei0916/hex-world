@@ -45,6 +45,54 @@ func tick(delta: float):
 		if processing_state >= 1.0:
 			add_item("iron", 1)
 			processing_state -= 1.0
+	
+	_push_items_to_neighbors()
+
+func can_accept_item(_item_name: String) -> bool:
+	# 将来的に容量制限などを入れる
+	return true
+
+func _push_items_to_neighbors():
+	if inventory.is_empty():
+		return
+	
+	var grid_manager = get_parent()
+	if not grid_manager or not grid_manager.has_method("get_neighbor_piece"):
+		return
+		
+	# インベントリのコピーを作成して反復（変更中の反復回避）
+	var current_inventory = inventory.duplicate()
+	
+	for item_name in current_inventory:
+		var count = current_inventory[item_name]
+		if count <= 0:
+			continue
+			
+		# アイテムを1つずつ配る
+		# 各Hexの各方向を確認
+		for hex in hex_coordinates:
+			if count <= 0:
+				break
+				
+			for direction in range(6):
+				if count <= 0:
+					break
+					
+				var neighbor = grid_manager.get_neighbor_piece(hex, direction)
+				if neighbor and neighbor != self and neighbor.can_accept_item(item_name):
+					# 移動処理
+					neighbor.add_item(item_name, 1)
+					_remove_item(item_name, 1)
+					count -= 1
+					# とりあえず1tickにつき1個配れたら次へ（簡易実装）
+					# 実際は全方向へ均等分配などが望ましいが、まずは動くこと優先
+
+func _remove_item(item_name: String, amount: int):
+	if inventory.has(item_name):
+		inventory[item_name] -= amount
+		if inventory[item_name] <= 0:
+			inventory.erase(item_name)
+		_update_display()
 
 func _update_display():
 	if not inventory_label:
