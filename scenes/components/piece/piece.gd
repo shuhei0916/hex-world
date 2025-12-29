@@ -46,6 +46,10 @@ func tick(delta: float):
 			add_item("iron", 1)
 			processing_state -= 1.0
 	
+	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
+	if piece_type == TetrahexShapes.TetrahexType.CHEST:
+		return
+	
 	_push_items_to_neighbors()
 
 func can_accept_item(_item_name: String) -> bool:
@@ -59,32 +63,26 @@ func _push_items_to_neighbors():
 	var grid_manager = get_parent()
 	if not grid_manager or not grid_manager.has_method("get_neighbor_piece"):
 		return
-		
-	# インベントリのコピーを作成して反復（変更中の反復回避）
-	var current_inventory = inventory.duplicate()
 	
-	for item_name in current_inventory:
-		var count = current_inventory[item_name]
-		if count <= 0:
-			continue
-			
-		# アイテムを1つずつ配る
-		# 各Hexの各方向を確認
-		for hex in hex_coordinates:
-			if count <= 0:
-				break
-				
-			for direction in range(6):
-				if count <= 0:
-					break
-					
-				var neighbor = grid_manager.get_neighbor_piece(hex, direction)
-				if neighbor and neighbor != self and neighbor.can_accept_item(item_name):
-					# 移動処理
-					neighbor.add_item(item_name, 1)
-					_remove_item(item_name, 1)
-					count -= 1
-					# とりあえず1tickにつき1個配れたら次へ（簡易実装）
+	# 送信可能な隣接ピースをユニークに収集
+	var potential_targets = _get_unique_neighbor_pieces(grid_manager)
+	
+	for item_name in inventory:
+		for target in potential_targets:
+			if target.can_accept_item(item_name):
+				# 1つ移動して終了
+				target.add_item(item_name, 1)
+				_remove_item(item_name, 1)
+				return # 全体で1個移動したらこのtickの処理を終える
+
+func _get_unique_neighbor_pieces(grid_manager) -> Array[Piece]:
+	var neighbors: Array[Piece] = []
+	for hex in hex_coordinates:
+		for direction in range(6):
+			var nb = grid_manager.get_neighbor_piece(hex, direction)
+			if nb and nb != self and not nb in neighbors:
+				neighbors.append(nb)
+	return neighbors
 					# 実際は全方向へ均等分配などが望ましいが、まずは動くこと優先
 
 func _remove_item(item_name: String, amount: int):

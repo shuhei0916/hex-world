@@ -113,3 +113,90 @@ func test_CHESTタイプはアイテムを生産しない():
 	
 	# インベントリは0のままであるべき
 	assert_eq(piece.get_item_count("iron"), 0, "CHESTタイプは自動生産を行わないべき")
+
+class TestItemTransport:
+	extends GutTest
+
+	var grid_manager: GridManager
+
+	func before_each():
+		grid_manager = GridManager.new()
+		grid_manager.hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+		add_child_autofree(grid_manager)
+		grid_manager.create_hex_grid(2)
+
+	func test_隣接するピースにアイテムが移動する():
+		# 1. ピースを2つ配置
+		# Piece A (BAR) at (0,0)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
+		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
+		
+		# Piece B (CHEST) at (1,0)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0))
+		
+		# 2. Piece A にアイテムを持たせる
+		piece_a.add_item("iron", 1)
+		assert_eq(piece_a.get_item_count("iron"), 1)
+		assert_eq(piece_b.get_item_count("iron"), 0)
+		
+		# 3. tick を実行 (移動ロジックが呼ばれるはず)
+		piece_a.tick(0.1)
+		
+		# 4. 検証: AからBへ移動していること
+		assert_eq(piece_a.get_item_count("iron"), 0, "Piece Aのインベントリは空になるべき")
+		assert_eq(piece_b.get_item_count("iron"), 1, "Piece Bにアイテムが移動しているべき")
+
+	func test_隣接するピースへの移動は1tickにつき1個まで():
+		# 1. 配置
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
+		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
+		
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0))
+		
+		# 2. Piece A に大量のアイテムを持たせる
+		piece_a.add_item("iron", 10)
+		
+		# 3. tick を1回だけ実行
+		piece_a.tick(0.1)
+		
+		# 4. 検証: 1個だけ移動していること
+		assert_eq(piece_b.get_item_count("iron"), 1, "1tickで1個だけ移動すべき")
+		assert_eq(piece_a.get_item_count("iron"), 9, "残りは元の場所に残るべき")
+
+	func test_複数の隣接ピースがあっても全体で1tickにつき1個まで():
+		# 1. 配置
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
+		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
+		
+		# 2つのチェストを隣接させる
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,1), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		
+		# 2. アイテムを持たせる
+		piece_a.add_item("iron", 10)
+		
+		# 3. tick 実行
+		piece_a.tick(0.1)
+		
+		# 4. 検証: 合計で1個しか減っていないこと
+		assert_eq(piece_a.get_item_count("iron"), 9, "複数の隣接があっても全体で1個しか減らないべき")
+
+	func test_CHESTはアイテムを勝手に排出しない():
+		# 1. 配置: CHEST(0,0), CHEST(1,0) (隣同士)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		var chest_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
+		
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		var chest_b = grid_manager.get_piece_at_hex(Hex.new(1,0))
+		
+		# 2. Chest A にアイテムを持たせる
+		chest_a.add_item("iron", 10)
+		
+		# 3. tick 実行
+		chest_a.tick(0.1)
+		
+		# 4. 検証: アイテムが減っていないこと
+		assert_eq(chest_a.get_item_count("iron"), 10, "CHESTはアイテムを保持し続けるべき")
+		assert_eq(chest_b.get_item_count("iron"), 0, "CHESTはアイテムを排出しないべき")
