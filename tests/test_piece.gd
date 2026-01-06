@@ -147,7 +147,7 @@ class TestItemTransport:
 		assert_eq(piece_a.get_item_count("iron"), 0, "Piece Aのインベントリは空になるべき")
 		assert_eq(piece_b.get_item_count("iron"), 1, "Piece Bにアイテムが移動しているべき")
 
-	func test_隣接するピースへの移動は1tickにつき1個まで():
+	func test_アイテム移動はクールダウンに基づいて行われる():
 		# 1. 配置
 		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
@@ -155,15 +155,20 @@ class TestItemTransport:
 		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0))
 		
-		# 2. Piece A に大量のアイテムを持たせる
+		# 2. Piece A にアイテムを持たせる
 		piece_a.add_item("iron", 10)
 		
-		# 3. tick を1回だけ実行
+		# 3. 最初のtick (0.1秒) -> 即時移動する
 		piece_a.tick(0.1)
+		assert_eq(piece_b.get_item_count("iron"), 1, "最初は即座に移動する")
 		
-		# 4. 検証: 1個だけ移動していること
-		assert_eq(piece_b.get_item_count("iron"), 1, "1tickで1個だけ移動すべき")
-		assert_eq(piece_a.get_item_count("iron"), 9, "残りは元の場所に残るべき")
+		# 4. さらに0.5秒経過 (クールダウン1.0秒に対して残り0.4秒) -> 移動しない
+		piece_a.tick(0.5)
+		assert_eq(piece_b.get_item_count("iron"), 1, "クールダウン中は移動しない")
+		
+		# 5. さらに0.5秒経過 (計1.1秒) -> クールダウン明けて移動する
+		piece_a.tick(0.5)
+		assert_eq(piece_b.get_item_count("iron"), 2, "クールダウン明けに移動する")
 
 	func test_複数の隣接ピースがあっても全体で1tickにつき1個まで():
 		# 1. 配置

@@ -11,6 +11,9 @@ var hex_coordinates: Array[Hex] = []
 var inventory: Dictionary = {}
 
 var processing_state: float = 0.0
+# 転送レート (秒/個)
+var transfer_rate: float = 1.0
+var transfer_cooldown: float = 0.0
 
 @onready var inventory_label: Label = get_node_or_null("InventoryLabel")
 
@@ -50,7 +53,12 @@ func tick(delta: float):
 	if piece_type == TetrahexShapes.TetrahexType.CHEST:
 		return
 	
-	_push_items_to_neighbors()
+	# 転送クールダウンの更新
+	if transfer_cooldown > 0:
+		transfer_cooldown -= delta
+	
+	if transfer_cooldown <= 0:
+		_push_items_to_neighbors()
 
 func can_accept_item(_item_name: String) -> bool:
 	# 将来的に容量制限などを入れる
@@ -73,6 +81,9 @@ func _push_items_to_neighbors():
 				# 1つ移動して終了
 				target.add_item(item_name, 1)
 				_remove_item(item_name, 1)
+				
+				# クールダウンを設定
+				transfer_cooldown = transfer_rate
 				return # 全体で1個移動したらこのtickの処理を終える
 
 func _get_unique_neighbor_pieces(grid_manager) -> Array[Piece]:
