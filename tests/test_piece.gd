@@ -1,5 +1,7 @@
 extends GutTest
 
+const Types = PieceShapes.PieceType
+
 var piece: Piece
 
 func before_each():
@@ -7,7 +9,7 @@ func before_each():
 	add_child_autofree(piece)
 
 func test_setupでタイプと座標を保持できる():
-	var dummy_type = PieceShapes.PieceType.BAR
+	var dummy_type = Types.BAR
 	var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
 	
 	var data = {
@@ -25,14 +27,14 @@ func test_setupでタイプと座標を保持できる():
 func test_初期状態のインベントリは空である():
 	assert_eq(piece.get_item_count("iron"), 0, "初期状態のアイテム数は0であるべき")
 
-func test_アイテムを追加するとインベントリ数が増加する():
+func test_アイテムを追加すると数が加算される():
+	# 新規追加
 	piece.add_item("iron", 5)
-	assert_eq(piece.get_item_count("iron"), 5, "5個追加した後のアイテム数は5であるべき")
-
-func test_同種のアイテムを追加すると数が加算される():
-	piece.add_item("iron", 5)
+	assert_eq(piece.get_item_count("iron"), 5, "新規追加で数が設定されるべき")
+	
+	# 既存への加算
 	piece.add_item("iron", 3)
-	assert_eq(piece.get_item_count("iron"), 8, "さらに3個追加した後のアイテム数は8であるべき")
+	assert_eq(piece.get_item_count("iron"), 8, "既存アイテムに追加すると数が加算されるべき")
 
 func test_異なる種類のアイテムは個別に管理される():
 	piece.add_item("iron", 5)
@@ -60,7 +62,7 @@ func test_アイテム追加時にラベルが更新される():
 func test_BARタイプは時間経過で鉄を生産する():
 	# BARタイプとしてセットアップ
 	var data = {
-		"type": PieceShapes.PieceType.BAR,
+		"type": Types.BAR,
 		"hex_coordinates": []
 	}
 	piece.setup(data)
@@ -83,7 +85,7 @@ func test_BARタイプは時間経過で鉄を生産する():
 func test_WORMタイプは鉄を生産しない():
 	# WORMタイプとしてセットアップ
 	var data = {
-		"type": PieceShapes.PieceType.WORM,
+		"type": Types.WORM,
 		"hex_coordinates": []
 	}
 	piece.setup(data)
@@ -104,7 +106,7 @@ func test_未初期化のPieceは鉄を生産しない():
 func test_CHESTタイプはアイテムを生産しない():
 	# CHESTタイプとしてセットアップ
 	var data = {
-		"type": PieceShapes.PieceType.CHEST,
+		"type": Types.CHEST,
 		"hex_coordinates": [Hex.new(0, 0)]
 	}
 	piece.setup(data)
@@ -118,6 +120,7 @@ func test_CHESTタイプはアイテムを生産しない():
 class TestItemTransport:
 	extends GutTest
 
+	const Types = PieceShapes.PieceType
 	var grid_manager: GridManager
 
 	func before_each():
@@ -128,10 +131,10 @@ class TestItemTransport:
 
 	func test_ポート接続された隣接ピースにアイテムが移動する():
 		# 1. 接続されたピースを配置 (A:出力, B:入力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, Types.TEST_OUT)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_IN)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, Types.TEST_IN)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -146,10 +149,10 @@ class TestItemTransport:
 
 	func test_ポートが接続されていないピースにはアイテムが移動しない():
 		# 1. 接続されていないピースを配置 (A:出力, B:出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, Types.TEST_OUT)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, Types.TEST_OUT)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -164,10 +167,10 @@ class TestItemTransport:
 
 	func test_アイテム移動はクールダウンに基づいて行われる():
 		# BARとCHESTは全方向接続なので、このテストはそのままのはず
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, PieceShapes.PieceType.BAR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, Types.BAR)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, Types.CHEST)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -187,11 +190,11 @@ class TestItemTransport:
 
 	func test_複数の隣接ピースがあっても全体で1tickにつき1個まで():
 		# BAR, CHESTは全方向接続
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, PieceShapes.PieceType.BAR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, Types.BAR)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,1,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,1,-1), Color.BLUE, Types.CHEST)
 		
 		piece_a.add_item("iron", 10)
 		piece_a.tick(0.1)
@@ -200,10 +203,10 @@ class TestItemTransport:
 	func test_CHESTはアイテムを勝手に排出しない():
 		# CHESTは全方向入力のみで出力はしないように定義を変更する必要がある
 		# 現在は全方向入出力なので、このテストは失敗する可能性がある
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.BLUE, PieceShapes.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.BLUE, Types.CHEST)
 		var chest_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, Types.CHEST)
 		var chest_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		chest_a.add_item("iron", 10)
@@ -215,6 +218,8 @@ class TestItemTransport:
 class TestPiecePorts:
 	extends GutTest
 
+	const Types = PieceShapes.PieceType
+
 	func test_デフォルトでは入出力ポートは空_または定義に従う():
 		var piece = Piece.new()
 		# タイプが未設定(-1)の場合は空であるべき
@@ -222,13 +227,9 @@ class TestPiecePorts:
 		assert_eq(piece.get_output_ports().size(), 0, "Undefined type should have no output ports")
 
 	func test_ピースタイプに応じたポート定義を取得できる():
-		# CHESTタイプでテスト（まだ定義を追加していないので、現時点では空かデフォルト値になるはずだが、
-		# 実装後は特定の定義が返ることを期待する。ここでは一旦リストが取得できること自体を確認し、
-		# 具体的な中身の検証は実装と合わせる）
-		
 		var piece = Piece.new()
 		var data = {
-			"type": PieceShapes.PieceType.CHEST,
+			"type": Types.CHEST,
 			"hex_coordinates": [Hex.new(0,0)]
 		}
 		piece.setup(data)
@@ -243,6 +244,7 @@ class TestPiecePorts:
 class TestPortConnections:
 	extends GutTest
 
+	const Types = PieceShapes.PieceType
 	var grid_manager: GridManager
 	var piece_a: Piece
 	var piece_b: Piece
@@ -255,11 +257,11 @@ class TestPortConnections:
 
 		# テスト用のPieceを配置
 		# A: (0,0)に配置, TEST_OUT (方向0に出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, Types.TEST_OUT)
 		# B: (1,0)に配置, TEST_IN (方向3に入力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_IN)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, Types.TEST_IN)
 		# C: (2,0)に配置, TEST_OUT_WRONG_DIR (方向1に出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(2,0,-2), Color.WHITE, PieceShapes.PieceType.TEST_OUT_WRONG_DIR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(2,0,-2), Color.WHITE, Types.TEST_OUT_WRONG_DIR)
 
 		piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0,0))
 		piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
@@ -281,7 +283,7 @@ class TestPortConnections:
 		# A(0,0)からC(2,0,-2)への隣接はないが、仮に隣接していたとしてのテスト
 		# piece_bをTEST_OUTに差し替える
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, Types.TEST_OUT)
 		var new_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		assert_false(piece_a.can_push_to(new_b, 0), "Output-to-Output connection should fail")
@@ -290,7 +292,7 @@ class TestPortConnections:
 		# piece_a(方向0出力) と piece_c(方向1出力) をテストするが、cは隣接していない
 		# bをずれた入力ポートを持つように変更する
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT_WRONG_DIR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, Types.TEST_OUT_WRONG_DIR)
 		var wrong_dir_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		# wrong_dir_bは方向4(左下)に入力を持つとする
 		wrong_dir_b.get_input_ports().append({"hex": Hex.new(0,0,0), "direction": 4})
@@ -300,10 +302,12 @@ class TestPortConnections:
 
 class TestPieceRotation:
 	extends GutTest
+	
+	const Types = PieceShapes.PieceType
 
 	func test_ポートはピースの回転に追従する():
 		var piece = Piece.new()
-		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
+		piece.setup({"type": Types.TEST_OUT})
 		add_child_autofree(piece)
 		
 		# 初期状態: 出力は方向0
@@ -311,13 +315,13 @@ class TestPieceRotation:
 		assert_eq(initial_ports.size(), 1)
 		assert_eq(initial_ports[0].direction, 0, "Initial direction should be 0")
 		
-		# 1回右回転 (時計回り) -> 方向は減る (0 -> 5)
+		# 1回右回転
 		piece.rotate_cw()
 		var rotated_ports = piece.get_output_ports()
 		assert_eq(rotated_ports.size(), 1)
-		assert_eq(rotated_ports[0].direction, 5, "Direction should be 5 after one rotation")
+		assert_eq(rotated_ports[0].direction, 5, "Direction should be 5 after one rotation (CW)")
 		
-		# もう1回右回転 -> 方向4
+		# もう1回右回転
 		piece.rotate_cw()
 		rotated_ports = piece.get_output_ports()
 		assert_eq(rotated_ports[0].direction, 4, "Direction should be 4 after two rotations")
@@ -330,8 +334,8 @@ class TestPieceRotation:
 
 	func test_複数ヘックスを持つピースのポートも回転する():
 		var piece = Piece.new()
-		# BARの最初のポートは (-1,0,1) の dir 3 (入力) を想定 (PieceShapes修正済み)
-		piece.setup({"type": PieceShapes.PieceType.BAR})
+		# BARの最初のポートは (-1,0,1) の dir 3 (入力) を想定
+		piece.setup({"type": Types.BAR})
 		add_child_autofree(piece)
 
 		var initial_port = piece.get_input_ports()[0] # BARの入力ポート
@@ -341,7 +345,6 @@ class TestPieceRotation:
 		var rotated_port = piece.get_input_ports()[0]
 		
 		# hex(-1,0,1) を右に1回回転(rotate_right)させると hex(0,-1,1) になる
-		# これは変わらない(Hex.rotate_rightは時計回り)
 		var expected_hex = Hex.rotate_right(initial_port.hex)
 		
 		# 方向3 (左) を時計回りに1回回転させると 方向2 (左上) になるはず
@@ -353,11 +356,13 @@ class TestPieceRotation:
 
 class TestPieceVisuals:
 	extends GutTest
+	
+	const Types = PieceShapes.PieceType
 
 	func test_ポートの描画パラメータを計算できる():
 		var piece = Piece.new()
 		# TEST_OUT: (0,0)の方向0(右)に出力
-		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
+		piece.setup({"type": Types.TEST_OUT})
 		add_child_autofree(piece)
 		
 		var params = piece.get_port_visual_params()
@@ -377,14 +382,14 @@ class TestPieceVisuals:
 
 	func test_回転したポートの描画パラメータも正しく計算される():
 		var piece = Piece.new()
-		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
+		piece.setup({"type": Types.TEST_OUT})
 		add_child_autofree(piece)
 		
-		# 1回回転 -> 方向1 (右下)
+		# 1回回転 -> 方向5 (右下)
 		piece.rotate_cw()
 		
 		var params = piece.get_port_visual_params()
 		if params.size() > 0:
 			var p = params[0]
-			# 方向1なら 60度 (PI/3 ラジアン)
-			assert_almost_eq(p.rotation, PI/3.0, 0.01, "Direction 1 should have PI/3 rotation")
+			# 方向5なら 60度 (PI/3 ラジアン)
+			assert_almost_eq(p.rotation, PI/3.0, 0.01, "Direction 5 should have PI/3 rotation")
