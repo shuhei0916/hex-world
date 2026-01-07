@@ -54,7 +54,7 @@ func test_単一hexを配置可能か判定できる():
 	
 	assert_true(grid_manager_instance.can_place(shape, base_hex))
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, PieceShapes.PieceType.BAR)
 	assert_false(grid_manager_instance.can_place(shape, base_hex))
 
 func test_複数hex形状の配置可能判定ができる():
@@ -99,7 +99,7 @@ func test_ピースを配置できる():
 		var target = Hex.add(base_hex, offset)
 		assert_false(grid_manager_instance.is_occupied(target))
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, PieceShapes.PieceType.BAR)
 	
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -116,7 +116,7 @@ func test_ピースを解除できる():
 		var target = Hex.add(base_hex, offset)
 		grid_manager_instance.register_grid_hex(target)
 	
-	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, TetrahexShapes.TetrahexType.BAR)
+	grid_manager_instance.place_piece(shape, base_hex, Color.WHITE, PieceShapes.PieceType.BAR)
 	
 	grid_manager_instance.remove_piece_at(base_hex)
 	
@@ -146,7 +146,7 @@ func test_ピース配置時にグリッド色がピース色に変わる():
 	var piece_color = Color.RED # 例として赤色
 
 	# ピースを配置
-	grid_manager_instance.place_piece(piece_shape, Hex.new(0, 0), piece_color, TetrahexShapes.TetrahexType.BAR) # piece_colorも渡せるようにする
+	grid_manager_instance.place_piece(piece_shape, Hex.new(0, 0), piece_color, PieceShapes.PieceType.BAR) # piece_colorも渡せるようにする
 	
 	# 配置後、Hexが占有されていることを確認
 	for hex_offset in piece_shape:
@@ -164,7 +164,7 @@ func test_ピースを配置するとPieceノードが生成される():
 	var shape: Array[Hex] = [Hex.new(0, 0), Hex.new(1, 0)]
 	var base_hex = Hex.new(0, 0)
 	var color = Color.BLUE
-	var piece_type = TetrahexShapes.TetrahexType.BAR
+	var piece_type = PieceShapes.PieceType.BAR
 	
 	grid_manager_instance.place_piece(shape, base_hex, color, piece_type)
 	
@@ -191,7 +191,7 @@ func test_remove_piece_frees_piece_node():
 	var base_hex = Hex.new(0, 0)
 	var color = Color.BLUE
 	
-	grid_manager_instance.place_piece(shape, base_hex, color, TetrahexShapes.TetrahexType.BAR)
+	grid_manager_instance.place_piece(shape, base_hex, color, PieceShapes.PieceType.BAR)
 	
 	# Pieceノードを取得
 	var piece_node = null
@@ -218,12 +218,12 @@ func test_指定した方向の隣接Pieceを取得できる():
 	# 2つのピースを隣接して配置
 	# Piece A: (0,0) - CHEST
 	var shape_a = [Hex.new(0, 0)]
-	grid_manager_instance.place_piece(shape_a, Hex.new(0, 0), Color.RED, TetrahexShapes.TetrahexType.CHEST)
+	grid_manager_instance.place_piece(shape_a, Hex.new(0, 0), Color.RED, PieceShapes.PieceType.CHEST)
 	
 	# Piece B: (1, -1) - CHEST (右上の隣)
 	var shape_b = [Hex.new(0, 0)]
 	var pos_b = Hex.new(1, -1)
-	grid_manager_instance.place_piece(shape_b, pos_b, Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+	grid_manager_instance.place_piece(shape_b, pos_b, Color.BLUE, PieceShapes.PieceType.CHEST)
 	
 	# Piece A を取得
 	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))

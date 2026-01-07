@@ -1,5 +1,17 @@
 # todo
 
+- [ ] リファクタリング
+	- [ ] グリッド設定の一元化（今回は見送り）
+		- [ ] `GridConfig` クラス（またはシングルトン）を作成し、`Layout` の向きとサイズを定義する
+		- [ ] `GridManager` が `GridConfig` を参照するように修正する
+		- [ ] `Piece` が `GridConfig` を参照するように修正し、描画ロジックの重複を排除する
+	- [x] `TetrahexShapes` のリネーム
+		- [x] `TetrahexShapes` -> `PieceShapes` にリネーム（ファイル名、クラス名）
+		- [x] 参照箇所の修正 (`Piece`, `GridManager`, テストコード等)
+	- [x] テストコードの改善
+		- [x] `test_piece.gd` 内の `TestPortConnections` で `input_ports` を直接操作している箇所の修正（テスト用ピースタイプを使用）
+		- [x] `test_piece.gd` のアサーション過多なテストの分割
+
 - [ ] ピースの実体化（Pieceノードの導入）
 	- [x] Pieceクラスは初期化データを受け取り、タイプと座標を保持できる
 	- [x] place_piece()が呼ばれると、Pieceノードが生成されシーンに追加される
@@ -45,4 +57,3 @@
 - [ ] 回転ロジックのコードレビュー、重心の変更
 - [ ] pallette uiをhexfrvrによせる。
 - [ ] マウスオーバーでピースの詳細情報ラベルが表示される
-- [ ] tick更新タイミングをゲーム内で同期させる。

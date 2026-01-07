@@ -1,0 +1,75 @@
+extends GutTest
+
+# PieceShapesのテスト
+class_name TestPieceShapes
+
+func test_PieceTypeエニュームが存在する():
+	assert_true(PieceShapes.PieceType.BAR == 0)
+	assert_true(PieceShapes.PieceType.WORM == 1)
+	assert_true(PieceShapes.PieceType.PISTOL == 2)
+	assert_true(PieceShapes.PieceType.PROPELLER == 3)
+	assert_true(PieceShapes.PieceType.ARCH == 4)
+	assert_true(PieceShapes.PieceType.BEE == 5)
+	assert_true(PieceShapes.PieceType.WAVE == 6)
+
+func test_PieceDefinition構造体が正しく動作する():
+	var hex_array: Array[Hex] = [Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2), Hex.new(3, 0, -3)]
+	var definition = PieceShapes.PieceDefinition.new(hex_array, Color.RED)
+	
+	assert_eq(definition.shape.size(), 4)
+	assert_eq(definition.color, Color.RED)
+
+func test_全ての形状データが定義されている():
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.BAR))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.WORM))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.PISTOL))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.PROPELLER))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.ARCH))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.BEE))
+	assert_true(PieceShapes.PieceData.definitions.has(PieceShapes.PieceType.WAVE))
+
+func test_BAR形状が正しく定義されている():
+	var bar_def = PieceShapes.PieceData.definitions[PieceShapes.PieceType.BAR]
+	assert_eq(bar_def.shape.size(), 4)
+	assert_true(Hex.equals(bar_def.shape[0], Hex.new(-1, 0, 1)))
+	assert_true(Hex.equals(bar_def.shape[1], Hex.new(0, 0, 0)))
+	assert_true(Hex.equals(bar_def.shape[2], Hex.new(1, 0, -1)))
+	assert_true(Hex.equals(bar_def.shape[3], Hex.new(2, 0, -2)))
+
+func test_BAR形状は全方向に入出力ポートを持つ_暫定():
+	var bar_def = PieceShapes.PieceData.definitions[PieceShapes.PieceType.BAR]
+	
+	# このテストは、BARの定義にポートが追加されるまでのRed状態を作るためのもの
+	assert_gt(bar_def.input_ports.size(), 0, "BAR should have input ports")
+	assert_gt(bar_def.output_ports.size(), 0, "BAR should have output ports")
+
+func test_WORM形状が正しく定義されている():
+	var worm_def = PieceShapes.PieceData.definitions[PieceShapes.PieceType.WORM]
+	assert_eq(worm_def.shape.size(), 4)
+	assert_true(Hex.equals(worm_def.shape[0], Hex.new(-2, 0, 2)))
+	assert_true(Hex.equals(worm_def.shape[1], Hex.new(-1, 0, 1)))
+	assert_true(Hex.equals(worm_def.shape[2], Hex.new(0, 0, 0)))
+	assert_true(Hex.equals(worm_def.shape[3], Hex.new(0, 1, -1)))
+
+func test_全ての形状が適切なhex数を持つ():
+	for type in PieceShapes.PieceType.values():
+		if type >= PieceShapes.PieceType.TEST_OUT: continue # Skip test types
+		var definition = PieceShapes.PieceData.definitions[type]
+		if type == PieceShapes.PieceType.CHEST:
+			assert_eq(definition.shape.size(), 1, "CHESTは1Hexであるべき")
+		else:
+			assert_eq(definition.shape.size(), 4, "Type %d は4Hexであるべき" % type)
+
+func test_各形状が異なる色を持つ():
+
+	var colors = {}
+
+	for type in PieceShapes.PieceType.values():
+
+		if type >= PieceShapes.PieceType.TEST_OUT: continue # Skip test types
+
+		var definition = PieceShapes.PieceData.definitions[type]
+
+		assert_false(colors.has(definition.color))
+
+		colors[definition.color] = type

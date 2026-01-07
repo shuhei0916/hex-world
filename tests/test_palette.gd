@@ -36,13 +36,13 @@ func test_アクティブスロット変更時にハイライトも移動する(
 
 func test_スロット1から7には決まったピースが割り当てられている():
 	var expected_types = [
-		TetrahexShapes.TetrahexType.BAR,
-		TetrahexShapes.TetrahexType.WORM,
-		TetrahexShapes.TetrahexType.PISTOL,
-		TetrahexShapes.TetrahexType.PROPELLER,
-		TetrahexShapes.TetrahexType.ARCH,
-		TetrahexShapes.TetrahexType.BEE,
-		TetrahexShapes.TetrahexType.WAVE
+		PieceShapes.PieceType.BAR,
+		PieceShapes.PieceType.WORM,
+		PieceShapes.PieceType.PISTOL,
+		PieceShapes.PieceType.PROPELLER,
+		PieceShapes.PieceType.ARCH,
+		PieceShapes.PieceType.BEE,
+		PieceShapes.PieceType.WAVE
 	]
 	for i in range(expected_types.size()):
 		assert_eq(palette.get_piece_type_for_slot(i), expected_types[i], "スロット%dのピースタイプが期待値と異なります" % (i + 1))

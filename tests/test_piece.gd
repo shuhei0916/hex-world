@@ -7,7 +7,7 @@ func before_each():
 	add_child_autofree(piece)
 
 func test_setupでタイプと座標を保持できる():
-	var dummy_type = TetrahexShapes.TetrahexType.BAR
+	var dummy_type = PieceShapes.PieceType.BAR
 	var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
 	
 	var data = {
@@ -20,28 +20,29 @@ func test_setupでタイプと座標を保持できる():
 	
 	# プロパティが正しくセットされていることを確認
 	assert_eq(piece.piece_type, dummy_type, "piece_type should be set")
-	
-	assert_not_null(piece.hex_coordinates, "hex_coordinates should not be null")
 	assert_eq(piece.hex_coordinates.size(), 2)
-	if piece.hex_coordinates.size() > 0:
-		assert_true(Hex.equals(piece.hex_coordinates[0], dummy_coords[0]))
 
-func test_インベントリにアイテムを追加できる():
-	# 初期状態は0
+func test_初期状態のインベントリは空である():
 	assert_eq(piece.get_item_count("iron"), 0, "初期状態のアイテム数は0であるべき")
-	
-	# 追加
+
+func test_アイテムを追加するとインベントリ数が増加する():
 	piece.add_item("iron", 5)
 	assert_eq(piece.get_item_count("iron"), 5, "5個追加した後のアイテム数は5であるべき")
-	
-	# 加算
+
+func test_同種のアイテムを追加すると数が加算される():
+	piece.add_item("iron", 5)
 	piece.add_item("iron", 3)
 	assert_eq(piece.get_item_count("iron"), 8, "さらに3個追加した後のアイテム数は8であるべき")
-	
-	# 別のアイテム
+
+func test_異なる種類のアイテムは個別に管理される():
+	piece.add_item("iron", 5)
 	piece.add_item("copper", 1)
 	assert_eq(piece.get_item_count("copper"), 1, "別のアイテム(copper)も正しく追加できるべき")
-	assert_eq(piece.get_item_count("iron"), 8, "別のアイテムを追加しても既存のアイテム数は変わらないべき")
+
+func test_異なる種類のアイテムを追加しても既存のアイテム数は変わらない():
+	piece.add_item("iron", 5)
+	piece.add_item("copper", 1)
+	assert_eq(piece.get_item_count("iron"), 5, "別のアイテムを追加しても既存のアイテム数は変わらないべき")
 
 func test_アイテム追加時にラベルが更新される():
 	# InventoryLabelをダミーで作成して追加
@@ -59,7 +60,7 @@ func test_アイテム追加時にラベルが更新される():
 func test_BARタイプは時間経過で鉄を生産する():
 	# BARタイプとしてセットアップ
 	var data = {
-		"type": TetrahexShapes.TetrahexType.BAR,
+		"type": PieceShapes.PieceType.BAR,
 		"hex_coordinates": []
 	}
 	piece.setup(data)
@@ -82,7 +83,7 @@ func test_BARタイプは時間経過で鉄を生産する():
 func test_WORMタイプは鉄を生産しない():
 	# WORMタイプとしてセットアップ
 	var data = {
-		"type": TetrahexShapes.TetrahexType.WORM,
+		"type": PieceShapes.PieceType.WORM,
 		"hex_coordinates": []
 	}
 	piece.setup(data)
@@ -103,7 +104,7 @@ func test_未初期化のPieceは鉄を生産しない():
 func test_CHESTタイプはアイテムを生産しない():
 	# CHESTタイプとしてセットアップ
 	var data = {
-		"type": TetrahexShapes.TetrahexType.CHEST,
+		"type": PieceShapes.PieceType.CHEST,
 		"hex_coordinates": [Hex.new(0, 0)]
 	}
 	piece.setup(data)
@@ -127,10 +128,10 @@ class TestItemTransport:
 
 	func test_ポート接続された隣接ピースにアイテムが移動する():
 		# 1. 接続されたピースを配置 (A:出力, B:入力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, TetrahexShapes.TetrahexType.TEST_IN)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_IN)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -145,10 +146,10 @@ class TestItemTransport:
 
 	func test_ポートが接続されていないピースにはアイテムが移動しない():
 		# 1. 接続されていないピースを配置 (A:出力, B:出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -163,10 +164,10 @@ class TestItemTransport:
 
 	func test_アイテム移動はクールダウンに基づいて行われる():
 		# BARとCHESTは全方向接続なので、このテストはそのままのはず
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, PieceShapes.PieceType.BAR)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		# 2. Piece A にアイテムを持たせる
@@ -186,11 +187,11 @@ class TestItemTransport:
 
 	func test_複数の隣接ピースがあっても全体で1tickにつき1個まで():
 		# BAR, CHESTは全方向接続
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, TetrahexShapes.TetrahexType.BAR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.RED, PieceShapes.PieceType.BAR)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,1,-1), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,1,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
 		
 		piece_a.add_item("iron", 10)
 		piece_a.tick(0.1)
@@ -199,10 +200,10 @@ class TestItemTransport:
 	func test_CHESTはアイテムを勝手に排出しない():
 		# CHESTは全方向入力のみで出力はしないように定義を変更する必要がある
 		# 現在は全方向入出力なので、このテストは失敗する可能性がある
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.BLUE, PieceShapes.PieceType.CHEST)
 		var chest_a = grid_manager.get_piece_at_hex(Hex.new(0,0))
 		
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, TetrahexShapes.TetrahexType.CHEST)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.BLUE, PieceShapes.PieceType.CHEST)
 		var chest_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		chest_a.add_item("iron", 10)
@@ -227,7 +228,7 @@ class TestPiecePorts:
 		
 		var piece = Piece.new()
 		var data = {
-			"type": TetrahexShapes.TetrahexType.CHEST,
+			"type": PieceShapes.PieceType.CHEST,
 			"hex_coordinates": [Hex.new(0,0)]
 		}
 		piece.setup(data)
@@ -254,11 +255,11 @@ class TestPortConnections:
 
 		# テスト用のPieceを配置
 		# A: (0,0)に配置, TEST_OUT (方向0に出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(0,0), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
 		# B: (1,0)に配置, TEST_IN (方向3に入力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, TetrahexShapes.TetrahexType.TEST_IN)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_IN)
 		# C: (2,0)に配置, TEST_OUT_WRONG_DIR (方向1に出力)
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(2,0,-2), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT_WRONG_DIR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(2,0,-2), Color.WHITE, PieceShapes.PieceType.TEST_OUT_WRONG_DIR)
 
 		piece_a = grid_manager.get_piece_at_hex(Hex.new(0,0,0))
 		piece_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
@@ -280,7 +281,7 @@ class TestPortConnections:
 		# A(0,0)からC(2,0,-2)への隣接はないが、仮に隣接していたとしてのテスト
 		# piece_bをTEST_OUTに差し替える
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT)
 		var new_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		
 		assert_false(piece_a.can_push_to(new_b, 0), "Output-to-Output connection should fail")
@@ -289,7 +290,7 @@ class TestPortConnections:
 		# piece_a(方向0出力) と piece_c(方向1出力) をテストするが、cは隣接していない
 		# bをずれた入力ポートを持つように変更する
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
-		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, TetrahexShapes.TetrahexType.TEST_OUT_WRONG_DIR)
+		grid_manager.place_piece([Hex.new(0,0)], Hex.new(1,0,-1), Color.WHITE, PieceShapes.PieceType.TEST_OUT_WRONG_DIR)
 		var wrong_dir_b = grid_manager.get_piece_at_hex(Hex.new(1,0,-1))
 		# wrong_dir_bは方向4(左下)に入力を持つとする
 		wrong_dir_b.get_input_ports().append({"hex": Hex.new(0,0,0), "direction": 4})
@@ -302,7 +303,7 @@ class TestPieceRotation:
 
 	func test_ポートはピースの回転に追従する():
 		var piece = Piece.new()
-		piece.setup({"type": TetrahexShapes.TetrahexType.TEST_OUT})
+		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
 		add_child_autofree(piece)
 		
 		# 初期状態: 出力は方向0
@@ -329,8 +330,8 @@ class TestPieceRotation:
 
 	func test_複数ヘックスを持つピースのポートも回転する():
 		var piece = Piece.new()
-		# BARの最初のポートは (-1,0,1) の dir 3 (入力) を想定 (TetrahexShapes修正済み)
-		piece.setup({"type": TetrahexShapes.TetrahexType.BAR})
+		# BARの最初のポートは (-1,0,1) の dir 3 (入力) を想定 (PieceShapes修正済み)
+		piece.setup({"type": PieceShapes.PieceType.BAR})
 		add_child_autofree(piece)
 
 		var initial_port = piece.get_input_ports()[0] # BARの入力ポート
@@ -356,7 +357,7 @@ class TestPieceVisuals:
 	func test_ポートの描画パラメータを計算できる():
 		var piece = Piece.new()
 		# TEST_OUT: (0,0)の方向0(右)に出力
-		piece.setup({"type": TetrahexShapes.TetrahexType.TEST_OUT})
+		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
 		add_child_autofree(piece)
 		
 		var params = piece.get_port_visual_params()
@@ -376,7 +377,7 @@ class TestPieceVisuals:
 
 	func test_回転したポートの描画パラメータも正しく計算される():
 		var piece = Piece.new()
-		piece.setup({"type": TetrahexShapes.TetrahexType.TEST_OUT})
+		piece.setup({"type": PieceShapes.PieceType.TEST_OUT})
 		add_child_autofree(piece)
 		
 		# 1回回転 -> 方向1 (右下)

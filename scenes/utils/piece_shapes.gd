@@ -1,8 +1,8 @@
-class_name TetrahexShapes
+class_name PieceShapes
 extends RefCounted
 
-# TetrahexType enum定義
-enum TetrahexType {
+# PieceType enum定義
+enum PieceType {
 	BAR,
 	WORM, 
 	PISTOL,
@@ -17,8 +17,8 @@ enum TetrahexType {
 	TEST_OUT_WRONG_DIR
 }
 
-# TetrahexDefinition構造体
-class TetrahexDefinition:
+# PieceDefinition構造体
+class PieceDefinition:
 	var shape: Array[Hex]
 	var color: Color
 	var input_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
@@ -30,8 +30,8 @@ class TetrahexDefinition:
 		input_ports = inputs
 		output_ports = outputs
 
-# TetrahexData - 形状データ定義
-class TetrahexData:
+# PieceData - 形状データ定義
+class PieceData:
 	# 形状を構成する全ヘックスの、他のヘックスに接していない「外周」全てのポートを生成する
 	static func _generate_all_external_ports(shape: Array[Hex]) -> Array:
 		var ports = []
@@ -47,62 +47,62 @@ class TetrahexData:
 		return ports
 	
 	static var definitions = {
-		TetrahexType.BAR: TetrahexDefinition.new(
+		PieceType.BAR: PieceDefinition.new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			Color("#D49A69"),
 			[{"hex": Hex.new(-1, 0, 1), "direction": 3}], # Input at tail
 			[{"hex": Hex.new(2, 0, -2), "direction": 0}]  # Output at head
 		),
-		TetrahexType.WORM: TetrahexDefinition.new(
+		PieceType.WORM: PieceDefinition.new(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			Color("#6AD38D"),
 			_generate_all_external_ports([Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]),
 			_generate_all_external_ports([Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)])
 		),
-		TetrahexType.PISTOL: TetrahexDefinition.new(
+		PieceType.PISTOL: PieceDefinition.new(
 			[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			Color("#C2E479"),
 			_generate_all_external_ports([Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]),
 			_generate_all_external_ports([Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)])
 		),
-		TetrahexType.PROPELLER: TetrahexDefinition.new(
+		PieceType.PROPELLER: PieceDefinition.new(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			Color("#8184F0"),
 			_generate_all_external_ports([Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)]),
 			_generate_all_external_ports([Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)])
 		),
-		TetrahexType.ARCH: TetrahexDefinition.new(
+		PieceType.ARCH: PieceDefinition.new(
 			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 			Color("#F081AA"),
 			_generate_all_external_ports([Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]),
 			_generate_all_external_ports([Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)])
 		),
-		TetrahexType.BEE: TetrahexDefinition.new(
+		PieceType.BEE: PieceDefinition.new(
 			[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 			Color("#F3D283"),
 			_generate_all_external_ports([Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)]),
 			_generate_all_external_ports([Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)])
 		),
-		TetrahexType.WAVE: TetrahexDefinition.new(
+		PieceType.WAVE: PieceDefinition.new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			Color("#85F7F2"),
 			_generate_all_external_ports([Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)]),
 			_generate_all_external_ports([Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)])
 		),
-		TetrahexType.CHEST: TetrahexDefinition.new(
+		PieceType.CHEST: PieceDefinition.new(
 			[Hex.new(0, 0, 0)],
 			Color("#999999"), # グレー系の色
 			_generate_all_external_ports([Hex.new(0, 0, 0)]),
 			_generate_all_external_ports([Hex.new(0, 0, 0)])
 		),
 		# --- Test-only definitions ---
-		TetrahexType.TEST_OUT: TetrahexDefinition.new(
+		PieceType.TEST_OUT: PieceDefinition.new(
 			[Hex.new(0,0,0)], Color.WHITE, [], [{"hex": Hex.new(0,0,0), "direction": 0}]
 		),
-		TetrahexType.TEST_IN: TetrahexDefinition.new(
+		PieceType.TEST_IN: PieceDefinition.new(
 			[Hex.new(0,0,0)], Color.WHITE, [{"hex": Hex.new(0,0,0), "direction": 3}], []
 		),
-		TetrahexType.TEST_OUT_WRONG_DIR: TetrahexDefinition.new(
+		PieceType.TEST_OUT_WRONG_DIR: PieceDefinition.new(
 			[Hex.new(0,0,0)], Color.WHITE, [], [{"hex": Hex.new(0,0,0), "direction": 1}]
 		),
 	}

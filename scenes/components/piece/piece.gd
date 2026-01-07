@@ -1,7 +1,7 @@
 class_name Piece
 extends Node2D
 
-# ピースの種類ID (TetrahexShapes.TetrahexType)
+# ピースの種類ID (PieceShapes.PieceType)
 var piece_type: int = -1
 
 # このピースが占有しているHex座標のリスト
@@ -53,14 +53,14 @@ func rotate_cw():
 
 func tick(delta: float):
 	# BARタイプは採掘機として振る舞う
-	if piece_type == TetrahexShapes.TetrahexType.BAR:
+	if piece_type == PieceShapes.PieceType.BAR:
 		processing_state += delta
 		if processing_state >= 1.0:
 			add_item("iron", 1)
 			processing_state -= 1.0
 	
 	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
-	if piece_type == TetrahexShapes.TetrahexType.CHEST:
+	if piece_type == PieceShapes.PieceType.CHEST:
 		return
 	
 	# 転送クールダウンの更新
@@ -140,17 +140,17 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
 func get_input_ports() -> Array:
-	if piece_type == -1 or not TetrahexShapes.TetrahexData.definitions.has(piece_type):
+	if piece_type == -1 or not PieceShapes.PieceData.definitions.has(piece_type):
 		return []
 	
-	var static_ports = TetrahexShapes.TetrahexData.definitions[piece_type].input_ports
+	var static_ports = PieceShapes.PieceData.definitions[piece_type].input_ports
 	return _get_rotated_ports(static_ports)
 
 func get_output_ports() -> Array:
-	if piece_type == -1 or not TetrahexShapes.TetrahexData.definitions.has(piece_type):
+	if piece_type == -1 or not PieceShapes.PieceData.definitions.has(piece_type):
 		return []
 	
-	var static_ports = TetrahexShapes.TetrahexData.definitions[piece_type].output_ports
+	var static_ports = PieceShapes.PieceData.definitions[piece_type].output_ports
 	return _get_rotated_ports(static_ports)
 
 func _get_rotated_ports(ports: Array) -> Array:

@@ -55,10 +55,10 @@ classDiagram
         +set_highlight(active: bool)
     }
     
-    class TetrahexShapes {
+    class PieceShapes {
         <<static>>
         +definitions: Dictionary
-        +TetrahexType: enum
+        +PieceType: enum
     }
 
     %% --- Relationships ---
@@ -76,8 +76,8 @@ classDiagram
     GridManager o-- HexTile : "生成・保持 (Instantiates & Stores)"
     
     %% Type Reference
-    Piece ..> TetrahexShapes : "Type IDを参照"
-    Palette ..> TetrahexShapes : "形状データを参照"
+    Piece ..> PieceShapes : "Type IDを参照"
+    Palette ..> PieceShapes : "形状データを参照"
 ```
 
 ## クラスの責務概要
@@ -101,7 +101,7 @@ classDiagram
 
 ### Palette / PaletteUI
 **手持ちの駒（形状）の管理者**。
-- どのスロットにどの形状（TetrahexType）が割り当てられているかを管理します。
+- どのスロットにどの形状（PieceType）が割り当てられているかを管理します。
 - 選択中のスロット状態を管理します。
 
 ### Piece

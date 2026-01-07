@@ -48,7 +48,7 @@ func get_piece_data_for_slot(slot_index: int) -> Dictionary:
 	var piece_type = get_piece_type_for_slot(slot_index)
 	if piece_type == null:
 		return {}
-	var definition = TetrahexShapes.TetrahexData.definitions.get(piece_type, null)
+	var definition = PieceShapes.PieceData.definitions.get(piece_type, null)
 	if definition == null:
 		return {}
 	return {
@@ -97,20 +97,20 @@ func _get_default_piece_assignments() -> Array:
 
 	return [
 
-		TetrahexShapes.TetrahexType.BAR,
+		PieceShapes.PieceType.BAR,
 
-		TetrahexShapes.TetrahexType.WORM,
+		PieceShapes.PieceType.WORM,
 
-		TetrahexShapes.TetrahexType.PISTOL,
+		PieceShapes.PieceType.PISTOL,
 
-		TetrahexShapes.TetrahexType.PROPELLER,
+		PieceShapes.PieceType.PROPELLER,
 
-		TetrahexShapes.TetrahexType.ARCH,
+		PieceShapes.PieceType.ARCH,
 
-		TetrahexShapes.TetrahexType.BEE,
+		PieceShapes.PieceType.BEE,
 
-		TetrahexShapes.TetrahexType.WAVE,
+		PieceShapes.PieceType.WAVE,
 
-		TetrahexShapes.TetrahexType.CHEST
+		PieceShapes.PieceType.CHEST
 
 	]
