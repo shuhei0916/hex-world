@@ -24,6 +24,9 @@ func setup(data: Dictionary):
 	if data.has("type"):
 		piece_type = data["type"]
 	
+	if data.has("rotation"):
+		rotation_state = data["rotation"]
+	
 	if data.has("hex_coordinates"):
 		hex_coordinates.clear()
 		var coords = data["hex_coordinates"]
@@ -46,6 +49,7 @@ func _process(delta: float):
 
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
+	queue_redraw()
 
 func tick(delta: float):
 	# BARタイプは採掘機として振る舞う
@@ -65,6 +69,75 @@ func tick(delta: float):
 	
 	if transfer_cooldown <= 0:
 		_push_items_to_neighbors()
+
+func get_port_visual_params() -> Array:
+	var params = []
+	
+	# Layout定義 (GridManagerと同じ設定)
+	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+	
+	# 入力ポート (青系)
+	for port in get_input_ports():
+		var center_pos = Layout.hex_to_pixel(layout, port.hex)
+		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
+		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
+		var angle = (neighbor_pos - center_pos).angle()
+		
+		params.append({
+			"position": center_pos,
+			"rotation": angle,
+			"type": "in",
+			"color": Color("#4A90E2") # 明るい青
+		})
+		
+	# 出力ポート (オレンジ系)
+	for port in get_output_ports():
+		var center_pos = Layout.hex_to_pixel(layout, port.hex)
+		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
+		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
+		var angle = (neighbor_pos - center_pos).angle()
+		
+		params.append({
+			"position": center_pos,
+			"rotation": angle,
+			"type": "out",
+			"color": Color("#F5A623") # 明るいオレンジ
+		})
+		
+	return params
+
+func _draw():
+	var params = get_port_visual_params()
+	for p in params:
+		_draw_arrow(p.position, p.rotation, p.color, p.type == "in")
+
+func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
+	var arrow_size = 15.0
+	var offset = 30.0 # ヘックスの中心からのオフセット
+	
+	# 現在のトランスフォームを保存
+	var original_transform = get_canvas_transform()
+	
+	draw_set_transform(pos, rot, Vector2.ONE)
+	
+	var arrow_pos = Vector2(offset, 0)
+	var points = PackedVector2Array()
+	
+	if is_input:
+		# 入力矢印 (中心に向かう)
+		points.append(arrow_pos + Vector2(0, 0))
+		points.append(arrow_pos + Vector2(arrow_size, -arrow_size/2))
+		points.append(arrow_pos + Vector2(arrow_size, arrow_size/2))
+	else:
+		# 出力矢印 (外に向かう)
+		points.append(arrow_pos + Vector2(arrow_size, 0))
+		points.append(arrow_pos + Vector2(0, -arrow_size/2))
+		points.append(arrow_pos + Vector2(0, arrow_size/2))
+		
+	draw_colored_polygon(points, color)
+	
+	# トランスフォームをリセット (draw_set_transform(ZERO, 0, ONE) 相当)
+	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
 func get_input_ports() -> Array:
 	if piece_type == -1 or not TetrahexShapes.TetrahexData.definitions.has(piece_type):
@@ -87,7 +160,8 @@ func _get_rotated_ports(ports: Array) -> Array:
 		for i in range(rotation_state):
 			rotated_hex = Hex.rotate_right(rotated_hex)
 		
-		var rotated_direction = (port_def.direction + rotation_state) % 6
+		# 時計回り(CW)なので、方向インデックスは減る (0->5->4...)
+		var rotated_direction = (port_def.direction - rotation_state + 6) % 6
 		rotated_ports.append({"hex": rotated_hex, "direction": rotated_direction})
 		
 	return rotated_ports

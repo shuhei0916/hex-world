@@ -9,6 +9,7 @@ var palette: Palette
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
+var current_rotation: int = 0
 var current_hovered_hex: Hex
 var mouse_preview_container: Node2D
 var ghost_preview_container: Node2D
@@ -29,6 +30,7 @@ func _on_active_slot_changed(new_index: int, _old_index: int):
 	_update_preview(new_index)
 
 func _update_preview(slot_index: int):
+	current_rotation = 0 # リセット
 	var piece_data = palette.get_piece_data_for_slot(slot_index)
 	if piece_data.is_empty():
 		current_piece_shape = []
@@ -100,7 +102,7 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	var piece_type = selected_piece_data.get("type", 0)
 	
 	if grid_manager.can_place(current_piece_shape, target_hex):
-		grid_manager.place_piece(current_piece_shape, target_hex, color, piece_type)
+		grid_manager.place_piece(current_piece_shape, target_hex, color, piece_type, current_rotation)
 		return true
 	else:
 		return false
@@ -109,6 +111,7 @@ func rotate_current_piece():
 	if current_piece_shape.is_empty():
 		return
 	
+	current_rotation = (current_rotation + 1) % 6
 	current_piece_shape = _get_rotated_piece_shape(current_piece_shape)
 	_draw_preview()
 

@@ -50,8 +50,8 @@ class TetrahexData:
 		TetrahexType.BAR: TetrahexDefinition.new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			Color("#D49A69"),
-			_generate_all_external_ports([Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)]), # inputs
-			_generate_all_external_ports([Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)])  # outputs
+			[{"hex": Hex.new(-1, 0, 1), "direction": 3}], # Input at tail
+			[{"hex": Hex.new(2, 0, -2), "direction": 0}]  # Output at head
 		),
 		TetrahexType.WORM: TetrahexDefinition.new(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],

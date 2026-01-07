@@ -74,7 +74,7 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 			return false
 	return true
 
-func place_piece(shape: Array, base_hex: Hex, piece_color: Color, piece_type: int = 0):
+func place_piece(shape: Array, base_hex: Hex, piece_color: Color, piece_type: int = 0, rotation: int = 0):
 	var occupied_hexes: Array[Hex] = []
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -92,7 +92,8 @@ func place_piece(shape: Array, base_hex: Hex, piece_color: Color, piece_type: in
 	# データセットアップ
 	var data = {
 		"type": piece_type,
-		"hex_coordinates": occupied_hexes
+		"hex_coordinates": occupied_hexes,
+		"rotation": rotation
 	}
 	if piece.has_method("setup"):
 		piece.setup(data)

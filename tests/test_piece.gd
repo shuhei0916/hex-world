@@ -310,16 +310,16 @@ class TestPieceRotation:
 		assert_eq(initial_ports.size(), 1)
 		assert_eq(initial_ports[0].direction, 0, "Initial direction should be 0")
 		
-		# 1回右回転
+		# 1回右回転 (時計回り) -> 方向は減る (0 -> 5)
 		piece.rotate_cw()
 		var rotated_ports = piece.get_output_ports()
 		assert_eq(rotated_ports.size(), 1)
-		assert_eq(rotated_ports[0].direction, 1, "Direction should be 1 after one rotation")
+		assert_eq(rotated_ports[0].direction, 5, "Direction should be 5 after one rotation")
 		
-		# もう1回右回転
+		# もう1回右回転 -> 方向4
 		piece.rotate_cw()
 		rotated_ports = piece.get_output_ports()
-		assert_eq(rotated_ports[0].direction, 2, "Direction should be 2 after two rotations")
+		assert_eq(rotated_ports[0].direction, 4, "Direction should be 4 after two rotations")
 
 		# 6回回転すると元に戻る
 		for i in range(4):
@@ -329,20 +329,61 @@ class TestPieceRotation:
 
 	func test_複数ヘックスを持つピースのポートも回転する():
 		var piece = Piece.new()
-		# BARの最初のポートは (-1,0,1) の dir 0 を想定
+		# BARの最初のポートは (-1,0,1) の dir 3 (入力) を想定 (TetrahexShapes修正済み)
 		piece.setup({"type": TetrahexShapes.TetrahexType.BAR})
 		add_child_autofree(piece)
 
-		var initial_port = piece.get_output_ports()[0]
+		var initial_port = piece.get_input_ports()[0] # BARの入力ポート
 		
 		piece.rotate_cw()
 		
-		var rotated_port = piece.get_output_ports()[0]
+		var rotated_port = piece.get_input_ports()[0]
 		
-		# hex(-1,0,1) を右に1回回転させると hex(0,-1,1) になる
+		# hex(-1,0,1) を右に1回回転(rotate_right)させると hex(0,-1,1) になる
+		# これは変わらない(Hex.rotate_rightは時計回り)
 		var expected_hex = Hex.rotate_right(initial_port.hex)
-		# 方向0を右に1回回転させると方向1になる
-		var expected_dir = 1
+		
+		# 方向3 (左) を時計回りに1回回転させると 方向2 (左上) になるはず
+		# 3 -> 2
+		var expected_dir = 2
 		
 		assert_true(Hex.equals(rotated_port.hex, expected_hex), "Port hex should be rotated")
 		assert_eq(rotated_port.direction, expected_dir, "Port direction should be rotated")
+
+class TestPieceVisuals:
+	extends GutTest
+
+	func test_ポートの描画パラメータを計算できる():
+		var piece = Piece.new()
+		# TEST_OUT: (0,0)の方向0(右)に出力
+		piece.setup({"type": TetrahexShapes.TetrahexType.TEST_OUT})
+		add_child_autofree(piece)
+		
+		var params = piece.get_port_visual_params()
+		assert_eq(params.size(), 1, "Should have one set of params for the port")
+		
+		if params.size() > 0:
+			var p = params[0]
+			assert_true(p.has("position"), "Should have position")
+			assert_true(p.has("rotation"), "Should have rotation")
+			assert_true(p.has("type"), "Should have port type (in/out)")
+			
+			# 方向0(右)なら、回転は0度(またはそれに相当するラジアン)
+			assert_almost_eq(p.rotation, 0.0, 0.01, "Direction 0 should have 0 rotation")
+			# (0,0)なら位置はほぼ原点(オフセットは考慮しうる)
+			assert_almost_eq(p.position.x, 0.0, 0.1)
+			assert_almost_eq(p.position.y, 0.0, 0.1)
+
+	func test_回転したポートの描画パラメータも正しく計算される():
+		var piece = Piece.new()
+		piece.setup({"type": TetrahexShapes.TetrahexType.TEST_OUT})
+		add_child_autofree(piece)
+		
+		# 1回回転 -> 方向1 (右下)
+		piece.rotate_cw()
+		
+		var params = piece.get_port_visual_params()
+		if params.size() > 0:
+			var p = params[0]
+			# 方向1なら 60度 (PI/3 ラジアン)
+			assert_almost_eq(p.rotation, PI/3.0, 0.01, "Direction 1 should have PI/3 rotation")
