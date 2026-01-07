@@ -7,6 +7,9 @@ var piece_type: int = -1
 # このピースが占有しているHex座標のリスト
 var hex_coordinates: Array[Hex] = []
 
+# 回転状態 (0-5)
+var rotation_state: int = 0
+
 # インベントリデータ (アイテム名: 数量)
 var inventory: Dictionary = {}
 
@@ -41,6 +44,9 @@ func get_item_count(item_name: String) -> int:
 func _process(delta: float):
 	tick(delta)
 
+func rotate_cw():
+	rotation_state = (rotation_state + 1) % 6
+
 func tick(delta: float):
 	# BARタイプは採掘機として振る舞う
 	if piece_type == TetrahexShapes.TetrahexType.BAR:
@@ -60,6 +66,54 @@ func tick(delta: float):
 	if transfer_cooldown <= 0:
 		_push_items_to_neighbors()
 
+func get_input_ports() -> Array:
+	if piece_type == -1 or not TetrahexShapes.TetrahexData.definitions.has(piece_type):
+		return []
+	
+	var static_ports = TetrahexShapes.TetrahexData.definitions[piece_type].input_ports
+	return _get_rotated_ports(static_ports)
+
+func get_output_ports() -> Array:
+	if piece_type == -1 or not TetrahexShapes.TetrahexData.definitions.has(piece_type):
+		return []
+	
+	var static_ports = TetrahexShapes.TetrahexData.definitions[piece_type].output_ports
+	return _get_rotated_ports(static_ports)
+
+func _get_rotated_ports(ports: Array) -> Array:
+	var rotated_ports: Array = []
+	for port_def in ports:
+		var rotated_hex = port_def.hex
+		for i in range(rotation_state):
+			rotated_hex = Hex.rotate_right(rotated_hex)
+		
+		var rotated_direction = (port_def.direction + rotation_state) % 6
+		rotated_ports.append({"hex": rotated_hex, "direction": rotated_direction})
+		
+	return rotated_ports
+
+func can_push_to(target_piece: Piece, direction_to_target: int) -> bool:
+	# 1. 自分の出力ポートを確認
+	var has_output_port = false
+	for port in get_output_ports():
+		# ここでは、どのローカルhexからの出力かをまだ考慮しない（単一hexピースを想定）
+		if port.direction == direction_to_target:
+			has_output_port = true
+			break
+	
+	if not has_output_port:
+		return false
+		
+	# 2. 相手の入力ポートを確認
+	var opposite_direction = (direction_to_target + 3) % 6
+	var has_input_port = false
+	for port in target_piece.get_input_ports():
+		if port.direction == opposite_direction:
+			has_input_port = true
+			break
+			
+	return has_input_port
+
 func can_accept_item(_item_name: String) -> bool:
 	# 将来的に容量制限などを入れる
 	return true
@@ -73,7 +127,14 @@ func _push_items_to_neighbors():
 		return
 	
 	# 送信可能な隣接ピースをユニークに収集
-	var potential_targets = _get_unique_neighbor_pieces(grid_manager)
+	var potential_targets: Array[Piece] = []
+	for hex in hex_coordinates:
+		for direction in range(6):
+			var neighbor = grid_manager.get_neighbor_piece(hex, direction)
+			if neighbor and neighbor != self and not neighbor in potential_targets:
+				# 接続可能かチェック
+				if can_push_to(neighbor, direction):
+					potential_targets.append(neighbor)
 	
 	for item_name in inventory:
 		for target in potential_targets:
@@ -85,16 +146,6 @@ func _push_items_to_neighbors():
 				# クールダウンを設定
 				transfer_cooldown = transfer_rate
 				return # 全体で1個移動したらこのtickの処理を終える
-
-func _get_unique_neighbor_pieces(grid_manager) -> Array[Piece]:
-	var neighbors: Array[Piece] = []
-	for hex in hex_coordinates:
-		for direction in range(6):
-			var nb = grid_manager.get_neighbor_piece(hex, direction)
-			if nb and nb != self and not nb in neighbors:
-				neighbors.append(nb)
-	return neighbors
-					# 実際は全方向へ均等分配などが望ましいが、まずは動くこと優先
 
 func _remove_item(item_name: String, amount: int):
 	if inventory.has(item_name):

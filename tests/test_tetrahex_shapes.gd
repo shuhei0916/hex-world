@@ -36,6 +36,13 @@ func test_BAR形状が正しく定義されている():
 	assert_true(Hex.equals(bar_def.shape[2], Hex.new(1, 0, -1)))
 	assert_true(Hex.equals(bar_def.shape[3], Hex.new(2, 0, -2)))
 
+func test_BAR形状は全方向に入出力ポートを持つ_暫定():
+	var bar_def = TetrahexShapes.TetrahexData.definitions[TetrahexShapes.TetrahexType.BAR]
+	
+	# このテストは、BARの定義にポートが追加されるまでのRed状態を作るためのもの
+	assert_gt(bar_def.input_ports.size(), 0, "BAR should have input ports")
+	assert_gt(bar_def.output_ports.size(), 0, "BAR should have output ports")
+
 func test_WORM形状が正しく定義されている():
 	var worm_def = TetrahexShapes.TetrahexData.definitions[TetrahexShapes.TetrahexType.WORM]
 	assert_eq(worm_def.shape.size(), 4)
@@ -46,6 +53,7 @@ func test_WORM形状が正しく定義されている():
 
 func test_全ての形状が適切なhex数を持つ():
 	for type in TetrahexShapes.TetrahexType.values():
+		if type >= TetrahexShapes.TetrahexType.TEST_OUT: continue # Skip test types
 		var definition = TetrahexShapes.TetrahexData.definitions[type]
 		if type == TetrahexShapes.TetrahexType.CHEST:
 			assert_eq(definition.shape.size(), 1, "CHESTは1Hexであるべき")
@@ -53,8 +61,15 @@ func test_全ての形状が適切なhex数を持つ():
 			assert_eq(definition.shape.size(), 4, "Type %d は4Hexであるべき" % type)
 
 func test_各形状が異なる色を持つ():
+
 	var colors = {}
+
 	for type in TetrahexShapes.TetrahexType.values():
+
+		if type >= TetrahexShapes.TetrahexType.TEST_OUT: continue # Skip test types
+
 		var definition = TetrahexShapes.TetrahexData.definitions[type]
+
 		assert_false(colors.has(definition.color))
+
 		colors[definition.color] = type
