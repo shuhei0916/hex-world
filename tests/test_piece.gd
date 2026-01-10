@@ -1,3 +1,4 @@
+# gdlint:disable=constant-name
 extends GutTest
 
 const Types = PieceShapes.PieceType
