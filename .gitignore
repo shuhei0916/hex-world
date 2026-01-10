@@ -2,8 +2,5 @@
 .godot/
 /android/
 /data/
-/addons/
-/assets/
 *.tmp
 .gemini/
-prompt.txt
