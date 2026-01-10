@@ -11,7 +11,18 @@ var b2: float
 var b3: float
 var start_angle: float
 
-func _init(f0_val: float, f1_val: float, f2_val: float, f3_val: float, b0_val: float, b1_val: float, b2_val: float, b3_val: float, start_angle_val: float):
+
+func _init(
+	f0_val: float,
+	f1_val: float,
+	f2_val: float,
+	f3_val: float,
+	b0_val: float,
+	b1_val: float,
+	b2_val: float,
+	b3_val: float,
+	start_angle_val: float
+):
 	f0 = f0_val
 	f1 = f1_val
 	f2 = f2_val

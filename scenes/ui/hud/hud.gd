@@ -6,6 +6,7 @@ extends CanvasLayer
 
 @onready var palette_ui: PaletteUI = $PaletteUI
 
+
 func setup_ui(palette: Palette):
 	if palette_ui:
 		palette_ui.set_palette(palette)

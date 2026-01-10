@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gdformat
+        name: gdformat
+        entry: gdformat
+        language: system
+        types: [gdscript]
+        files: ^(scenes|tests)/
+      - id: gdlint
+        name: gdlint
+        entry: gdlint
+        language: system
+        types: [gdscript]
+        files: ^(scenes|tests)/

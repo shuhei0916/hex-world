@@ -1,0 +1,9 @@
+[tool.gdtoolkit.linter]
+disable = [
+    "function-name",
+    "class-definitions-order",
+    "max-line-length",
+    "constant-name",
+    "class-variable-name",
+    "function-variable-name"
+]

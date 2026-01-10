@@ -1,20 +1,24 @@
-extends GutTest
 class_name TestMain
+extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
 
 var main: Main
 
+
 func before_each():
 	main = MainScene.instantiate()
 	add_child_autofree(main)
 
+
 func after_each():
 	await get_tree().process_frame
+
 
 func test_MainはGridManagerを持つ():
 	assert_not_null(main.grid_manager)
 	assert_true(main.grid_manager is GridManager)
+
 
 func test_グリッド更新シグナルでGridManagerに登録される():
 	var gm = main.grid_manager
@@ -23,18 +27,20 @@ func test_グリッド更新シグナルでGridManagerに登録される():
 		return
 
 	gm.clear_grid()
-	
+
 	gm.create_hex_grid(2)
 	assert_true(gm.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
+
 
 func test_MainはPaletteを持つ():
 	assert_not_null(main.palette)
 	assert_true(main.palette is Palette)
 
+
 func test_MainはHUDを持ちPaletteが注入されている():
 	var hud = main.hud
 	assert_not_null(hud, "HUD node should be linked in Main (Check if HUD is added to Main scene)")
-	
+
 	if hud:
 		assert_true(hud is HUD)
 		var ui = hud.palette_ui
@@ -42,11 +48,9 @@ func test_MainはHUDを持ちPaletteが注入されている():
 		if ui:
 			assert_eq(ui.palette, main.palette, "PaletteUI should have the same Palette instance")
 
+
 func test_数字キー入力でPaletteの選択が変更される():
-
 	assert_eq(main.palette.get_active_index(), -1)
-
-	
 
 	var event = InputEventKey.new()
 
@@ -56,22 +60,16 @@ func test_数字キー入力でPaletteの選択が変更される():
 
 	main._unhandled_input(event)
 
-	
-
 	assert_eq(main.palette.get_active_index(), 2)
 
 
-
 func test_ピース選択中に右クリックで選択解除される():
-
 	# まずピースを選択
 
 	main.palette.select_slot(0)
 
 	assert_eq(main.palette.get_active_index(), 0)
 
-	
-
 	# 右クリックイベント
 
 	var event = InputEventMouseButton.new()
@@ -82,37 +80,27 @@ func test_ピース選択中に右クリックで選択解除される():
 
 	main._unhandled_input(event)
 
-	
-
 	assert_eq(main.palette.get_active_index(), -1, "右クリックで選択が解除されるべき")
 
 
-
 func test_未選択時に右クリックでピース削除される():
-
 	# ピースを配置（(0,0)を含む形状）
 
 	var hex = Hex.new(0, 0)
 
-	main.palette.select_slot(0) # BAR
+	main.palette.select_slot(0)  # BAR
 
 	main.place_selected_piece(hex)
 
 	assert_true(main.grid_manager.is_occupied(hex), "ピースが配置されているべき")
 
-	
-
 	# 選択解除
 
 	main.palette.deselect()
 
-	
-
 	# マウス位置を(0,0)に更新
 
 	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
-
-	
 
 	# 右クリックイベント
 
@@ -123,38 +111,28 @@ func test_未選択時に右クリックでピース削除される():
 	event.pressed = true
 
 	main._unhandled_input(event)
-
-	
 
 	assert_false(main.grid_manager.is_occupied(hex), "素手状態の右クリックでピースが削除されるべき")
 
 
-
 func test_ピース選択中に右クリックで削除は行われない():
-
 	# ピースを配置
 
 	var hex = Hex.new(0, 0)
 
-	main.palette.select_slot(1) # WORM
+	main.palette.select_slot(1)  # WORM
 
 	main.place_selected_piece(hex)
 
-	
-
 	# 別のピースを選択中
 
-	main.palette.select_slot(0) # BAR
+	main.palette.select_slot(0)  # BAR
 
 	assert_eq(main.palette.get_active_index(), 0)
-
-	
 
 	# マウス位置を(0,0)に更新
 
 	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
-
-	
 
 	# 右クリックイベント
 
@@ -165,8 +143,6 @@ func test_ピース選択中に右クリックで削除は行われない():
 	event.pressed = true
 
 	main._unhandled_input(event)
-
-	
 
 	assert_eq(main.palette.get_active_index(), -1, "まず選択が解除される")
 

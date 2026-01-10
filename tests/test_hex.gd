@@ -1,15 +1,15 @@
+class_name TestHex
 extends GutTest
 
-class_name TestHex
 
 # 基本構造とデータ型テスト
 class TestHexBasics:
 	extends GutTest
-	
+
 	func test_hex座標の制約をチェックできる():
 		var valid_hex = Hex.new(1, -2, 1)
 		assert_true(valid_hex.is_valid())
-		
+
 		var invalid_hex = Hex.new(1, 1, 1)
 		assert_false(invalid_hex.is_valid())
 
@@ -18,10 +18,11 @@ class TestHexBasics:
 		assert_almost_eq(point.x, 3.5, 0.001)
 		assert_almost_eq(point.y, -2.1, 0.001)
 
+
 # 算術演算テスト
 class TestArithmetic:
 	extends GutTest
-	
+
 	func test_hex座標を加算できる():
 		var hex_a = Hex.new(1, -3, 2)
 		var hex_b = Hex.new(3, -7, 4)
@@ -65,10 +66,11 @@ class TestArithmetic:
 		var result = Hex.rotate_right(hex_a)
 		assert_true(Hex.equals(result, expected), "hex_rotate_right should return correct result")
 
+
 # 方向・隣接システムテスト
 class TestHexDirections:
 	extends GutTest
-	
+
 	func test_指定方向のhexベクトルを取得できる():
 		var expected = Hex.new(0, -1, 1)
 		var result = Hex.direction(2)
@@ -88,10 +90,11 @@ class TestHexDirections:
 		var result = Hex.diagonal_neighbor(hex_center, direction)
 		assert_true(Hex.equals(result, expected))
 
+
 # 距離・補間システムテスト
 class TestHexDistance:
 	extends GutTest
-	
+
 	func test_hex座標の長さを計算できる():
 		var hex_a = Hex.new(3, -7, 4)
 		var expected = 7
@@ -125,41 +128,61 @@ class TestHexDistance:
 		var hex_a = Hex.new(0, 0, 0)
 		var hex_b = Hex.new(1, -5, 4)
 		var result = Hex.linedraw(hex_a, hex_b)
-		var expected = [Hex.new(0, 0, 0), Hex.new(0, -1, 1), Hex.new(0, -2, 2), Hex.new(1, -3, 2), Hex.new(1, -4, 3), Hex.new(1, -5, 4)]
-		assert_eq(result.size(), expected.size(), "hex_linedraw should return correct number of hexes")
+		var expected = [
+			Hex.new(0, 0, 0),
+			Hex.new(0, -1, 1),
+			Hex.new(0, -2, 2),
+			Hex.new(1, -3, 2),
+			Hex.new(1, -4, 3),
+			Hex.new(1, -5, 4)
+		]
+		assert_eq(
+			result.size(), expected.size(), "hex_linedraw should return correct number of hexes"
+		)
 		for i in range(result.size()):
-			assert_true(Hex.equals(result[i], expected[i]), "hex_linedraw point " + str(i) + " should be correct")
+			assert_true(
+				Hex.equals(result[i], expected[i]),
+				"hex_linedraw point " + str(i) + " should be correct"
+			)
+
 
 # 2引数コンストラクタテスト
 class TestHexTwoArgConstructor:
 	extends GutTest
-	
+
 	var test_hex: Hex
-	
+
 	func before_all():
 		test_hex = Hex.new(1, 2)
-	
+
 	func test_2引数コンストラクタでs値が自動計算される():
 		assert_eq(test_hex.s, -3)
-	
+
 	func test_2引数と3引数コンストラクタが同等である():
 		var hex2 = Hex.new(2, -1)
 		var hex3 = Hex.new(2, -1, -1)
 		assert_true(Hex.equals(hex2, hex3))
 
+
 # レイアウト・ピクセル変換テスト
 class TestLayout:
 	extends GutTest
-	
+
 	func test_hexとピクセル座標を相互変換できる():
 		var h = Hex.new(3, 4, -7)
-		
+
 		# flat orientation layout
 		var flat = Layout.new(Layout.layout_flat, Vector2(10.0, 15.0), Vector2(35.0, 71.0))
 		var flat_result = Layout.pixel_to_hex_rounded(flat, Layout.hex_to_pixel(flat, h))
-		assert_true(Hex.equals(h, flat_result), "Layout flat orientation roundtrip should preserve hex coordinates")
-		
+		assert_true(
+			Hex.equals(h, flat_result),
+			"Layout flat orientation roundtrip should preserve hex coordinates"
+		)
+
 		# pointy orientation layout
 		var pointy = Layout.new(Layout.layout_pointy, Vector2(10.0, 15.0), Vector2(35.0, 71.0))
 		var pointy_result = Layout.pixel_to_hex_rounded(pointy, Layout.hex_to_pixel(pointy, h))
-		assert_true(Hex.equals(h, pointy_result), "Layout pointy orientation roundtrip should preserve hex coordinates")
+		assert_true(
+			Hex.equals(h, pointy_result),
+			"Layout pointy orientation roundtrip should preserve hex coordinates"
+		)

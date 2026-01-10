@@ -5,8 +5,10 @@ extends Camera2D
 @export var max_zoom: float = 5.0
 @export var zoom_sensitivity: float = 0.1
 
+
 func _ready() -> void:
 	change_zoom(0.3)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -15,6 +17,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				change_zoom(-zoom_sensitivity)
 			elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
 				change_zoom(zoom_sensitivity)
+
 
 func change_zoom(amount: float) -> void:
 	var new_zoom_val = zoom.x + amount

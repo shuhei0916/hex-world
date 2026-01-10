@@ -1,12 +1,6 @@
 class_name Main
 extends Node2D
 
-@onready var hud: HUD = $HUD
-@onready var grid_manager: GridManager = $GridManager
-@onready var piece_placer: PiecePlacer = $PiecePlacer
-@onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
-@onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
-
 var palette: Palette
 
 # テスト互換性のためのプロパティアクセサ
@@ -14,20 +8,30 @@ var current_piece_shape: Array[Hex]:
 	get:
 		return piece_placer.current_piece_shape
 
+@onready var hud: HUD = $HUD
+@onready var grid_manager: GridManager = $GridManager
+@onready var piece_placer: PiecePlacer = $PiecePlacer
+@onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
+@onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
+
+
 func _init():
 	palette = Palette.new()
+
 
 func _ready():
 	grid_manager.create_hex_grid(grid_manager.grid_radius)
 	add_child(palette)
-	
+
 	hud.setup_ui(palette)
 	piece_placer.setup(grid_manager, palette, mouse_preview_container, ghost_preview_container)
+
 
 func _unhandled_input(event):
 	_handle_key_input(event)
 	_handle_mouse_motion(event)
 	_handle_mouse_click(event)
+
 
 func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
@@ -37,10 +41,12 @@ func _handle_key_input(event):
 		elif event.is_action_pressed("rotate_piece"):
 			piece_placer.rotate_current_piece()
 
+
 func _handle_mouse_motion(event):
 	if event is InputEventMouseMotion:
 		var local_mouse_pos = make_input_local(event).position
 		piece_placer.update_hover(local_mouse_pos)
+
 
 func _handle_mouse_click(event):
 	if event is InputEventMouseButton and event.pressed:
@@ -52,11 +58,14 @@ func _handle_mouse_click(event):
 			elif piece_placer.current_hovered_hex != null:
 				piece_placer.remove_piece_at_hex(piece_placer.current_hovered_hex)
 
+
 func place_selected_piece(target_hex: Hex) -> bool:
 	return piece_placer.place_piece_at_hex(target_hex)
 
+
 func rotate_current_piece():
 	piece_placer.rotate_current_piece()
+
 
 func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
 	return piece_placer._get_rotated_piece_shape(original_shape)
