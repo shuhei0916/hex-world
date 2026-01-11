@@ -17,22 +17,41 @@ enum PieceType {
 	TEST_OUT_WRONG_DIR
 }
 
-
 # PieceDefinition構造体
+
+
 class PieceDefinition:
 	var shape: Array[Hex]
+
 	var color: Color
+
 	var input_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
+
 	var output_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
 
-	func _init(hex_shape: Array[Hex], hex_color: Color, inputs: Array = [], outputs: Array = []):
+	var default_recipe_id: String = ""
+
+	func _init(
+		hex_shape: Array[Hex],
+		hex_color: Color,
+		inputs: Array = [],
+		outputs: Array = [],
+		recipe_id: String = ""
+	):
 		shape = hex_shape
+
 		color = hex_color
+
 		input_ports = inputs
+
 		output_ports = outputs
+
+		default_recipe_id = recipe_id
 
 
 # PieceData - 形状データ定義
+
+
 class PieceData:
 	static var definitions = {
 		PieceType.BAR:
@@ -46,12 +65,9 @@ class PieceData:
 		PieceDefinition.new(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			Color("#6AD38D"),
-			_generate_all_external_ports(
-				[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]
-			),
-			_generate_all_external_ports(
-				[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]
-			)
+			[{"hex": Hex.new(-2, 0, 2), "direction": 3}],  # Input
+			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output (changed to origin for easier connection)
+			"smelt_iron_ingot"
 		),
 		PieceType.PISTOL:
 		PieceDefinition.new(
@@ -68,12 +84,9 @@ class PieceData:
 		PieceDefinition.new(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			Color("#8184F0"),
-			_generate_all_external_ports(
-				[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)]
-			),
-			_generate_all_external_ports(
-				[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)]
-			)
+			[{"hex": Hex.new(-1, 0, 1), "direction": 3}],  # Input
+			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output (changed to origin for easier connection)
+			"assemble_iron_plate"
 		),
 		PieceType.ARCH:
 		PieceDefinition.new(

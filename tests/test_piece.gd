@@ -71,19 +71,19 @@ func test_BARタイプは時間経過で鉄を生産する():
 	piece.setup(data)
 
 	# 初期状態
-	assert_eq(piece.get_item_count("iron"), 0)
+	assert_eq(piece.get_item_count("iron_ore"), 0)
 
 	# 0.5秒経過 -> まだ生産されない
 	piece.tick(0.5)
-	assert_eq(piece.get_item_count("iron"), 0)
+	assert_eq(piece.get_item_count("iron_ore"), 0)
 
 	# さらに0.5秒経過 (計1.0秒) -> 生産される
 	piece.tick(0.5)
-	assert_eq(piece.get_item_count("iron"), 1)
+	assert_eq(piece.get_item_count("iron_ore"), 1)
 
 	# 連続で呼び出し
 	piece.tick(1.0)
-	assert_eq(piece.get_item_count("iron"), 2)
+	assert_eq(piece.get_item_count("iron_ore"), 2)
 
 
 func test_WORMタイプは鉄を生産しない():
@@ -215,6 +215,41 @@ class TestItemTransport:
 
 		assert_eq(chest_a.get_item_count("iron"), 10, "CHESTはアイテムを保持し続けるべき")
 		assert_eq(chest_b.get_item_count("iron"), 0, "CHESTはアイテムを排出しないべき")
+
+	func test_生産ラインが稼働してアイテムが加工・輸送される():
+		# 配置:
+		# (0,0) BAR (Miner) -> iron_ore
+		# (1,0) WORM (Smelter) [in:3, out:0] -> iron_ingot
+		# (2,0) PROPELLER (Assembler) [in:3, out:0] -> iron_plate
+		# (3,0) CHEST
+
+		# BAR: 出力方向0
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.RED, Types.BAR)
+		# WORM: 入力方向3 (左), 出力方向0 (右) -> 回転なしでOK
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), Color.GREEN, Types.WORM)
+		# PROPELLER: 入力方向3, 出力方向0 -> 回転なしでOK
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), Color.YELLOW, Types.PROPELLER)
+		# CHEST
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(3, 0), Color.BLUE, Types.CHEST)
+
+		var miner = grid_manager.get_piece_at_hex(Hex.new(0, 0))
+		var smelter = grid_manager.get_piece_at_hex(Hex.new(1, 0))
+		var assembler = grid_manager.get_piece_at_hex(Hex.new(2, 0))
+		var chest = grid_manager.get_piece_at_hex(Hex.new(3, 0))
+
+		# 時間経過シミュレーション
+		# 1. 採掘 (1.0s) -> 輸送 (1.0s) -> Smelter到着
+		miner.tick(2.1)
+		assert_eq(smelter.get_item_count("iron_ore"), 1, "Smelterに鉱石が届く")
+
+		# 2. 精錬 (2.0s) -> 輸送 (1.0s) -> Assembler到着
+		smelter.tick(3.1)
+		# Smelterのtickを進めると、加工完了 -> 出力ポートへ移動 -> 隣接へPush
+		assert_eq(assembler.get_item_count("iron_ingot"), 1, "Assemblerにインゴットが届く")
+
+		# 3. 製作 (3.0s) -> 輸送 (1.0s) -> Chest到着
+		assembler.tick(4.1)
+		assert_eq(chest.get_item_count("iron_plate"), 1, "Chestに鉄板が届く")
 
 
 class TestPiecePorts:
@@ -404,3 +439,97 @@ class TestPieceVisuals:
 			var p = params[0]
 			# 方向5なら 60度 (PI/3 ラジアン)
 			assert_almost_eq(p.rotation, PI / 3.0, 0.01, "Direction 5 should have PI/3 rotation")
+
+
+class TestPieceProcessing:
+	extends GutTest
+
+	var piece: Piece
+
+	func before_each():
+		piece = Piece.new()
+		piece.setup({"type": PieceShapes.PieceType.CHEST})  # 暫定的にCHESTを使うが、レシピを設定すれば加工できる想定
+		add_child_autofree(piece)
+
+	func test_レシピを設定できる():
+		var recipe = Recipe.new("test_recipe", {"ore": 1}, {"ingot": 1}, 1.0)
+		piece.set_recipe(recipe)
+		assert_eq(piece.current_recipe, recipe)
+
+	func test_材料が足りないときは加工が進まない():
+		var recipe = Recipe.new("test_recipe", {"ore": 1}, {"ingot": 1}, 1.0)
+		piece.set_recipe(recipe)
+
+		# インベントリは空
+		piece.tick(0.5)
+		assert_eq(piece.processing_progress, 0.0, "材料がないので進捗は0のまま")
+		assert_eq(piece.get_item_count("ingot"), 0)
+
+	func test_材料があるときは加工が進む():
+		var recipe = Recipe.new("test_recipe", {"ore": 1}, {"ingot": 1}, 1.0)
+		piece.set_recipe(recipe)
+		piece.add_item("ore", 1)
+
+		# 0.5秒経過
+		piece.tick(0.5)
+		assert_gt(piece.processing_progress, 0.0, "加工が進んでいるべき")
+
+		# 加工開始時に消費されるか、完了時に消費されるかは実装次第だが、
+		# ここでは「完了時消費」または「開始時に内部バッファへ移動」を想定。
+		# 今回はシンプルに「完了時消費」で実装するなら、まだ ore は残っているはず。
+		# しかしテストコードを見ると「inputインベントリから減っている」ことを期待しているようなので、
+		# 「開始時に消費（加工中バッファへ移動）」モデルを採用する。
+
+		assert_eq(piece.get_item_count("ore"), 0, "材料は加工プロセスに投入される")
+
+	func test_加工が完了すると出力アイテムが生成される():
+		var recipe = Recipe.new("test_recipe", {"ore": 1}, {"ingot": 1}, 1.0)
+		piece.set_recipe(recipe)
+		piece.add_item("ore", 1)
+
+		piece.tick(1.1)  # 完了時間を超える
+
+		assert_eq(piece.get_item_count("ingot"), 1, "成果物が生成されるべき")
+		assert_eq(piece.processing_progress, 0.0, "進捗はリセットされる")
+
+
+class TestSmelter:
+	extends GutTest
+
+	const Types = PieceShapes.PieceType
+	var piece: Piece
+
+	func before_each():
+		piece = Piece.new()
+		# WORMタイプとして初期化
+		# まだWORMにレシピが紐付いていないので、このテストは失敗するはず
+		piece.setup({"type": Types.WORM, "hex_coordinates": [Hex.new(0, 0)]})
+		add_child_autofree(piece)
+
+	func test_WORMタイプは自動的に精錬レシピを持つ():
+		assert_not_null(piece.current_recipe, "レシピが設定されているべき")
+		assert_eq(piece.current_recipe.id, "smelt_iron_ingot", "鉄精錬レシピであるべき")
+
+	func test_WORMタイプは入出力ポートを持つ():
+		assert_gt(piece.get_input_ports().size(), 0, "入力ポートが必要")
+		assert_gt(piece.get_output_ports().size(), 0, "出力ポートが必要")
+
+
+class TestAssembler:
+	extends GutTest
+
+	const Types = PieceShapes.PieceType
+	var piece: Piece
+
+	func before_each():
+		piece = Piece.new()
+		piece.setup({"type": Types.PROPELLER, "hex_coordinates": [Hex.new(0, 0)]})
+		add_child_autofree(piece)
+
+	func test_PROPELLERタイプは自動的に製作レシピを持つ():
+		assert_not_null(piece.current_recipe, "レシピが設定されているべき")
+		assert_eq(piece.current_recipe.id, "assemble_iron_plate", "鉄板製作レシピであるべき")
+
+	func test_PROPELLERタイプは入出力ポートを持つ():
+		assert_gt(piece.get_input_ports().size(), 0, "入力ポートが必要")
+		assert_gt(piece.get_output_ports().size(), 0, "出力ポートが必要")

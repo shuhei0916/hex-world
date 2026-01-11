@@ -13,7 +13,13 @@ var rotation_state: int = 0
 # インベントリデータ (アイテム名: 数量)
 var inventory: Dictionary = {}
 
+# 加工ロジック用
+var current_recipe: Recipe
+var processing_progress: float = 0.0
+
+# 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
+
 # 転送レート (秒/個)
 var transfer_rate: float = 1.0
 var transfer_cooldown: float = 0.0
@@ -22,8 +28,19 @@ var transfer_cooldown: float = 0.0
 
 
 func setup(data: Dictionary):
+	current_recipe = null
+	processing_progress = 0.0
+
 	if data.has("type"):
 		piece_type = data["type"]
+
+		# デフォルトレシピの適用
+		if PieceShapes.PieceData.definitions.has(piece_type):
+			var def = PieceShapes.PieceData.definitions[piece_type]
+			if def.default_recipe_id != "":
+				var recipe = Recipe.RecipeDB.get_recipe(def.default_recipe_id)
+				if recipe:
+					set_recipe(recipe)
 
 	if data.has("rotation"):
 		rotation_state = data["rotation"]
@@ -35,6 +52,11 @@ func setup(data: Dictionary):
 			for h in coords:
 				if h is Hex:
 					hex_coordinates.append(h)
+
+
+func set_recipe(recipe: Recipe):
+	current_recipe = recipe
+	processing_progress = 0.0
 
 
 func add_item(item_name: String, amount: int):
@@ -62,8 +84,12 @@ func tick(delta: float):
 	if piece_type == PieceShapes.PieceType.BAR:
 		processing_state += delta
 		if processing_state >= 1.0:
-			add_item("iron", 1)
+			add_item("iron_ore", 1)
 			processing_state -= 1.0
+
+	# 加工ロジック
+	if current_recipe:
+		_process_crafting(delta)
 
 	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
 	if piece_type == PieceShapes.PieceType.CHEST:
@@ -75,6 +101,40 @@ func tick(delta: float):
 
 	if transfer_cooldown <= 0:
 		_push_items_to_neighbors()
+
+
+func _process_crafting(delta: float):
+	# 未開始なら開始を試みる
+	if processing_progress == 0.0:
+		if _can_start_crafting():
+			_start_crafting()
+
+	# 加工中なら進捗を進める
+	if processing_progress > 0.0:
+		processing_progress += delta
+		if processing_progress >= current_recipe.craft_time:
+			_complete_crafting()
+
+
+func _can_start_crafting() -> bool:
+	if not current_recipe:
+		return false
+	for item_name in current_recipe.inputs:
+		if get_item_count(item_name) < current_recipe.inputs[item_name]:
+			return false
+	return true
+
+
+func _start_crafting():
+	for item_name in current_recipe.inputs:
+		_remove_item(item_name, current_recipe.inputs[item_name])
+	processing_progress = 0.001
+
+
+func _complete_crafting():
+	for item_name in current_recipe.outputs:
+		add_item(item_name, current_recipe.outputs[item_name])
+	processing_progress = 0.0
 
 
 func get_port_visual_params() -> Array:
@@ -118,9 +178,6 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
 	var arrow_size = 15.0
 	var offset = 30.0  # ヘックスの中心からのオフセット
 
-	# 現在のトランスフォームを保存
-	var original_transform = get_canvas_transform()
-
 	draw_set_transform(pos, rot, Vector2.ONE)
 
 	var arrow_pos = Vector2(offset, 0)
@@ -139,7 +196,7 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
 
 	draw_colored_polygon(points, color)
 
-	# トランスフォームをリセット (draw_set_transform(ZERO, 0, ONE) 相当)
+	# トランスフォームをリセット
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
 
