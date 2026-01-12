@@ -11,7 +11,8 @@ var hex_coordinates: Array[Hex] = []
 var rotation_state: int = 0
 
 # インベントリデータ (アイテム名: 数量)
-var inventory: Dictionary = {}
+var input_inventory: Dictionary = {}
+var output_inventory: Dictionary = {}
 
 # 加工ロジック用
 var current_recipe: Recipe
@@ -60,14 +61,21 @@ func set_recipe(recipe: Recipe):
 
 
 func add_item(item_name: String, amount: int):
-	if not inventory.has(item_name):
-		inventory[item_name] = 0
-	inventory[item_name] += amount
+	if not input_inventory.has(item_name):
+		input_inventory[item_name] = 0
+	input_inventory[item_name] += amount
+	_update_display()
+
+
+func add_to_output(item_name: String, amount: int):
+	if not output_inventory.has(item_name):
+		output_inventory[item_name] = 0
+	output_inventory[item_name] += amount
 	_update_display()
 
 
 func get_item_count(item_name: String) -> int:
-	return inventory.get(item_name, 0)
+	return input_inventory.get(item_name, 0) + output_inventory.get(item_name, 0)
 
 
 func _process(delta: float):
@@ -84,7 +92,7 @@ func tick(delta: float):
 	if piece_type == PieceShapes.PieceType.BAR:
 		processing_state += delta
 		if processing_state >= 1.0:
-			add_item("iron_ore", 1)
+			add_to_output("iron_ore", 1)
 			processing_state -= 1.0
 
 	# 加工ロジック
@@ -120,20 +128,20 @@ func _can_start_crafting() -> bool:
 	if not current_recipe:
 		return false
 	for item_name in current_recipe.inputs:
-		if get_item_count(item_name) < current_recipe.inputs[item_name]:
+		if input_inventory.get(item_name, 0) < current_recipe.inputs[item_name]:
 			return false
 	return true
 
 
 func _start_crafting():
 	for item_name in current_recipe.inputs:
-		_remove_item(item_name, current_recipe.inputs[item_name])
+		_consume_input(item_name, current_recipe.inputs[item_name])
 	processing_progress = 0.001
 
 
 func _complete_crafting():
 	for item_name in current_recipe.outputs:
-		add_item(item_name, current_recipe.outputs[item_name])
+		add_to_output(item_name, current_recipe.outputs[item_name])
 	processing_progress = 0.0
 
 
@@ -259,7 +267,7 @@ func can_accept_item(_item_name: String) -> bool:
 
 
 func _push_items_to_neighbors():
-	if inventory.is_empty():
+	if output_inventory.is_empty():
 		return
 
 	var grid_manager = get_parent()
@@ -276,23 +284,31 @@ func _push_items_to_neighbors():
 				if can_push_to(neighbor, direction):
 					potential_targets.append(neighbor)
 
-	for item_name in inventory:
+	for item_name in output_inventory:
 		for target in potential_targets:
 			if target.can_accept_item(item_name):
 				# 1つ移動して終了
 				target.add_item(item_name, 1)
-				_remove_item(item_name, 1)
+				_consume_output(item_name, 1)
 
 				# クールダウンを設定
 				transfer_cooldown = transfer_rate
 				return  # 全体で1個移動したらこのtickの処理を終える
 
 
-func _remove_item(item_name: String, amount: int):
-	if inventory.has(item_name):
-		inventory[item_name] -= amount
-		if inventory[item_name] <= 0:
-			inventory.erase(item_name)
+func _consume_input(item_name: String, amount: int):
+	if input_inventory.has(item_name):
+		input_inventory[item_name] -= amount
+		if input_inventory[item_name] <= 0:
+			input_inventory.erase(item_name)
+		_update_display()
+
+
+func _consume_output(item_name: String, amount: int):
+	if output_inventory.has(item_name):
+		output_inventory[item_name] -= amount
+		if output_inventory[item_name] <= 0:
+			output_inventory.erase(item_name)
 		_update_display()
 
 
@@ -304,6 +320,14 @@ func _update_display():
 		return
 
 	var text = ""
-	for item in inventory:
-		text += "%s: %d\n" % [item, inventory[item]]
+	if not input_inventory.is_empty():
+		text += "In:\n"
+		for item in input_inventory:
+			text += " %s: %d\n" % [item, input_inventory[item]]
+
+	if not output_inventory.is_empty():
+		text += "Out:\n"
+		for item in output_inventory:
+			text += " %s: %d\n" % [item, output_inventory[item]]
+
 	inventory_label.text = text.strip_edges()

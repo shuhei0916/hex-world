@@ -139,7 +139,7 @@ class TestItemTransport:
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		# 2. Piece A にアイテムを持たせる
-		piece_a.add_item("iron", 1)
+		piece_a.add_to_output("iron", 1)
 
 		# 3. tick を実行
 		piece_a.tick(0.1)
@@ -175,7 +175,7 @@ class TestItemTransport:
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		# 2. Piece A にアイテムを持たせる
-		piece_a.add_item("iron", 10)
+		piece_a.add_to_output("iron", 10)
 
 		# 3. 最初のtick (0.1秒) -> 即時移動する
 		piece_a.tick(0.1)
@@ -197,7 +197,7 @@ class TestItemTransport:
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.BLUE, Types.CHEST)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 1, -1), Color.BLUE, Types.CHEST)
 
-		piece_a.add_item("iron", 10)
+		piece_a.add_to_output("iron", 10)
 		piece_a.tick(0.1)
 		assert_eq(piece_a.get_item_count("iron"), 9, "複数の隣接があっても全体で1個しか減らないべき")
 
@@ -250,6 +250,34 @@ class TestItemTransport:
 		# 3. 製作 (3.0s) -> 輸送 (1.0s) -> Chest到着
 		assembler.tick(4.1)
 		assert_eq(chest.get_item_count("iron_plate"), 1, "Chestに鉄板が届く")
+
+	func test_レシピの材料は輸送されずに加工される():
+		# WORM (Smelter) [in:3, out:0] -> iron_ingot
+		# 隣接して CHEST を配置 (Smelterの出力方向)
+
+		# WORM: (0,0), 出力方向0
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.GREEN, Types.WORM)
+		var smelter = grid_manager.get_piece_at_hex(Hex.new(0, 0))
+
+		# CHEST: (1,0), Smelterの出力先
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), Color.BLUE, Types.CHEST)
+		var chest = grid_manager.get_piece_at_hex(Hex.new(1, 0))
+
+		# Smelterに材料(iron_ore)を追加
+		smelter.add_item("iron_ore", 1)
+
+		# tickを実行 (輸送が発生しうる時間経過)
+		# WORMのレシピは iron_ore -> iron_ingot なので、iron_oreは「材料」
+		smelter.tick(0.1)
+
+		# 検証:
+		# 1. 加工が開始されていること (Inputから消費され、Processing状態になる)
+		assert_gt(smelter.processing_progress, 0.0, "Processing should have started")
+
+		# 2. Chestにはiron_oreが移動していない
+		assert_eq(
+			chest.get_item_count("iron_ore"), 0, "Ingredients should not be pushed to neighbors"
+		)
 
 
 class TestPiecePorts:
