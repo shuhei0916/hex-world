@@ -347,19 +347,20 @@ class TestPortConnections:
 			"B (in) should not be able to push to A (out)"
 		)
 
-	func test_ポートが対面でもペアが不正なら接続不可():
+	func test_ポートが対面でもペアが不正なら接続不可_でも緩和ルールでは接続可能():
 		# piece_a と piece_c は両方出力
-		var direction_to_c = 0  # piece_aから(1,0,-1)にあるCの方向(これは間違い、Cは(2,0,-2))
-		# A(0,0)からC(2,0,-2)への隣接はないが、仮に隣接していたとしてのテスト
-		# piece_bをTEST_OUTに差し替える
+		# 緩和ルールでは、相手がそこに存在すればInputポートの有無に関わらず受け入れる
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, Types.TEST_OUT)
 		var new_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
-		assert_false(piece_a.can_push_to(new_b, 0), "Output-to-Output connection should fail")
+		assert_true(
+			piece_a.can_push_to(new_b, 0),
+			"Should connect even if target has no matching input port"
+		)
 
-	func test_ポートがずれている場合は接続不可():
-		# piece_a(方向0出力) と piece_c(方向1出力) をテストするが、cは隣接していない
+	func test_ポートがずれている場合でも緩和ルールでは接続可能():
+		# piece_a(方向0出力) -> 方向0の隣接へ
 		# bをずれた入力ポートを持つように変更する
 		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
 		grid_manager.place_piece(
@@ -370,7 +371,24 @@ class TestPortConnections:
 		wrong_dir_b.get_input_ports().append({"hex": Hex.new(0, 0, 0), "direction": 4})
 		wrong_dir_b.get_output_ports().clear()
 
-		assert_false(piece_a.can_push_to(wrong_dir_b, 0), "Misaligned ports should not connect")
+		assert_true(
+			piece_a.can_push_to(wrong_dir_b, 0),
+			"Should connect even if target input port is misaligned"
+		)
+
+	func test_入力ポート定義がなくても受け取れる():
+		# A: TEST_OUT (方向0出力)
+		# B: TEST_OUT (入力ポートなし)
+		grid_manager.remove_piece_at(piece_b.hex_coordinates[0])
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, Types.TEST_OUT)
+		var no_input_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
+
+		# TEST_OUTは入力ポート定義を持たない
+		assert_eq(no_input_b.get_input_ports().size(), 0)
+
+		assert_true(
+			piece_a.can_push_to(no_input_b, 0), "Should connect to a piece with no input ports"
+		)
 
 
 class TestPieceRotation:

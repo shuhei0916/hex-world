@@ -238,7 +238,7 @@ func _get_rotated_ports(ports: Array) -> Array:
 	return rotated_ports
 
 
-func can_push_to(target_piece: Piece, direction_to_target: int) -> bool:
+func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
 	# 1. 自分の出力ポートを確認
 	var has_output_port = false
 	for port in get_output_ports():
@@ -250,15 +250,8 @@ func can_push_to(target_piece: Piece, direction_to_target: int) -> bool:
 	if not has_output_port:
 		return false
 
-	# 2. 相手の入力ポートを確認
-	var opposite_direction = (direction_to_target + 3) % 6
-	var has_input_port = false
-	for port in target_piece.get_input_ports():
-		if port.direction == opposite_direction:
-			has_input_port = true
-			break
-
-	return has_input_port
+	# 緩和ルール: 相手がそこに存在すれば、Inputポートの有無に関わらず受け入れる
+	return true
 
 
 func can_accept_item(_item_name: String) -> bool:
