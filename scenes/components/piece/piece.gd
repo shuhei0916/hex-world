@@ -151,17 +151,6 @@ func get_port_visual_params() -> Array:
 	# Layout定義 (GridManagerと同じ設定)
 	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
 
-	# 入力ポート (青系)
-	for port in get_input_ports():
-		var center_pos = Layout.hex_to_pixel(layout, port.hex)
-		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
-		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
-		var angle = (neighbor_pos - center_pos).angle()
-
-		params.append(
-			{"position": center_pos, "rotation": angle, "type": "in", "color": Color("#4A90E2")}  # 明るい青
-		)
-
 	# 出力ポート (オレンジ系)
 	for port in get_output_ports():
 		var center_pos = Layout.hex_to_pixel(layout, port.hex)
@@ -179,10 +168,10 @@ func get_port_visual_params() -> Array:
 func _draw():
 	var params = get_port_visual_params()
 	for p in params:
-		_draw_arrow(p.position, p.rotation, p.color, p.type == "in")
+		_draw_arrow(p.position, p.rotation, p.color, false)
 
 
-func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
+func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 	var arrow_size = 15.0
 	var offset = 30.0  # ヘックスの中心からのオフセット
 
@@ -191,29 +180,15 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, is_input: bool):
 	var arrow_pos = Vector2(offset, 0)
 	var points = PackedVector2Array()
 
-	if is_input:
-		# 入力矢印 (中心に向かう)
-		points.append(arrow_pos + Vector2(0, 0))
-		points.append(arrow_pos + Vector2(arrow_size, -arrow_size / 2))
-		points.append(arrow_pos + Vector2(arrow_size, arrow_size / 2))
-	else:
-		# 出力矢印 (外に向かう)
-		points.append(arrow_pos + Vector2(arrow_size, 0))
-		points.append(arrow_pos + Vector2(0, -arrow_size / 2))
-		points.append(arrow_pos + Vector2(0, arrow_size / 2))
+	# 出力矢印 (外に向かう)
+	points.append(arrow_pos + Vector2(arrow_size, 0))
+	points.append(arrow_pos + Vector2(0, -arrow_size / 2))
+	points.append(arrow_pos + Vector2(0, arrow_size / 2))
 
 	draw_colored_polygon(points, color)
 
 	# トランスフォームをリセット
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
-
-
-func get_input_ports() -> Array:
-	if piece_type == -1 or not PieceShapes.PieceData.definitions.has(piece_type):
-		return []
-
-	var static_ports = PieceShapes.PieceData.definitions[piece_type].input_ports
-	return _get_rotated_ports(static_ports)
 
 
 func get_output_ports() -> Array:

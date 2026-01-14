@@ -25,24 +25,16 @@ class PieceDefinition:
 
 	var color: Color
 
-	var input_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
-
 	var output_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
 
 	var default_recipe_id: String = ""
 
 	func _init(
-		hex_shape: Array[Hex],
-		hex_color: Color,
-		inputs: Array = [],
-		outputs: Array = [],
-		recipe_id: String = ""
+		hex_shape: Array[Hex], hex_color: Color, outputs: Array = [], recipe_id: String = ""
 	):
 		shape = hex_shape
 
 		color = hex_color
-
-		input_ports = inputs
 
 		output_ports = outputs
 
@@ -58,15 +50,13 @@ class PieceData:
 		PieceDefinition.new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			Color("#D49A69"),
-			[{"hex": Hex.new(-1, 0, 1), "direction": 3}],  # Input at tail
 			[{"hex": Hex.new(2, 0, -2), "direction": 0}]  # Output at head
 		),
 		PieceType.WORM:
 		PieceDefinition.new(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			Color("#6AD38D"),
-			[{"hex": Hex.new(-2, 0, 2), "direction": 3}],  # Input
-			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output (changed to origin for easier connection)
+			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output
 			"smelt_iron_ingot"
 		),
 		PieceType.PISTOL:
@@ -75,26 +65,19 @@ class PieceData:
 			Color("#C2E479"),
 			_generate_all_external_ports(
 				[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]
-			),
-			_generate_all_external_ports(
-				[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]
 			)
 		),
 		PieceType.PROPELLER:
 		PieceDefinition.new(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			Color("#8184F0"),
-			[{"hex": Hex.new(-1, 0, 1), "direction": 3}],  # Input
-			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output (changed to origin for easier connection)
+			[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output
 			"assemble_iron_plate"
 		),
 		PieceType.ARCH:
 		PieceDefinition.new(
 			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 			Color("#F081AA"),
-			_generate_all_external_ports(
-				[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]
-			),
 			_generate_all_external_ports(
 				[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]
 			)
@@ -105,9 +88,6 @@ class PieceData:
 			Color("#F3D283"),
 			_generate_all_external_ports(
 				[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)]
-			),
-			_generate_all_external_ports(
-				[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)]
 			)
 		),
 		PieceType.WAVE:
@@ -116,30 +96,21 @@ class PieceData:
 			Color("#85F7F2"),
 			_generate_all_external_ports(
 				[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)]
-			),
-			_generate_all_external_ports(
-				[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)]
 			)
 		),
 		PieceType.CHEST:
 		PieceDefinition.new(
-			[Hex.new(0, 0, 0)],
-			Color("#999999"),  # グレー系の色
-			_generate_all_external_ports([Hex.new(0, 0, 0)]),
-			_generate_all_external_ports([Hex.new(0, 0, 0)])
+			[Hex.new(0, 0, 0)], Color("#999999"), _generate_all_external_ports([Hex.new(0, 0, 0)])  # グレー系の色
 		),
 		# --- Test-only definitions ---
 		PieceType.TEST_OUT:
 		PieceDefinition.new(
-			[Hex.new(0, 0, 0)], Color.WHITE, [], [{"hex": Hex.new(0, 0, 0), "direction": 0}]
+			[Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": 0}]
 		),
-		PieceType.TEST_IN:
-		PieceDefinition.new(
-			[Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": 3}], []
-		),
+		PieceType.TEST_IN: PieceDefinition.new([Hex.new(0, 0, 0)], Color.WHITE, []),
 		PieceType.TEST_OUT_WRONG_DIR:
 		PieceDefinition.new(
-			[Hex.new(0, 0, 0)], Color.WHITE, [], [{"hex": Hex.new(0, 0, 0), "direction": 1}]
+			[Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": 1}]
 		),
 	}
 

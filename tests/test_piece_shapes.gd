@@ -41,11 +41,10 @@ func test_BAR形状が正しく定義されている():
 	assert_true(Hex.equals(bar_def.shape[3], Hex.new(2, 0, -2)))
 
 
-func test_BAR形状は全方向に入出力ポートを持つ_暫定():
+func test_BAR形状はポートを持つ():
 	var bar_def = PieceShapes.PieceData.definitions[PieceShapes.PieceType.BAR]
 
-	# このテストは、BARの定義にポートが追加されるまでのRed状態を作るためのもの
-	assert_gt(bar_def.input_ports.size(), 0, "BAR should have input ports")
+	# Inputポートは撤廃されたのでOutputのみチェック
 	assert_gt(bar_def.output_ports.size(), 0, "BAR should have output ports")
 
 
