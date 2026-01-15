@@ -222,32 +222,6 @@ func draw_grid():
 		hex_instance.setup_hex(hex)
 
 
-func highlight_path(hex_path: Array[Hex]):
-	clear_path_highlight()
-	for hex in hex_path:
-		var hex_tile = find_hex_tile(hex)
-		if hex_tile:
-			hex_tile.set_highlight(true)
-
-
-func highlight_path_with_start(hex_path: Array[Hex], start_hex: Hex):
-	clear_path_highlight()
-	if start_hex:
-		var start_tile = find_hex_tile(start_hex)
-		if start_tile:
-			start_tile.set_highlight(true)
-	for hex in hex_path:
-		var hex_tile = find_hex_tile(hex)
-		if hex_tile:
-			hex_tile.set_highlight(true)
-
-
-func clear_path_highlight():
-	for child in get_children():
-		if child.has_method("set_highlight"):
-			child.set_highlight(false)
-
-
 func find_hex_tile(target_hex: Hex) -> HexTile:
 	for child in get_children():
 		if child is HexTile and child.hex_coordinate:
