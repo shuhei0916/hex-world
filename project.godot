@@ -15,6 +15,10 @@ run/main_scene="res://scenes/main/main.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="uid://faqbk150qifl"
 
+[autoload]
+
+ItemDB="*res://scenes/utils/item_db.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")

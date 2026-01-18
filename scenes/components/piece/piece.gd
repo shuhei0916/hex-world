@@ -25,7 +25,10 @@ var processing_state: float = 0.0
 var transfer_rate: float = 1.0
 var transfer_cooldown: float = 0.0
 
-@onready var inventory_label: Label = get_node_or_null("InventoryLabel")
+var count_label: Label
+
+@onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
+@onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
 
 
 func setup(data: Dictionary):
@@ -54,24 +57,80 @@ func setup(data: Dictionary):
 				if h is Hex:
 					hex_coordinates.append(h)
 
+	_update_visuals()
+
+
+func _ready():
+	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
+	_update_visuals()
+
 
 func set_recipe(recipe: Recipe):
 	current_recipe = recipe
 	processing_progress = 0.0
+	_update_visuals()
+
+
+func _update_visuals():
+	if not status_icon:
+		return
+
+	var item_id = ""
+
+	# 表示すべきアイテムを決定
+	if piece_type == PieceShapes.PieceType.BAR:
+		item_id = "iron_ore"
+	elif current_recipe:
+		# 最初の出力アイテムを代表アイコンとする
+		var outputs = current_recipe.outputs.keys()
+		if not outputs.is_empty():
+			item_id = outputs[0]
+	else:
+		# レシピがない場合（Chest等）、最も多いアイテムを表示
+		var max_count = 0
+		var all_items = []
+		all_items.append_array(input_inventory.keys())
+		all_items.append_array(output_inventory.keys())
+
+		for key in all_items:
+			var c = get_item_count(key)
+			if c > max_count:
+				max_count = c
+				item_id = key
+
+	# アイコン更新
+	if item_id != "":
+		var item_def = ItemDB.get_item(item_id)
+		if item_def:
+			status_icon.texture = item_def.icon
+			status_icon.visible = true
+
+			# 数量ラベル更新
+			if count_label:
+				var count = get_item_count(item_id)
+				if count > 0:
+					count_label.text = str(count)
+					count_label.visible = true
+				else:
+					count_label.visible = false
+		else:
+			status_icon.visible = false
+	else:
+		status_icon.visible = false
 
 
 func add_item(item_name: String, amount: int):
 	if not input_inventory.has(item_name):
 		input_inventory[item_name] = 0
 	input_inventory[item_name] += amount
-	_update_display()
+	_update_visuals()
 
 
 func add_to_output(item_name: String, amount: int):
 	if not output_inventory.has(item_name):
 		output_inventory[item_name] = 0
 	output_inventory[item_name] += amount
-	_update_display()
+	_update_visuals()
 
 
 func get_item_count(item_name: String) -> int:
@@ -91,13 +150,26 @@ func tick(delta: float):
 	# BARタイプは採掘機として振る舞う
 	if piece_type == PieceShapes.PieceType.BAR:
 		processing_state += delta
+		if progress_bar:
+			progress_bar.visible = true
+			progress_bar.max_value = 1.0
+			progress_bar.value = processing_state
+
 		if processing_state >= 1.0:
 			add_to_output("iron_ore", 1)
 			processing_state -= 1.0
+	else:
+		# 採掘機以外で加工もしていない場合はバーを隠す（後述の加工ロジックで表示される）
+		if not current_recipe and progress_bar:
+			progress_bar.visible = false
 
 	# 加工ロジック
 	if current_recipe:
 		_process_crafting(delta)
+		if progress_bar:
+			progress_bar.visible = processing_progress > 0
+			progress_bar.max_value = current_recipe.craft_time
+			progress_bar.value = processing_progress
 
 	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
 	if piece_type == PieceShapes.PieceType.CHEST:
@@ -269,7 +341,7 @@ func _consume_input(item_name: String, amount: int):
 		input_inventory[item_name] -= amount
 		if input_inventory[item_name] <= 0:
 			input_inventory.erase(item_name)
-		_update_display()
+		_update_visuals()
 
 
 func _consume_output(item_name: String, amount: int):
@@ -277,25 +349,4 @@ func _consume_output(item_name: String, amount: int):
 		output_inventory[item_name] -= amount
 		if output_inventory[item_name] <= 0:
 			output_inventory.erase(item_name)
-		_update_display()
-
-
-func _update_display():
-	if not inventory_label:
-		inventory_label = get_node_or_null("InventoryLabel")
-
-	if not inventory_label:
-		return
-
-	var text = ""
-	if not input_inventory.is_empty():
-		text += "In:\n"
-		for item in input_inventory:
-			text += " %s: %d\n" % [item, input_inventory[item]]
-
-	if not output_inventory.is_empty():
-		text += "Out:\n"
-		for item in output_inventory:
-			text += " %s: %d\n" % [item, output_inventory[item]]
-
-	inventory_label.text = text.strip_edges()
+		_update_visuals()
