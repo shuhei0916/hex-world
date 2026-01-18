@@ -1,0 +1,7 @@
+# Facility.tscn
+[gd_scene load_steps=2 format=3 uid="uid://cxj5h1k6i080c"]
+
+[ext_resource type="Script" path="res://scenes/components/facility/facility.gd" id="1_1d01q"]
+
+[node name="Facility" type="Node2D"]
+script = ExtResource("1_1d01q")

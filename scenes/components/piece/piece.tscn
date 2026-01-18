@@ -9,8 +9,6 @@ script = ExtResource("1_piece")
 scale = Vector2(0.5, 0.5)
 
 [node name="CountLabel" type="Label" parent="StatusIcon"]
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
