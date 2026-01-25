@@ -26,9 +26,14 @@ var transfer_rate: float = 1.0
 var transfer_cooldown: float = 0.0
 
 var count_label: Label
+var is_detail_mode: bool = false
 
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
+
+@onready var input_icon: Sprite2D = get_node_or_null("InputIcon")
+@onready var input_label: Label = input_icon.get_node_or_null("InputLabel") if input_icon else null
+@onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
 func setup(data: Dictionary):
@@ -57,11 +62,18 @@ func setup(data: Dictionary):
 				if h is Hex:
 					hex_coordinates.append(h)
 
+	# 初期状態は詳細モードOFF（またはGridManagerから引き継ぐ必要があるが、
+	# ここではデフォルトfalseとし、GridManagerが配置後に設定することを想定）
 	_update_visuals()
 
 
 func _ready():
 	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
+	_update_visuals()
+
+
+func set_detail_mode(enabled: bool):
+	is_detail_mode = enabled
 	_update_visuals()
 
 
@@ -72,12 +84,18 @@ func set_recipe(recipe: Recipe):
 
 
 func _update_visuals():
+	_update_output_visuals()
+	_update_input_visuals()
+	_update_speed_visuals()
+
+
+func _update_output_visuals():
 	if not status_icon:
 		return
 
 	var item_id = ""
 
-	# 表示すべきアイテムを決定
+	# 表示すべきアイテムを決定 (Output優先)
 	if piece_type == PieceShapes.PieceType.BAR:
 		item_id = "iron_ore"
 	elif current_recipe:
@@ -86,11 +104,13 @@ func _update_visuals():
 		if not outputs.is_empty():
 			item_id = outputs[0]
 	else:
-		# レシピがない場合（Chest等）、最も多いアイテムを表示
+		# レシピがない場合（Chest等）、Outputにあるものを表示
+		# なければInputも含める（Chestの場合、Inputに入ったまま保持されることがあるため）
 		var max_count = 0
 		var all_items = []
-		all_items.append_array(input_inventory.keys())
 		all_items.append_array(output_inventory.keys())
+		if output_inventory.is_empty():
+			all_items.append_array(input_inventory.keys())
 
 		for key in all_items:
 			var c = get_item_count(key)
@@ -105,18 +125,79 @@ func _update_visuals():
 			status_icon.texture = item_def.icon
 			status_icon.visible = true
 
-			# 数量ラベル更新
+			# 数量ラベル更新 (詳細モード時のみ表示)
 			if count_label:
-				var count = get_item_count(item_id)
-				if count > 0:
-					count_label.text = str(count)
-					count_label.visible = true
+				if is_detail_mode:
+					var count = get_item_count(item_id)
+					if count > 0:
+						count_label.text = str(count)
+						count_label.visible = true
+					else:
+						count_label.visible = false
 				else:
 					count_label.visible = false
 		else:
 			status_icon.visible = false
+			if count_label:
+				count_label.visible = false
 	else:
 		status_icon.visible = false
+		if count_label:
+			count_label.visible = false
+
+
+func _update_input_visuals():
+	if not input_icon or not input_label:
+		return
+
+	# 詳細モードでなければ非表示
+	if not is_detail_mode:
+		input_icon.visible = false
+		return
+
+	# Input Inventory の中で最も多いアイテムを表示
+	var max_count = 0
+	var item_id = ""
+
+	for key in input_inventory:
+		if input_inventory[key] > max_count:
+			max_count = input_inventory[key]
+			item_id = key
+
+	if item_id != "":
+		var item_def = ItemDB.get_item(item_id)
+		if item_def:
+			input_icon.texture = item_def.icon
+			input_icon.visible = true
+			input_label.text = str(max_count)
+		else:
+			input_icon.visible = false
+	else:
+		input_icon.visible = false
+
+
+func _update_speed_visuals():
+	if not speed_label:
+		return
+
+	# 詳細モードでなければ非表示
+	if not is_detail_mode:
+		speed_label.visible = false
+		return
+
+	if current_recipe:
+		if current_recipe.craft_time > 0:
+			var per_min = 60.0 / current_recipe.craft_time
+			speed_label.text = "%.1f/m" % per_min
+			speed_label.visible = true
+		else:
+			speed_label.text = "Inf/m"
+			speed_label.visible = true
+	elif piece_type == PieceShapes.PieceType.BAR:
+		speed_label.text = "60/m"
+		speed_label.visible = true
+	else:
+		speed_label.visible = false
 
 
 func add_item(item_name: String, amount: int):

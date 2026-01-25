@@ -38,6 +38,8 @@ func _handle_key_input(event):
 		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
 			var index = event.keycode - KEY_1
 			palette.select_slot(index)
+		elif event.keycode == KEY_T:
+			grid_manager.toggle_detail_mode()
 		elif event.is_action_pressed("rotate_piece"):
 			piece_placer.rotate_current_piece()
 

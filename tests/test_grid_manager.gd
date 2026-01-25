@@ -249,3 +249,41 @@ func test_指定した方向の隣接Pieceを取得できる():
 	# 存在しない方向 (例: 方向3 - 左下)
 	var no_neighbor = grid_manager_instance.get_neighbor_piece(Hex.new(0, 0), 3)
 	assert_null(no_neighbor, "Should return null if no piece exists in direction")
+
+
+func test_set_detail_mode_updates_existing_pieces():
+	grid_manager_instance.create_hex_grid(1)
+
+	# ピースを配置
+	grid_manager_instance.place_piece(
+		[Hex.new(0, 0)], Hex.new(0, 0), Color.RED, PieceShapes.PieceType.CHEST
+	)
+	var piece = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
+	assert_not_null(piece, "Piece should be placed")
+
+	# デフォルトではfalse
+	assert_false(piece.is_detail_mode, "Detail mode should be false by default")
+
+	# トグル実行
+	grid_manager_instance.toggle_detail_mode()
+	assert_true(piece.is_detail_mode, "Piece detail mode should be true after toggle")
+
+	# 再度トグル
+	grid_manager_instance.toggle_detail_mode()
+	assert_false(piece.is_detail_mode, "Piece detail mode should be false after second toggle")
+
+
+func test_new_piece_inherits_detail_mode():
+	grid_manager_instance.create_hex_grid(2)
+
+	# 詳細モードを有効にする
+	grid_manager_instance.toggle_detail_mode()
+
+	# 新しいピースを配置
+	grid_manager_instance.place_piece(
+		[Hex.new(0, 0)], Hex.new(0, 0), Color.RED, PieceShapes.PieceType.CHEST
+	)
+	var piece = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
+
+	# 配置直後から詳細モードになっているべき
+	assert_true(piece.is_detail_mode, "New piece should inherit detail mode")

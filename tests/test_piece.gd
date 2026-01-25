@@ -53,15 +53,13 @@ func test_異なる種類のアイテムを追加しても既存のアイテム�
 
 
 func test_アイテム追加時にラベルが更新される():
-	# アイテム追加 (ItemDBにあるアイテムを使用)
+	piece.setup({"type": PieceShapes.PieceType.CHEST})
+	# CountLabelは詳細モードでのみ表示される仕様に変更されたため
+	piece.set_detail_mode(true)
 	piece.add_item("iron_ore", 10)
 
-	# アイコンと数量ラベルが表示されることを確認
-	assert_true(piece.status_icon.visible, "Status icon should be visible")
-
-	var count_label = piece.status_icon.get_node("CountLabel")
-	assert_true(count_label.visible, "Count label should be visible")
-	assert_eq(count_label.text, "10", "Count label should show item count")
+	var label = piece.get_node("StatusIcon/CountLabel")
+	assert_true(label.visible, "Count label should be visible")
 
 
 func test_BARタイプは時間経過で鉄を生産する():

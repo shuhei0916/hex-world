@@ -147,3 +147,17 @@ func test_ピース選択中に右クリックで削除は行われない():
 	assert_eq(main.palette.get_active_index(), -1, "まず選択が解除される")
 
 	assert_true(main.grid_manager.is_occupied(hex), "選択解除が優先され、削除は行われないべき")
+
+
+func test_Tキー入力で詳細モードが切り替わる():
+	assert_false(main.grid_manager.is_detail_mode_enabled, "初期状態はfalse")
+
+	var event = InputEventKey.new()
+	event.keycode = KEY_T
+	event.pressed = true
+
+	main._unhandled_input(event)
+	assert_true(main.grid_manager.is_detail_mode_enabled, "Tキーでtrueになるべき")
+
+	main._unhandled_input(event)
+	assert_false(main.grid_manager.is_detail_mode_enabled, "再度Tキーでfalseになるべき")

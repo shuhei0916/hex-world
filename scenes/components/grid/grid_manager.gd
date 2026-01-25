@@ -20,6 +20,7 @@ signal grid_updated(hexes: Array[Hex])
 var layout: Layout
 var hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 var piece_scene = preload("res://scenes/components/piece/piece.tscn")
+var is_detail_mode_enabled: bool = false
 
 # 論理グリッドの状態
 var _registered_hexes: Dictionary = {}
@@ -108,6 +109,10 @@ func place_piece(
 	# シーンツリーに追加
 	add_child(piece)
 
+	# 詳細モードの設定を適用
+	if piece.has_method("set_detail_mode"):
+		piece.set_detail_mode(is_detail_mode_enabled)
+
 	# マップに登録
 	for hex in occupied_hexes:
 		var key = _hex_to_key(hex)
@@ -170,6 +175,28 @@ func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
 	if not is_inside_grid(neighbor_hex):
 		return null
 	return get_piece_at_hex(neighbor_hex)
+
+
+# ==============================================================================
+# 詳細表示モード管理
+# ==============================================================================
+
+
+func toggle_detail_mode():
+	is_detail_mode_enabled = not is_detail_mode_enabled
+	_update_all_pieces_detail_mode()
+
+
+func _update_all_pieces_detail_mode():
+	# ピースノードは子ノードとして存在するか、マップで管理されている
+	# ここではマップの値（ピース参照）を使ってユニークなピースに対して設定を行う
+	var processed_pieces = {}
+	for key in _hex_to_piece_map:
+		var piece = _hex_to_piece_map[key]
+		if is_instance_valid(piece) and not processed_pieces.has(piece.get_instance_id()):
+			if piece.has_method("set_detail_mode"):
+				piece.set_detail_mode(is_detail_mode_enabled)
+			processed_pieces[piece.get_instance_id()] = true
 
 
 # ==============================================================================
