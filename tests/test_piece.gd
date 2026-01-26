@@ -571,7 +571,7 @@ class TestSmelter:
 
 	func test_WORMタイプは自動的に精錬レシピを持つ():
 		assert_not_null(piece.current_recipe, "レシピが設定されているべき")
-		assert_eq(piece.current_recipe.id, "smelt_iron_ingot", "鉄精錬レシピであるべき")
+		assert_eq(piece.current_recipe.id, "iron_ingot", "鉄精錬レシピであるべき")
 
 	func test_WORMタイプは出力ポートを持つ():
 		assert_gt(piece.get_output_ports().size(), 0, "出力ポートが必要")
@@ -590,7 +590,7 @@ class TestAssembler:
 
 	func test_PROPELLERタイプは自動的に製作レシピを持つ():
 		assert_not_null(piece.current_recipe, "レシピが設定されているべき")
-		assert_eq(piece.current_recipe.id, "assemble_iron_plate", "鉄板製作レシピであるべき")
+		assert_eq(piece.current_recipe.id, "iron_plate", "鉄板製作レシピであるべき")
 
 	func test_PROPELLERタイプは出力ポートを持つ():
 		assert_gt(piece.get_output_ports().size(), 0, "出力ポートが必要")

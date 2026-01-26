@@ -95,10 +95,8 @@ func _update_output_visuals():
 
 	var item_id = ""
 
-	# 表示すべきアイテムを決定 (Output優先)
-	if piece_type == PieceShapes.PieceType.BAR:
-		item_id = "iron_ore"
-	elif current_recipe:
+	# 表示すべきアイテムを決定 (Recipe Output優先)
+	if current_recipe:
 		# 最初の出力アイテムを代表アイコンとする
 		var outputs = current_recipe.outputs.keys()
 		if not outputs.is_empty():
@@ -193,9 +191,6 @@ func _update_speed_visuals():
 		else:
 			speed_label.text = "Inf/m"
 			speed_label.visible = true
-	elif piece_type == PieceShapes.PieceType.BAR:
-		speed_label.text = "60/m"
-		speed_label.visible = true
 	else:
 		speed_label.visible = false
 
@@ -228,29 +223,16 @@ func rotate_cw():
 
 
 func tick(delta: float):
-	# BARタイプは採掘機として振る舞う
-	if piece_type == PieceShapes.PieceType.BAR:
-		processing_state += delta
-		if progress_bar:
-			progress_bar.visible = true
-			progress_bar.max_value = 1.0
-			progress_bar.value = processing_state
-
-		if processing_state >= 1.0:
-			add_to_output("iron_ore", 1)
-			processing_state -= 1.0
-	else:
-		# 採掘機以外で加工もしていない場合はバーを隠す（後述の加工ロジックで表示される）
-		if not current_recipe and progress_bar:
-			progress_bar.visible = false
-
-	# 加工ロジック
+	# 加工ロジック (MinerもRecipeを持つようになったため統合)
 	if current_recipe:
 		_process_crafting(delta)
 		if progress_bar:
 			progress_bar.visible = processing_progress > 0
 			progress_bar.max_value = current_recipe.craft_time
 			progress_bar.value = processing_progress
+	else:
+		if progress_bar:
+			progress_bar.visible = false
 
 	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
 	if piece_type == PieceShapes.PieceType.CHEST:
@@ -280,6 +262,10 @@ func _process_crafting(delta: float):
 func _can_start_crafting() -> bool:
 	if not current_recipe:
 		return false
+	# Inputsが空の場合はtrue (Miner)
+	if current_recipe.inputs.is_empty():
+		return true
+
 	for item_name in current_recipe.inputs:
 		if input_inventory.get(item_name, 0) < current_recipe.inputs[item_name]:
 			return false
