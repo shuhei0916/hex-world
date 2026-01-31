@@ -12,16 +12,14 @@ func before_each():
 	add_child_autofree(piece)
 
 
-func test_setupでタイプと座標を保持できる():
+func test_setupでタイプと座標を設定できる():
 	var dummy_type = Types.BAR
 	var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
 
 	var data = {"type": dummy_type, "hex_coordinates": dummy_coords}
 
-	# setupメソッドを直接呼び出す
 	piece.setup(data)
 
-	# プロパティが正しくセットされていることを確認
 	assert_eq(piece.piece_type, dummy_type, "piece_type should be set")
 	assert_eq(piece.hex_coordinates.size(), 2)
 
@@ -31,11 +29,9 @@ func test_初期状態のインベントリは空である():
 
 
 func test_アイテムを追加すると数が加算される():
-	# 新規追加
 	piece.add_item("iron", 5)
 	assert_eq(piece.get_item_count("iron"), 5, "新規追加で数が設定されるべき")
 
-	# 既存への加算
 	piece.add_item("iron", 3)
 	assert_eq(piece.get_item_count("iron"), 8, "既存アイテムに追加すると数が加算されるべき")
 
@@ -59,7 +55,8 @@ func test_アイテム追加時にラベルが更新される():
 	piece.add_item("iron_ore", 10)
 
 	var label = piece.get_node("StatusIcon/CountLabel")
-	assert_true(label.visible, "Count label should be visible")
+	assert_true(label.visible)
+	assert_eq(label.text, "10")
 
 
 func test_BARタイプは時間経過で鉄を生産する():
