@@ -21,12 +21,15 @@ var processing_progress: float = 0.0
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
 
-# 転送レート (秒/個)
+# 転送クールダウンの更新
 var transfer_rate: float = 1.0
 var transfer_cooldown: float = 0.0
 
 var count_label: Label
+
 var is_detail_mode: bool = false
+
+var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
 
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
@@ -36,20 +39,24 @@ var is_detail_mode: bool = false
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
-func setup(data: Dictionary):
+func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 	current_recipe = null
 	processing_progress = 0.0
 
-	if data.has("type"):
+	if data_override:
+		_cached_data = data_override
+		if data.has("type"):
+			piece_type = data["type"]
+	elif data.has("type"):
 		piece_type = data["type"]
+		_cached_data = PieceDB.get_data(piece_type)
 
-		# デフォルトレシピの適用
-		var def = PieceDB.get_data(piece_type)
-		if def:
-			if def.default_recipe_id != "":
-				var recipe = Recipe.RecipeDB.get_recipe(def.default_recipe_id)
-				if recipe:
-					set_recipe(recipe)
+	# デフォルトレシピの適用
+	if _cached_data:
+		if _cached_data.default_recipe_id != "":
+			var recipe = Recipe.RecipeDB.get_recipe(_cached_data.default_recipe_id)
+			if recipe:
+				set_recipe(recipe)
 
 	if data.has("rotation"):
 		rotation_state = data["rotation"]
@@ -331,11 +338,10 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 
 
 func get_output_ports() -> Array:
-	var def = PieceDB.get_data(piece_type)
-	if piece_type == -1 or not def:
+	if not _cached_data:
 		return []
 
-	var static_ports = def.output_ports
+	var static_ports = _cached_data.output_ports
 	return _get_rotated_ports(static_ports)
 
 

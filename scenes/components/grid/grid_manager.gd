@@ -82,7 +82,12 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 
 
 func place_piece(
-	shape: Array, base_hex: Hex, piece_color: Color, piece_type: int = 0, rotation: int = 0
+	shape: Array,
+	base_hex: Hex,
+	piece_color: Color,
+	piece_type: int = 0,
+	rotation: int = 0,
+	data_override: PieceDB.PieceData = null
 ):
 	var occupied_hexes: Array[Hex] = []
 	for offset in shape:
@@ -101,7 +106,7 @@ func place_piece(
 	# データセットアップ
 	var data = {"type": piece_type, "hex_coordinates": occupied_hexes, "rotation": rotation}
 	if piece.has_method("setup"):
-		piece.setup(data)
+		piece.setup(data, data_override)
 
 	# 座標設定（基準Hexの位置に配置）
 	piece.position = hex_to_pixel(base_hex)
