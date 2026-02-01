@@ -45,8 +45,7 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 		Color("#D49A69"),
-		[{"hex": Hex.new(2, 0, -2), "direction": 0}],  # Output at head
-		"miner"
+		[{"hex": Hex.new(2, 0, -2), "direction": 0}]  # Output at head
 	),
 	PieceType.WORM:
 	PieceData.new(
@@ -67,8 +66,7 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 		Color("#8184F0"),
-		[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output
-		"constructor"
+		[{"hex": Hex.new(0, 0, 0), "direction": 0}]  # Output
 	),
 	PieceType.ARCH:
 	PieceData.new(
@@ -82,17 +80,15 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 		Color("#F3D283"),
-		_generate_all_external_ports(
-			[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)]
-		)
+		[{"hex": Hex.new(0, 1, -1), "direction": 4}],
+		"miner"
 	),
 	PieceType.WAVE:
 	PieceData.new(
 		[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 		Color("#85F7F2"),
-		_generate_all_external_ports(
-			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)]
-		)
+		[{"hex": Hex.new(0, 0, 0), "direction": 2}],
+		"constructor"
 	),
 	PieceType.CHEST:
 	PieceData.new(
