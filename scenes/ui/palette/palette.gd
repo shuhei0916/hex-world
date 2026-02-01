@@ -52,10 +52,10 @@ func get_piece_data_for_slot(slot_index: int) -> Dictionary:
 	var piece_type = get_piece_type_for_slot(slot_index)
 	if piece_type == null:
 		return {}
-	var definition = PieceShapes.PieceData.definitions.get(piece_type, null)
-	if definition == null:
+	var data = PieceShapes.get_data(piece_type)
+	if data == null:
 		return {}
-	return {"type": piece_type, "shape": definition.shape, "color": definition.color}
+	return {"type": piece_type, "shape": data.shape, "color": data.color}
 
 
 func select_slot(index: int):

@@ -44,8 +44,8 @@ func setup(data: Dictionary):
 		piece_type = data["type"]
 
 		# デフォルトレシピの適用
-		if PieceShapes.PieceData.definitions.has(piece_type):
-			var def = PieceShapes.PieceData.definitions[piece_type]
+		var def = PieceShapes.get_data(piece_type)
+		if def:
 			if def.default_recipe_id != "":
 				var recipe = Recipe.RecipeDB.get_recipe(def.default_recipe_id)
 				if recipe:
@@ -331,10 +331,11 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 
 
 func get_output_ports() -> Array:
-	if piece_type == -1 or not PieceShapes.PieceData.definitions.has(piece_type):
+	var def = PieceShapes.get_data(piece_type)
+	if piece_type == -1 or not def:
 		return []
 
-	var static_ports = PieceShapes.PieceData.definitions[piece_type].output_ports
+	var static_ports = def.output_ports
 	return _get_rotated_ports(static_ports)
 
 

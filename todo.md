@@ -8,7 +8,7 @@
 
 ### リファクタリング (Recipe & Facility)
 - [x] **レシピIDの簡素化**: `smelt_iron_ingot` -> `iron_ingot` のように、成果物IDを基本とする。
-- [x] **設備タイプの導入**: `Recipe` と `PieceDefinition` に `facility_type` (miner, smelter, constructor等) を追加し、紐付ける。
+- [x] **設備タイプの導入**: `Recipe` と `PieceData` に `facility_type` (miner, smelter, constructor等) を追加し、紐付ける。
 - [x] **Minerのレシピ化**: `BAR` タイプのハードコードを廃止し、`iron_ore` レシピ (Inputなし) で動作させる。
 
 ### ゲームプレイ・コンテンツ
@@ -18,7 +18,7 @@
 	- [ ] 強化鉄板のレシピを追加。
 	- [ ] 実際にラインを構築して動作確認する。
 - [ ] output接続が行われていないピースで、アイテムが流入してしまっている問題を解決する。
-- [ ] デフォルトレシピの指定を削除する（piece_shapes.gdのPieceDefinitionの第4引数）
+- [ ] デフォルトレシピの指定を削除する（piece_shapes.gdのPieceDataの第4引数）
 
 ## 将来的なタスク
 - [ ] クリックでパレットからピースを選択できるようにする
