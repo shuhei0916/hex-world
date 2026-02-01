@@ -52,7 +52,7 @@ func get_piece_data_for_slot(slot_index: int) -> Dictionary:
 	var piece_type = get_piece_type_for_slot(slot_index)
 	if piece_type == null:
 		return {}
-	var data = PieceShapes.get_data(piece_type)
+	var data = PieceDB.get_data(piece_type)
 	if data == null:
 		return {}
 	return {"type": piece_type, "shape": data.shape, "color": data.color}
@@ -100,12 +100,12 @@ func is_slot_highlighted(index: int) -> bool:
 
 func _get_default_piece_assignments() -> Array:
 	return [
-		PieceShapes.PieceType.BAR,
-		PieceShapes.PieceType.WORM,
-		PieceShapes.PieceType.PISTOL,
-		PieceShapes.PieceType.PROPELLER,
-		PieceShapes.PieceType.ARCH,
-		PieceShapes.PieceType.BEE,
-		PieceShapes.PieceType.WAVE,
-		PieceShapes.PieceType.CHEST
+		PieceDB.PieceType.BAR,
+		PieceDB.PieceType.WORM,
+		PieceDB.PieceType.PISTOL,
+		PieceDB.PieceType.PROPELLER,
+		PieceDB.PieceType.ARCH,
+		PieceDB.PieceType.BEE,
+		PieceDB.PieceType.WAVE,
+		PieceDB.PieceType.CHEST
 	]

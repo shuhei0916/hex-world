@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const Types = PieceShapes.PieceType
+const Types = PieceDB.PieceType
 
 var piece: Piece
 
@@ -49,7 +49,7 @@ func test_異なる種類のアイテムを追加しても既存のアイテム�
 
 
 func test_アイテム追加時にラベルが更新される():
-	piece.setup({"type": PieceShapes.PieceType.CHEST})
+	piece.setup({"type": PieceDB.PieceType.CHEST})
 	# CountLabelは詳細モードでのみ表示される仕様に変更されたため
 	piece.set_detail_mode(true)
 	piece.add_item("iron_ore", 10)
@@ -115,7 +115,7 @@ func test_CHESTタイプはアイテムを生産しない():
 class TestItemTransport:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 	var grid_manager: GridManager
 
 	func before_each():
@@ -277,7 +277,7 @@ class TestItemTransport:
 class TestPiecePorts:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 
 	func test_デフォルトでは出力ポートは定義に従う():
 		var piece = Piece.new()
@@ -303,7 +303,7 @@ class TestPiecePorts:
 class TestPortConnections:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 
 	var grid_manager: GridManager
 
@@ -377,7 +377,7 @@ class TestPortConnections:
 class TestPieceRotation:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 
 	func test_ポートはピースの回転に追従する():
 		var piece = Piece.new()
@@ -450,7 +450,7 @@ class TestPieceRotation:
 class TestPieceVisuals:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 
 	func test_ポートの描画パラメータを計算できる():
 		var piece = Piece.new()
@@ -508,7 +508,7 @@ class TestPieceProcessing:
 
 	func before_each():
 		piece = Piece.new()
-		piece.setup({"type": PieceShapes.PieceType.CHEST})  # 暫定的にCHESTを使うが、レシピを設定すれば加工できる想定
+		piece.setup({"type": PieceDB.PieceType.CHEST})  # 暫定的にCHESTを使うが、レシピを設定すれば加工できる想定
 		add_child_autofree(piece)
 
 	func test_レシピを設定できる():
@@ -556,7 +556,7 @@ class TestPieceProcessing:
 class TestSmelter:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 	var piece: Piece
 
 	func before_each():
@@ -577,7 +577,7 @@ class TestSmelter:
 class TestAssembler:
 	extends GutTest
 
-	const Types = PieceShapes.PieceType
+	const Types = PieceDB.PieceType
 	var piece: Piece
 
 	func before_each():

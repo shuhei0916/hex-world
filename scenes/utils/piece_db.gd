@@ -1,4 +1,4 @@
-class_name PieceShapes
+class_name PieceDB
 extends RefCounted
 
 # PieceType enum定義
@@ -18,7 +18,6 @@ enum PieceType {
 }
 
 
-# 旧 PieceDefinition を PieceData に改名
 class PieceData:
 	var shape: Array[Hex]
 
@@ -48,8 +47,8 @@ class PieceData:
 		facility_type = facility_type_val
 
 
-# 定数辞書として定義 (旧 PieceData.definitions)
-const DATA = {
+# gdlint:disable=class-variable-name
+static var DATA = {
 	PieceType.BAR:
 	PieceData.new(
 		[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],

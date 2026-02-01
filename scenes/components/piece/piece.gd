@@ -1,7 +1,7 @@
 class_name Piece
 extends Node2D
 
-# ピースの種類ID (PieceShapes.PieceType)
+# ピースの種類ID (PieceDB.PieceType)
 var piece_type: int = -1
 
 # このピースが占有しているHex座標のリスト
@@ -44,7 +44,7 @@ func setup(data: Dictionary):
 		piece_type = data["type"]
 
 		# デフォルトレシピの適用
-		var def = PieceShapes.get_data(piece_type)
+		var def = PieceDB.get_data(piece_type)
 		if def:
 			if def.default_recipe_id != "":
 				var recipe = Recipe.RecipeDB.get_recipe(def.default_recipe_id)
@@ -235,7 +235,7 @@ func tick(delta: float):
 			progress_bar.visible = false
 
 	# CHESTタイプはアイテムを保持するだけ（自分からは配らない）
-	if piece_type == PieceShapes.PieceType.CHEST:
+	if piece_type == PieceDB.PieceType.CHEST:
 		return
 
 	# 転送クールダウンの更新
@@ -331,7 +331,7 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 
 
 func get_output_ports() -> Array:
-	var def = PieceShapes.get_data(piece_type)
+	var def = PieceDB.get_data(piece_type)
 	if piece_type == -1 or not def:
 		return []
 

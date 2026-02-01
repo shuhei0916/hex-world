@@ -1,39 +1,39 @@
-class_name TestPieceShapes
+class_name TestPieceDB
 extends GutTest
 
 
 func test_PieceTypeエニュームが存在する():
-	assert_true(PieceShapes.PieceType.BAR == 0)
-	assert_true(PieceShapes.PieceType.WORM == 1)
-	assert_true(PieceShapes.PieceType.PISTOL == 2)
-	assert_true(PieceShapes.PieceType.PROPELLER == 3)
-	assert_true(PieceShapes.PieceType.ARCH == 4)
-	assert_true(PieceShapes.PieceType.BEE == 5)
-	assert_true(PieceShapes.PieceType.WAVE == 6)
+	assert_true(PieceDB.PieceType.BAR == 0)
+	assert_true(PieceDB.PieceType.WORM == 1)
+	assert_true(PieceDB.PieceType.PISTOL == 2)
+	assert_true(PieceDB.PieceType.PROPELLER == 3)
+	assert_true(PieceDB.PieceType.ARCH == 4)
+	assert_true(PieceDB.PieceType.BEE == 5)
+	assert_true(PieceDB.PieceType.WAVE == 6)
 
 
 func test_PieceData構造体が正しく動作する():
 	var hex_array: Array[Hex] = [
 		Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2), Hex.new(3, 0, -3)
 	]
-	var data = PieceShapes.PieceData.new(hex_array, Color.RED)
+	var data = PieceDB.PieceData.new(hex_array, Color.RED)
 
 	assert_eq(data.shape.size(), 4)
 	assert_eq(data.color, Color.RED)
 
 
 func test_全ての形状データが定義されている():
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.BAR))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.WORM))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.PISTOL))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.PROPELLER))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.ARCH))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.BEE))
-	assert_true(PieceShapes.DATA.has(PieceShapes.PieceType.WAVE))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.BAR))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.WORM))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.PISTOL))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.PROPELLER))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.ARCH))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.BEE))
+	assert_true(PieceDB.DATA.has(PieceDB.PieceType.WAVE))
 
 
 func test_BAR形状が正しく定義されている():
-	var bar_def = PieceShapes.DATA[PieceShapes.PieceType.BAR]
+	var bar_def = PieceDB.DATA[PieceDB.PieceType.BAR]
 	assert_eq(bar_def.shape.size(), 4)
 	assert_true(Hex.equals(bar_def.shape[0], Hex.new(-1, 0, 1)))
 	assert_true(Hex.equals(bar_def.shape[1], Hex.new(0, 0, 0)))
@@ -42,14 +42,14 @@ func test_BAR形状が正しく定義されている():
 
 
 func test_BAR形状はポートを持つ():
-	var bar_def = PieceShapes.DATA[PieceShapes.PieceType.BAR]
+	var bar_def = PieceDB.DATA[PieceDB.PieceType.BAR]
 
 	# Inputポートは撤廃されたのでOutputのみチェック
 	assert_gt(bar_def.output_ports.size(), 0, "BAR should have output ports")
 
 
 func test_WORM形状が正しく定義されている():
-	var worm_def = PieceShapes.DATA[PieceShapes.PieceType.WORM]
+	var worm_def = PieceDB.DATA[PieceDB.PieceType.WORM]
 	assert_eq(worm_def.shape.size(), 4)
 	assert_true(Hex.equals(worm_def.shape[0], Hex.new(-2, 0, 2)))
 	assert_true(Hex.equals(worm_def.shape[1], Hex.new(-1, 0, 1)))
@@ -58,11 +58,11 @@ func test_WORM形状が正しく定義されている():
 
 
 func test_全ての形状が適切なhex数を持つ():
-	for type in PieceShapes.PieceType.values():
-		if type >= PieceShapes.PieceType.TEST_OUT:
+	for type in PieceDB.PieceType.values():
+		if type >= PieceDB.PieceType.TEST_OUT:
 			continue  # Skip test types
-		var data = PieceShapes.DATA[type]
-		if type == PieceShapes.PieceType.CHEST:
+		var data = PieceDB.DATA[type]
+		if type == PieceDB.PieceType.CHEST:
 			assert_eq(data.shape.size(), 1, "CHESTは1Hexであるべき")
 		else:
 			assert_eq(data.shape.size(), 4, "Type %d は4Hexであるべき" % type)
@@ -71,11 +71,11 @@ func test_全ての形状が適切なhex数を持つ():
 func test_各形状が異なる色を持つ():
 	var colors = {}
 
-	for type in PieceShapes.PieceType.values():
-		if type >= PieceShapes.PieceType.TEST_OUT:
+	for type in PieceDB.PieceType.values():
+		if type >= PieceDB.PieceType.TEST_OUT:
 			continue  # Skip test types
 
-		var data = PieceShapes.DATA[type]
+		var data = PieceDB.DATA[type]
 
 		assert_false(colors.has(data.color))
 
