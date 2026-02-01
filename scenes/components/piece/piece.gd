@@ -53,10 +53,11 @@ func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 
 	# デフォルトレシピの適用
 	if _cached_data:
-		if _cached_data.default_recipe_id != "":
-			var recipe = Recipe.RecipeDB.get_recipe(_cached_data.default_recipe_id)
-			if recipe:
-				set_recipe(recipe)
+		if _cached_data.facility_type != "":
+			var recipes = Recipe.RecipeDB.get_recipes_by_facility(_cached_data.facility_type)
+			if not recipes.is_empty():
+				# 暫定的に最初のレシピを採用
+				set_recipe(recipes[0])
 
 	if data.has("rotation"):
 		rotation_state = data["rotation"]

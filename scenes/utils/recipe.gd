@@ -49,3 +49,11 @@ class RecipeDB:
 	static func get_recipe(id: String) -> Recipe:
 		_static_init()
 		return _recipes.get(id)
+
+	static func get_recipes_by_facility(facility_type: String) -> Array[Recipe]:
+		_static_init()
+		var result: Array[Recipe] = []
+		for recipe in _recipes.values():
+			if recipe.facility_type == facility_type:
+				result.append(recipe)
+		return result

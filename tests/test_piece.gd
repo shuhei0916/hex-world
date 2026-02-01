@@ -59,7 +59,7 @@ func test_アイテム追加時にラベルが更新される():
 
 
 func test_Miner機能を持つピースは時間経過でアイテムを生産する():
-	var miner_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.RED, [], "iron_ore", "miner")
+	var miner_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.RED, [], "miner")
 	piece.setup({"type": -1}, miner_data)
 
 	assert_eq(piece.get_item_count("iron_ore"), 0)
@@ -70,9 +70,7 @@ func test_Miner機能を持つピースは時間経過でアイテムを生産�
 
 
 func test_Smelter機能を持つピースは材料なしでは自動生産しない():
-	var smelter_data = PieceDB.PieceData.new(
-		[Hex.new(0, 0)], Color.GREEN, [], "iron_ingot", "smelter"
-	)
+	var smelter_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.GREEN, [], "smelter")
 	piece.setup({"type": -1}, smelter_data)
 
 	piece.tick(2.0)
@@ -85,7 +83,7 @@ func test_未初期化のPieceは生産しない():
 
 
 func test_Storage機能を持つピースはアイテムを生産しない():
-	var storage_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.GRAY, [], "", "storage")
+	var storage_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.GRAY, [], "storage")
 	piece.setup({"type": -1}, storage_data)
 
 	piece.tick(2.0)
@@ -183,31 +181,19 @@ class TestItemTransport:
 	func test_生産ラインが稼働してアイテムが加工・輸送される():
 		# 1. Miner
 		var m_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.RED,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_ore",
-			"miner"
+			[Hex.new(0, 0)], Color.RED, [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.RED, -1, 0, m_data)
 
 		# 2. Smelter
 		var s_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.GREEN,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_ingot",
-			"smelter"
+			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), Color.GREEN, -1, 0, s_data)
 
 		# 3. Assembler
 		var a_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.YELLOW,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_plate",
-			"constructor"
+			[Hex.new(0, 0)], Color.YELLOW, [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), Color.YELLOW, -1, 0, a_data)
 
@@ -231,7 +217,7 @@ class TestItemTransport:
 
 	func test_CHESTはアイテムを勝手に排出しない():
 		# Chestとして振る舞う定義（出力ポートなし）
-		var chest_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.BLUE, [], "", "storage")
+		var chest_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.BLUE, [], "storage")
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.BLUE, -1, 0, chest_data)
 		var chest_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
@@ -246,11 +232,7 @@ class TestItemTransport:
 
 	func test_レシピの材料は輸送されずに加工される():
 		var s_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.GREEN,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_ingot",
-			"smelter"
+			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.GREEN, -1, 0, s_data)
 		var smelter = grid_manager.get_piece_at_hex(Hex.new(0, 0))
@@ -413,11 +395,7 @@ class TestSmelter:
 	func before_each():
 		piece = Piece.new()
 		var smelter_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.GREEN,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_ingot",
-			"smelter"
+			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 		piece.setup({"type": -1}, smelter_data)
 		add_child_autofree(piece)
@@ -438,11 +416,7 @@ class TestAssembler:
 	func before_each():
 		piece = Piece.new()
 		var assembler_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)],
-			Color.YELLOW,
-			[{"hex": Hex.new(0, 0), "direction": 0}],
-			"iron_plate",
-			"constructor"
+			[Hex.new(0, 0)], Color.YELLOW, [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
 		)
 		piece.setup({"type": -1}, assembler_data)
 		add_child_autofree(piece)

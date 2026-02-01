@@ -2,14 +2,19 @@
 
 ## 現在のタスク (Current Focus)
 
+### リファクタリング: デフォルトレシピ指定の削除
+- [ ] **RecipeDB機能拡張**: `RecipeDB` に `get_recipes_by_facility(facility_type: String) -> Array` を実装する。
+	- [ ] Test: `test_recipe.gd` に `test_指定した施設タイプのレシピ一覧を取得できる` を追加 (Red)。
+	- [ ] Implement: `scenes/utils/recipe.gd` に実装 (Green)。
+- [ ] **Piece初期化ロジック変更**: `Piece.setup` で `default_recipe_id` の代わりに `facility_type` からレシピを取得する。
+	- [ ] Test: `test_piece.gd` は既に抽象化済みだが、実際の `PieceDB` データを使う統合テスト的な動作が変わらないか確認。
+	- [ ] Implement: `scenes/components/piece/piece.gd` を修正。
+- [ ] **PieceDataの変更**: `default_recipe_id` を削除する。
+	- [ ] Refactor: `scenes/utils/piece_db.gd` (旧 piece_shapes.gd) からプロパティとコンストラクタ引数を削除。
+	- [ ] Verify: 全テストが通過することを確認。
+
 ### UI/UX改善
 - [ ] **表示重なり問題の解決**: 詳細表示モード時に、インプットとアウトプットの表示が重なる問題を修正する（レイアウト調整）。
-- [x] **生産速度表示の検証**: レシピ化によるロジック統一で対応。
-
-### リファクタリング (Recipe & Facility)
-- [x] **レシピIDの簡素化**: `smelt_iron_ingot` -> `iron_ingot` のように、成果物IDを基本とする。
-- [x] **設備タイプの導入**: `Recipe` と `PieceData` に `facility_type` (miner, smelter, constructor等) を追加し、紐付ける。
-- [x] **Minerのレシピ化**: `BAR` タイプのハードコードを廃止し、`iron_ore` レシピ (Inputなし) で動作させる。
 
 ### ゲームプレイ・コンテンツ
 - [ ] **出力ポート方向の調整**: 現在すべてのピースの出力が「右」など固定的な方向になっているため、形状ごとに適切な方向へ調整する（回転時の挙動含む）。
@@ -18,7 +23,7 @@
 	- [ ] 強化鉄板のレシピを追加。
 	- [ ] 実際にラインを構築して動作確認する。
 - [ ] output接続が行われていないピースで、アイテムが流入してしまっている問題を解決する。
-- [ ] デフォルトレシピの指定を削除する（piece_shapes.gdのPieceDataの第4引数）
+- [ ] スタック数の導入について検討する
 
 ## 将来的なタスク
 - [ ] クリックでパレットからピースを選択できるようにする
