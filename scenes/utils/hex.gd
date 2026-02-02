@@ -2,13 +2,15 @@
 class_name Hex
 extends RefCounted
 
+const DIR_NAME_TO_INDEX = {"E": 0, "NE": 1, "NW": 2, "W": 3, "SW": 4, "SE": 5}
+
 static var hex_directions = [
-	Hex.new(1, 0, -1),  # 右
-	Hex.new(1, -1, 0),  # 右上
-	Hex.new(0, -1, 1),  # 左上
-	Hex.new(-1, 0, 1),  # 左
-	Hex.new(-1, 1, 0),  # 左下
-	Hex.new(0, 1, -1)  # 右下
+	Hex.new(1, 0, -1),  # 東 (E)
+	Hex.new(1, -1, 0),  # 北東 (NE)
+	Hex.new(0, -1, 1),  # 北西 (NW)
+	Hex.new(-1, 0, 1),  # 西 (W)
+	Hex.new(-1, 1, 0),  # 南西 (SW)
+	Hex.new(0, 1, -1)  # 南東 (SE)
 ]
 
 static var hex_diagonals = [
@@ -68,6 +70,12 @@ static func rotate_right(a: Hex) -> Hex:
 
 static func direction(direction_index: int) -> Hex:
 	return hex_directions[direction_index]
+
+
+static func direction_by_name(name: String) -> Hex:
+	if DIR_NAME_TO_INDEX.has(name):
+		return direction(DIR_NAME_TO_INDEX[name])
+	return null
 
 
 static func neighbor(hex: Hex, direction_index: int) -> Hex:

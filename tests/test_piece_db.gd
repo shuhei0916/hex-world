@@ -80,3 +80,10 @@ func test_各形状が異なる色を持つ():
 		assert_false(colors.has(data.color))
 
 		colors[data.color] = type
+
+
+func test_PieceDataは文字列の方向指定を整数に変換して保持する():
+	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
+	var outputs = [{"hex": Hex.new(0, 0, 0), "direction": "E"}]
+	var data = PieceDB.PieceData.new(shape, Color.WHITE, outputs)
+	assert_eq(data.output_ports[0].direction, 0, "String direction 'E' should be converted to 0")

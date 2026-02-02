@@ -90,6 +90,11 @@ class TestHexDirections:
 		var result = Hex.diagonal_neighbor(hex_center, direction)
 		assert_true(Hex.equals(result, expected))
 
+	func test_文字列から方向ベクトルを取得できる():
+		var result = Hex.direction_by_name("E")
+		var expected = Hex.new(1, 0, -1)
+		assert_true(Hex.equals(result, expected))
+
 
 # 距離・補間システムテスト
 class TestHexDistance:

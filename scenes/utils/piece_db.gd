@@ -34,7 +34,15 @@ class PieceData:
 
 		color = hex_color
 
-		output_ports = outputs
+		# 方向指定が文字列の場合は数値に変換
+		output_ports = []
+		for out in outputs:
+			var port = out.duplicate()
+			if port.has("direction") and port["direction"] is String:
+				var dir_str = port["direction"]
+				if Hex.DIR_NAME_TO_INDEX.has(dir_str):
+					port["direction"] = Hex.DIR_NAME_TO_INDEX[dir_str]
+			output_ports.append(port)
 
 		facility_type = facility_type_val
 
@@ -45,13 +53,13 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 		Color("#D49A69"),
-		[{"hex": Hex.new(2, 0, -2), "direction": 0}]  # Output at head
+		[{"hex": Hex.new(2, 0, -2), "direction": "E"}]  # Output at head
 	),
 	PieceType.WORM:
 	PieceData.new(
 		[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 		Color("#6AD38D"),
-		[{"hex": Hex.new(0, 0, 0), "direction": 0}],  # Output
+		[{"hex": Hex.new(0, 0, 0), "direction": "E"}],  # Output
 		"smelter"
 	),
 	PieceType.PISTOL:
@@ -66,7 +74,7 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 		Color("#8184F0"),
-		[{"hex": Hex.new(0, 0, 0), "direction": 0}]  # Output
+		[{"hex": Hex.new(0, 0, 0), "direction": "E"}]  # Output
 	),
 	PieceType.ARCH:
 	PieceData.new(
@@ -80,14 +88,14 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 		Color("#F3D283"),
-		[{"hex": Hex.new(0, 1, -1), "direction": 4}],
+		[{"hex": Hex.new(0, 1, -1), "direction": "SW"}],
 		"miner"
 	),
 	PieceType.WAVE:
 	PieceData.new(
 		[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 		Color("#85F7F2"),
-		[{"hex": Hex.new(0, 0, 0), "direction": 2}],
+		[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
 		"constructor"
 	),
 	PieceType.CHEST:
@@ -99,10 +107,10 @@ static var DATA = {
 	),
 	# --- Test-only definitions ---
 	PieceType.TEST_OUT:
-	PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": 0}]),
+	PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": "E"}]),
 	PieceType.TEST_IN: PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, []),
 	PieceType.TEST_OUT_WRONG_DIR:
-	PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": 1}]),
+	PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": "NE"}]),
 }
 
 
