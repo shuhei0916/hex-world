@@ -66,9 +66,7 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 		Color("#C2E479"),
-		_generate_all_external_ports(
-			[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)]
-		)
+		[{"hex": Hex.new(1, -1, 0), "direction": "NE"}]
 	),
 	PieceType.PROPELLER:
 	PieceData.new(
@@ -80,9 +78,7 @@ static var DATA = {
 	PieceData.new(
 		[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 		Color("#F081AA"),
-		_generate_all_external_ports(
-			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]
-		)
+		[{"hex": Hex.new(0, -1, 1), "direction": "NW"}]
 	),
 	PieceType.BEE:
 	PieceData.new(
@@ -98,13 +94,7 @@ static var DATA = {
 		[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
 		"constructor"
 	),
-	PieceType.CHEST:
-	PieceData.new(
-		[Hex.new(0, 0, 0)],
-		Color("#999999"),
-		_generate_all_external_ports([Hex.new(0, 0, 0)]),  # グレー系の色
-		"storage"
-	),
+	PieceType.CHEST: PieceData.new([Hex.new(0, 0, 0)], Color("#999999"), [], "storage"),
 	# --- Test-only definitions ---
 	PieceType.TEST_OUT:
 	PieceData.new([Hex.new(0, 0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0, 0), "direction": "E"}]),
@@ -116,18 +106,3 @@ static var DATA = {
 
 static func get_data(type: int) -> PieceData:
 	return DATA.get(type)
-
-
-# 形状を構成する全ヘックスの、他のヘックスに接していない「外周」全てのポートを生成する
-static func _generate_all_external_ports(shape: Array[Hex]) -> Array:
-	var ports = []
-	var shape_set = {}  # 高速なルックアップ用
-	for h in shape:
-		shape_set[h] = true
-
-	for h in shape:
-		for dir in range(6):
-			var neighbor = Hex.neighbor(h, dir)
-			if not shape_set.has(neighbor):
-				ports.append({"hex": h, "direction": dir})
-	return ports

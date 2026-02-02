@@ -254,11 +254,6 @@ class TestPiecePorts:
 		var piece = Piece.new()
 		assert_eq(piece.get_output_ports().size(), 0)
 
-	func test_ピースタイプに応じた出力ポート定義を取得できる():
-		var piece = Piece.new()
-		piece.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(0, 0)]})
-		assert_gt(piece.get_output_ports().size(), 0)
-
 
 class TestPortConnections:
 	extends GutTest
