@@ -2,24 +2,22 @@
 class_name Hex
 extends RefCounted
 
-# 六角形方向システム（本家 redblob_hex.py に準拠）
 static var hex_directions = [
-	Hex.new(1, 0, -1),  # 方向0
-	Hex.new(1, -1, 0),  # 方向1
-	Hex.new(0, -1, 1),  # 方向2
-	Hex.new(-1, 0, 1),  # 方向3
-	Hex.new(-1, 1, 0),  # 方向4
-	Hex.new(0, 1, -1)  # 方向5
+	Hex.new(1, 0, -1),  # 右
+	Hex.new(1, -1, 0),  # 右上
+	Hex.new(0, -1, 1),  # 左上
+	Hex.new(-1, 0, 1),  # 左
+	Hex.new(-1, 1, 0),  # 左下
+	Hex.new(0, 1, -1)  # 右下
 ]
 
-# 六角形対角線方向システム（本家 redblob_hex.py に準拠）
 static var hex_diagonals = [
-	Hex.new(2, -1, -1),  # 対角線方向0
-	Hex.new(1, -2, 1),  # 対角線方向1
-	Hex.new(-1, -1, 2),  # 対角線方向2
-	Hex.new(-2, 1, 1),  # 対角線方向3
-	Hex.new(-1, 2, -1),  # 対角線方向4
-	Hex.new(1, 1, -2)  # 対角線方向5
+	Hex.new(2, -1, -1),
+	Hex.new(1, -2, 1),
+	Hex.new(-1, -1, 2),
+	Hex.new(-2, 1, 1),
+	Hex.new(-1, 2, -1),
+	Hex.new(1, 1, -2)
 ]
 
 var q
@@ -31,10 +29,8 @@ func _init(q_val, r_val, s_val = null):
 	q = q_val
 	r = r_val
 	if s_val == null:
-		# 2引数コンストラクタ: s = -q - r で自動計算
 		s = -q_val - r_val
 	else:
-		# 3引数コンストラクタ: s値を直接設定
 		s = s_val
 
 
@@ -46,7 +42,6 @@ func _to_string() -> String:
 	return "(%s, %s, %s)" % [q, r, s]
 
 
-# 六角形算術演算（本家 redblob_hex.py に準拠）
 static func add(a: Hex, b: Hex) -> Hex:
 	return Hex.new(a.q + b.q, a.r + b.r, a.s + b.s)
 
@@ -83,7 +78,6 @@ static func diagonal_neighbor(hex: Hex, direction_index: int) -> Hex:
 	return add(hex, hex_diagonals[direction_index])
 
 
-# 六角形距離と補間（本家 redblob_hex.py に準拠）
 static func length(hex: Hex) -> int:
 	return (abs(hex.q) + abs(hex.r) + abs(hex.s)) / 2
 
