@@ -1,6 +1,8 @@
 class_name Piece
 extends Node2D
 
+const Inventory = preload("res://scenes/components/piece/inventory.gd")
+
 # ピースの種類ID (PieceDB.PieceType)
 var piece_type: int = -1
 
@@ -10,9 +12,9 @@ var hex_coordinates: Array[Hex] = []
 # 回転状態 (0-5)
 var rotation_state: int = 0
 
-# インベントリデータ (アイテム名: 数量)
-var input_inventory: Dictionary = {}
-var output_inventory: Dictionary = {}
+# インベントリデータ (Component化)
+var input_storage: Inventory
+var output_storage: Inventory
 
 # 加工ロジック用
 var current_recipe: Recipe
@@ -76,8 +78,21 @@ func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 
 
 func _ready():
+	_setup_inventories()
 	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
 	_update_visuals()
+
+
+func _setup_inventories():
+	input_storage = Inventory.new()
+	input_storage.name = "InputInventory"
+	add_child(input_storage)
+	input_storage.inventory_changed.connect(_update_visuals)
+
+	output_storage = Inventory.new()
+	output_storage.name = "OutputInventory"
+	add_child(output_storage)
+	output_storage.inventory_changed.connect(_update_visuals)
 
 
 func set_detail_mode(enabled: bool):
@@ -103,6 +118,10 @@ func _update_output_visuals():
 
 	var item_id = ""
 
+	# インベントリ初期化前対策
+	if not input_storage or not output_storage:
+		return
+
 	# 表示すべきアイテムを決定 (Recipe Output優先)
 	if current_recipe:
 		# 最初の出力アイテムを代表アイコンとする
@@ -114,9 +133,15 @@ func _update_output_visuals():
 		# なければInputも含める（Chestの場合、Inputに入ったまま保持されることがあるため）
 		var max_count = 0
 		var all_items = []
-		all_items.append_array(output_inventory.keys())
-		if output_inventory.is_empty():
-			all_items.append_array(input_inventory.keys())
+
+		# Inventoryクラスのget_all_items()を使用する場合
+		# (まだ実装していない場合は _items プロパティに直接アクセスするが、カプセル化のためアクセサ推奨)
+		# 今回は Inventory._items は public 変数として扱われているので直接アクセス
+		# TODO: Inventoryに get_all_keys() などを追加すると綺麗
+
+		all_items.append_array(output_storage._items.keys())
+		if output_storage._items.is_empty():
+			all_items.append_array(input_storage._items.keys())
 
 		for key in all_items:
 			var c = get_item_count(key)
@@ -155,6 +180,8 @@ func _update_output_visuals():
 func _update_input_visuals():
 	if not input_icon or not input_label:
 		return
+	if not input_storage:
+		return
 
 	# 詳細モードでなければ非表示
 	if not is_detail_mode:
@@ -165,9 +192,9 @@ func _update_input_visuals():
 	var max_count = 0
 	var item_id = ""
 
-	for key in input_inventory:
-		if input_inventory[key] > max_count:
-			max_count = input_inventory[key]
+	for key in input_storage._items:
+		if input_storage._items[key] > max_count:
+			max_count = input_storage._items[key]
 			item_id = key
 
 	if item_id != "":
@@ -204,21 +231,22 @@ func _update_speed_visuals():
 
 
 func add_item(item_name: String, amount: int):
-	if not input_inventory.has(item_name):
-		input_inventory[item_name] = 0
-	input_inventory[item_name] += amount
-	_update_visuals()
+	if input_storage:
+		input_storage.add_item(item_name, amount)
 
 
 func add_to_output(item_name: String, amount: int):
-	if not output_inventory.has(item_name):
-		output_inventory[item_name] = 0
-	output_inventory[item_name] += amount
-	_update_visuals()
+	if output_storage:
+		output_storage.add_item(item_name, amount)
 
 
 func get_item_count(item_name: String) -> int:
-	return input_inventory.get(item_name, 0) + output_inventory.get(item_name, 0)
+	var count = 0
+	if input_storage:
+		count += input_storage.get_item_count(item_name)
+	if output_storage:
+		count += output_storage.get_item_count(item_name)
+	return count
 
 
 func _process(delta: float):
@@ -274,8 +302,11 @@ func _can_start_crafting() -> bool:
 	if current_recipe.inputs.is_empty():
 		return true
 
+	if not input_storage:
+		return false
+
 	for item_name in current_recipe.inputs:
-		if input_inventory.get(item_name, 0) < current_recipe.inputs[item_name]:
+		if input_storage.get_item_count(item_name) < current_recipe.inputs[item_name]:
 			return false
 	return true
 
@@ -382,7 +413,7 @@ func can_accept_item(_item_name: String) -> bool:
 
 
 func _push_items_to_neighbors():
-	if output_inventory.is_empty():
+	if not output_storage or output_storage._items.is_empty():
 		return
 
 	var grid_manager = get_parent()
@@ -399,7 +430,11 @@ func _push_items_to_neighbors():
 				if can_push_to(neighbor, direction):
 					potential_targets.append(neighbor)
 
-	for item_name in output_inventory:
+	# TODO: Inventoryにitemsを取得するゲッターがほしいが、今は_itemsを直接参照
+	# イテレーション中の変更エラーを避けるためキーを複製
+	var items_to_push = output_storage._items.keys().duplicate()
+
+	for item_name in items_to_push:
 		for target in potential_targets:
 			if target.can_accept_item(item_name):
 				# 1つ移動して終了
@@ -412,16 +447,10 @@ func _push_items_to_neighbors():
 
 
 func _consume_input(item_name: String, amount: int):
-	if input_inventory.has(item_name):
-		input_inventory[item_name] -= amount
-		if input_inventory[item_name] <= 0:
-			input_inventory.erase(item_name)
-		_update_visuals()
+	if input_storage:
+		input_storage.consume_item(item_name, amount)
 
 
 func _consume_output(item_name: String, amount: int):
-	if output_inventory.has(item_name):
-		output_inventory[item_name] -= amount
-		if output_inventory[item_name] <= 0:
-			output_inventory.erase(item_name)
-		_update_visuals()
+	if output_storage:
+		output_storage.consume_item(item_name, amount)

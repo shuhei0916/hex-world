@@ -17,7 +17,6 @@ script = ExtResource("2_6q06x")
 
 [node name="GridManager" type="Node2D" parent="."]
 script = ExtResource("4_hujxm")
-grid_radius = 7
 
 [node name="PiecePlacer" type="Node2D" parent="."]
 script = ExtResource("5_6q06x")
