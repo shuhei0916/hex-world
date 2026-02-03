@@ -1,4 +1,4 @@
-class_name Inventory
+class_name ItemContainer
 extends Node
 
 ## アイテムを格納・管理するためのコンポーネント。
