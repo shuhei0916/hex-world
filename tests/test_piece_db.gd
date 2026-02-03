@@ -16,10 +16,10 @@ func test_PieceData構造体が正しく動作する():
 	var hex_array: Array[Hex] = [
 		Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2), Hex.new(3, 0, -3)
 	]
-	var data = PieceDB.PieceData.new(hex_array, Color.RED)
+	var data = PieceDB.PieceData.new(hex_array, [], "miner")
 
 	assert_eq(data.shape.size(), 4)
-	assert_eq(data.color, Color.RED)
+	assert_eq(data.color, Color("#F3D283"))
 
 
 func test_全ての形状データが定義されている():
@@ -85,5 +85,21 @@ func test_各形状が異なる色を持つ():
 func test_PieceDataは文字列の方向指定を整数に変換して保持する():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 	var outputs = [{"hex": Hex.new(0, 0, 0), "direction": "E"}]
-	var data = PieceDB.PieceData.new(shape, Color.WHITE, outputs)
+	var data = PieceDB.PieceData.new(shape, outputs)
 	assert_eq(data.output_ports[0].direction, 0, "String direction 'E' should be converted to 0")
+
+
+func test_PieceDataはfacility_typeに基づいて色を自動設定する():
+	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
+
+	# Miner -> Orange (#F3D283)
+	var miner_data = PieceDB.PieceData.new(shape, [], "miner")
+	assert_eq(miner_data.color, Color("#F3D283"), "Miner should be orange")
+
+	# Smelter -> Green (#6AD38D)
+	var smelter_data = PieceDB.PieceData.new(shape, [], "smelter")
+	assert_eq(smelter_data.color, Color("#6AD38D"), "Smelter should be green")
+
+	# Storage -> Gray (#999999)
+	var storage_data = PieceDB.PieceData.new(shape, [], "storage")
+	assert_eq(storage_data.color, Color("#999999"), "Storage should be gray")

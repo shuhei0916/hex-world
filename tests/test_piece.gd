@@ -59,7 +59,7 @@ func test_アイテム追加時にラベルが更新される():
 
 
 func test_Miner機能を持つピースは時間経過でアイテムを生産する():
-	var miner_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.RED, [], "miner")
+	var miner_data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "miner")
 	piece.setup({"type": -1}, miner_data)
 
 	assert_eq(piece.get_item_count("iron_ore"), 0)
@@ -70,7 +70,7 @@ func test_Miner機能を持つピースは時間経過でアイテムを生産�
 
 
 func test_Smelter機能を持つピースは材料なしでは自動生産しない():
-	var smelter_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.GREEN, [], "smelter")
+	var smelter_data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "smelter")
 	piece.setup({"type": -1}, smelter_data)
 
 	piece.tick(2.0)
@@ -83,7 +83,7 @@ func test_未初期化のPieceは生産しない():
 
 
 func test_Storage機能を持つピースはアイテムを生産しない():
-	var storage_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.GRAY, [], "storage")
+	var storage_data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "storage")
 	piece.setup({"type": -1}, storage_data)
 
 	piece.tick(2.0)
@@ -105,13 +105,12 @@ class TestItemTransport:
 	func test_ポート接続された隣接ピースにアイテムが移動する():
 		# A: 出力ポート(方向0)を持つピース
 		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0), "direction": 0}]
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.WHITE, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		# B: 入力ピース
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, Types.TEST_IN)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.TEST_IN)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		piece_a.add_to_output("iron", 1)
@@ -123,13 +122,13 @@ class TestItemTransport:
 	func test_ポートが接続されていないピースにはアイテムが移動しない():
 		# A: 出力ポート(方向0)
 		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0), "direction": 0}]
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.WHITE, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
 		# B: 方向0にいるが、Aの出力ポートとは無関係な方向に出力を持つピース
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, Types.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.TEST_OUT)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		piece_a.add_item("iron", 1)  # Input inventory
@@ -140,12 +139,12 @@ class TestItemTransport:
 
 	func test_アイテム移動はクールダウンに基づいて行われる():
 		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.RED, [{"hex": Hex.new(0, 0), "direction": 0}]
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.RED, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.CHEST)
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		piece_a.add_to_output("iron", 10)
@@ -165,14 +164,14 @@ class TestItemTransport:
 	func test_複数の隣接ピースがあっても全体で1tickにつき1個まで():
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)],
-			Color.RED,
-			[{"hex": Hex.new(0, 0), "direction": 0}, {"hex": Hex.new(0, 0), "direction": 1}]
+			[{"hex": Hex.new(0, 0), "direction": 0}, {"hex": Hex.new(0, 0), "direction": 1}],
+			"test_role"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.RED, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.BLUE, Types.CHEST)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 1, -1), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 1, -1), null, Types.CHEST)
 
 		piece_a.add_to_output("iron", 10)
 		piece_a.tick(0.1)
@@ -181,24 +180,24 @@ class TestItemTransport:
 	func test_生産ラインが稼働してアイテムが加工・輸送される():
 		# 1. Miner
 		var m_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.RED, [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.RED, -1, 0, m_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, m_data)
 
 		# 2. Smelter
 		var s_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), Color.GREEN, -1, 0, s_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, -1, 0, s_data)
 
 		# 3. Assembler
 		var a_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.YELLOW, [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), Color.YELLOW, -1, 0, a_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), null, -1, 0, a_data)
 
 		# 4. Chest
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(3, 0), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(3, 0), null, Types.CHEST)
 
 		var miner = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var smelter = grid_manager.get_piece_at_hex(Hex.new(1, 0))
@@ -217,11 +216,11 @@ class TestItemTransport:
 
 	func test_CHESTはアイテムを勝手に排出しない():
 		# Chestとして振る舞う定義（出力ポートなし）
-		var chest_data = PieceDB.PieceData.new([Hex.new(0, 0)], Color.BLUE, [], "storage")
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.BLUE, -1, 0, chest_data)
+		var chest_data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "storage")
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, chest_data)
 		var chest_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.CHEST)
 		var chest_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		chest_a.add_item("iron", 10)
@@ -232,12 +231,12 @@ class TestItemTransport:
 
 	func test_レシピの材料は輸送されずに加工される():
 		var s_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.GREEN, -1, 0, s_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, s_data)
 		var smelter = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), Color.BLUE, Types.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, Types.CHEST)
 		var chest = grid_manager.get_piece_at_hex(Hex.new(1, 0))
 
 		smelter.add_item("iron_ore", 1)
@@ -268,8 +267,8 @@ class TestPortConnections:
 		add_child_autofree(grid_manager)
 		grid_manager.create_hex_grid(3)
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.WHITE, Types.TEST_OUT)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, Types.TEST_IN)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, Types.TEST_OUT)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, Types.TEST_IN)
 
 		piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0, 0))
 		piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
@@ -279,16 +278,16 @@ class TestPortConnections:
 
 	func test_出力ポートが対面でも相手がそこに存在すれば接続可能():
 		var out_data_a = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0), "direction": 0}]
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
 		)
 		var out_data_b = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.WHITE, [{"hex": Hex.new(0, 0), "direction": 3}]
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 3}], "test_role"
 		)
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), Color.WHITE, -1, 0, out_data_a)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data_a)
 		piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), Color.WHITE, -1, 0, out_data_b)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, -1, 0, out_data_b)
 		piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		assert_true(piece_a.can_push_to(piece_b, 0))
@@ -312,7 +311,7 @@ class TestPieceRotation:
 	func test_複数ヘックスを持つピースのポートも回転する():
 		var piece = Piece.new()
 		var multi_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0), Hex.new(1, 0)], Color.WHITE, [{"hex": Hex.new(1, 0), "direction": 0}]
+			[Hex.new(0, 0), Hex.new(1, 0)], [{"hex": Hex.new(1, 0), "direction": 0}], "test_role"
 		)
 		piece.setup({"type": -1}, multi_data)
 		add_child_autofree(piece)
@@ -390,7 +389,7 @@ class TestSmelter:
 	func before_each():
 		piece = Piece.new()
 		var smelter_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.GREEN, [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 		piece.setup({"type": -1}, smelter_data)
 		add_child_autofree(piece)
@@ -411,7 +410,7 @@ class TestAssembler:
 	func before_each():
 		piece = Piece.new()
 		var assembler_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], Color.YELLOW, [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "constructor"
 		)
 		piece.setup({"type": -1}, assembler_data)
 		add_child_autofree(piece)

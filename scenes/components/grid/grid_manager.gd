@@ -84,11 +84,22 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 func place_piece(
 	shape: Array,
 	base_hex: Hex,
-	piece_color: Color,
+	piece_color = null,
 	piece_type: int = 0,
 	rotation: int = 0,
 	data_override: PieceDB.PieceData = null
 ):
+	var effective_color = piece_color
+	if effective_color == null:
+		if data_override:
+			effective_color = data_override.color
+		else:
+			var db_data = PieceDB.get_data(piece_type)
+			if db_data:
+				effective_color = db_data.color
+			else:
+				effective_color = Color.WHITE
+
 	var occupied_hexes: Array[Hex] = []
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
@@ -98,7 +109,7 @@ func place_piece(
 		# 配置されたHexTileの色を更新
 		var hex_tile = find_hex_tile(target)
 		if hex_tile:
-			hex_tile.set_color(piece_color)
+			hex_tile.set_color(effective_color)
 
 	# Pieceノードを生成
 	var piece = piece_scene.instantiate()
