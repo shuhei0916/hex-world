@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://h4o14c2spov4"]
+[gd_scene load_steps=6 format=3 uid="uid://caxv1jymj8x1p"]
 
 [ext_resource type="Script" uid="uid://b4lych0hgwlc4" path="res://scenes/main/main.gd" id="1_l3cfh"]
 [ext_resource type="Script" uid="uid://bcpl4euiuawxf" path="res://scenes/components/camera_controller.gd" id="2_6q06x"]
@@ -9,8 +9,7 @@
 [node name="Main" type="Node2D"]
 script = ExtResource("1_l3cfh")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.5, 0.5)
+[node name="CameraController" type="Camera2D" parent="."]
 script = ExtResource("2_6q06x")
 
 [node name="HUD" parent="." instance=ExtResource("3_ow5a4")]
