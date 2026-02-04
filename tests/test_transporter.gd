@@ -2,60 +2,71 @@ extends GutTest
 
 var Transporter = load("res://scenes/components/piece/transporter.gd")
 var ItemContainer = load("res://scenes/components/piece/item_container.gd")
-var Piece = load("res://scenes/components/piece/piece.gd")
 
-var transporter
-var source_container
-var target_piece
+var transporter: Transporter
+var source_container: ItemContainer
+
+
+# テスト用のダミーターゲット
+class MockTarget:
+	var inventory: Dictionary = {}
+	var accept: bool = true
+
+	func can_accept_item(_item_name: String) -> bool:
+		return accept
+
+	func add_item(item_name: String, amount: int):
+		inventory[item_name] = inventory.get(item_name, 0) + amount
+
 
 func before_each():
-	if Transporter:
-		transporter = Transporter.new()
-	if ItemContainer:
-		source_container = ItemContainer.new()
-	if Piece:
-		target_piece = Piece.new()
-		var in_store = ItemContainer.new()
-		target_piece.input_storage = in_store
-		target_piece.add_child(in_store)
+	transporter = Transporter.new()
+	source_container = ItemContainer.new()
+	transporter.setup(source_container)
+
 
 func after_each():
-	if transporter: transporter.free()
-	if source_container: source_container.free()
-	if target_piece: target_piece.free()
+	transporter.free()
+	source_container.free()
 
-func test_アイテムを搬出できる():
-	if not transporter: return
-	
-	transporter.setup(source_container)
-	source_container.add_item("test_item", 10)
-	var targets = [target_piece]
-	
-	# 実行
-	transporter.push(targets)
-	
-	# 検証
-	assert_eq(source_container.get_item_count("test_item"), 9, "1つ減っているべき")
-	assert_eq(target_piece.get_item_count("test_item"), 1, "1つ増えているべき")
 
-func test_クールダウン中は搬出しない():
-	if not transporter: return
-	
-	transporter.setup(source_container)
-	source_container.add_item("test_item", 10)
-	var targets = [target_piece]
-	
-	# 1回目: 成功 -> クールダウン発生
-	transporter.push(targets)
-	assert_eq(source_container.get_item_count("test_item"), 9)
-	
-	# 2回目: クールダウン中なので失敗するはず
-	transporter.push(targets)
-	assert_eq(source_container.get_item_count("test_item"), 9, "変わらないはず")
-	
-	# 時間経過
-	transporter.tick(1.0)
-	
-	# 再実行: 成功
-	transporter.push(targets)
-	assert_eq(source_container.get_item_count("test_item"), 8, "減っているはず")
+func test_初期状態では準備完了状態である():
+	assert_true(transporter.is_ready())
+
+
+func test_搬出に成功するとクールダウンが発生する():
+	source_container.add_item("iron", 1)
+	var target = MockTarget.new()
+
+	transporter.push([target])
+
+	assert_false(transporter.is_ready(), "搬出直後は準備完了ではないべき")
+	assert_gt(transporter.transfer_cooldown, 0.0)
+
+
+func test_tickでクールダウンが解消される():
+	transporter.transfer_cooldown = 0.5
+	transporter.tick(0.6)
+	assert_true(transporter.is_ready(), "時間経過で準備完了になるべき")
+
+
+func test_アイテムの移動が正しく行われる():
+	source_container.add_item("iron", 5)
+	var target = MockTarget.new()
+
+	transporter.push([target])
+
+	assert_eq(source_container.get_item_count("iron"), 4, "ソースから1つ減るべき")
+	assert_eq(target.inventory["iron"], 1, "ターゲットに1つ増えるべき")
+
+
+func test_ターゲットが受け入れ不可の場合は移動しない():
+	source_container.add_item("iron", 5)
+	var target = MockTarget.new()
+	target.accept = false
+
+	transporter.push([target])
+
+	assert_eq(source_container.get_item_count("iron"), 5, "ソースの数は変わらないべき")
+	assert_eq(target.inventory.get("iron", 0), 0, "ターゲットには増えないべき")
+	assert_true(transporter.is_ready(), "移動しなかった場合はクールダウンが発生しないべき")
