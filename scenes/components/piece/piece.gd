@@ -3,6 +3,7 @@ extends Node2D
 
 const ItemContainer = preload("res://scenes/components/piece/item_container.gd")
 const Crafter = preload("res://scenes/components/piece/crafter.gd")
+const Transporter = preload("res://scenes/components/piece/transporter.gd")
 
 # ピースの種類ID (PieceDB.PieceType)
 var piece_type: int = -1
@@ -17,13 +18,10 @@ var rotation_state: int = 0
 var input_storage: ItemContainer
 var output_storage: ItemContainer
 var crafter: Crafter
+var transporter: Transporter
 
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
-
-# 転送クールダウンの更新
-var transfer_rate: float = 1.0
-var transfer_cooldown: float = 0.0
 
 var count_label: Label
 
@@ -41,10 +39,10 @@ var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
 
 func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 	_ensure_components_created()
-
+	
 	if crafter:
 		crafter.set_recipe(null)
-
+	
 	if data_override:
 		_cached_data = data_override
 		if data.has("type"):
@@ -81,7 +79,6 @@ func _ready():
 	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
 	_update_visuals()
 
-
 func _ensure_components_created():
 	if not input_storage:
 		input_storage = ItemContainer.new()
@@ -94,12 +91,19 @@ func _ensure_components_created():
 		output_storage.name = "OutputInventory"
 		add_child(output_storage)
 		output_storage.inventory_changed.connect(_update_visuals)
-
+	
 	if not crafter:
 		crafter = Crafter.new()
 		crafter.name = "Crafter"
 		add_child(crafter)
 		crafter.setup(input_storage, output_storage)
+		
+	if not transporter:
+		transporter = Transporter.new()
+		transporter.name = "Transporter"
+		add_child(transporter)
+		transporter.setup(output_storage)
+		# 転送レートはとりあえずデフォルトのまま
 
 
 func set_detail_mode(enabled: bool):
@@ -125,6 +129,15 @@ var processing_progress: float:
 		if crafter:
 			crafter.processing_progress = value
 
+# 互換性のためのアクセサ（テスト用など）
+var transfer_rate: float:
+	get: return transporter.transfer_rate if transporter else 1.0
+	set(v): if transporter: transporter.transfer_rate = v
+
+var transfer_cooldown: float:
+	get: return transporter.transfer_cooldown if transporter else 0.0
+	set(v): if transporter: transporter.transfer_cooldown = v
+
 
 func _update_visuals():
 	_update_output_visuals()
@@ -137,7 +150,7 @@ func _update_output_visuals():
 		return
 
 	var item_id = ""
-
+	
 	if not input_storage or not output_storage:
 		return
 
@@ -151,7 +164,7 @@ func _update_output_visuals():
 		# レシピがない場合（Chest等）、Outputにあるものを表示
 		var max_count = 0
 		var all_items = []
-
+		
 		all_items.append_array(output_storage._items.keys())
 		if output_storage._items.is_empty():
 			all_items.append_array(input_storage._items.keys())
@@ -268,10 +281,9 @@ func rotate_cw():
 
 
 func tick(delta: float):
-	# 加工ロジック
 	if crafter:
 		crafter.tick(delta)
-
+		
 	if current_recipe:
 		if progress_bar:
 			progress_bar.visible = processing_progress > 0
@@ -284,11 +296,10 @@ func tick(delta: float):
 	if piece_type == PieceDB.PieceType.CHEST:
 		return
 
-	if transfer_cooldown > 0:
-		transfer_cooldown -= delta
-
-	if transfer_cooldown <= 0:
-		_push_items_to_neighbors()
+	if transporter:
+		transporter.tick(delta)
+		if transporter.is_ready():
+			_try_push_to_neighbors()
 
 
 func get_port_visual_params() -> Array:
@@ -379,7 +390,7 @@ func can_accept_item(_item_name: String) -> bool:
 	return true
 
 
-func _push_items_to_neighbors():
+func _try_push_to_neighbors():
 	if not output_storage or output_storage._items.is_empty():
 		return
 
@@ -395,16 +406,8 @@ func _push_items_to_neighbors():
 				if can_push_to(neighbor, direction):
 					potential_targets.append(neighbor)
 
-	var items_to_push = output_storage._items.keys().duplicate()
-
-	for item_name in items_to_push:
-		for target in potential_targets:
-			if target.can_accept_item(item_name):
-				target.add_item(item_name, 1)
-				_consume_output(item_name, 1)
-
-				transfer_cooldown = transfer_rate
-				return
+	if transporter:
+		transporter.push(potential_targets)
 
 
 func _consume_input(item_name: String, amount: int):
