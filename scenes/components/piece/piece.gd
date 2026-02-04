@@ -27,6 +27,33 @@ var count_label: Label
 
 var is_detail_mode: bool = false
 
+# プロパティアクセサ
+var current_recipe: Recipe:
+	get:
+		return crafter.current_recipe if crafter else null
+
+var processing_progress: float:
+	get:
+		return crafter.processing_progress if crafter else 0.0
+	set(value):
+		if crafter:
+			crafter.processing_progress = value
+
+# 互換性のためのアクセサ（テスト用など）
+var transfer_rate: float:
+	get:
+		return transporter.transfer_rate if transporter else 1.0
+	set(v):
+		if transporter:
+			transporter.transfer_rate = v
+
+var transfer_cooldown: float:
+	get:
+		return transporter.transfer_cooldown if transporter else 0.0
+	set(v):
+		if transporter:
+			transporter.transfer_cooldown = v
+
 var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
 
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
@@ -37,12 +64,22 @@ var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
+func _ready():
+	_ensure_components_created()
+	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
+	_update_visuals()
+
+
+func _process(delta: float):
+	tick(delta)
+
+
 func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 	_ensure_components_created()
-	
+
 	if crafter:
 		crafter.set_recipe(null)
-	
+
 	if data_override:
 		_cached_data = data_override
 		if data.has("type"):
@@ -74,10 +111,114 @@ func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 	_update_visuals()
 
 
-func _ready():
-	_ensure_components_created()
-	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
+func set_detail_mode(enabled: bool):
+	is_detail_mode = enabled
 	_update_visuals()
+
+
+func set_recipe(recipe: Recipe):
+	if crafter:
+		crafter.set_recipe(recipe)
+	_update_visuals()
+
+
+func add_item(item_name: String, amount: int):
+	if input_storage:
+		input_storage.add_item(item_name, amount)
+
+
+func add_to_output(item_name: String, amount: int):
+	if output_storage:
+		output_storage.add_item(item_name, amount)
+
+
+func get_item_count(item_name: String) -> int:
+	var count = 0
+	if input_storage:
+		count += input_storage.get_item_count(item_name)
+	if output_storage:
+		count += output_storage.get_item_count(item_name)
+	return count
+
+
+func tick(delta: float):
+	if crafter:
+		crafter.tick(delta)
+
+	if current_recipe:
+		if progress_bar:
+			progress_bar.visible = processing_progress > 0
+			progress_bar.max_value = current_recipe.craft_time
+			progress_bar.value = processing_progress
+	else:
+		if progress_bar:
+			progress_bar.visible = false
+
+	if piece_type == PieceDB.PieceType.CHEST:
+		return
+
+	if transporter:
+		transporter.tick(delta)
+		if transporter.is_ready():
+			_try_push_to_neighbors()
+
+
+func rotate_cw():
+	rotation_state = (rotation_state + 1) % 6
+	queue_redraw()
+
+
+func get_port_visual_params() -> Array:
+	var params = []
+
+	# Layout定義 (GridManagerと同じ設定)
+	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+
+	# 出力ポート (オレンジ系)
+	for port in get_output_ports():
+		var center_pos = Layout.hex_to_pixel(layout, port.hex)
+		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
+		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
+		var angle = (neighbor_pos - center_pos).angle()
+
+		params.append(
+			{"position": center_pos, "rotation": angle, "type": "out", "color": Color("#F5A623")}  # 明るいオレンジ
+		)
+
+	return params
+
+
+func get_output_ports() -> Array:
+	if not _cached_data:
+		return []
+
+	var static_ports = _cached_data.output_ports
+	return _get_rotated_ports(static_ports)
+
+
+func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
+	# 1. 自分の出力ポートを確認
+	var has_output_port = false
+	for port in get_output_ports():
+		# ここでは、どのローカルhexからの出力かをまだ考慮しない（単一hexピースを想定）
+		if port.direction == direction_to_target:
+			has_output_port = true
+			break
+
+	if not has_output_port:
+		return false
+
+	# 緩和ルール: 相手がそこに存在すれば、Inputポートの有無に関わらず受け入れる
+	return true
+
+
+func can_accept_item(_item_name: String) -> bool:
+	# 将来的に容量制限などを入れる
+	return true
+
+
+# --- Private Methods ---
+
 
 func _ensure_components_created():
 	if not input_storage:
@@ -91,52 +232,18 @@ func _ensure_components_created():
 		output_storage.name = "OutputInventory"
 		add_child(output_storage)
 		output_storage.inventory_changed.connect(_update_visuals)
-	
+
 	if not crafter:
 		crafter = Crafter.new()
 		crafter.name = "Crafter"
 		add_child(crafter)
 		crafter.setup(input_storage, output_storage)
-		
+
 	if not transporter:
 		transporter = Transporter.new()
 		transporter.name = "Transporter"
 		add_child(transporter)
 		transporter.setup(output_storage)
-		# 転送レートはとりあえずデフォルトのまま
-
-
-func set_detail_mode(enabled: bool):
-	is_detail_mode = enabled
-	_update_visuals()
-
-
-func set_recipe(recipe: Recipe):
-	if crafter:
-		crafter.set_recipe(recipe)
-	_update_visuals()
-
-
-# プロパティアクセサ
-var current_recipe: Recipe:
-	get:
-		return crafter.current_recipe if crafter else null
-
-var processing_progress: float:
-	get:
-		return crafter.processing_progress if crafter else 0.0
-	set(value):
-		if crafter:
-			crafter.processing_progress = value
-
-# 互換性のためのアクセサ（テスト用など）
-var transfer_rate: float:
-	get: return transporter.transfer_rate if transporter else 1.0
-	set(v): if transporter: transporter.transfer_rate = v
-
-var transfer_cooldown: float:
-	get: return transporter.transfer_cooldown if transporter else 0.0
-	set(v): if transporter: transporter.transfer_cooldown = v
 
 
 func _update_visuals():
@@ -150,7 +257,7 @@ func _update_output_visuals():
 		return
 
 	var item_id = ""
-	
+
 	if not input_storage or not output_storage:
 		return
 
@@ -164,7 +271,7 @@ func _update_output_visuals():
 		# レシピがない場合（Chest等）、Outputにあるものを表示
 		var max_count = 0
 		var all_items = []
-		
+
 		all_items.append_array(output_storage._items.keys())
 		if output_storage._items.is_empty():
 			all_items.append_array(input_storage._items.keys())
@@ -252,76 +359,6 @@ func _update_speed_visuals():
 		speed_label.visible = false
 
 
-func add_item(item_name: String, amount: int):
-	if input_storage:
-		input_storage.add_item(item_name, amount)
-
-
-func add_to_output(item_name: String, amount: int):
-	if output_storage:
-		output_storage.add_item(item_name, amount)
-
-
-func get_item_count(item_name: String) -> int:
-	var count = 0
-	if input_storage:
-		count += input_storage.get_item_count(item_name)
-	if output_storage:
-		count += output_storage.get_item_count(item_name)
-	return count
-
-
-func _process(delta: float):
-	tick(delta)
-
-
-func rotate_cw():
-	rotation_state = (rotation_state + 1) % 6
-	queue_redraw()
-
-
-func tick(delta: float):
-	if crafter:
-		crafter.tick(delta)
-		
-	if current_recipe:
-		if progress_bar:
-			progress_bar.visible = processing_progress > 0
-			progress_bar.max_value = current_recipe.craft_time
-			progress_bar.value = processing_progress
-	else:
-		if progress_bar:
-			progress_bar.visible = false
-
-	if piece_type == PieceDB.PieceType.CHEST:
-		return
-
-	if transporter:
-		transporter.tick(delta)
-		if transporter.is_ready():
-			_try_push_to_neighbors()
-
-
-func get_port_visual_params() -> Array:
-	var params = []
-
-	# Layout定義 (GridManagerと同じ設定)
-	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
-
-	# 出力ポート (オレンジ系)
-	for port in get_output_ports():
-		var center_pos = Layout.hex_to_pixel(layout, port.hex)
-		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
-		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
-		var angle = (neighbor_pos - center_pos).angle()
-
-		params.append(
-			{"position": center_pos, "rotation": angle, "type": "out", "color": Color("#F5A623")}  # 明るいオレンジ
-		)
-
-	return params
-
-
 func _draw():
 	var params = get_port_visual_params()
 	for p in params:
@@ -348,14 +385,6 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
 
-func get_output_ports() -> Array:
-	if not _cached_data:
-		return []
-
-	var static_ports = _cached_data.output_ports
-	return _get_rotated_ports(static_ports)
-
-
 func _get_rotated_ports(ports: Array) -> Array:
 	var rotated_ports: Array = []
 	for port_def in ports:
@@ -367,27 +396,6 @@ func _get_rotated_ports(ports: Array) -> Array:
 		rotated_ports.append({"hex": rotated_hex, "direction": rotated_direction})
 
 	return rotated_ports
-
-
-func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
-	# 1. 自分の出力ポートを確認
-	var has_output_port = false
-	for port in get_output_ports():
-		# ここでは、どのローカルhexからの出力かをまだ考慮しない（単一hexピースを想定）
-		if port.direction == direction_to_target:
-			has_output_port = true
-			break
-
-	if not has_output_port:
-		return false
-
-	# 緩和ルール: 相手がそこに存在すれば、Inputポートの有無に関わらず受け入れる
-	return true
-
-
-func can_accept_item(_item_name: String) -> bool:
-	# 将来的に容量制限などを入れる
-	return true
 
 
 func _try_push_to_neighbors():
@@ -408,13 +416,3 @@ func _try_push_to_neighbors():
 
 	if transporter:
 		transporter.push(potential_targets)
-
-
-func _consume_input(item_name: String, amount: int):
-	if input_storage:
-		input_storage.consume_item(item_name, amount)
-
-
-func _consume_output(item_name: String, amount: int):
-	if output_storage:
-		output_storage.consume_item(item_name, amount)
