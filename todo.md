@@ -7,11 +7,13 @@
 
 ### リファクタリング
 - [ ] テストコードの重複整理（最優先）
-    - [ ] `test_piece.gd` から `test_item_container.gd` へインベントリ操作のテストを移譲・整理
-    - [ ] `test_piece.gd` から `test_transporter.gd` / `test_crafter.gd` へロジックテストを移譲・整理
-    - [ ] `test_piece.gd` をコンポーネント間の連携（結合テスト）に特化させる
+	- [ ] `test_piece.gd` から `test_item_container.gd` へインベントリ操作のテストを移譲・整理
+	- [ ] `test_piece.gd` から `test_transporter.gd` / `test_crafter.gd` へロジックテストを移譲・整理
+	- [ ] `test_piece.gd` をコンポーネント間の連携（結合テスト）に特化させる
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので、これを修正するべきか検討する
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
+- [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いです。これを修正する
+- [ ] test_gridmanager, test_main: 内部クラスに整理し、命名を日本語に統一する
 
 ## 将来的なタスク・メモなど（AIはこれを編集・削除しないでください）
 - [ ] ポート回転ロジック(get_rotate_portsなど)は、hexクラス等に共通化できるかも。検討する
