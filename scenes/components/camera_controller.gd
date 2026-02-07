@@ -7,7 +7,7 @@ extends Camera2D
 
 
 func _ready() -> void:
-	change_zoom(0.3)
+	change_zoom(-0.1)
 
 
 func _unhandled_input(event: InputEvent) -> void:
