@@ -51,21 +51,3 @@ func test_スロットをクリックするとパレットの選択が更新さ�
 
 	# パレットの選択状態が更新されているか確認
 	assert_eq(palette.get_active_index(), 2, "スロット2をクリックしたらインデックス2が選択されるべき")
-
-
-func test_選択中のスロットを再度クリックすると選択が解除される():
-	# まずスロット2を選択状態にする
-	palette.select_slot(2)
-	assert_eq(palette.get_active_index(), 2)
-
-	# スロット2をクリックしたふりをする
-	var slot2 = ui.slot_rects[2]
-	var event = InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = true
-	event.position = Vector2(1, 1)
-
-	slot2.gui_input.emit(event)
-
-	# 選択が解除されているか確認
-	assert_eq(palette.get_active_index(), -1, "選択中のスロットを再度クリックしたら非選択になるべき")

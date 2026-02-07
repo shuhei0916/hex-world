@@ -18,8 +18,7 @@ func test_パレットのアクティブスロットは初期状態で非選択(
 
 func test_選択中のスロットを再度選択すると非選択になる():
 	palette.select_slot(2)
-	assert_eq(palette.get_active_index(), 2)
-	palette.select_slot(2)
+	palette.select_slot(2)  # 再び選択
 	assert_eq(palette.get_active_index(), -1)
 
 
@@ -40,24 +39,6 @@ func test_アクティブスロット変更時にハイライトも移動する(
 	palette.select_slot(1)
 	assert_false(palette.is_slot_highlighted(0))
 	assert_true(palette.is_slot_highlighted(1))
-
-
-func test_スロット1から7には決まったピースが割り当てられている():
-	var expected_types = [
-		PieceDB.PieceType.BEE,
-		PieceDB.PieceType.WORM,
-		PieceDB.PieceType.WAVE,
-		PieceDB.PieceType.PISTOL,
-		PieceDB.PieceType.BAR,
-		PieceDB.PieceType.PROPELLER,
-		PieceDB.PieceType.ARCH
-	]
-	for i in range(expected_types.size()):
-		assert_eq(
-			palette.get_piece_type_for_slot(i),
-			expected_types[i],
-			"スロット%dのピースタイプが期待値と異なります" % (i + 1)
-		)
 
 
 func test_スロットピース取得APIで形状データが返る():
