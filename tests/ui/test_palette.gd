@@ -44,13 +44,13 @@ func test_アクティブスロット変更時にハイライトも移動する(
 
 func test_スロット1から7には決まったピースが割り当てられている():
 	var expected_types = [
-		PieceDB.PieceType.BAR,
-		PieceDB.PieceType.WORM,
-		PieceDB.PieceType.PISTOL,
-		PieceDB.PieceType.PROPELLER,
-		PieceDB.PieceType.ARCH,
 		PieceDB.PieceType.BEE,
-		PieceDB.PieceType.WAVE
+		PieceDB.PieceType.WORM,
+		PieceDB.PieceType.WAVE,
+		PieceDB.PieceType.PISTOL,
+		PieceDB.PieceType.BAR,
+		PieceDB.PieceType.PROPELLER,
+		PieceDB.PieceType.ARCH
 	]
 	for i in range(expected_types.size()):
 		assert_eq(

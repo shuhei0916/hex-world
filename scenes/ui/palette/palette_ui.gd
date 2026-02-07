@@ -66,9 +66,12 @@ func _create_slots():
 		var rect := ColorRect.new()
 		rect.name = "Slot%d" % i
 		rect.color = inactive_color
-		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rect.mouse_filter = Control.MOUSE_FILTER_STOP
 		rect.custom_minimum_size = slot_size
 		rect.set_size(slot_size)
+
+		# 入力イベントを接続
+		rect.gui_input.connect(_on_slot_gui_input.bind(i))
 
 		# ピースのプレビューを追加
 		var piece_data = palette.get_piece_data_for_slot(i)
@@ -77,6 +80,13 @@ func _create_slots():
 
 		add_child(rect)
 		slot_rects.append(rect)
+
+
+func _on_slot_gui_input(event: InputEvent, index: int):
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if palette:
+				palette.select_slot(index)
 
 
 func _create_piece_icon(parent: Control, piece_data: Dictionary):
