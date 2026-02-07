@@ -100,12 +100,12 @@ func is_slot_highlighted(index: int) -> bool:
 
 func _get_default_piece_assignments() -> Array:
 	return [
-		PieceDB.PieceType.BAR,
+		PieceDB.PieceType.BEE,
 		PieceDB.PieceType.WORM,
+		PieceDB.PieceType.WAVE,
 		PieceDB.PieceType.PISTOL,
+		PieceDB.PieceType.BAR,
 		PieceDB.PieceType.PROPELLER,
 		PieceDB.PieceType.ARCH,
-		PieceDB.PieceType.BEE,
-		PieceDB.PieceType.WAVE,
 		PieceDB.PieceType.CHEST
 	]
