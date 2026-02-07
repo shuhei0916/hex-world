@@ -1,4 +1,3 @@
-class_name TestPiecePlacer
 extends GutTest
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")

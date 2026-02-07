@@ -1,4 +1,3 @@
-class_name TestMain
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")

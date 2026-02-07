@@ -1,5 +1,5 @@
 # gdlint:disable=function-name
-class_name TestRecipe
+
 extends GutTest
 
 

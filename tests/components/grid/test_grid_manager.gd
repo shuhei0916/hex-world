@@ -1,5 +1,3 @@
-class_name TestGridManager
-
 extends GutTest
 
 var grid_manager_instance: GridManager

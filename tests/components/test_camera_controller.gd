@@ -1,4 +1,3 @@
-class_name TestCameraController
 extends GutTest
 
 var camera: CameraController
