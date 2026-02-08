@@ -176,10 +176,8 @@ func get_output_ports() -> Array:
 
 
 func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
-	# 1. 自分の出力ポートを確認
 	var has_output_port = false
 	for port in get_output_ports():
-		# ここでは、どのローカルhexからの出力かをまだ考慮しない（単一hexピースを想定）
 		if port.direction == direction_to_target:
 			has_output_port = true
 			break
@@ -187,7 +185,6 @@ func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
 	if not has_output_port:
 		return false
 
-	# 緩和ルール: 相手がそこに存在すれば、Inputポートの有無に関わらず受け入れる
 	return true
 
 

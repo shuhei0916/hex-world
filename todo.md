@@ -14,15 +14,20 @@
 	- [ ] Piece: `tick` での毎秒プッシュを廃止（イベント駆動へ移行）
 
 ### リファクタリング
-- [ ] ピース間の依存関係を整理し、物流テストを単体テスト化する
-	- [ ] Hex: 2つのHex間の方向インデックスを取得できる
-	- [ ] Piece: `_try_push_to_neighbors` で外部から隣人を受け取れるようにする
-	- [ ] GridManager: 生産完了時に隣人の情報を収集してPieceに渡すようにする
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので、これを修正するべきか検討する
+- [ ] Piece: `can_push_to` メソッドで、相手の座標から自動的に方向を判定できるようにする（引数をオプション化）
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いです。これを修正する
 - [ ] test_gridmanager, test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
+- [ ] ピースの配置が下記のようにシンプルにならないか検討する（test_piece.gdなど）
+```
+   var a = Piece.new()
+   var b = Piece.new()
+   a.hex_coordinates = [Hex.new(0,0)]
+   b.hex_coordinates = [Hex.new(1,0)]
+   assert_true(a.can_push_to(b))
+```
 
 ## 将来的なタスク・メモなど（AIはこれを編集・削除しないでください）
 - [ ] マウスホイールでツールバーに割り当てられたピースの選択ができるようにする

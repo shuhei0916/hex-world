@@ -4,7 +4,41 @@ extends GutTest
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 
 
-# --- 基本機能のテスト ---
+class TestPieceUnit:
+	extends GutTest
+
+	var source: Piece
+	var target: Piece
+	var piece_data: PieceDB.PieceData
+
+	func before_each():
+		source = Piece.new()
+		piece_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		source.setup({"type": -1, "hex_coordinates": [Hex.new(0, 0)]}, piece_data)
+
+		target = Piece.new()
+		target.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(1, 0, -1)]})
+
+		add_child_autofree(source)
+		add_child_autofree(target)
+
+	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
+		assert_true(source.can_push_to(target, 0), "方向0に向いているポートは接続可能であるべき")
+		assert_false(source.can_push_to(target, 1), "ポートがない方向1は接続不可であるべき")
+
+	func test_隣人リストを設定して直接アイテムを搬出できる():
+		source.add_to_output("iron", 1)
+
+		source.neighbors = [target]
+		source._try_push_to_neighbors()
+
+		assert_eq(source.get_item_count("iron"), 0, "搬出されているべき")
+		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
+
+
+# --- シーン構成と連携のテスト (コンポーネントテスト) ---
 class TestPieceBasics:
 	extends GutTest
 
@@ -31,37 +65,6 @@ class TestPieceBasics:
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
 		piece.add_item("iron", 20)
 		assert_false(piece.can_accept_item("copper"), "満杯時は受け入れ拒否すべき")
-
-	func test_隣人リストを設定して直接アイテムを搬出できる():
-		# 単体テスト: GridManagerがいなくても、隣人リストさえあれば搬出できるか
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		piece.setup({"type": -1, "hex_coordinates": [Hex.new(0, 0)]}, out_data)
-		piece.add_to_output("iron", 1)
-
-		var target = PIECE_SCENE.instantiate()
-		target.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(1, 0, -1)]})
-		add_child_autofree(target)
-
-		piece.neighbors = [target]
-		piece._try_push_to_neighbors()
-
-		assert_eq(piece.get_item_count("iron"), 0, "搬出されているべき")
-		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
-
-	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
-		# 単体テスト: 2つのピース間の物理的な接続判定
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		piece.setup({"type": -1}, out_data)
-
-		var target = PIECE_SCENE.instantiate()
-		target.setup({"type": PieceDB.PieceType.CHEST})
-
-		assert_true(piece.can_push_to(target, 0), "方向0に向いているポートは接続可能であるべき")
-		assert_false(piece.can_push_to(target, 1), "ポートがない方向1は接続不可であるべき")
 
 
 # --- 視覚表現と連携のテスト ---
@@ -106,8 +109,6 @@ class TestPieceLogistics:
 		grid_manager.create_hex_grid(3)
 
 	func test_生産ライン全体の連携が正しく機能する():
-		# 結合テスト: 採掘 -> 加工 -> 輸送 -> 格納
-		# GridManagerが正しく隣人トポロジーを管理し、シグナル連鎖が機能することを保証する
 		var m_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
