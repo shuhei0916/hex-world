@@ -1,7 +1,6 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const Types = PieceDB.PieceType
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 
 
@@ -58,7 +57,10 @@ class TestPieceVisuals:
 
 	func test_ポートの描画用パラメータを正しく計算できる():
 		# ポートの方向に基づいた回転角などの計算確認
-		piece.setup({"type": PieceDB.PieceType.TEST_OUT})
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		piece.setup({"type": -1}, out_data)
 		var params = piece.get_port_visual_params()
 		assert_eq(params.size(), 1)
 		assert_almost_eq(params[0].rotation, 0.0, 0.01)
@@ -81,21 +83,20 @@ class TestPieceLogistics:
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
-		grid_manager.place_piece(
-			[Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.TEST_IN
-		)
+		# 搬入先はChest（全方向から受け入れ可能）
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST)
 
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
 		piece_a.add_to_output("iron", 1)
+		# 即時輸送なのでtickは不要だが、内部処理を確実に回すため呼ぶ
 		piece_a.tick(0.1)
 
 		assert_eq(piece_a.get_item_count("iron"), 0, "搬出元からは減るべき")
 		assert_eq(piece_b.get_item_count("iron"), 1, "搬入先には増えるべき")
 
 	func test_アイテムがアウトプットに入った瞬間に即座に搬出される():
-		# 結合テスト: tick() を呼ばなくても add_to_output だけで移動するか
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
@@ -105,18 +106,17 @@ class TestPieceLogistics:
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0))
 
-		# 実行: tickなしで直接投入
 		piece_a.add_to_output("iron", 1)
 
-		# 検証: 即座に piece_b に移動しているはず
 		assert_eq(piece_a.get_item_count("iron"), 0, "即座に搬出されるべき")
 		assert_eq(piece_b.get_item_count("iron"), 1, "即座に搬入されるべき")
 
 	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.TEST_OUT)
-		grid_manager.place_piece(
-			[Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.TEST_IN
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST)
 
 		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
@@ -124,7 +124,6 @@ class TestPieceLogistics:
 		assert_true(piece_a.can_push_to(piece_b, 0), "方向0に向いているポートは接続可能であるべき")
 
 	func test_生産ライン全体の連携が正しく機能する():
-		# シナリオテスト: 採掘 -> 加工 -> 輸送 -> 格納
 		var m_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
@@ -141,19 +140,23 @@ class TestPieceLogistics:
 		var chest = grid_manager.get_piece_at_hex(Hex.new(2, 0))
 
 		miner.tick(1.1)
-		assert_eq(smelter.get_item_count("iron_ore"), 1, "採掘機から炉へ移動するべき")
+		assert_eq(smelter.get_item_count("iron_ore"), 1)
 
 		smelter.tick(3.1)
-		assert_eq(chest.get_item_count("iron_ingot"), 1, "炉からチェストへ移動するべき")
+		assert_eq(chest.get_item_count("iron_ingot"), 1)
 
 
 # --- 回転ロジックのテスト ---
-class TestPieceRotation:
+class TestPieceTransformation:
 	extends GutTest
 
 	func test_ポートの向きはピースの回転に追従する():
 		var p = Piece.new()
-		p.setup({"type": PieceDB.PieceType.TEST_OUT})
+		# 定数を使わず直接データを作成
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		p.setup({"type": -1}, out_data)
 		add_child_autofree(p)
 
 		assert_eq(p.get_output_ports()[0].direction, 0)
@@ -165,17 +168,17 @@ class TestPieceRotation:
 class TestPieceRoles:
 	extends GutTest
 
-	func test_Smelter役割は初期化時に自動的に適切なレシピとポートが設定される():
+	func test_製錬所ロールは初期化時に自動的に適切なレシピとポートが設定される():
 		var p = Piece.new()
 		var data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 		p.setup({"type": -1}, data)
 
-		assert_not_null(p.current_recipe, "Smelterはレシピを持つべき")
-		assert_gt(p.get_output_ports().size(), 0, "Smelterは出力ポートを持つべき")
+		assert_not_null(p.current_recipe, "製錬所はレシピを持つべき")
+		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
-	func test_採掘機は時間経過でアイテムを自動生産する():
+	func test_採掘機ロールは時間経過でアイテムを自動生産する():
 		var p = PIECE_SCENE.instantiate()
 		var data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "miner")
 		p.setup({"type": -1}, data)

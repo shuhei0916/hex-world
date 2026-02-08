@@ -11,10 +11,6 @@ enum PieceType {
 	BEE,
 	WAVE,
 	CHEST,
-	# --- Test-only types ---
-	TEST_OUT,
-	TEST_IN,
-	TEST_OUT_WRONG_DIR
 }
 
 const FACILITY_COLORS = {
@@ -102,12 +98,6 @@ static var DATA = {
 		"constructor"
 	),
 	PieceType.CHEST: PieceData.new([Hex.new(0, 0, 0)], [], "storage"),
-	# --- Test-only definitions ---
-	PieceType.TEST_OUT:
-	PieceData.new([Hex.new(0, 0, 0)], [{"hex": Hex.new(0, 0, 0), "direction": "E"}], "test_role"),
-	PieceType.TEST_IN: PieceData.new([Hex.new(0, 0, 0)], [], "test_role"),
-	PieceType.TEST_OUT_WRONG_DIR:
-	PieceData.new([Hex.new(0, 0, 0)], [{"hex": Hex.new(0, 0, 0), "direction": "NE"}], "test_role"),
 }
 
 

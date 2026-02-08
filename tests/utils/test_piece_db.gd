@@ -58,8 +58,6 @@ func test_WORM形状が正しく定義されている():
 
 func test_全ての形状が適切なhex数を持つ():
 	for type in PieceDB.PieceType.values():
-		if type >= PieceDB.PieceType.TEST_OUT:
-			continue  # Skip test types
 		var data = PieceDB.DATA[type]
 		if type == PieceDB.PieceType.CHEST:
 			assert_eq(data.shape.size(), 1, "CHESTは1Hexであるべき")
@@ -71,9 +69,6 @@ func test_各形状が異なる色を持つ():
 	var colors = {}
 
 	for type in PieceDB.PieceType.values():
-		if type >= PieceDB.PieceType.TEST_OUT:
-			continue  # Skip test types
-
 		var data = PieceDB.DATA[type]
 
 		assert_false(colors.has(data.color))
