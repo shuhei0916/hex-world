@@ -94,6 +94,19 @@ class TestHexDirections:
 		var expected = Hex.new(1, 0, -1)
 		assert_true(Hex.equals(result, expected))
 
+	func test_2つのHex間の方向インデックスを取得できる():
+		var center = Hex.new(0, 0, 0)
+		var dirs = Hex.DIR_NAME_TO_INDEX
+		assert_eq(Hex.get_direction_to(center, Hex.new(1, 0, -1)), dirs["E"], "東")
+		assert_eq(Hex.get_direction_to(center, Hex.new(1, -1, 0)), dirs["NE"], "北東")
+		assert_eq(Hex.get_direction_to(center, Hex.new(0, -1, 1)), dirs["NW"], "北西")
+		assert_eq(Hex.get_direction_to(center, Hex.new(-1, 0, 1)), dirs["W"], "西")
+		assert_eq(Hex.get_direction_to(center, Hex.new(-1, 1, 0)), dirs["SW"], "南西")
+		assert_eq(Hex.get_direction_to(center, Hex.new(0, 1, -1)), dirs["SE"], "南東")
+
+		# 隣接していない場合
+		assert_eq(Hex.get_direction_to(center, Hex.new(10, 10)), -1, "隣接していなければ-1")
+
 
 # 距離・補間システムテスト
 class TestHexDistance:

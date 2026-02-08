@@ -82,6 +82,13 @@ static func neighbor(hex: Hex, direction_index: int) -> Hex:
 	return add(hex, direction(direction_index))
 
 
+static func get_direction_to(a: Hex, b: Hex) -> int:
+	for i in range(6):
+		if equals(neighbor(a, i), b):
+			return i
+	return -1
+
+
 static func diagonal_neighbor(hex: Hex, direction_index: int) -> Hex:
 	return add(hex, hex_diagonals[direction_index])
 

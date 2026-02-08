@@ -32,6 +32,26 @@ class TestPieceBasics:
 		piece.add_item("iron", 20)
 		assert_false(piece.can_accept_item("copper"), "満杯時は受け入れ拒否すべき")
 
+	func test_隣人リストを直接渡してアイテムを搬出できる():
+		# 準備: 送り側Piece (0,0)に出力ポート(方向0)を持つ
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		piece.setup({"type": -1, "hex_coordinates": [Hex.new(0, 0)]}, out_data)
+		piece.add_to_output("iron", 1)
+
+		# 準備: 受け側Piece (1,0,-1) = 方向0に配置
+		var target = PIECE_SCENE.instantiate()
+		target.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(1, 0, -1)]})
+		add_child_autofree(target)
+
+		# 実行: 隣人を直接渡してプッシュ (現在は引数を取らないため失敗するはず)
+		piece._try_push_to_neighbors([target])
+
+		# 検証
+		assert_eq(piece.get_item_count("iron"), 0, "搬出されているべき")
+		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
+
 
 # --- 視覚表現と連携のテスト ---
 class TestPieceVisuals:
