@@ -134,6 +134,9 @@ func place_piece(
 		var key = _hex_to_key(hex)
 		_hex_to_piece_map[key] = piece
 
+	# 隣接情報を更新
+	_update_neighbors_around_piece(piece)
+
 
 func remove_piece_at(target_hex: Hex) -> bool:
 	var key = _hex_to_key(target_hex)
@@ -154,6 +157,9 @@ func remove_piece_at(target_hex: Hex) -> bool:
 		var h_key = _hex_to_key(hex)
 		_hex_to_piece_map.erase(h_key)
 		_unplace_single_hex(hex)
+
+	# 削除されるピースの周囲の隣接情報を更新
+	_update_neighbors_around_piece(piece)
 
 	piece.queue_free()
 	return true
@@ -179,6 +185,36 @@ func clear_grid():
 
 func _hex_to_key(hex: Hex) -> String:
 	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+
+
+func _update_piece_neighbors(piece: Piece):
+	if not is_instance_valid(piece):
+		return
+
+	var current_neighbors: Array[Piece] = []
+	for hex in piece.hex_coordinates:
+		for direction in range(6):
+			var neighbor = get_neighbor_piece(hex, direction)
+			if neighbor and neighbor != piece and not neighbor in current_neighbors:
+				current_neighbors.append(neighbor)
+
+	piece.neighbors = current_neighbors
+
+
+func _update_neighbors_around_piece(piece: Piece):
+	# このピース自身の隣人を更新
+	_update_piece_neighbors(piece)
+
+	# このピースの周囲にいるピースたちの隣人リストも更新（自分が入る/消えるため）
+	var surrounding_pieces = {}
+	for hex in piece.hex_coordinates:
+		for direction in range(6):
+			var neighbor = get_neighbor_piece(hex, direction)
+			if neighbor and neighbor != piece:
+				surrounding_pieces[neighbor.get_instance_id()] = neighbor
+
+	for p in surrounding_pieces.values():
+		_update_piece_neighbors(p)
 
 
 func get_piece_at_hex(hex: Hex) -> Piece:

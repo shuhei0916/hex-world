@@ -32,25 +32,36 @@ class TestPieceBasics:
 		piece.add_item("iron", 20)
 		assert_false(piece.can_accept_item("copper"), "満杯時は受け入れ拒否すべき")
 
-	func test_隣人リストを直接渡してアイテムを搬出できる():
-		# 準備: 送り側Piece (0,0)に出力ポート(方向0)を持つ
+	func test_隣人リストを設定して直接アイテムを搬出できる():
+		# 単体テスト: GridManagerがいなくても、隣人リストさえあれば搬出できるか
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
 		piece.setup({"type": -1, "hex_coordinates": [Hex.new(0, 0)]}, out_data)
 		piece.add_to_output("iron", 1)
 
-		# 準備: 受け側Piece (1,0,-1) = 方向0に配置
 		var target = PIECE_SCENE.instantiate()
 		target.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(1, 0, -1)]})
 		add_child_autofree(target)
 
-		# 実行: 隣人を直接渡してプッシュ (現在は引数を取らないため失敗するはず)
-		piece._try_push_to_neighbors([target])
+		piece.neighbors = [target]
+		piece._try_push_to_neighbors()
 
-		# 検証
 		assert_eq(piece.get_item_count("iron"), 0, "搬出されているべき")
 		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
+
+	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
+		# 単体テスト: 2つのピース間の物理的な接続判定
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		piece.setup({"type": -1}, out_data)
+
+		var target = PIECE_SCENE.instantiate()
+		target.setup({"type": PieceDB.PieceType.CHEST})
+
+		assert_true(piece.can_push_to(target, 0), "方向0に向いているポートは接続可能であるべき")
+		assert_false(piece.can_push_to(target, 1), "ポートがない方向1は接続不可であるべき")
 
 
 # --- 視覚表現と連携のテスト ---
@@ -87,8 +98,6 @@ class TestPieceLogistics:
 	extends GutTest
 
 	var grid_manager: GridManager
-	var piece_a: Piece  # 送り側
-	var piece_b: Piece  # 受け側 (Chest)
 
 	func before_each():
 		grid_manager = GridManager.new()
@@ -96,29 +105,9 @@ class TestPieceLogistics:
 		add_child_autofree(grid_manager)
 		grid_manager.create_hex_grid(3)
 
-		# 共通セットアップ: A(0,0) -> B(1,0,-1) 方向0で接続
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST)
-
-		piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
-		piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
-
-	func test_ポートが接続された隣接ピース間でアイテムが移動する():
-		piece_a.add_to_output("iron", 1)
-		assert_eq(piece_a.get_item_count("iron"), 0, "搬出元からは減るべき")
-		assert_eq(piece_b.get_item_count("iron"), 1, "搬入先には増えるべき")
-
-	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
-		assert_true(piece_a.can_push_to(piece_b, 0), "方向0に向いているポートは接続可能であるべき")
-
 	func test_生産ライン全体の連携が正しく機能する():
-		# シナリオテスト: 一旦クリアして独自のラインを組む
-		grid_manager.clear_grid()
-		grid_manager.create_hex_grid(3)
-
+		# 結合テスト: 採掘 -> 加工 -> 輸送 -> 格納
+		# GridManagerが正しく隣人トポロジーを管理し、シグナル連鎖が機能することを保証する
 		var m_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)

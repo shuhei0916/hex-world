@@ -16,6 +16,9 @@ var output_storage: ItemContainer
 var crafter: Crafter
 var transporter: Transporter
 
+# トポロジー情報 (GridManagerによって管理される)
+var neighbors: Array[Piece] = []
+
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
 
@@ -376,41 +379,28 @@ func _get_rotated_ports(ports: Array) -> Array:
 	return rotated_ports
 
 
-func _try_push_to_neighbors(neighbors: Array = []):
+func _try_push_to_neighbors():
 	if not output_storage or output_storage._items.is_empty():
 		return
 
 	var potential_targets: Array[Piece] = []
 
-	if neighbors.is_empty():
-		# 従来通りGridManager（親）に聞きに行く
-		var grid_manager = get_parent()
-		if not grid_manager or not grid_manager.has_method("get_neighbor_piece"):
-			return
+	# 自分の持っている隣人リストから、接続可能なものを探す
+	for neighbor in neighbors:
+		if not is_instance_valid(neighbor) or neighbor == self:
+			continue
 
-		for hex in hex_coordinates:
-			for direction in range(6):
-				var neighbor = grid_manager.get_neighbor_piece(hex, direction)
-				if neighbor and neighbor != self and not neighbor in potential_targets:
-					if can_push_to(neighbor, direction):
-						potential_targets.append(neighbor)
-	else:
-		# 渡された隣人リストから、自分と接続可能なものを探す
-		for neighbor in neighbors:
-			if not neighbor or neighbor == self:
-				continue
-
-			# 自分の各Hexと、相手の各Hexの隣接関係をチェック
-			for my_hex in hex_coordinates:
-				for their_hex in neighbor.hex_coordinates:
-					var dir = Hex.get_direction_to(my_hex, their_hex)
-					if dir != -1:  # 隣接している
-						if can_push_to(neighbor, dir):
-							if not neighbor in potential_targets:
-								potential_targets.append(neighbor)
-							break
-				if neighbor in potential_targets:
-					break
+		# 自分の各Hexと、相手の各Hexの隣接関係をチェック
+		for my_hex in hex_coordinates:
+			for their_hex in neighbor.hex_coordinates:
+				var dir = Hex.get_direction_to(my_hex, their_hex)
+				if dir != -1:  # 隣接している
+					if can_push_to(neighbor, dir):
+						if not neighbor in potential_targets:
+							potential_targets.append(neighbor)
+						break
+			if neighbor in potential_targets:
+				break
 
 	if transporter and not potential_targets.is_empty():
 		transporter.push(potential_targets)

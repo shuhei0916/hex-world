@@ -277,3 +277,39 @@ func test_new_piece_inherits_detail_mode():
 
 	# 配置直後から詳細モードになっているべき
 	assert_true(piece.is_detail_mode, "New piece should inherit detail mode")
+
+
+func test_ピース配置時に隣接するピースのneighborsリストが自動更新される():
+	grid_manager_instance.create_hex_grid(2)
+
+	# 1. まず Piece A を配置
+	grid_manager_instance.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.CHEST)
+	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
+
+	# 2. 次に Piece B を A の隣に配置
+	var pos_b = Hex.new(1, 0, -1)
+	grid_manager_instance.place_piece([Hex.new(0, 0)], pos_b, null, PieceDB.PieceType.CHEST)
+	var piece_b = grid_manager_instance.get_piece_at_hex(pos_b)
+
+	# 検証: A の隣人に B が、B の隣人に A が入っているべき
+	assert_true(piece_b in piece_a.neighbors, "Piece A should recognize Piece B as a neighbor")
+	assert_true(piece_a in piece_b.neighbors, "Piece B should recognize Piece A as a neighbor")
+
+
+func test_ピース削除時に周囲のピースのneighborsリストから削除される():
+	grid_manager_instance.create_hex_grid(2)
+	grid_manager_instance.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.CHEST)
+	grid_manager_instance.place_piece(
+		[Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST
+	)
+
+	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
+	var piece_b = grid_manager_instance.get_piece_at_hex(Hex.new(1, 0, -1))
+
+	# 削除実行
+	grid_manager_instance.remove_piece_at(Hex.new(1, 0, -1))
+
+	# 検証: Piece A の隣人リストから B が消えているべき
+	assert_false(
+		piece_b in piece_a.neighbors, "Piece A should no longer have Piece B as a neighbor"
+	)
