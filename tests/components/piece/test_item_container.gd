@@ -1,6 +1,5 @@
 extends GutTest
 
-var ItemContainer = load("res://scenes/components/piece/item_container.gd")
 var container
 
 

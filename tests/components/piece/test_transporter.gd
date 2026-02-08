@@ -1,8 +1,5 @@
 extends GutTest
 
-var Transporter = load("res://scenes/components/piece/transporter.gd")
-var ItemContainer = load("res://scenes/components/piece/item_container.gd")
-
 var transporter: Transporter
 var source_container: ItemContainer
 

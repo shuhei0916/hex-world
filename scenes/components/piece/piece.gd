@@ -1,10 +1,6 @@
 class_name Piece
 extends Node2D
 
-const ItemContainer = preload("res://scenes/components/piece/item_container.gd")
-const Crafter = preload("res://scenes/components/piece/crafter.gd")
-const Transporter = preload("res://scenes/components/piece/transporter.gd")
-
 # ピースの種類ID (PieceDB.PieceType)
 var piece_type: int = -1
 

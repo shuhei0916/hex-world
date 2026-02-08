@@ -1,8 +1,5 @@
 extends GutTest
 
-var Crafter = load("res://scenes/components/piece/crafter.gd")
-var ItemContainer = load("res://scenes/components/piece/item_container.gd")
-
 var crafter: Crafter
 var input_container: ItemContainer
 var output_container: ItemContainer
