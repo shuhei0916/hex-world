@@ -34,30 +34,14 @@ func test_初期状態では準備完了状態である():
 	assert_true(transporter.is_ready())
 
 
-func test_搬出に成功するとクールダウンが発生する():
-	source_container.add_item("iron", 1)
-	var target = MockTarget.new()
-
-	transporter.push([target])
-
-	assert_false(transporter.is_ready(), "搬出直後は準備完了ではないべき")
-	assert_gt(transporter.transfer_cooldown, 0.0)
-
-
-func test_tickでクールダウンが解消される():
-	transporter.transfer_cooldown = 0.5
-	transporter.tick(0.6)
-	assert_true(transporter.is_ready(), "時間経過で準備完了になるべき")
-
-
-func test_アイテムの移動が正しく行われる():
+func test_アイテムの移動が一度に全量行われる():
 	source_container.add_item("iron", 5)
 	var target = MockTarget.new()
 
 	transporter.push([target])
 
-	assert_eq(source_container.get_item_count("iron"), 4, "ソースから1つ減るべき")
-	assert_eq(target.inventory["iron"], 1, "ターゲットに1つ増えるべき")
+	assert_eq(source_container.get_item_count("iron"), 0, "ソースのアイテムはすべて搬出されるべき")
+	assert_eq(target.inventory["iron"], 5, "ターゲットにすべてのアイテムが届くべき")
 
 
 func test_ターゲットが受け入れ不可の場合は移動しない():

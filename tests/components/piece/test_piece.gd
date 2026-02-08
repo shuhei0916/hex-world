@@ -94,6 +94,24 @@ class TestPieceLogistics:
 		assert_eq(piece_a.get_item_count("iron"), 0, "搬出元からは減るべき")
 		assert_eq(piece_b.get_item_count("iron"), 1, "搬入先には増えるべき")
 
+	func test_アイテムがアウトプットに入った瞬間に即座に搬出される():
+		# 結合テスト: tick() を呼ばなくても add_to_output だけで移動するか
+		var out_data = PieceDB.PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+		)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
+
+		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
+		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0))
+
+		# 実行: tickなしで直接投入
+		piece_a.add_to_output("iron", 1)
+
+		# 検証: 即座に piece_b に移動しているはず
+		assert_eq(piece_a.get_item_count("iron"), 0, "即座に搬出されるべき")
+		assert_eq(piece_b.get_item_count("iron"), 1, "即座に搬入されるべき")
+
 	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.TEST_OUT)
 		grid_manager.place_piece(

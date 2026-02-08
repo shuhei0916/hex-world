@@ -39,21 +39,6 @@ var processing_progress: float:
 		if crafter:
 			crafter.processing_progress = value
 
-# 互換性のためのアクセサ（テスト用など）
-var transfer_rate: float:
-	get:
-		return transporter.transfer_rate if transporter else 1.0
-	set(v):
-		if transporter:
-			transporter.transfer_rate = v
-
-var transfer_cooldown: float:
-	get:
-		return transporter.transfer_cooldown if transporter else 0.0
-	set(v):
-		if transporter:
-			transporter.transfer_cooldown = v
-
 var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
 
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
@@ -157,11 +142,6 @@ func tick(delta: float):
 	if piece_type == PieceDB.PieceType.CHEST:
 		return
 
-	if transporter:
-		transporter.tick(delta)
-		if transporter.is_ready():
-			_try_push_to_neighbors()
-
 
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
@@ -233,6 +213,7 @@ func _ensure_components_created():
 		output_storage.name = "OutputInventory"
 		add_child(output_storage)
 		output_storage.inventory_changed.connect(_update_visuals)
+		output_storage.inventory_changed.connect(_try_push_to_neighbors)
 
 	if not crafter:
 		crafter = Crafter.new()
