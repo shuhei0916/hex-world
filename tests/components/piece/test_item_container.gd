@@ -84,3 +84,26 @@ func test_合計アイテム数を取得できる():
 
 	container.consume_item("iron", 2)
 	assert_eq(container.get_total_item_count(), 6, "8 - 2 = 6 であるべき")
+
+
+func test_満杯状態を正しく判定できる():
+	if not container:
+		return
+
+	# デフォルト容量は20とする
+	assert_false(container.is_full(), "初期状態は満杯ではない")
+
+	container.add_item("junk", 20)
+	assert_true(container.is_full(), "20個入れたら満杯判定されるべき")
+
+
+func test_容量を自由に変更できる():
+	if not container:
+		return
+
+	container.capacity = 5
+	container.add_item("junk", 4)
+	assert_false(container.is_full())
+
+	container.add_item("junk", 1)
+	assert_true(container.is_full(), "変更した容量(5)で判定されるべき")

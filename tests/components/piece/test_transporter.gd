@@ -70,3 +70,14 @@ func test_ターゲットが受け入れ不可の場合は移動しない():
 	assert_eq(source_container.get_item_count("iron"), 5, "ソースの数は変わらないべき")
 	assert_eq(target.inventory.get("iron", 0), 0, "ターゲットには増えないべき")
 	assert_true(transporter.is_ready(), "移動しなかった場合はクールダウンが発生しないべき")
+
+
+func test_ターゲットが20個以上のアイテムを持っている場合は移動しない():
+	# このテストは Transporter が target.can_accept_item() を正しく呼んでいるかを検証する
+	source_container.add_item("iron", 1)
+	var target = MockTarget.new()
+	target.accept = false  # 満杯をシミュレート
+
+	transporter.push([target])
+
+	assert_eq(source_container.get_item_count("iron"), 1, "満杯の相手には送らないべき")

@@ -5,6 +5,9 @@ extends Node
 
 signal inventory_changed
 
+# 最大容量 (合計アイテム数)
+var capacity: int = 20
+
 # インベントリデータ (アイテム名: 数量)
 var _items: Dictionary = {}
 
@@ -33,3 +36,7 @@ func get_total_item_count() -> int:
 	for count in _items.values():
 		total += count
 	return total
+
+
+func is_full() -> bool:
+	return get_total_item_count() >= capacity

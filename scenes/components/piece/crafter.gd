@@ -1,8 +1,6 @@
 class_name Crafter
 extends Node
 
-const MAX_OUTPUT_CAPACITY = 20
-
 var current_recipe: Recipe
 var processing_progress: float = 0.0
 
@@ -46,7 +44,7 @@ func _can_start_crafting() -> bool:
 		return false
 
 	# アウトプットインベントリが満杯なら開始しない
-	if output_container and output_container.get_total_item_count() >= MAX_OUTPUT_CAPACITY:
+	if output_container and output_container.is_full():
 		return false
 
 	# Inputsが空の場合はtrue (Miner)

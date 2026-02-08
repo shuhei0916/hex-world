@@ -213,8 +213,9 @@ func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
 
 
 func can_accept_item(_item_name: String) -> bool:
-	# 将来的に容量制限などを入れる
-	return true
+	if not input_storage:
+		return false
+	return not input_storage.is_full()
 
 
 # --- Private Methods ---

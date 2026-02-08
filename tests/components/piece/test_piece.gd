@@ -30,6 +30,12 @@ class TestPieceBasics:
 		piece.add_item("iron", 10)
 		assert_eq(piece.get_item_count("iron"), 10)
 
+	func test_インベントリが満杯の場合はアイテムを受け入れない():
+		# 合計20個のアイテムを投入
+		piece.add_item("iron", 20)
+
+		assert_false(piece.can_accept_item("copper"), "合計20個以上の時は新しいアイテムを受け入れるべきではない")
+
 
 # --- 視覚表現と連携のテスト ---
 class TestPieceVisuals:
