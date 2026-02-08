@@ -25,15 +25,12 @@ class TestPieceBasics:
 		assert_eq(piece.hex_coordinates.size(), 2)
 
 	func test_Pieceのインターフェース経由でアイテムを操作できる():
-		# 内部コンポーネントへの委譲が正しく行われているかの疎通確認
 		piece.add_item("iron", 10)
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
-		# 合計20個のアイテムを投入
 		piece.add_item("iron", 20)
-
-		assert_false(piece.can_accept_item("copper"), "合計20個以上の時は新しいアイテムを受け入れるべきではない")
+		assert_false(piece.can_accept_item("copper"), "満杯時は受け入れ拒否すべき")
 
 
 # --- 視覚表現と連携のテスト ---
@@ -56,7 +53,6 @@ class TestPieceVisuals:
 		assert_eq(label.text, "10")
 
 	func test_ポートの描画用パラメータを正しく計算できる():
-		# ポートの方向に基づいた回転角などの計算確認
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
@@ -71,6 +67,8 @@ class TestPieceLogistics:
 	extends GutTest
 
 	var grid_manager: GridManager
+	var piece_a: Piece  # 送り側
+	var piece_b: Piece  # 受け側 (Chest)
 
 	func before_each():
 		grid_manager = GridManager.new()
@@ -78,52 +76,29 @@ class TestPieceLogistics:
 		add_child_autofree(grid_manager)
 		grid_manager.create_hex_grid(3)
 
-	func test_ポートが接続された隣接ピース間でアイテムが移動する():
+		# 共通セットアップ: A(0,0) -> B(1,0,-1) 方向0で接続
 		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_role"
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
-		# 搬入先はChest（全方向から受け入れ可能）
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST)
 
-		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
-		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
+		piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
+		piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
 
+	func test_ポートが接続された隣接ピース間でアイテムが移動する():
 		piece_a.add_to_output("iron", 1)
-		# 即時輸送なのでtickは不要だが、内部処理を確実に回すため呼ぶ
-		piece_a.tick(0.1)
-
 		assert_eq(piece_a.get_item_count("iron"), 0, "搬出元からは減るべき")
 		assert_eq(piece_b.get_item_count("iron"), 1, "搬入先には増えるべき")
 
-	func test_アイテムがアウトプットに入った瞬間に即座に搬出される():
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
-
-		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
-		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0))
-
-		piece_a.add_to_output("iron", 1)
-
-		assert_eq(piece_a.get_item_count("iron"), 0, "即座に搬出されるべき")
-		assert_eq(piece_b.get_item_count("iron"), 1, "即座に搬入されるべき")
-
 	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, out_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST)
-
-		var piece_a = grid_manager.get_piece_at_hex(Hex.new(0, 0))
-		var piece_b = grid_manager.get_piece_at_hex(Hex.new(1, 0, -1))
-
 		assert_true(piece_a.can_push_to(piece_b, 0), "方向0に向いているポートは接続可能であるべき")
 
 	func test_生産ライン全体の連携が正しく機能する():
+		# シナリオテスト: 一旦クリアして独自のラインを組む
+		grid_manager.clear_grid()
+		grid_manager.create_hex_grid(3)
+
 		var m_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
@@ -140,10 +115,10 @@ class TestPieceLogistics:
 		var chest = grid_manager.get_piece_at_hex(Hex.new(2, 0))
 
 		miner.tick(1.1)
-		assert_eq(smelter.get_item_count("iron_ore"), 1)
+		assert_eq(smelter.get_item_count("iron_ore"), 1, "採掘機から炉へ移動するべき")
 
 		smelter.tick(3.1)
-		assert_eq(chest.get_item_count("iron_ingot"), 1)
+		assert_eq(chest.get_item_count("iron_ingot"), 1, "炉からチェストへ移動するべき")
 
 
 # --- 回転ロジックのテスト ---
@@ -152,7 +127,6 @@ class TestPieceTransformation:
 
 	func test_ポートの向きはピースの回転に追従する():
 		var p = Piece.new()
-		# 定数を使わず直接データを作成
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
