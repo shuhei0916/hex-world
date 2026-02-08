@@ -72,3 +72,15 @@ func test_アイテム変更時にシグナルが発火される():
 
 	container.consume_item("iron", 1)
 	assert_signal_emitted(container, "inventory_changed", "消費時にシグナルが出るべき")
+
+
+func test_合計アイテム数を取得できる():
+	if not container:
+		return
+
+	container.add_item("iron", 5)
+	container.add_item("copper", 3)
+	assert_eq(container.get_total_item_count(), 8, "5 + 3 = 8 であるべき")
+
+	container.consume_item("iron", 2)
+	assert_eq(container.get_total_item_count(), 6, "8 - 2 = 6 であるべき")

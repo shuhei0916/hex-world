@@ -82,3 +82,26 @@ func test_加工完了時に成果物が生成され進捗がリセットされ�
 func test_レシピがない場合はtickで何もしない():
 	crafter.tick(1.0)
 	assert_eq(crafter.processing_progress, 0.0)
+
+
+func test_アウトプットインベントリが満杯の場合は開始不可と判定される():
+	var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
+	crafter.set_recipe(recipe)
+	input_container.add_item("ore", 1)
+
+	# アウトプットインベントリに20個アイテムを入れる
+	output_container.add_item("junk", 20)
+
+	assert_false(crafter._can_start_crafting(), "アウトプットインベントリが満杯なら開始できないべき")
+
+
+func test_アウトプットインベントリが満杯の場合は加工が開始されない():
+	var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
+	crafter.set_recipe(recipe)
+	input_container.add_item("ore", 1)
+	output_container.add_item("junk", 20)
+
+	crafter.tick(0.1)
+
+	assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")
+	assert_eq(input_container.get_item_count("ore"), 1, "材料も消費されないべき")

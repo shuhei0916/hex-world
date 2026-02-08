@@ -26,3 +26,10 @@ func consume_item(item_name: String, amount: int):
 
 func get_item_count(item_name: String) -> int:
 	return _items.get(item_name, 0)
+
+
+func get_total_item_count() -> int:
+	var total = 0
+	for count in _items.values():
+		total += count
+	return total
