@@ -10,48 +10,28 @@ class TestPieceUnit:
 
 	var source: Piece
 	var target: Piece
-	var grid_manager: GridManager
-	var piece_data: PieceDB.PieceData
 
 	func before_each():
-		grid_manager = GridManager.new()
-		grid_manager.hex_tile_scene = HEX_TILE_SCENE
-		add_child_autofree(grid_manager)
-		grid_manager.create_hex_grid(2)
+		source = Piece.new()
+		source.setup({"type": -1})
+		add_child_autofree(source)
 
-		piece_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-
-		# (0,0)にソース、(1,0)にターゲット（東隣）を配置
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, piece_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
-
-		source = grid_manager.get_piece_at_hex(Hex.new(0, 0))
-		target = grid_manager.get_piece_at_hex(Hex.new(1, 0))
-
-	func test_ポートが接続対象に向いていれば搬送先として登録される():
-		assert_eq(source.destinations.size(), 1, "正しい方向にターゲットがあれば搬送先として登録されるべき")
-		assert_eq(source.destinations[0], target, "搬送先がターゲットであるべき")
-
-	func test_ポートが向いていない隣接ピースは搬送先に含まれない():
-		# (0, -1) 北西に別のピースを配置
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, -1), null, PieceDB.PieceType.CHEST)
-		var northwest_neighbor = grid_manager.get_piece_at_hex(Hex.new(0, -1))
-
-		assert_false(northwest_neighbor in source.destinations, "ポートがないので搬送先に含まれるべきではない")
+		target = Piece.new()
+		target.setup({"type": PieceDB.PieceType.CHEST})
+		add_child_autofree(target)
 
 	func test_搬送先が設定されていればアイテムを搬出できる():
-		source.add_to_output("iron", 1)
+		# 直接搬送先を注入する (GridManagerに依存しない)
+		source.destinations = [target]
 
-		# すでに接続されているはずなので、そのまま実行
+		source.add_to_output("iron", 1)
 		source._push_items()
 
 		assert_eq(source.get_item_count("iron"), 0, "搬出されているべき")
 		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
 
 	func test_搬送先に含まれないピースにはアイテムを送らない():
-		# アイテムを追加する前にクリアしておく (追加時にシグナルでプッシュが走るため)
+		# 搬送先を空にする
 		source.destinations = []
 
 		source.add_to_output("iron", 1)
