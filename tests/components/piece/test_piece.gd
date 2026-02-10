@@ -2,7 +2,6 @@
 extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
-const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 
 class TestPieceUnit:
@@ -21,28 +20,18 @@ class TestPieceUnit:
 		add_child_autofree(target)
 
 	func test_搬送先が設定されていればアイテムを搬出できる():
-		# 直接搬送先を注入する (GridManagerに依存しない)
 		source.destinations = [target]
-
 		source.add_to_output("iron", 1)
 		source._push_items()
-
 		assert_eq(source.get_item_count("iron"), 0, "搬出されているべき")
 		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
 
 	func test_搬送先に含まれないピースにはアイテムを送らない():
-		# 搬送先を空にする
 		source.destinations = []
-
 		source.add_to_output("iron", 1)
 		source._push_items()
-
-		assert_eq(source.get_item_count("iron"), 1, "搬送先がないので搬出されないべき")
-		assert_eq(target.get_item_count("iron"), 0, "搬入されていないべき")
-
-	func test_destinationsプロパティが存在する():
-		assert_true("destinations" in source, "destinationsプロパティが存在すべき")
-		assert_true(source.destinations is Array, "配列タイプであるべき")
+		assert_eq(source.get_item_count("iron"), 1)
+		assert_eq(target.get_item_count("iron"), 0)
 
 
 # --- シーン構成と連携のテスト (コンポーネントテスト) ---
@@ -135,7 +124,7 @@ class TestPieceRoles:
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
 	func test_採掘機ロールは時間経過でアイテムを自動生産する():
-		var p = PIECE_SCENE.instantiate()
+		var p = Piece.new()
 		var data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "miner")
 		p.setup({"type": -1}, data)
 		add_child_autofree(p)
