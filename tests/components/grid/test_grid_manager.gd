@@ -279,26 +279,39 @@ func test_new_piece_inherits_detail_mode():
 	assert_true(piece.is_detail_mode, "New piece should inherit detail mode")
 
 
-func test_ピース配置時に隣接するピースのneighborsリストが自動更新される():
+func test_ピース配置時にポートの向きを考慮したdestinationsリストが構築される():
 	grid_manager_instance.create_hex_grid(2)
 
-	# 1. まず Piece A を配置
-	grid_manager_instance.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.CHEST)
+	# 1. 送り側: BARピースを配置 (BARは特定の方向に出力ポートを持つ)
+	var shape_bar: Array[Hex] = [Hex.new(0, 0)]  # 単一Hexとしてテスト
+	var port_data = PieceDB.PieceData.new(
+		[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+	)
+	grid_manager_instance.place_piece(shape_bar, Hex.new(0, 0), null, -1, 0, port_data)
 	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
 
-	# 2. 次に Piece B を A の隣に配置
+	# 2. 受け側1: ポートが向いている「方向0」に配置
 	var pos_b = Hex.new(1, 0, -1)
 	grid_manager_instance.place_piece([Hex.new(0, 0)], pos_b, null, PieceDB.PieceType.CHEST)
 	var piece_b = grid_manager_instance.get_piece_at_hex(pos_b)
 
-	# 検証: A の隣人に B が、B の隣人に A が入っているべき
-	assert_true(piece_b in piece_a.neighbors, "Piece A should recognize Piece B as a neighbor")
-	assert_true(piece_a in piece_b.neighbors, "Piece B should recognize Piece A as a neighbor")
+	# 3. 受け側2: ポートが向いていない「方向1」に配置
+	var pos_c = Hex.new(1, -1, 0)
+	grid_manager_instance.place_piece([Hex.new(0, 0)], pos_c, null, PieceDB.PieceType.CHEST)
+	var piece_c = grid_manager_instance.get_piece_at_hex(pos_c)
+
+	# 検証: A の destinations には B だけが入っているべき (Cは入らない)
+	assert_true(piece_b in piece_a.destinations, "ポートが向いているBは搬送先であるべき")
+	assert_false(piece_c in piece_a.destinations, "ポートが向いていないCは搬送先ではないべき")
 
 
-func test_ピース削除時に周囲のピースのneighborsリストから削除される():
+func test_ピース削除時に周囲のピースのdestinationsリストから削除される():
 	grid_manager_instance.create_hex_grid(2)
-	grid_manager_instance.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.CHEST)
+
+	var port_data = PieceDB.PieceData.new(
+		[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
+	)
+	grid_manager_instance.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, port_data)
 	grid_manager_instance.place_piece(
 		[Hex.new(0, 0)], Hex.new(1, 0, -1), null, PieceDB.PieceType.CHEST
 	)
@@ -306,10 +319,12 @@ func test_ピース削除時に周囲のピースのneighborsリストから削�
 	var piece_a = grid_manager_instance.get_piece_at_hex(Hex.new(0, 0))
 	var piece_b = grid_manager_instance.get_piece_at_hex(Hex.new(1, 0, -1))
 
+	assert_true(piece_b in piece_a.destinations, "最初は接続されている")
+
 	# 削除実行
 	grid_manager_instance.remove_piece_at(Hex.new(1, 0, -1))
 
-	# 検証: Piece A の隣人リストから B が消えているべき
+	# 検証: Piece A の搬送先リストから B が消えているべき
 	assert_false(
-		piece_b in piece_a.neighbors, "Piece A should no longer have Piece B as a neighbor"
+		piece_b in piece_a.destinations, "Piece A should no longer have Piece B as a destination"
 	)

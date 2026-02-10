@@ -26,6 +26,7 @@ var is_detail_mode_enabled: bool = false
 var _registered_hexes: Dictionary = {}
 var _occupied_hexes: Dictionary = {}
 var _hex_to_piece_map: Dictionary = {}  # Hex座標 -> Pieceノードのマッピング
+var _piece_to_base_hex_map: Dictionary = {}  # PieceインスタンスID -> 起点Hex座標
 var _drawn_hexes: Array[Hex] = []
 
 
@@ -33,6 +34,7 @@ func _init():
 	_registered_hexes.clear()
 	_occupied_hexes.clear()
 	_hex_to_piece_map.clear()
+	_piece_to_base_hex_map.clear()
 
 	layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2(0.0, 0.0))
 
@@ -134,6 +136,8 @@ func place_piece(
 		var key = _hex_to_key(hex)
 		_hex_to_piece_map[key] = piece
 
+	_piece_to_base_hex_map[piece.get_instance_id()] = base_hex
+
 	# 隣接情報を更新
 	_update_neighbors_around_piece(piece)
 
@@ -157,6 +161,8 @@ func remove_piece_at(target_hex: Hex) -> bool:
 		var h_key = _hex_to_key(hex)
 		_hex_to_piece_map.erase(h_key)
 		_unplace_single_hex(hex)
+
+	_piece_to_base_hex_map.erase(piece.get_instance_id())
 
 	# 削除されるピースの周囲の隣接情報を更新
 	_update_neighbors_around_piece(piece)
@@ -191,14 +197,34 @@ func _update_piece_neighbors(piece: Piece):
 	if not is_instance_valid(piece):
 		return
 
-	var current_neighbors: Array[Piece] = []
+	var current_connections: Array[Piece] = []
+
 	for hex in piece.hex_coordinates:
 		for direction in range(6):
 			var neighbor = get_neighbor_piece(hex, direction)
-			if neighbor and neighbor != piece and not neighbor in current_neighbors:
-				current_neighbors.append(neighbor)
+			if neighbor and neighbor != piece:
+				# ポート接続の判定
+				if _is_physically_connected(piece, hex, direction, neighbor):
+					if not neighbor in current_connections:
+						current_connections.append(neighbor)
 
-	piece.neighbors = current_neighbors
+	piece.destinations = current_connections
+
+
+func _is_physically_connected(
+	source: Piece, source_hex: Hex, direction: int, _target: Piece
+) -> bool:
+	var base_hex = _piece_to_base_hex_map.get(source.get_instance_id())
+	if base_hex == null:
+		return false
+
+	# sourceのsource_hexからdirection方向に出力ポートがあるか確認
+	for port in source.get_output_ports():
+		# ポートの相対座標を、配置時の基準座標を使って絶対座標に変換
+		var absolute_port_hex = Hex.add(base_hex, port.hex)
+		if Hex.equals(absolute_port_hex, source_hex) and port.direction == direction:
+			return true
+	return false
 
 
 func _update_neighbors_around_piece(piece: Piece):

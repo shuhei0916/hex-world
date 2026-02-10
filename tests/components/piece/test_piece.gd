@@ -2,6 +2,7 @@
 extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
+const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 
 class TestPieceUnit:
@@ -9,33 +10,59 @@ class TestPieceUnit:
 
 	var source: Piece
 	var target: Piece
+	var grid_manager: GridManager
 	var piece_data: PieceDB.PieceData
 
 	func before_each():
-		source = Piece.new()
+		grid_manager = GridManager.new()
+		grid_manager.hex_tile_scene = HEX_TILE_SCENE
+		add_child_autofree(grid_manager)
+		grid_manager.create_hex_grid(2)
+
 		piece_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
-		source.setup({"type": -1, "hex_coordinates": [Hex.new(0, 0)]}, piece_data)
 
-		target = Piece.new()
-		target.setup({"type": PieceDB.PieceType.CHEST, "hex_coordinates": [Hex.new(1, 0, -1)]})
+		# (0,0)にソース、(1,0)にターゲット（東隣）を配置
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, piece_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
 
-		add_child_autofree(source)
-		add_child_autofree(target)
+		source = grid_manager.get_piece_at_hex(Hex.new(0, 0))
+		target = grid_manager.get_piece_at_hex(Hex.new(1, 0))
 
-	func test_出力ポートが相手の方向を向いている場合のみ接続可能と判定される():
-		assert_true(source.can_push_to(target, 0), "方向0に向いているポートは接続可能であるべき")
-		assert_false(source.can_push_to(target, 1), "ポートがない方向1は接続不可であるべき")
+	func test_ポートが接続対象に向いていれば搬送先として登録される():
+		assert_eq(source.destinations.size(), 1, "正しい方向にターゲットがあれば搬送先として登録されるべき")
+		assert_eq(source.destinations[0], target, "搬送先がターゲットであるべき")
 
-	func test_隣人リストを設定して直接アイテムを搬出できる():
+	func test_ポートが向いていない隣接ピースは搬送先に含まれない():
+		# (0, -1) 北西に別のピースを配置
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, -1), null, PieceDB.PieceType.CHEST)
+		var northwest_neighbor = grid_manager.get_piece_at_hex(Hex.new(0, -1))
+
+		assert_false(northwest_neighbor in source.destinations, "ポートがないので搬送先に含まれるべきではない")
+
+	func test_搬送先が設定されていればアイテムを搬出できる():
 		source.add_to_output("iron", 1)
 
-		source.neighbors = [target]
-		source._try_push_to_neighbors()
+		# すでに接続されているはずなので、そのまま実行
+		source._push_items()
 
 		assert_eq(source.get_item_count("iron"), 0, "搬出されているべき")
 		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
+
+	func test_搬送先に含まれないピースにはアイテムを送らない():
+		# アイテムを追加する前にクリアしておく (追加時にシグナルでプッシュが走るため)
+		source.destinations = []
+
+		source.add_to_output("iron", 1)
+		source._push_items()
+
+		assert_eq(source.get_item_count("iron"), 1, "搬送先がないので搬出されないべき")
+		assert_eq(target.get_item_count("iron"), 0, "搬入されていないべき")
+
+	func test_destinationsプロパティが存在する():
+		assert_true("destinations" in source, "destinationsプロパティが存在すべき")
+		assert_true(source.destinations is Array, "配列タイプであるべき")
 
 
 # --- シーン構成と連携のテスト (コンポーネントテスト) ---
@@ -104,7 +131,7 @@ class TestPieceLogistics:
 
 	func before_each():
 		grid_manager = GridManager.new()
-		grid_manager.hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+		grid_manager.hex_tile_scene = HEX_TILE_SCENE
 		add_child_autofree(grid_manager)
 		grid_manager.create_hex_grid(3)
 

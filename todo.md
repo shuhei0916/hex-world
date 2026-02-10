@@ -1,33 +1,37 @@
 # todo
 
-### ゲームプレイ・コンテンツ
+## ゲームプレイ・コンテンツ
 - [ ] output接続が行われていないピースで、アイテムが流入してしまっている問題を解決する。
-- [x] アウトプットインベントリが20個以上あるときは、ピースの生産を中断する仕様を追加する
-	- [x] ItemContainer: 合計アイテム数を取得できる
-	- [x] Crafter: 出力先が満杯（20個以上）なら加工を開始しない
-- [x] インプットインベントリにも20個の容量制限を設ける
-	- [x] Piece: インベントリが満杯（合計20個以上）なら `can_accept_item` が `false` を返す
-	- [x] Transporter: ターゲットが満杯ならアイテムを移動させない
-- [ ] 即座にアイテムが接続先ピースに送られる挙動（upload lab方式）に変更する
-	- [ ] Transporter: クールダウン(transfer_rate)を廃止し、一度に全アイテムを送る
-	- [ ] Piece: アウトプットインベントリにアイテムが入った瞬間に `push` を試みる
-	- [ ] Piece: `tick` での毎秒プッシュを廃止（イベント駆動へ移行）
+- [ ] 非正常系のテストも追加する(test_piece.gd)
+	- [ ] 搬送先に含まれないピースにはアイテムを送らない
+	- [ ] 出力ポートがない方向にある隣人にはアイテムを送らない
+	- [ ] ターゲットのインベントリが満杯の場合、アイテムを送らない
+	- [ ] ターゲットがnullの場合、エラーにならずにスキップされる
 
-### リファクタリング
+## リファクタリング
+### piece, test_piece関連
+- [ ] GridManager主導でピース同士の接続(destinations)を自動更新する
+	- [x] Piece: `destinations` プロパティを追加
+	- [x] GridManager: 隣人だけでなく「ポートが繋がっているか」まで判定して `destinations` を更新する
+	- [x] Piece: `_push_items` を `destinations` を使うだけのシンプルな実装にする
+	- [ ] GridManager: ピースの回転(rotate_cw)時に周囲の接続を更新する
+	- [ ] GridManager: ピースの削除時に周囲の接続を更新する
+- [ ] 単体テストコードと統合テストコードを分離するべきか検討する。
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので、これを修正するべきか検討する
 - [ ] Piece: `can_push_to` メソッドで、相手の座標から自動的に方向を判定できるようにする（引数をオプション化）
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
-- [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いです。これを修正する
+- [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いなので、これを修正する
+- [ ] ピースの配置が下記のようにシンプルにならないか検討する（test_piece.gdなど）
+	```
+	var a = Piece.new()
+	var b = Piece.new()
+	a.hex_coordinates = [Hex.new(0,0)]
+	b.hex_coordinates = [Hex.new(1,0)]
+	assert_true(a.can_push_to(b))
+	```
+### それ以外
 - [ ] test_gridmanager, test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
-- [ ] ピースの配置が下記のようにシンプルにならないか検討する（test_piece.gdなど）
-```
-   var a = Piece.new()
-   var b = Piece.new()
-   a.hex_coordinates = [Hex.new(0,0)]
-   b.hex_coordinates = [Hex.new(1,0)]
-   assert_true(a.can_push_to(b))
-```
 
 ## 将来的なタスク・メモなど（AIはこれを編集・削除しないでください）
 - [ ] マウスホイールでツールバーに割り当てられたピースの選択ができるようにする

@@ -16,8 +16,8 @@ var output_storage: ItemContainer
 var crafter: Crafter
 var transporter: Transporter
 
-# トポロジー情報 (GridManagerによって管理される)
-var neighbors: Array[Piece] = []
+# トポロジー情報 (Managerによって管理される)
+var destinations: Array[Piece] = []
 
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
@@ -175,19 +175,6 @@ func get_output_ports() -> Array:
 	return _get_rotated_ports(static_ports)
 
 
-func can_push_to(_target_piece: Piece, direction_to_target: int) -> bool:
-	var has_output_port = false
-	for port in get_output_ports():
-		if port.direction == direction_to_target:
-			has_output_port = true
-			break
-
-	if not has_output_port:
-		return false
-
-	return true
-
-
 func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
@@ -209,7 +196,7 @@ func _ensure_components_created():
 		output_storage.name = "OutputInventory"
 		add_child(output_storage)
 		output_storage.inventory_changed.connect(_update_visuals)
-		output_storage.inventory_changed.connect(_try_push_to_neighbors)
+		output_storage.inventory_changed.connect(_push_items)
 
 	if not crafter:
 		crafter = Crafter.new()
@@ -376,28 +363,9 @@ func _get_rotated_ports(ports: Array) -> Array:
 	return rotated_ports
 
 
-func _try_push_to_neighbors():
+func _push_items():
 	if not output_storage or output_storage._items.is_empty():
 		return
 
-	var potential_targets: Array[Piece] = []
-
-	# 自分の持っている隣人リストから、接続可能なものを探す
-	for neighbor in neighbors:
-		if not is_instance_valid(neighbor) or neighbor == self:
-			continue
-
-		# 自分の各Hexと、相手の各Hexの隣接関係をチェック
-		for my_hex in hex_coordinates:
-			for their_hex in neighbor.hex_coordinates:
-				var dir = Hex.get_direction_to(my_hex, their_hex)
-				if dir != -1:  # 隣接している
-					if can_push_to(neighbor, dir):
-						if not neighbor in potential_targets:
-							potential_targets.append(neighbor)
-						break
-			if neighbor in potential_targets:
-				break
-
-	if transporter and not potential_targets.is_empty():
-		transporter.push(potential_targets)
+	if transporter and not destinations.is_empty():
+		transporter.push(destinations)
