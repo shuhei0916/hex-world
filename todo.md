@@ -10,9 +10,9 @@
 
 ## リファクタリング
 ### piece, test_piece関連
-- [ ] test_piece.gd の TestPieceUnit から GridManager への依存を排除し、純粋な単体テストにする
-- [ ] 単体テストコードと統合テストコードを分離するべきか検討する。
-- [ ] Piece: `destinations` プロパティを追加
+- [x] test_piece.gd の TestPieceUnit から GridManager への依存を排除し、純粋な単体テストにする
+- [x] 単体テストコードと統合テストコードを分離する
+- [x] Piece: `destinations` プロパティを追加
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので、これを修正するべきか検討する
 - [ ] Piece: `can_push_to` メソッドで、相手の座標から自動的に方向を判定できるようにする（引数をオプション化）
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
