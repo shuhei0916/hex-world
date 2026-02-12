@@ -44,7 +44,7 @@ class TestPieceBasics:
 		piece = PIECE_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_セットアップでタイプと座標を正しく設定できる():
+	func test_セットアップでタイプを正しく設定できる():
 		var dummy_type = PieceDB.PieceType.BAR
 		var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
 		var data = {"type": dummy_type, "hex_coordinates": dummy_coords}
@@ -52,7 +52,6 @@ class TestPieceBasics:
 		piece.setup(data)
 
 		assert_eq(piece.piece_type, dummy_type)
-		assert_eq(piece.hex_coordinates.size(), 2)
 
 	func test_Pieceのインターフェース経由でアイテムを操作できる():
 		piece.add_item("iron", 10)
@@ -107,6 +106,25 @@ class TestPieceTransformation:
 		assert_eq(p.get_output_ports()[0].direction, 0)
 		p.rotate_cw()
 		assert_eq(p.get_output_ports()[0].direction, 5)
+
+	func test_get_hex_shapeは回転状態に応じた相対座標リストを返す():
+		var p = Piece.new()
+		var shape: Array[Hex] = [Hex.new(0, 0, 0), Hex.new(1, 0, -1)]
+		var out_data = PieceDB.PieceData.new(shape, [], "test")
+		p.setup({"type": -1}, out_data)
+		add_child_autofree(p)
+
+		# 回転なし (0)
+		var result0 = p.get_hex_shape()
+		assert_eq(result0.size(), 2)
+		assert_true(Hex.equals(result0[0], Hex.new(0, 0, 0)))
+		assert_true(Hex.equals(result0[1], Hex.new(1, 0, -1)))
+
+		# 1回右回転
+		p.rotate_cw()
+		var result1 = p.get_hex_shape()
+		# Hex(1, 0, -1) を右回転させると Hex(0, 1, -1)
+		assert_true(Hex.equals(result1[1], Hex.new(0, 1, -1)), "1回回転後の座標が正しいこと")
 
 
 # --- 特殊な役割を持つピースのテスト ---

@@ -1,23 +1,26 @@
 # todo
 
 ## ゲームプレイ・コンテンツ
-- [ ] 
+- [ ] 裁断機
 
 ## リファクタリング
+### Piece相対座標化
+- [x] Piece: `hex_coordinates` プロパティを削除する
+- [x] Piece: `get_hex_shape()` が回転状態に応じた相対形状を返すことを検証するテストを書く
+- [x] Piece: `get_hex_shape()` を実装する
+- [x] GridManager: `get_piece_occupied_hexes()` を `get_hex_shape()` を使った計算に置き換える
+- [x] GridManager: `place_piece` で `Piece` に絶対座標を渡さないように変更する
+- [x] GridManager: `_update_piece_neighbors` などのロジックを修正し、`Piece` の絶対座標プロパティに依存しないようにする
+
+
 ### piece, test_piece関連
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので、これを修正するべきか検討する
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いなので、これを修正する
 - [ ] piece.gd: destinationよりもconnected_pieceの方が分かりやすいか、命名変更を検討する。
 - [ ] PIECE_SCENEを使っているところを削除し、Piece.new()で代用する（純粋な単体テスト化）
-- [ ] ピースの配置が下記のようにシンプルにならないか検討する（test_piece.gdなど）
-	```
-	var a = Piece.new()
-	var b = Piece.new()
-	a.hex_coordinates = [Hex.new(0,0)]
-	b.hex_coordinates = [Hex.new(1,0)]
-	assert_true(a.can_push_to(b))
-	```
+- [ ] ピースのsetupがシンプルにならないか検討する
+
 ### それ以外
 - [ ] grid_managerのテストコードに内部クラスを追加して構造化する
 - [ ] test_main: 内部クラスに整理し、命名を日本語に統一する

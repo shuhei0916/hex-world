@@ -117,7 +117,7 @@ func place_piece(
 	var piece = piece_scene.instantiate()
 
 	# データセットアップ
-	var data = {"type": piece_type, "hex_coordinates": occupied_hexes, "rotation": rotation}
+	var data = {"type": piece_type, "rotation": rotation}
 	if piece.has_method("setup"):
 		piece.setup(data, data_override)
 
@@ -153,9 +153,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 		_hex_to_piece_map.erase(key)
 		return false
 
-	var hexes_to_remove = []
-	if "hex_coordinates" in piece:
-		hexes_to_remove = piece.hex_coordinates
+	var hexes_to_remove = get_piece_occupied_hexes(piece)
 
 	for hex in hexes_to_remove:
 		var h_key = _hex_to_key(hex)
@@ -165,7 +163,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	_piece_to_base_hex_map.erase(piece.get_instance_id())
 
 	# 削除されるピースの周囲の隣接情報を更新
-	_update_neighbors_around_piece(piece)
+	_update_neighbors_around_piece(piece, hexes_to_remove)
 
 	piece.queue_free()
 	return true
@@ -198,8 +196,9 @@ func _update_piece_neighbors(piece: Piece):
 		return
 
 	var current_connections: Array[Piece] = []
+	var occupied_hexes = get_piece_occupied_hexes(piece)
 
-	for hex in piece.hex_coordinates:
+	for hex in occupied_hexes:
 		for direction in range(6):
 			var neighbor = get_neighbor_piece(hex, direction)
 			if neighbor and neighbor != piece:
@@ -227,13 +226,17 @@ func _is_physically_connected(
 	return false
 
 
-func _update_neighbors_around_piece(piece: Piece):
+func _update_neighbors_around_piece(piece: Piece, precalculated_hexes = null):
 	# このピース自身の隣人を更新
 	_update_piece_neighbors(piece)
 
 	# このピースの周囲にいるピースたちの隣人リストも更新（自分が入る/消えるため）
 	var surrounding_pieces = {}
-	for hex in piece.hex_coordinates:
+	var occupied_hexes = precalculated_hexes
+	if occupied_hexes == null:
+		occupied_hexes = get_piece_occupied_hexes(piece)
+
+	for hex in occupied_hexes:
 		for direction in range(6):
 			var neighbor = get_neighbor_piece(hex, direction)
 			if neighbor and neighbor != piece:
@@ -246,6 +249,18 @@ func _update_neighbors_around_piece(piece: Piece):
 func get_piece_at_hex(hex: Hex) -> Piece:
 	var key = _hex_to_key(hex)
 	return _hex_to_piece_map.get(key, null)
+
+
+func get_piece_occupied_hexes(piece: Piece) -> Array[Hex]:
+	var result: Array[Hex] = []
+	var base_hex = _piece_to_base_hex_map.get(piece.get_instance_id())
+	if base_hex == null:
+		return []
+
+	var shape = piece.get_hex_shape()
+	for offset in shape:
+		result.append(Hex.add(base_hex, offset))
+	return result
 
 
 func get_neighbor_piece(hex: Hex, direction: int) -> Piece:

@@ -4,9 +4,6 @@ extends Node2D
 # ピースの種類ID (PieceDB.PieceType)
 var piece_type: int = -1
 
-# このピースが占有しているHex座標のリスト
-var hex_coordinates: Array[Hex] = []
-
 # 回転状態 (0-5)
 var rotation_state: int = 0
 
@@ -83,14 +80,6 @@ func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 	if data.has("rotation"):
 		rotation_state = data["rotation"]
 
-	if data.has("hex_coordinates"):
-		hex_coordinates.clear()
-		var coords = data["hex_coordinates"]
-		if coords is Array:
-			for h in coords:
-				if h is Hex:
-					hex_coordinates.append(h)
-
 	# 初期状態は詳細モードOFF
 	_update_visuals()
 
@@ -140,6 +129,24 @@ func tick(delta: float):
 
 	if piece_type == PieceDB.PieceType.CHEST:
 		return
+
+
+func get_hex_shape() -> Array[Hex]:
+	var shape: Array[Hex] = []
+	var base_data = _cached_data
+	if not base_data:
+		base_data = PieceDB.get_data(piece_type)
+
+	if not base_data:
+		return []
+
+	for hex in base_data.shape:
+		var rotated_hex = hex
+		for i in range(rotation_state):
+			rotated_hex = Hex.rotate_right(rotated_hex)
+		shape.append(rotated_hex)
+
+	return shape
 
 
 func rotate_cw():
