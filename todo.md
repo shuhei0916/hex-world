@@ -1,26 +1,29 @@
 # todo
 
 ## ゲームプレイ・コンテンツ
-- [ ] 裁断機
+### 自動化要素の強化
+- [ ] 裁断機やプレス機など、ほかのroleも追加する
+- [ ] 鉄パイプ、強化鉄板のレシピを追加する
+- [ ] グリッドのランダムなヘックスに納品所を設置する実装を行う
+
+### ゲームの別路線の探索（戦闘要素）
+- [ ] 新しいシーンを作成し、グリッドを作成する
+- [ ] グリッドの上をキャラクターが移動したり（chessのような感じ）、敵と戦ったりできる要素（gloomhavenなど）
 
 ## リファクタリング
-### Piece初期化APIの改善
-- [x] `Piece.setup` の引数を辞書形式から型指定された個別引数に変更する
-- [x] `Piece.gd` 内の不要になった `_get_rotated_ports` などのロジックを `PieceData` に完全に移行する（残骸の整理）
-- [x] `GridManager` およびテストコードの `setup` 呼び出し箇所をすべて修正する
-- [x] 不要になった `setup({"type": ...})` 形式のテストをクリーンアップする
-- [x] `initialize` を `setup` にリネームして簡潔にする
-- [x] `facility_type` を `role` にリネームする
-
-### Piece相対座標化 (完了)
-- [x] Piece: `hex_coordinates` プロパティを削除する
-- [x] Piece: `get_hex_shape()` が回転状態に応じた相対形状を返すことを検証するテストを書く
-- [x] Piece: `get_hex_shape()` を実装する
-- [x] GridManager: `get_piece_occupied_hexes()` を `get_hex_shape()` を使った計算に置き換える
-- [x] GridManager: `place_piece` で `Piece` に絶対座標を渡さないように変更する
-- [x] GridManager: `_update_piece_neighbors` などのロジックを修正し、`Piece` の絶対座標プロパティに依存しないようにする
-
 ### piece, test_piece関連
+- [ ] piece.setupからdata_overrideを削除し、下記のようにクリーンにできないか検討する
+```
+setup側：
+setup(piecedata: PieceDB.PieceData, rotation: int = 0)
+
+呼び出し側（オリジナルのテスト用ピースを定義する場合）：
+var out_data = PieceDB.PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test")
+piece.setup(out_data)
+
+呼び出し側（既存のピースを使う場合）：
+piece.setup(PieceDB.PieceType.CHEST)
+```
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので, これを修正するべきか検討する
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いなので、これを修正する
@@ -29,10 +32,11 @@
 
 ### それ以外
 - [ ] grid_managerのテストコードに内部クラスを追加して構造化する
+- [ ] grid_managerの責務が膨大となっているので、これを分離する
 - [ ] test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
 
-## 将来的なタスク・メモなど（AIはこれを編集・削除しないでください）
+## 検討中のタスク・メモなど（AIはこれを編集・削除しないでください）
 - [ ] マウスホイールでツールバーに割り当てられたピースの選択ができるようにする
 - [ ] ポート回転ロジック(get_rotate_portsなど)は、hexクラス等に共通化できるかも。検討する
 - [ ] 詳細表示モード時に、インプットとアウトプットの表示が重なる問題を修正する（レイアウト調整）。
