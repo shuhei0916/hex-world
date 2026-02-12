@@ -69,8 +69,6 @@ func setup(type: int, rotation: int = 0, data_override: PieceDB.PieceData = null
 	else:
 		_cached_data = PieceDB.get_data(piece_type)
 
-	print(_cached_data)
-
 	# デフォルトレシピの適用
 	if _cached_data:
 		if _cached_data.role != "":
