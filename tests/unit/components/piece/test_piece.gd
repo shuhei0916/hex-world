@@ -19,14 +19,14 @@ class TestPieceUnit:
 		target.setup({"type": PieceDB.PieceType.CHEST})
 		add_child_autofree(target)
 
-	func test_搬送先が設定されていればアイテムを搬出できる():
+	func test_接続先のピースにアイテムが搬出される():
 		source.destinations = [target]
 		source.add_to_output("iron", 1)
 		source._push_items()
-		assert_eq(source.get_item_count("iron"), 0, "搬出されているべき")
-		assert_eq(target.get_item_count("iron"), 1, "搬入されているべき")
+		assert_eq(source.get_item_count("iron"), 0)
+		assert_eq(target.get_item_count("iron"), 1)
 
-	func test_搬送先に含まれないピースにはアイテムを送らない():
+	func test_接続先がない場合はアイテムが搬出されない():
 		source.destinations = []
 		source.add_to_output("iron", 1)
 		source._push_items()
@@ -46,20 +46,19 @@ class TestPieceBasics:
 
 	func test_セットアップでタイプを正しく設定できる():
 		var dummy_type = PieceDB.PieceType.BAR
-		var dummy_coords = [Hex.new(0, 0), Hex.new(1, 0)]
-		var data = {"type": dummy_type, "hex_coordinates": dummy_coords}
+		var data = {"type": PieceDB.PieceType.BAR}
 
 		piece.setup(data)
 
 		assert_eq(piece.piece_type, dummy_type)
 
-	func test_Pieceのインターフェース経由でアイテムを操作できる():
+	func test_add_itemでPieceにアイテムを追加できる():
 		piece.add_item("iron", 10)
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
 		piece.add_item("iron", 20)
-		assert_false(piece.can_accept_item("copper"), "満杯時は受け入れ拒否すべき")
+		assert_false(piece.can_accept_item("copper"))
 
 
 # --- 視覚表現と連携のテスト ---
@@ -94,37 +93,28 @@ class TestPieceVisuals:
 # --- 回転ロジックのテスト ---
 class TestPieceTransformation:
 	extends GutTest
+	var p: Piece
+
+	func before_each():
+		p = Piece.new()
+		p.setup({"type": PieceDB.PieceType.WAVE})
+		add_child_autofree(p)
 
 	func test_ポートの向きはピースの回転に追従する():
-		var p = Piece.new()
-		var out_data = PieceDB.PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		p.setup({"type": -1}, out_data)
-		add_child_autofree(p)
-
-		assert_eq(p.get_output_ports()[0].direction, 0)
+		assert_eq(p.get_output_ports()[0].direction, 2)
 		p.rotate_cw()
-		assert_eq(p.get_output_ports()[0].direction, 5)
+		assert_eq(p.get_output_ports()[0].direction, 1)
 
-	func test_get_hex_shapeは回転状態に応じた相対座標リストを返す():
-		var p = Piece.new()
-		var shape: Array[Hex] = [Hex.new(0, 0, 0), Hex.new(1, 0, -1)]
-		var out_data = PieceDB.PieceData.new(shape, [], "test")
-		p.setup({"type": -1}, out_data)
-		add_child_autofree(p)
+	func test_回転前のピースの形状を取得できる():
+		var result = p.get_hex_shape()
+		assert_eq(result.size(), 4)
+		assert_true(Hex.equals(result[0], Hex.new(-1, 0, 1)))
+		assert_true(Hex.equals(result[1], Hex.new(0, 0, 0)))
 
-		# 回転なし (0)
-		var result0 = p.get_hex_shape()
-		assert_eq(result0.size(), 2)
-		assert_true(Hex.equals(result0[0], Hex.new(0, 0, 0)))
-		assert_true(Hex.equals(result0[1], Hex.new(1, 0, -1)))
-
-		# 1回右回転
+	func test_回転後のピースの形状を取得できる():
 		p.rotate_cw()
-		var result1 = p.get_hex_shape()
-		# Hex(1, 0, -1) を右回転させると Hex(0, 1, -1)
-		assert_true(Hex.equals(result1[1], Hex.new(0, 1, -1)), "1回回転後の座標が正しいこと")
+		var result = p.get_hex_shape()
+		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
 
 
 # --- 特殊な役割を持つピースのテスト ---

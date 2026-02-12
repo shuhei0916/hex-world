@@ -52,6 +52,27 @@ class PieceData:
 					port["direction"] = Hex.DIR_NAME_TO_INDEX[dir_str]
 			output_ports.append(port)
 
+	func get_rotated_shape(rotation_state: int) -> Array[Hex]:
+		var rotated_shape: Array[Hex] = []
+		for hex in shape:
+			var rotated_hex = hex
+			for i in range(rotation_state):
+				rotated_hex = Hex.rotate_right(rotated_hex)
+			rotated_shape.append(rotated_hex)
+		return rotated_shape
+
+	func get_rotated_ports(rotation_state: int) -> Array:
+		var rotated_ports: Array = []
+		for port_def in output_ports:
+			var rotated_hex = port_def.hex
+			for i in range(rotation_state):
+				rotated_hex = Hex.rotate_right(rotated_hex)
+
+			var rotated_direction = (port_def.direction - rotation_state + 6) % 6
+			rotated_ports.append({"hex": rotated_hex, "direction": rotated_direction})
+
+		return rotated_ports
+
 
 # gdlint:disable=class-variable-name
 static var DATA = {

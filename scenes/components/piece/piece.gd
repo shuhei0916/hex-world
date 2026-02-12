@@ -132,21 +132,13 @@ func tick(delta: float):
 
 
 func get_hex_shape() -> Array[Hex]:
-	var shape: Array[Hex] = []
-	var base_data = _cached_data
-	if not base_data:
-		base_data = PieceDB.get_data(piece_type)
+	if not _cached_data:
+		_cached_data = PieceDB.get_data(piece_type)
 
-	if not base_data:
+	if not _cached_data:
 		return []
 
-	for hex in base_data.shape:
-		var rotated_hex = hex
-		for i in range(rotation_state):
-			rotated_hex = Hex.rotate_right(rotated_hex)
-		shape.append(rotated_hex)
-
-	return shape
+	return _cached_data.get_rotated_shape(rotation_state)
 
 
 func rotate_cw():
@@ -176,10 +168,12 @@ func get_port_visual_params() -> Array:
 
 func get_output_ports() -> Array:
 	if not _cached_data:
+		_cached_data = PieceDB.get_data(piece_type)
+
+	if not _cached_data:
 		return []
 
-	var static_ports = _cached_data.output_ports
-	return _get_rotated_ports(static_ports)
+	return _cached_data.get_rotated_ports(rotation_state)
 
 
 func can_accept_item(_item_name: String) -> bool:
@@ -355,19 +349,6 @@ func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
 
 	# トランスフォームをリセット
 	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
-
-
-func _get_rotated_ports(ports: Array) -> Array:
-	var rotated_ports: Array = []
-	for port_def in ports:
-		var rotated_hex = port_def.hex
-		for i in range(rotation_state):
-			rotated_hex = Hex.rotate_right(rotated_hex)
-
-		var rotated_direction = (port_def.direction - rotation_state + 6) % 6
-		rotated_ports.append({"hex": rotated_hex, "direction": rotated_direction})
-
-	return rotated_ports
 
 
 func _push_items():
