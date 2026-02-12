@@ -117,9 +117,8 @@ func place_piece(
 	var piece = piece_scene.instantiate()
 
 	# データセットアップ
-	var data = {"type": piece_type, "rotation": rotation}
 	if piece.has_method("setup"):
-		piece.setup(data, data_override)
+		piece.setup(piece_type, rotation, data_override)
 
 	# 座標設定（基準Hexの位置に配置）
 	piece.position = hex_to_pixel(base_hex)

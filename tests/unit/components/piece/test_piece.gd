@@ -12,11 +12,11 @@ class TestPieceUnit:
 
 	func before_each():
 		source = Piece.new()
-		source.setup({"type": -1})
+		source.setup(-1)
 		add_child_autofree(source)
 
 		target = Piece.new()
-		target.setup({"type": PieceDB.PieceType.CHEST})
+		target.setup(PieceDB.PieceType.CHEST)
 		add_child_autofree(target)
 
 	func test_接続先のピースにアイテムが搬出される():
@@ -46,9 +46,8 @@ class TestPieceBasics:
 
 	func test_セットアップでタイプを正しく設定できる():
 		var dummy_type = PieceDB.PieceType.BAR
-		var data = {"type": PieceDB.PieceType.BAR}
 
-		piece.setup(data)
+		piece.setup(dummy_type)
 
 		assert_eq(piece.piece_type, dummy_type)
 
@@ -72,7 +71,7 @@ class TestPieceVisuals:
 		add_child_autofree(piece)
 
 	func test_アイテム追加時に在庫表示ラベルが更新される():
-		piece.setup({"type": PieceDB.PieceType.CHEST})
+		piece.setup(PieceDB.PieceType.CHEST)
 		piece.set_detail_mode(true)
 		piece.add_item("iron_ore", 10)
 
@@ -84,7 +83,7 @@ class TestPieceVisuals:
 		var out_data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
-		piece.setup({"type": -1}, out_data)
+		piece.setup(-1, 0, out_data)
 		var params = piece.get_port_visual_params()
 		assert_eq(params.size(), 1)
 		assert_almost_eq(params[0].rotation, 0.0, 0.01)
@@ -97,7 +96,7 @@ class TestPieceTransformation:
 
 	func before_each():
 		p = Piece.new()
-		p.setup({"type": PieceDB.PieceType.WAVE})
+		p.setup(PieceDB.PieceType.WAVE)
 		add_child_autofree(p)
 
 	func test_ポートの向きはピースの回転に追従する():
@@ -126,7 +125,7 @@ class TestPieceRoles:
 		var data = PieceDB.PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
-		p.setup({"type": -1}, data)
+		p.setup(-1, 0, data)
 
 		assert_not_null(p.current_recipe, "製錬所はレシピを持つべき")
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
@@ -134,7 +133,7 @@ class TestPieceRoles:
 	func test_採掘機ロールは時間経過でアイテムを自動生産する():
 		var p = Piece.new()
 		var data = PieceDB.PieceData.new([Hex.new(0, 0)], [], "miner")
-		p.setup({"type": -1}, data)
+		p.setup(-1, 0, data)
 		add_child_autofree(p)
 
 		p.tick(1.1)

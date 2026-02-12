@@ -55,19 +55,21 @@ func _process(delta: float):
 	tick(delta)
 
 
-func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
+func setup(type: int, rotation: int = 0, data_override: PieceDB.PieceData = null):
 	_ensure_components_created()
 
 	if crafter:
 		crafter.set_recipe(null)
 
+	piece_type = type
+	rotation_state = rotation
+
 	if data_override:
 		_cached_data = data_override
-		if data.has("type"):
-			piece_type = data["type"]
-	elif data.has("type"):
-		piece_type = data["type"]
+	else:
 		_cached_data = PieceDB.get_data(piece_type)
+
+	print(_cached_data)
 
 	# デフォルトレシピの適用
 	if _cached_data:
@@ -76,9 +78,6 @@ func setup(data: Dictionary, data_override: PieceDB.PieceData = null):
 			if not recipes.is_empty():
 				# 暫定的に最初のレシピを採用
 				set_recipe(recipes[0])
-
-	if data.has("rotation"):
-		rotation_state = data["rotation"]
 
 	# 初期状態は詳細モードOFF
 	_update_visuals()
