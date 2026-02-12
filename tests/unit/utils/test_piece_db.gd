@@ -83,7 +83,7 @@ func test_PieceDataは文字列の方向指定を整数に変換して保持す�
 	assert_eq(data.output_ports[0].direction, 0, "String direction 'E' should be converted to 0")
 
 
-func test_PieceDataはfacility_typeに基づいて色を自動設定する():
+func test_PieceDataはroleに基づいて色を自動設定する():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 
 	# Miner -> Orange (#F3D283)

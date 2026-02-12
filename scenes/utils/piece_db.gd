@@ -33,14 +33,14 @@ class PieceData:
 
 	var output_ports: Array = []  # Array of Dictionary { "hex": Hex, "direction": int }
 
-	var facility_type: String = ""
+	var role: String = ""
 
-	func _init(hex_shape: Array[Hex], outputs: Array = [], facility_type_val: String = ""):
+	func _init(hex_shape: Array[Hex], outputs: Array = [], role_val: String = ""):
 		shape = hex_shape
 
-		facility_type = facility_type_val
+		role = role_val
 
-		color = FACILITY_COLORS.get(facility_type, FACILITY_COLORS[""])
+		color = FACILITY_COLORS.get(role, FACILITY_COLORS[""])
 
 		# 方向指定が文字列の場合は数値に変換
 		output_ports = []

@@ -73,8 +73,8 @@ func setup(type: int, rotation: int = 0, data_override: PieceDB.PieceData = null
 
 	# デフォルトレシピの適用
 	if _cached_data:
-		if _cached_data.facility_type != "":
-			var recipes = Recipe.RecipeDB.get_recipes_by_facility(_cached_data.facility_type)
+		if _cached_data.role != "":
+			var recipes = Recipe.RecipeDB.get_recipes_by_role(_cached_data.role)
 			if not recipes.is_empty():
 				# 暫定的に最初のレシピを採用
 				set_recipe(recipes[0])

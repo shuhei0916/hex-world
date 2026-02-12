@@ -20,19 +20,19 @@ func test_レシピデータベースからIDでレシピを取得できる():
 	assert_eq(recipe.inputs.size(), 1, "入力アイテムは1つであるべき")
 
 
-func test_指定した施設タイプのレシピ一覧を取得できる():
+func test_指定したロールのレシピ一覧を取得できる():
 	Recipe.RecipeDB._static_init()
 
 	# Miner (iron_ore)
-	var miner_recipes = Recipe.RecipeDB.get_recipes_by_facility("miner")
+	var miner_recipes = Recipe.RecipeDB.get_recipes_by_role("miner")
 	assert_gt(miner_recipes.size(), 0, "Miner用レシピがあるべき")
-	assert_eq(miner_recipes[0].facility_type, "miner")
+	assert_eq(miner_recipes[0].role, "miner")
 
 	# Smelter (iron_ingot)
-	var smelter_recipes = Recipe.RecipeDB.get_recipes_by_facility("smelter")
+	var smelter_recipes = Recipe.RecipeDB.get_recipes_by_role("smelter")
 	assert_gt(smelter_recipes.size(), 0, "Smelter用レシピがあるべき")
-	assert_eq(smelter_recipes[0].facility_type, "smelter")
+	assert_eq(smelter_recipes[0].role, "smelter")
 
 	# Unknown
-	var unknown_recipes = Recipe.RecipeDB.get_recipes_by_facility("unknown_facility")
-	assert_eq(unknown_recipes.size(), 0, "不明な施設タイプのレシピは空であるべき")
+	var unknown_recipes = Recipe.RecipeDB.get_recipes_by_role("unknown_role")
+	assert_eq(unknown_recipes.size(), 0, "不明なロールのレシピは空であるべき")

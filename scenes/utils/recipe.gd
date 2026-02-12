@@ -5,7 +5,7 @@ var id: String
 var inputs: Dictionary
 var outputs: Dictionary
 var craft_time: float
-var facility_type: String
+var role: String
 
 
 func _init(
@@ -13,13 +13,13 @@ func _init(
 	inputs_val: Dictionary,
 	outputs_val: Dictionary,
 	craft_time_val: float,
-	facility_type_val: String = ""
+	role_val: String = ""
 ):
 	id = id_val
 	inputs = inputs_val
 	outputs = outputs_val
 	craft_time = craft_time_val
-	facility_type = facility_type_val
+	role = role_val
 
 
 class RecipeDB:
@@ -50,10 +50,10 @@ class RecipeDB:
 		_static_init()
 		return _recipes.get(id)
 
-	static func get_recipes_by_facility(facility_type: String) -> Array[Recipe]:
+	static func get_recipes_by_role(role: String) -> Array[Recipe]:
 		_static_init()
 		var result: Array[Recipe] = []
 		for recipe in _recipes.values():
-			if recipe.facility_type == facility_type:
+			if recipe.role == role:
 				result.append(recipe)
 		return result
