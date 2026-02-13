@@ -1,5 +1,13 @@
 # todo
 
+## PieceDBとPieceDataの統合リファクタリング
+- [ ] `PieceData` を独立したトップレベルクラスとして定義する (`scenes/utils/piece_data.gd`)
+- [ ] 旧 `PieceDB.PieceType` を `PieceData.Type` として移行する
+- [ ] 旧 `PieceDB.DATA` を `PieceData` の静的メンバとして移行する
+- [ ] `Piece.setup` の引数を `PieceData` インスタンスに変更する
+- [ ] 既存のテストコードを新しい `PieceData` に対応させる
+- [ ] `PieceDB.gd` を削除する
+
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
 - [ ] 裁断機やプレス機など、ほかのroleも追加する
@@ -35,6 +43,8 @@ piece.setup(PieceDB.PieceType.CHEST)
 - [ ] grid_managerの責務が膨大となっているので、これを分離する
 - [ ] test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
+- [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
+
 
 ## 検討中のタスク・メモなど（AIはこれを編集・削除しないでください）
 - [ ] マウスホイールでツールバーに割り当てられたピースの選択ができるようにする

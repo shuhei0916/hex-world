@@ -68,8 +68,8 @@ func test_配置時にタイルの色がピースの色に更新される():
 
 func test_指定した方向の隣接ピースを取得できる():
 	gm.create_hex_grid(2)
-	gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceDB.PieceType.CHEST)
-	gm.place_piece([Hex.new(0, 0)], Hex.new(1, -1), null, PieceDB.PieceType.CHEST)
+	gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, PieceData.Type.CHEST)
+	gm.place_piece([Hex.new(0, 0)], Hex.new(1, -1), null, PieceData.Type.CHEST)
 
 	var piece_b = gm.get_piece_at_hex(Hex.new(1, -1))
 	assert_eq(gm.get_neighbor_piece(Hex.new(0, 0), 1), piece_b)
@@ -91,11 +91,9 @@ func test_詳細モード設定が既存および新規ピースに反映され�
 
 func test_出力ポートの先にピースがある場合は搬送先として登録される():
 	gm.create_hex_grid(2)
-	var port_data = PieceDB.PieceData.new(
-		[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-	)
+	var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test")
 	gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, port_data)
-	gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
+	gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceData.Type.CHEST)
 
 	var source = gm.get_piece_at_hex(Hex.new(0, 0))
 	var target = gm.get_piece_at_hex(Hex.new(1, 0))
@@ -104,11 +102,9 @@ func test_出力ポートの先にピースがある場合は搬送先として�
 
 func test_ポートが向いていない隣接ピースは搬送先に登録されない():
 	gm.create_hex_grid(2)
-	var port_data = PieceDB.PieceData.new(
-		[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-	)
+	var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test")
 	gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, port_data)
-	gm.place_piece([Hex.new(0, 0)], Hex.new(0, -1), null, PieceDB.PieceType.CHEST)
+	gm.place_piece([Hex.new(0, 0)], Hex.new(0, -1), null, PieceData.Type.CHEST)
 
 	var source = gm.get_piece_at_hex(Hex.new(0, 0))
 	var target = gm.get_piece_at_hex(Hex.new(0, -1))
@@ -117,11 +113,9 @@ func test_ポートが向いていない隣接ピースは搬送先に登録さ�
 
 func test_ピース削除時に周囲の搬送先リストが自動更新される():
 	gm.create_hex_grid(2)
-	var port_data = PieceDB.PieceData.new(
-		[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-	)
+	var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test")
 	gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, port_data)
-	gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceDB.PieceType.CHEST)
+	gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, PieceData.Type.CHEST)
 
 	var source = gm.get_piece_at_hex(Hex.new(0, 0))
 	gm.remove_piece_at(Hex.new(1, 0))

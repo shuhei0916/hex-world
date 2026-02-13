@@ -1,7 +1,7 @@
 class_name Piece
 extends Node2D
 
-# ピースの種類ID (PieceDB.PieceType)
+# ピースの種類ID (PieceData.Type)
 var piece_type: int = -1
 
 # 回転状態 (0-5)
@@ -35,7 +35,7 @@ var processing_progress: float:
 		if crafter:
 			crafter.processing_progress = value
 
-var _cached_data: PieceDB.PieceData  # キャッシュされた定義データ
+var _cached_data: PieceData  # キャッシュされた定義データ
 
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
@@ -55,7 +55,7 @@ func _process(delta: float):
 	tick(delta)
 
 
-func setup(type: int, rotation: int = 0, data_override: PieceDB.PieceData = null):
+func setup(type: int, rotation: int = 0, data_override: PieceData = null):
 	_ensure_components_created()
 
 	if crafter:
@@ -67,7 +67,7 @@ func setup(type: int, rotation: int = 0, data_override: PieceDB.PieceData = null
 	if data_override:
 		_cached_data = data_override
 	else:
-		_cached_data = PieceDB.get_data(piece_type)
+		_cached_data = PieceData.get_data(piece_type)
 
 	# デフォルトレシピの適用
 	if _cached_data:
@@ -124,13 +124,13 @@ func tick(delta: float):
 		if progress_bar:
 			progress_bar.visible = false
 
-	if piece_type == PieceDB.PieceType.CHEST:
+	if piece_type == PieceData.Type.CHEST:
 		return
 
 
 func get_hex_shape() -> Array[Hex]:
 	if not _cached_data:
-		_cached_data = PieceDB.get_data(piece_type)
+		_cached_data = PieceData.get_data(piece_type)
 
 	if not _cached_data:
 		return []
@@ -165,7 +165,7 @@ func get_port_visual_params() -> Array:
 
 func get_output_ports() -> Array:
 	if not _cached_data:
-		_cached_data = PieceDB.get_data(piece_type)
+		_cached_data = PieceData.get_data(piece_type)
 
 	if not _cached_data:
 		return []

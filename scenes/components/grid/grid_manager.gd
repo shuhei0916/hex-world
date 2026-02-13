@@ -89,14 +89,14 @@ func place_piece(
 	piece_color = null,
 	piece_type: int = 0,
 	rotation: int = 0,
-	data_override: PieceDB.PieceData = null
+	data_override: PieceData = null
 ):
 	var effective_color = piece_color
 	if effective_color == null:
 		if data_override:
 			effective_color = data_override.color
 		else:
-			var db_data = PieceDB.get_data(piece_type)
+			var db_data = PieceData.get_data(piece_type)
 			if db_data:
 				effective_color = db_data.color
 			else:

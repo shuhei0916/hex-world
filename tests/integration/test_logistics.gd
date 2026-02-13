@@ -17,16 +17,16 @@ class TestPieceLogistics:
 		grid_manager.create_hex_grid(3)
 
 	func test_生産ライン全体の連携が正しく機能する():
-		var m_data = PieceDB.PieceData.new(
+		var m_data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
 		)
-		var s_data = PieceDB.PieceData.new(
+		var s_data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
 
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, m_data)
 		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, -1, 0, s_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), null, PieceDB.PieceType.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), null, PieceData.Type.CHEST)
 
 		var miner = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var smelter = grid_manager.get_piece_at_hex(Hex.new(1, 0))
