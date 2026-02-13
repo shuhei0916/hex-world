@@ -1,13 +1,5 @@
 # todo
 
-## PieceDBとPieceDataの統合リファクタリング
-- [ ] `PieceData` を独立したトップレベルクラスとして定義する (`scenes/utils/piece_data.gd`)
-- [ ] 旧 `PieceDB.PieceType` を `PieceData.Type` として移行する
-- [ ] 旧 `PieceDB.DATA` を `PieceData` の静的メンバとして移行する
-- [ ] `Piece.setup` の引数を `PieceData` インスタンスに変更する
-- [ ] 既存のテストコードを新しい `PieceData` に対応させる
-- [ ] `PieceDB.gd` を削除する
-
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
 - [ ] 裁断機やプレス機など、ほかのroleも追加する
@@ -20,18 +12,6 @@
 
 ## リファクタリング
 ### piece, test_piece関連
-- [ ] piece.setupからdata_overrideを削除し、下記のようにクリーンにできないか検討する
-```
-setup側：
-setup(piecedata: PieceDB.PieceData, rotation: int = 0)
-
-呼び出し側（オリジナルのテスト用ピースを定義する場合）：
-var out_data = PieceDB.PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test")
-piece.setup(out_data)
-
-呼び出し側（既存のピースを使う場合）：
-piece.setup(PieceDB.PieceType.CHEST)
-```
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので, これを修正するべきか検討する
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いなので、これを修正する

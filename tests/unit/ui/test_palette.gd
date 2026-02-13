@@ -43,21 +43,14 @@ func test_アクティブスロット変更時にハイライトも移動する(
 
 func test_スロットピース取得APIで形状データが返る():
 	var data = palette.get_piece_data_for_slot(0)
-
 	assert_not_null(data)
-
-	assert_true(data.has("shape"))
-
-	assert_true(data.has("color"))
+	assert_true(data.shape.size() > 0)
+	assert_not_null(data.color)
 
 
 func test_deselectで選択が解除される():
 	palette.select_slot(0)
-
 	assert_eq(palette.get_active_index(), 0)
-
 	palette.deselect()
-
 	assert_eq(palette.get_active_index(), -1)
-
 	assert_false(palette.is_slot_highlighted(0), "ハイライトも解除されるべき")

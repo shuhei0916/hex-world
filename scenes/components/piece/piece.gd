@@ -55,19 +55,14 @@ func _process(delta: float):
 	tick(delta)
 
 
-func setup(type: int, rotation: int = 0, data_override: PieceData = null):
+func setup(data: PieceData, rotation: int = 0):
 	_ensure_components_created()
 
 	if crafter:
 		crafter.set_recipe(null)
 
-	piece_type = type
+	_cached_data = data
 	rotation_state = rotation
-
-	if data_override:
-		_cached_data = data_override
-	else:
-		_cached_data = PieceData.get_data(piece_type)
 
 	# デフォルトレシピの適用
 	if _cached_data:
@@ -124,14 +119,11 @@ func tick(delta: float):
 		if progress_bar:
 			progress_bar.visible = false
 
-	if piece_type == PieceData.Type.CHEST:
+	if _cached_data and _cached_data.role == "storage":
 		return
 
 
 func get_hex_shape() -> Array[Hex]:
-	if not _cached_data:
-		_cached_data = PieceData.get_data(piece_type)
-
 	if not _cached_data:
 		return []
 
@@ -164,9 +156,6 @@ func get_port_visual_params() -> Array:
 
 
 func get_output_ports() -> Array:
-	if not _cached_data:
-		_cached_data = PieceData.get_data(piece_type)
-
 	if not _cached_data:
 		return []
 

@@ -75,7 +75,7 @@ func _create_slots():
 
 		# ピースのプレビューを追加
 		var piece_data = palette.get_piece_data_for_slot(i)
-		if not piece_data.is_empty():
+		if piece_data:
 			_create_piece_icon(rect, piece_data)
 
 		add_child(rect)
@@ -89,15 +89,15 @@ func _on_slot_gui_input(event: InputEvent, index: int):
 				palette.select_slot(index)
 
 
-func _create_piece_icon(parent: Control, piece_data: Dictionary):
+func _create_piece_icon(parent: Control, piece_data: PieceData):
 	var icon_root = Node2D.new()
 	icon_root.name = "IconRoot"
 	icon_root.position = slot_size / 2.0
 	icon_root.scale = Vector2(0.15, 0.15)
 	parent.add_child(icon_root)
 
-	var shape = piece_data["shape"]
-	var color = piece_data["color"]
+	var shape = piece_data.shape
+	var color = piece_data.color
 
 	# UI表示用のレイアウト（サイズはGridManagerと合わせるか適当に）
 	var layout = Layout.new(Layout.layout_pointy, Vector2(42, 42), Vector2(0, 0))
@@ -154,7 +154,7 @@ func get_highlighted_index() -> int:
 	return highlighted_index
 
 
-func get_active_piece_data() -> Dictionary:
+func get_active_piece_data() -> PieceData:
 	if not palette:
-		return {}
+		return null
 	return palette.get_piece_data_for_slot(palette.get_active_index())

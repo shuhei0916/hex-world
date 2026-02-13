@@ -12,11 +12,13 @@ class TestPieceUnit:
 
 	func before_each():
 		source = Piece.new()
-		source.setup(-1)
+		# カスタムデータでセットアップ
+		var s_data = PieceData.new([Hex.new(0, 0)], [], "miner")
+		source.setup(s_data)
 		add_child_autofree(source)
 
 		target = Piece.new()
-		target.setup(PieceData.Type.CHEST)
+		target.setup(PieceData.get_data(PieceData.Type.CHEST))
 		add_child_autofree(target)
 
 	func test_接続先のピースにアイテムが搬出される():
@@ -44,16 +46,18 @@ class TestPieceBasics:
 		piece = PIECE_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_セットアップでタイプを正しく設定できる():
-		var dummy_type = PieceData.Type.BAR
-		piece.setup(dummy_type)
-		assert_eq(piece.piece_type, dummy_type)
+	func test_セットアップでデータを正しく設定できる():
+		var data = PieceData.get_data(PieceData.Type.BAR)
+		piece.setup(data)
+		assert_eq(piece._cached_data.role, "hoge")
 
 	func test_add_itemでPieceにアイテムを追加できる():
+		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.add_item("iron", 10)
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
+		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.add_item("iron", 20)
 		assert_false(piece.can_accept_item("copper"))
 
@@ -69,7 +73,7 @@ class TestPieceVisuals:
 		add_child_autofree(piece)
 
 	func test_アイテム追加時に在庫表示ラベルが更新される():
-		piece.setup(PieceData.Type.CHEST)
+		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.set_detail_mode(true)
 		piece.add_item("iron_ore", 10)
 
@@ -81,7 +85,7 @@ class TestPieceVisuals:
 		var out_data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
 		)
-		piece.setup(-1, 0, out_data)
+		piece.setup(out_data)
 		var params = piece.get_port_visual_params()
 		assert_eq(params.size(), 1)
 		assert_almost_eq(params[0].rotation, 0.0, 0.01)
@@ -94,7 +98,7 @@ class TestPieceTransformation:
 
 	func before_each():
 		p = Piece.new()
-		p.setup(PieceData.Type.WAVE)
+		p.setup(PieceData.get_data(PieceData.Type.WAVE))
 		add_child_autofree(p)
 
 	func test_ポートの向きはピースの回転に追従する():
@@ -123,7 +127,7 @@ class TestPieceRoles:
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
-		p.setup(-1, 0, data)
+		p.setup(data)
 
 		assert_not_null(p.current_recipe, "製錬所はレシピを持つべき")
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
@@ -131,7 +135,7 @@ class TestPieceRoles:
 	func test_採掘機ロールは時間経過でアイテムを自動生産する():
 		var p = Piece.new()
 		var data = PieceData.new([Hex.new(0, 0)], [], "miner")
-		p.setup(-1, 0, data)
+		p.setup(data)
 		add_child_autofree(p)
 
 		p.tick(1.1)

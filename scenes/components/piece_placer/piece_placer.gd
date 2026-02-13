@@ -37,12 +37,12 @@ func _on_active_slot_changed(new_index: int, _old_index: int):
 func _update_preview(slot_index: int):
 	current_rotation = 0  # リセット
 	var piece_data = palette.get_piece_data_for_slot(slot_index)
-	if piece_data.is_empty():
+	if not piece_data:
 		current_piece_shape = []
 		_clear_preview()
 		return
 
-	current_piece_shape = piece_data["shape"].duplicate()
+	current_piece_shape = piece_data.shape.duplicate()
 	_draw_preview()
 
 
@@ -53,7 +53,7 @@ func _draw_preview():
 		return
 
 	var piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-	var color = piece_data.get("color", Color.WHITE)
+	var color = piece_data.color if piece_data else Color.WHITE
 
 	for hex_coord in current_piece_shape:
 		var pos = grid_manager.hex_to_pixel(hex_coord)
@@ -108,14 +108,12 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if current_piece_shape.is_empty():
 		return false
 
-	var selected_piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-	var color = selected_piece_data["color"]
-	var piece_type = selected_piece_data.get("type", 0)
+	var data = palette.get_piece_data_for_slot(palette.get_active_index())
+	if not data:
+		return false
 
 	if grid_manager.can_place(current_piece_shape, target_hex):
-		grid_manager.place_piece(
-			current_piece_shape, target_hex, color, piece_type, current_rotation
-		)
+		grid_manager.place_piece(current_piece_shape, target_hex, data, current_rotation)
 		return true
 
 	return false

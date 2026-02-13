@@ -23,10 +23,11 @@ class TestPieceLogistics:
 		var s_data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
+		var chest_data = PieceData.get_data(PieceData.Type.CHEST)
 
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), null, -1, 0, m_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), null, -1, 0, s_data)
-		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), null, PieceData.Type.CHEST)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(0, 0), m_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(1, 0), s_data)
+		grid_manager.place_piece([Hex.new(0, 0)], Hex.new(2, 0), chest_data)
 
 		var miner = grid_manager.get_piece_at_hex(Hex.new(0, 0))
 		var smelter = grid_manager.get_piece_at_hex(Hex.new(1, 0))

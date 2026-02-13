@@ -48,14 +48,11 @@ func get_piece_type_for_slot(slot_index: int):
 	return slots[slot_index].get("piece_type", null)
 
 
-func get_piece_data_for_slot(slot_index: int) -> Dictionary:
+func get_piece_data_for_slot(slot_index: int) -> PieceData:
 	var piece_type = get_piece_type_for_slot(slot_index)
 	if piece_type == null:
-		return {}
-	var data = PieceData.get_data(piece_type)
-	if data == null:
-		return {}
-	return {"type": piece_type, "shape": data.shape, "color": data.color}
+		return null
+	return PieceData.get_data(piece_type)
 
 
 func select_slot(index: int):
