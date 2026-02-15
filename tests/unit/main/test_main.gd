@@ -37,26 +37,24 @@ func test_MainはHUDを持つ():
 
 	if hud:
 		assert_true(hud is HUD)
-		var ui = hud.palette_ui
-		assert_not_null(ui, "PaletteUI should exist in HUD")
 
 
 func test_数字キー入力でPaletteの選択が変更される():
-	assert_eq(main.hud.palette_ui.get_active_index(), -1)
+	assert_eq(main.hud.get_active_index(), -1)
 
 	var event = InputEventKey.new()
 	event.keycode = KEY_3
 	event.pressed = true
 	main._unhandled_input(event)
 
-	assert_eq(main.hud.palette_ui.get_active_index(), 2)
+	assert_eq(main.hud.get_active_index(), 2)
 	assert_not_null(main.piece_placer.selected_piece_data, "PiecePlacerにもデータがセットされているべき")
 
 
 func test_ピース選択中に右クリックで選択解除される():
 	# まずピースを選択
-	main.hud.palette_ui.select_slot(0)
-	assert_eq(main.hud.palette_ui.get_active_index(), 0)
+	main.hud.select_slot(0)
+	assert_eq(main.hud.get_active_index(), 0)
 
 	# 右クリックイベント
 	var event = InputEventMouseButton.new()
@@ -64,18 +62,18 @@ func test_ピース選択中に右クリックで選択解除される():
 	event.pressed = true
 	main._unhandled_input(event)
 
-	assert_eq(main.hud.palette_ui.get_active_index(), -1, "右クリックで選択が解除されるべき")
+	assert_eq(main.hud.get_active_index(), -1, "右クリックで選択が解除されるべき")
 	assert_null(main.piece_placer.selected_piece_data, "PiecePlacerの選択も解除されるべき")
 
 
 func test_未選択時に右クリックでピース削除される():
 	var hex = Hex.new(0, 0)
-	main.hud.palette_ui.select_slot(0)  # BAR
+	main.hud.select_slot(0)  # BAR
 	main.place_selected_piece(hex)
 	assert_true(main.grid_manager.is_occupied(hex), "ピースが配置されているべき")
 
 	# 選択解除
-	main.hud.palette_ui.select_slot(-1)
+	main.hud.select_slot(-1)
 
 	# マウス位置を(0,0)に更新
 	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
@@ -91,12 +89,12 @@ func test_未選択時に右クリックでピース削除される():
 
 func test_ピース選択中に右クリックで削除は行われない():
 	var hex = Hex.new(0, 0)
-	main.hud.palette_ui.select_slot(1)  # WORM
+	main.hud.select_slot(1)  # WORM
 	main.place_selected_piece(hex)
 
 	# 別のピースを選択中
-	main.hud.palette_ui.select_slot(0)  # BAR
-	assert_eq(main.hud.palette_ui.get_active_index(), 0)
+	main.hud.select_slot(0)  # BAR
+	assert_eq(main.hud.get_active_index(), 0)
 
 	# マウス位置を(0,0)に更新
 	main.piece_placer.update_hover(main.grid_manager.hex_to_pixel(hex))
@@ -107,7 +105,7 @@ func test_ピース選択中に右クリックで削除は行われない():
 	event.pressed = true
 	main._unhandled_input(event)
 
-	assert_eq(main.hud.palette_ui.get_active_index(), -1, "まず選択が解除される")
+	assert_eq(main.hud.get_active_index(), -1, "まず選択が解除される")
 	assert_true(main.grid_manager.is_occupied(hex), "選択解除が優先され、削除は行われないべき")
 
 
