@@ -7,3 +7,10 @@
 script = ExtResource("1_hqnrr")
 
 [node name="PaletteUI" parent="." instance=ExtResource("2_bo48s")]
+anchors_preset = 0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_top = 0.0
+offset_bottom = 0.0
+grow_horizontal = 1

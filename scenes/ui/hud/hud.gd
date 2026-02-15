@@ -7,8 +7,8 @@ extends CanvasLayer
 @onready var palette_ui: PaletteUI = $PaletteUI
 
 
-func setup_ui(palette: Palette):
+func setup(piece_placer: PiecePlacer):
 	if palette_ui:
-		palette_ui.set_palette(palette)
+		palette_ui.setup(piece_placer)
 	else:
 		push_warning("HUD: PaletteUI node not found.")

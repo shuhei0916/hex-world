@@ -5,7 +5,6 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # 依存関係（Mainから注入される）
 var grid_manager
-var palette: Palette
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
@@ -14,46 +13,36 @@ var current_hovered_hex: Hex
 var mouse_preview_container: Node2D
 var ghost_preview_container: Node2D
 
+# 選択中のピースデータ
+var selected_piece_data: PieceData
 
-func setup(
-	grid_manager_ref, palette_ref: Palette, mouse_container_ref: Node2D, ghost_container_ref: Node2D
-):
+
+func setup(grid_manager_ref, mouse_container_ref: Node2D, ghost_container_ref: Node2D):
 	grid_manager = grid_manager_ref
-	palette = palette_ref
 	mouse_preview_container = mouse_container_ref
 	ghost_preview_container = ghost_container_ref
 
-	# パレットのシグナル接続
-	palette.active_slot_changed.connect(_on_active_slot_changed)
 
-	# 初期表示
-	_update_preview(palette.get_active_index())
-
-
-func _on_active_slot_changed(new_index: int, _old_index: int):
-	_update_preview(new_index)
-
-
-func _update_preview(slot_index: int):
-	current_rotation = 0  # リセット
-	var piece_data = palette.get_piece_data_for_slot(slot_index)
-	if not piece_data:
+func select_piece(data: PieceData):
+	selected_piece_data = data
+	current_rotation = 0
+	if selected_piece_data:
+		current_piece_shape = selected_piece_data.shape.duplicate()
+	else:
 		current_piece_shape = []
-		_clear_preview()
-		return
-
-	current_piece_shape = piece_data.shape.duplicate()
 	_draw_preview()
 
 
 func _draw_preview():
 	_clear_preview()
 
-	if current_piece_shape.is_empty():
+	if current_piece_shape.is_empty() or not selected_piece_data:
 		return
 
-	var piece_data = palette.get_piece_data_for_slot(palette.get_active_index())
-	var color = piece_data.color if piece_data else Color.WHITE
+	if not grid_manager or not mouse_preview_container or not ghost_preview_container:
+		return
+
+	var color = selected_piece_data.color
 
 	for hex_coord in current_piece_shape:
 		var pos = grid_manager.hex_to_pixel(hex_coord)
@@ -76,10 +65,12 @@ func _draw_preview():
 
 
 func _clear_preview():
-	for child in mouse_preview_container.get_children():
-		child.queue_free()
-	for child in ghost_preview_container.get_children():
-		child.queue_free()
+	if mouse_preview_container:
+		for child in mouse_preview_container.get_children():
+			child.queue_free()
+	if ghost_preview_container:
+		for child in ghost_preview_container.get_children():
+			child.queue_free()
 
 
 func update_hover(local_mouse_pos: Vector2):
@@ -105,15 +96,13 @@ func place_piece_at_hex(target_hex: Hex) -> bool:
 
 
 func _place_piece_at(target_hex: Hex) -> bool:
-	if current_piece_shape.is_empty():
-		return false
-
-	var data = palette.get_piece_data_for_slot(palette.get_active_index())
-	if not data:
+	if current_piece_shape.is_empty() or not selected_piece_data:
 		return false
 
 	if grid_manager.can_place(current_piece_shape, target_hex):
-		grid_manager.place_piece(current_piece_shape, target_hex, data, current_rotation)
+		grid_manager.place_piece(
+			current_piece_shape, target_hex, selected_piece_data, current_rotation
+		)
 		return true
 
 	return false
