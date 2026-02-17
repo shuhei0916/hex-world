@@ -1,11 +1,83 @@
-[gd_scene load_steps=2 format=3 uid="uid://qqa8dhve6xp8"]
+[gd_scene load_steps=20 format=3 uid="uid://qqa8dhve6xp8"]
 
 [ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_bngdn"]
+device = -1
+keycode = 49
+unicode = 49
+
+[sub_resource type="Shortcut" id="Shortcut_qao66"]
+events = [SubResource("InputEventKey_bngdn")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_qao66"]
+device = -1
+keycode = 50
+unicode = 50
+
+[sub_resource type="Shortcut" id="Shortcut_as3gr"]
+events = [SubResource("InputEventKey_qao66")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_as3gr"]
+device = -1
+keycode = 51
+unicode = 51
+
+[sub_resource type="Shortcut" id="Shortcut_ax4tw"]
+events = [SubResource("InputEventKey_as3gr")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_ax4tw"]
+device = -1
+keycode = 52
+unicode = 52
+
+[sub_resource type="Shortcut" id="Shortcut_2wu1p"]
+events = [SubResource("InputEventKey_ax4tw")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_4m4yb"]
+device = -1
+keycode = 53
+unicode = 53
+
+[sub_resource type="Shortcut" id="Shortcut_todbw"]
+events = [SubResource("InputEventKey_4m4yb")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_e7gie"]
+device = -1
+keycode = 54
+unicode = 54
+
+[sub_resource type="Shortcut" id="Shortcut_swth0"]
+events = [SubResource("InputEventKey_e7gie")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_a660p"]
+device = -1
+keycode = 55
+unicode = 55
+
+[sub_resource type="Shortcut" id="Shortcut_m7evv"]
+events = [SubResource("InputEventKey_a660p")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_7kkr4"]
+device = -1
+keycode = 56
+unicode = 56
+
+[sub_resource type="Shortcut" id="Shortcut_o6s6k"]
+events = [SubResource("InputEventKey_7kkr4")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_ct28o"]
+device = -1
+keycode = 57
+unicode = 57
+
+[sub_resource type="Shortcut" id="Shortcut_devq0"]
+events = [SubResource("InputEventKey_ct28o")]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hqnrr")
 
-[node name="PaletteContainer" type="HBoxContainer" parent="."]
+[node name="ToolBar" type="HBoxContainer" parent="."]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -20,47 +92,47 @@ grow_vertical = 0
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Slot0" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot1" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_qao66")
 
-[node name="Slot1" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot2" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_as3gr")
 
-[node name="Slot2" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot3" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_ax4tw")
 
-[node name="Slot3" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot4" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_2wu1p")
 
-[node name="Slot4" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot5" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_todbw")
 
-[node name="Slot5" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot6" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_swth0")
 
-[node name="Slot6" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot7" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_m7evv")
 
-[node name="Slot7" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot8" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_o6s6k")
 
-[node name="Slot8" type="ColorRect" parent="PaletteContainer"]
+[node name="Slot9" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.2, 0.2, 0.2, 0.85)
+shortcut = SubResource("Shortcut_devq0")

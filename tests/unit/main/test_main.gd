@@ -39,18 +39,6 @@ func test_MainはHUDを持つ():
 		assert_true(hud is HUD)
 
 
-func test_数字キー入力でPaletteの選択が変更される():
-	assert_eq(main.hud.get_active_index(), -1)
-
-	var event = InputEventKey.new()
-	event.keycode = KEY_3
-	event.pressed = true
-	main._unhandled_input(event)
-
-	assert_eq(main.hud.get_active_index(), 2)
-	assert_not_null(main.piece_placer.selected_piece_data, "PiecePlacerにもデータがセットされているべき")
-
-
 func test_ピース選択中に右クリックで選択解除される():
 	# まずピースを選択
 	main.hud.select_slot(0)

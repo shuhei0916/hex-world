@@ -3,16 +3,12 @@ extends CanvasLayer
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
-@export var inactive_color: Color = Color(0.2, 0.2, 0.2, 0.85)
-@export var active_color: Color = Color(0.9, 0.9, 0.3, 1.0)
-
 var piece_placer: PiecePlacer
 
-var slot_rects: Array[ColorRect] = []
+var slot_buttons: Array[Button] = []
 var active_index: int = -1
 var _is_initialized: bool = false
 
-# スロットに割り当てるピースタイプの定義
 var _assignments: Array = [
 	PieceData.Type.BEE,
 	PieceData.Type.WORM,
@@ -24,64 +20,64 @@ var _assignments: Array = [
 	PieceData.Type.CHEST
 ]
 
-@onready var palette_container: HBoxContainer = $PaletteContainer
+@onready var toolbar: HBoxContainer = $ToolBar
 
 
 func _ready():
-	if palette_container:
-		_initialize_palette()
+	if toolbar:
+		_initialize_toolbar()
 
 
 func setup(piece_placer_ref: PiecePlacer):
 	piece_placer = piece_placer_ref
 	if is_node_ready():
-		_initialize_palette()
+		_initialize_toolbar()
 
 
-func _initialize_palette():
-	if not palette_container:
+func _initialize_toolbar():
+	if not toolbar:
 		return
 
 	_collect_slots()
-	_refresh_slots()
 	_is_initialized = true
 
 
 func _collect_slots():
-	slot_rects.clear()
-	var slots = palette_container.get_children()
+	slot_buttons.clear()
+	var slots = toolbar.get_children()
 	for i in range(slots.size()):
-		var rect = slots[i] as ColorRect
-		if rect:
-			slot_rects.append(rect)
-			# シグナルがすでに接続されているかチェック（二重接続防止のクリーンな方法）
-			if not rect.gui_input.is_connected(_on_slot_gui_input):
-				rect.gui_input.connect(_on_slot_gui_input.bind(i))
+		var btn = slots[i] as Button
+		if btn:
+			slot_buttons.append(btn)
+			if not btn.pressed.is_connected(_on_slot_pressed):
+				btn.pressed.connect(_on_slot_pressed.bind(i))
 
 			# アイコンを生成
 			var piece_data = get_piece_data_for_slot(i)
 			if piece_data:
-				_create_piece_icon(rect, piece_data)
+				_create_piece_icon(btn, piece_data)
 
 
-func _on_slot_gui_input(event: InputEvent, index: int):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			select_slot(index)
+func _on_slot_pressed(index: int):
+	select_slot(index)
 
 
 func select_slot(index: int):
-	if active_index == index:
+	# 以前の選択があるならフォーカスを外す（ハイライト除去）
+	if active_index >= 0:
+		slot_buttons[active_index].release_focus()
+
+	if active_index == index or index == -1:
+		# 解除
 		active_index = -1
 		if piece_placer:
 			piece_placer.select_piece(null)
 	else:
+		# 選択
 		active_index = index
 		if piece_placer:
 			var data = get_piece_data_for_slot(active_index)
 			piece_placer.select_piece(data)
-
-	_refresh_slots()
 
 
 func get_piece_data_for_slot(index: int) -> PieceData:
@@ -112,15 +108,8 @@ func _create_piece_icon(parent: Control, piece_data: PieceData):
 		tile.set_color(color)
 
 
-func _refresh_slots():
-	for i in range(slot_rects.size()):
-		var rect := slot_rects[i]
-		if rect:
-			rect.color = active_color if i == active_index else inactive_color
-
-
 func get_slot_count() -> int:
-	return slot_rects.size()
+	return slot_buttons.size()
 
 
 func get_active_index() -> int:

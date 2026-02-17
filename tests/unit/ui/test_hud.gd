@@ -31,23 +31,15 @@ func test_アクティブスロット変更でUIハイライトが更新され�
 
 
 func test_スロットにピースのアイコンが表示される():
-	# PaletteContainerの子要素としてスロットが存在する
-	var slot0 = hud.palette_container.get_child(0)
+	var slot0 = hud.toolbar.get_child(0)
 	assert_not_null(slot0)
-
-	# スロット内にIconRootが生成されているか確認
 	assert_gt(slot0.get_child_count(), 0, "Slot should contain icon nodes")
 
 
 func test_スロットをクリックすると選択が更新される():
-	# スロット2をクリックしたふりをする
-	var slot2 = hud.slot_rects[2]
-	var event = InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = true
-	event.position = Vector2(1, 1)
-
-	slot2.gui_input.emit(event)
+	# ボタンのクリックを擬似的に発生させる
+	var btn2 = hud.slot_buttons[2]
+	btn2.pressed.emit()
 
 	assert_eq(hud.get_active_index(), 2, "スロット2をクリックしたらインデックス2が選択されるべき")
 	assert_not_null(piece_placer.selected_piece_data)
