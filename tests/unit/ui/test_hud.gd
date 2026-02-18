@@ -15,10 +15,6 @@ func before_each():
 	hud.setup(piece_placer)
 
 
-func test_HUDは9つのパレットスロットを持つ():
-	assert_eq(hud.get_slot_count(), 9)
-
-
 func test_アクティブスロット変更でUIハイライトが更新される():
 	assert_eq(hud.get_active_index(), -1)
 
@@ -33,33 +29,19 @@ func test_アクティブスロット変更でUIハイライトが更新され�
 
 
 func test_スロットにピースのアイコンが表示される():
+	# ToolBarの子要素としてスロットが存在する
 	var slot0 = hud.toolbar.get_child(0)
 	assert_not_null(slot0)
 	assert_gt(slot0.get_child_count(), 0, "Slot should contain icon nodes")
 
 
 func test_スロットをクリックすると選択が更新される():
+	# ボタンのクリックを擬似的に発生させる
 	var btn2 = hud.toolbar.get_child(2) as Button
+
+	# 手動でトグル状態をセットしてハンドラを呼ぶ
 	btn2.button_pressed = true
 	hud.on_slot_pressed(2)
 
 	assert_eq(hud.get_active_index(), 2, "スロット2を選択したらインデックス2がアクティブになるべき")
 	assert_not_null(piece_placer.selected_piece_data)
-
-
-func test_右クリックで自律的に選択が解除される():
-	# まず選択状態にする
-	var btn = hud.slot_buttons[0]
-	btn.button_pressed = true
-	hud.on_slot_pressed(0)
-	assert_eq(hud.get_active_index(), 0)
-
-	# 右クリックイベントをシミュレート
-	var event = InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_RIGHT
-	event.pressed = true
-	hud._unhandled_input(event)
-
-	# 解除されていることを確認
-	assert_eq(hud.get_active_index(), -1, "右クリックで選択が解除されるべき")
-	assert_null(piece_placer.selected_piece_data, "PiecePlacerの選択も解除されるべき")

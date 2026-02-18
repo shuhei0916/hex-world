@@ -30,7 +30,6 @@ func setup(piece_placer_ref: PiecePlacer):
 
 
 func _initialize_toolbar():
-	# アイコンの初期生成
 	for i in slot_buttons.size():
 		var btn = slot_buttons[i] as Button
 		var piece_data = get_piece_data_for_slot(i)
@@ -38,19 +37,12 @@ func _initialize_toolbar():
 			_create_piece_icon(btn, piece_data)
 
 
-func _unhandled_input(event):
-	# 右クリックで選択解除を自律的に行う
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_RIGHT:
-			if get_active_index() != -1:
-				_deselect_all_buttons()
-				_deselect_piece()
-				# 入力を消費して、Main側のピース削除などが走らないようにする
-				get_viewport().set_input_as_handled()
-
-
-# ボタンクリック、およびショートカット（1-9キー）から呼ばれる
 func on_slot_pressed(index: int):
+	if index < 0 or index >= slot_buttons.size():
+		_deselect_all_buttons()
+		_deselect_piece()
+		return
+
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
 		_select_piece(index)
@@ -103,10 +95,6 @@ func _create_piece_icon(parent: Control, piece_data: PieceData):
 		tile.position = Layout.hex_to_pixel(layout, hex)
 		tile.setup_hex(hex)
 		tile.set_color(color)
-
-
-func get_slot_count() -> int:
-	return slot_buttons.size()
 
 
 func get_active_index() -> int:

@@ -1,12 +1,5 @@
 # todo
 
-## パレットとPiecePlacerの連携簡略化
-- [x] `PiecePlacer` に `select_piece(data: PieceData)` メソッドを追加する
-- [x] `PaletteUI` から `PiecePlacer` に直接 `PieceData` を渡すように変更する
-- [x] `PiecePlacer` から `Palette` への依存を削除し、内部で保持するデータのみで動作させる
-- [ ] `PaletteUI.tscn` に 9つのスロットボタンをあらかじめ配置し、コードでの動的生成を廃止する
-- [ ] `Palette` クラスを軽量化し、状態管理をUI側に寄せる
-
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
 - [ ] 裁断機やプレス機など、ほかのroleも追加する
@@ -19,6 +12,7 @@
 
 ## リファクタリング
 ### piece, test_piece関連
+- [ ] outputを示す矢印を動的生成しているのをやめて、フリーの素材などを使う。
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので, これを修正するべきか検討する
 	- [ ] statusiconの更新などはstatusiconシーンにスクリプトをアタッチするなど
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
@@ -32,6 +26,9 @@
 - [ ] test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
+- [ ] HUDがPiecePlacerを知っているのは密結合なので、これを修正する
+	- [ ] HUDは「何番のスロットが選ばれたか」という シグナル（signal） を発行するだけに留める
+	- [ ] それをmainが受け取って PiecePlacer を動かす形にする
 
 
 ## 検討中のタスク・メモなど（AIはこれを編集・削除しないでください）
