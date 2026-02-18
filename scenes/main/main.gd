@@ -43,10 +43,7 @@ func _handle_mouse_click(event):
 			piece_placer.place_current_piece()
 
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if piece_placer.selected_piece_data != null:
-				hud.select_slot(-1)
-
-			elif piece_placer.current_hovered_hex != null:
+			if piece_placer.current_hovered_hex != null:
 				piece_placer.remove_piece_at_hex(piece_placer.current_hovered_hex)
 
 

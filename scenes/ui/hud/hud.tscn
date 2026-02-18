@@ -155,3 +155,13 @@ layout_mode = 2
 toggle_mode = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_devq0")
+
+[connection signal="pressed" from="ToolBar/Slot1" to="." method="on_slot_pressed" binds= [0]]
+[connection signal="pressed" from="ToolBar/Slot2" to="." method="on_slot_pressed" binds= [1]]
+[connection signal="pressed" from="ToolBar/Slot3" to="." method="on_slot_pressed" binds= [2]]
+[connection signal="pressed" from="ToolBar/Slot4" to="." method="on_slot_pressed" binds= [3]]
+[connection signal="pressed" from="ToolBar/Slot5" to="." method="on_slot_pressed" binds= [4]]
+[connection signal="pressed" from="ToolBar/Slot6" to="." method="on_slot_pressed" binds= [5]]
+[connection signal="pressed" from="ToolBar/Slot7" to="." method="on_slot_pressed" binds= [6]]
+[connection signal="pressed" from="ToolBar/Slot8" to="." method="on_slot_pressed" binds= [7]]
+[connection signal="pressed" from="ToolBar/Slot9" to="." method="on_slot_pressed" binds= [8]]

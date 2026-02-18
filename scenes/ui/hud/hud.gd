@@ -5,9 +5,6 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 var piece_placer: PiecePlacer
 
-# スロット管理 (テストアクセスのためパブリックに維持)
-var slot_buttons: Array[Button] = []
-
 # スロットに割り当てるピースタイプの定義
 var _assignments: Array = [
 	PieceData.Type.BEE,
@@ -21,48 +18,40 @@ var _assignments: Array = [
 ]
 
 @onready var toolbar: HBoxContainer = $ToolBar
+@onready var slot_buttons: Array = $ToolBar.get_children()
 
 
 func _ready():
-	if toolbar:
-		_initialize_toolbar()
+	_initialize_toolbar()
 
 
 func setup(piece_placer_ref: PiecePlacer):
 	piece_placer = piece_placer_ref
-	if is_node_ready():
-		_initialize_toolbar()
 
 
 func _initialize_toolbar():
-	if not toolbar:
-		return
-
-	_setup_toolbar_slots()
-
-
-func _setup_toolbar_slots():
-	slot_buttons.clear()
-	var slots = toolbar.get_children()
-
-	for i in range(slots.size()):
-		var btn = slots[i] as Button
-		if btn:
-			slot_buttons.append(btn)
-
-			# シグナル接続（重複防止）
-			if not btn.pressed.is_connected(_on_slot_pressed):
-				btn.pressed.connect(_on_slot_pressed.bind(i))
-
-			# アイコンを生成
-			var piece_data = get_piece_data_for_slot(i)
-			if piece_data:
-				_create_piece_icon(btn, piece_data)
+	# アイコンの初期生成
+	for i in slot_buttons.size():
+		var btn = slot_buttons[i] as Button
+		var piece_data = get_piece_data_for_slot(i)
+		if piece_data:
+			_create_piece_icon(btn, piece_data)
 
 
-func _on_slot_pressed(index: int):
+func _unhandled_input(event):
+	# 右クリックで選択解除を自律的に行う
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			if get_active_index() != -1:
+				_deselect_all_buttons()
+				_deselect_piece()
+				# 入力を消費して、Main側のピース削除などが走らないようにする
+				get_viewport().set_input_as_handled()
+
+
+# ボタンクリック、およびショートカット（1-9キー）から呼ばれる
+func on_slot_pressed(index: int):
 	var btn = slot_buttons[index]
-
 	if btn.button_pressed:
 		_select_piece(index)
 	else:
@@ -80,22 +69,10 @@ func _deselect_piece():
 		piece_placer.select_piece(null)
 
 
-# 外部からの操作用（キー入力や右クリック解除など）
-func select_slot(index: int):
-	if index < 0 or index >= slot_buttons.size():
-		# インデックス外（-1など）は現在の選択を解除
-		var group = _get_button_group()
-		if group:
-			var pressed_btn = group.get_pressed_button()
-			if pressed_btn:
-				pressed_btn.button_pressed = false
-		_deselect_piece()
-		return
-
-	var btn = slot_buttons[index]
-	# ToggleModeがONの前提。button_pressedを反転させると自動的にグループ内の他が解除される
-	btn.button_pressed = not btn.button_pressed
-	_on_slot_pressed(index)
+func _deselect_all_buttons():
+	var group = _get_button_group()
+	if group and group.get_pressed_button():
+		group.get_pressed_button().button_pressed = false
 
 
 func get_piece_data_for_slot(index: int) -> PieceData:
@@ -135,26 +112,12 @@ func get_slot_count() -> int:
 func get_active_index() -> int:
 	var group = _get_button_group()
 	if not group:
-		# グループがない場合はボタンを直接調べる
-		for i in range(slot_buttons.size()):
-			if slot_buttons[i].button_pressed:
-				return i
 		return -1
 	var pressed_btn = group.get_pressed_button()
-	if not pressed_btn:
-		return -1
-	return slot_buttons.find(pressed_btn)
+	return pressed_btn.get_index() if pressed_btn else -1
 
 
-func get_active_piece_data() -> PieceData:
-	var index = get_active_index()
-	if index == -1:
-		return null
-	return get_piece_data_for_slot(index)
-
-
-# ヘルパー: ボタンからグループを取得
 func _get_button_group() -> ButtonGroup:
 	if not slot_buttons.is_empty():
-		return slot_buttons[0].button_group
+		return (slot_buttons[0] as Button).button_group
 	return null
