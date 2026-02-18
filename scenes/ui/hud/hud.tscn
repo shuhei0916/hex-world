@@ -1,6 +1,7 @@
-[gd_scene load_steps=20 format=3 uid="uid://qqa8dhve6xp8"]
+[gd_scene load_steps=21 format=3 uid="uid://qqa8dhve6xp8"]
 
 [ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
+[ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_bngdn"]
 device = -1
@@ -95,44 +96,62 @@ alignment = 1
 [node name="Slot1" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_qao66")
 
 [node name="Slot2" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_as3gr")
 
 [node name="Slot3" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_ax4tw")
 
 [node name="Slot4" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_2wu1p")
 
 [node name="Slot5" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_todbw")
 
 [node name="Slot6" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_swth0")
 
 [node name="Slot7" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_m7evv")
 
 [node name="Slot8" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_o6s6k")
 
 [node name="Slot9" type="Button" parent="ToolBar"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_devq0")
