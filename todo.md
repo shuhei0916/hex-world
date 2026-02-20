@@ -12,13 +12,7 @@
 
 ## リファクタリング
 ### piece, test_piece関連
-- [x] outputを示す矢印を動的生成しているのをやめて、フリーの素材などを使う。
-	- [x] `Piece` セットアップ時に、出力ポートの数に応じた `Sprite2D` 子ノードが生成されている。
-	- [x] 各 `Sprite2D` のテクスチャに `right.png` が設定されている。（手動確認）
-	- [x] 各 `Sprite2D` の `rotation` が出力ポートの向きと一致している。（手動確認）
-	- [x] 各 `Sprite2D` の `position` が中心から適切なオフセット位置にある。（手動確認）
-	- [x] 各 `Sprite2D` の `modulate` に正しい色（オレンジ系）が設定されている。（手動確認）
-	- [x] `_draw` によるポリゴン描画コードを削除する。
+- [ ] test_piece.TestPieceVisualsの各テストスイートで重複があるので、これを取り除く。
 - [ ] 動的生成ではなく、ItemContainerやCrafterをあらかじめPieceの子ノードとして配置しておく
 - [ ] pieceクラスにおいて、機能部分とview部分が混在しているので, これを修正するべきか検討する
 	- [ ] statusiconの更新などはstatusiconシーンにスクリプトをアタッチするなど
