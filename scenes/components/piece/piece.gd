@@ -1,6 +1,8 @@
 class_name Piece
 extends Node2D
 
+const ARROW_TEXTURE = preload("res://scenes/components/piece/forward.png")
+
 # ピースの種類ID (PieceData.Type)
 var piece_type: int = -1
 
@@ -202,6 +204,40 @@ func _update_visuals():
 	_update_output_visuals()
 	_update_input_visuals()
 	_update_speed_visuals()
+	_update_arrow_visuals()
+
+
+func _update_arrow_visuals():
+	# 既存の矢印を削除
+	for child in get_children():
+		if child.name.begins_with("Arrow_"):
+			child.free()  # テストでの即時反映のため queue_free ではなく free
+
+	if not _cached_data:
+		return
+
+	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+	var ports = get_output_ports()
+	var offset_dist = 35.0
+
+	for i in range(ports.size()):
+		var port = ports[i]
+		var arrow = Sprite2D.new()
+		arrow.name = "Arrow_" + str(i)
+		arrow.texture = ARROW_TEXTURE
+		arrow.modulate = Color("#F5A623")
+		arrow.scale = Vector2(0.5, 0.5)
+
+		# 位置と回転の計算
+		var center_pos = Layout.hex_to_pixel(layout, port.hex)
+		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
+		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
+		var angle = (neighbor_pos - center_pos).angle()
+
+		arrow.position = center_pos + Vector2(offset_dist, 0).rotated(angle)
+		arrow.rotation = angle
+
+		add_child(arrow)
 
 
 func _update_output_visuals():
@@ -309,32 +345,6 @@ func _update_speed_visuals():
 			speed_label.visible = true
 	else:
 		speed_label.visible = false
-
-
-func _draw():
-	var params = get_port_visual_params()
-	for p in params:
-		_draw_arrow(p.position, p.rotation, p.color, false)
-
-
-func _draw_arrow(pos: Vector2, rot: float, color: Color, _is_input: bool):
-	var arrow_size = 15.0
-	var offset = 30.0  # ヘックスの中心からのオフセット
-
-	draw_set_transform(pos, rot, Vector2.ONE)
-
-	var arrow_pos = Vector2(offset, 0)
-	var points = PackedVector2Array()
-
-	# 出力矢印 (外に向かう)
-	points.append(arrow_pos + Vector2(arrow_size, 0))
-	points.append(arrow_pos + Vector2(0, -arrow_size / 2))
-	points.append(arrow_pos + Vector2(0, arrow_size / 2))
-
-	draw_colored_polygon(points, color)
-
-	# トランスフォームをリセット
-	draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
 
 func _push_items():

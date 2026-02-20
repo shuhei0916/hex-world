@@ -12,7 +12,6 @@ class TestPieceUnit:
 
 	func before_each():
 		source = Piece.new()
-		# カスタムデータでセットアップ
 		var s_data = PieceData.new([Hex.new(0, 0)], [], "miner")
 		source.setup(s_data)
 		add_child_autofree(source)
@@ -36,7 +35,6 @@ class TestPieceUnit:
 		assert_eq(target.get_item_count("iron"), 0)
 
 
-# --- シーン構成と連携のテスト (コンポーネントテスト) ---
 class TestPieceBasics:
 	extends GutTest
 
@@ -62,7 +60,6 @@ class TestPieceBasics:
 		assert_false(piece.can_accept_item("copper"))
 
 
-# --- 視覚表現と連携のテスト ---
 class TestPieceVisuals:
 	extends GutTest
 
@@ -90,8 +87,20 @@ class TestPieceVisuals:
 		assert_eq(params.size(), 1)
 		assert_almost_eq(params[0].rotation, 0.0, 0.01)
 
+	func test_出力ポートの数だけ出力方向を示す矢印が生成される():
+		var data = PieceData.new(
+			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
+		)
+		piece.setup(data)
 
-# --- 回転ロジックのテスト ---
+		var arrows = []
+		for child in piece.get_children():
+			if child is Sprite2D and child.name.begins_with("Arrow_"):
+				arrows.append(child)
+
+		assert_eq(arrows.size(), 1, "出力ポートが1つの場合、1つの矢印スプライトが生成されるべき")
+
+
 class TestPieceTransformation:
 	extends GutTest
 	var p: Piece
@@ -101,7 +110,7 @@ class TestPieceTransformation:
 		p.setup(PieceData.get_data(PieceData.Type.WAVE))
 		add_child_autofree(p)
 
-	func test_ポートの向きはピースの回転に追従する():
+	func test_ピースの回転に合わせてポートの向きも変更される():
 		assert_eq(p.get_output_ports()[0].direction, 2)
 		p.rotate_cw()
 		assert_eq(p.get_output_ports()[0].direction, 1)
@@ -118,7 +127,6 @@ class TestPieceTransformation:
 		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
 
 
-# --- 特殊な役割を持つピースのテスト ---
 class TestPieceRoles:
 	extends GutTest
 
