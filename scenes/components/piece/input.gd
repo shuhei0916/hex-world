@@ -1,13 +1,12 @@
-class_name ItemContainer
+class_name PieceInput
 extends Node2D
 
-## アイテムを格納・管理するためのコンポーネント。
+## 外部からのアイテム受け入れ + 表示コンポーネント。
 
 signal inventory_changed
 
-# true の場合、detail_mode が ON の時だけアイコンを表示する（Input 側用）
-# false の場合、アイテムがあれば常時アイコンを表示する（Output 側用）
-@export var detail_mode_only: bool = false
+# true の場合、detail_mode が ON の時だけアイコンを表示する
+@export var detail_mode_only: bool = true
 
 # 最大容量 (合計アイテム数)
 var capacity: int = 20
@@ -37,7 +36,6 @@ func update_visuals():
 	var item_id = ""
 	var max_count = 0
 
-	# もっとも数が多いアイテムを表示（暫定）
 	for key in _items:
 		if _items[key] > max_count:
 			max_count = _items[key]

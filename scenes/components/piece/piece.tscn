@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://diffgwrvtlkbc"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" uid="uid://hww32r0llld" path="res://scenes/components/piece/item_container.gd" id="2_item_container"]
+[ext_resource type="Script" path="res://scenes/components/piece/input.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
 [ext_resource type="Script" path="res://scenes/components/piece/output.gd" id="4_output"]
 [ext_resource type="Texture2D" uid="uid://dxmsv0vwl0ybu" path="res://scenes/components/piece/forward.png" id="5_dqdi4"]
@@ -29,15 +29,14 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InputInventory" type="Node2D" parent="."]
+[node name="Input" type="Node2D" parent="."]
 position = Vector2(-20, 15)
-script = ExtResource("2_item_container")
-detail_mode_only = true
+script = ExtResource("2_input")
 
-[node name="Icon" type="Sprite2D" parent="InputInventory"]
+[node name="Icon" type="Sprite2D" parent="Input"]
 scale = Vector2(0.3, 0.3)
 
-[node name="CountLabel" type="Label" parent="InputInventory/Icon"]
+[node name="CountLabel" type="Label" parent="Input/Icon"]
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)

@@ -4,11 +4,11 @@ extends Node
 var current_recipe: Recipe
 var processing_progress: float = 0.0
 
-var input_container: ItemContainer
+var input_container: Node
 var output_container: Node
 
 
-func setup(in_container: ItemContainer, out_container: Node):
+func setup(in_container: Node, out_container: Node):
 	input_container = in_container
 	output_container = out_container
 

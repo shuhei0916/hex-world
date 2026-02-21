@@ -1,11 +1,12 @@
 extends GutTest
 
+const PieceInputScript = preload("res://scenes/components/piece/input.gd")
+
 var container
 
 
 func before_each():
-	if ItemContainer:
-		container = ItemContainer.new()
+	container = PieceInputScript.new()
 
 
 func after_each():
@@ -14,95 +15,80 @@ func after_each():
 
 
 func test_初期状態のインベントリは空である():
-	if not container:
-		return
 	assert_eq(container.get_item_count("iron"), 0, "初期状態のアイテム数は0であるべき")
 
 
 func test_アイテムを追加すると数が加算される():
-	if not container:
-		return
 	container.add_item("iron", 5)
 	assert_eq(container.get_item_count("iron"), 5, "新規追加で数が設定されるべき")
 
+
+func test_既存アイテムに追加すると数が加算される():
+	container.add_item("iron", 5)
 	container.add_item("iron", 3)
 	assert_eq(container.get_item_count("iron"), 8, "既存アイテムに追加すると数が加算されるべき")
 
 
 func test_異なる種類のアイテムは個別に管理される():
-	if not container:
-		return
 	container.add_item("iron", 5)
 	container.add_item("copper", 1)
 	assert_eq(container.get_item_count("copper"), 1, "別のアイテム(copper)も正しく追加できるべき")
 
 
 func test_異なる種類のアイテムを追加しても既存のアイテム数は変わらない():
-	if not container:
-		return
 	container.add_item("iron", 5)
 	container.add_item("copper", 1)
 	assert_eq(container.get_item_count("iron"), 5, "別のアイテムを追加しても既存のアイテム数は変わらないべき")
 
 
 func test_アイテムを消費できる():
-	if not container:
-		return
 	container.add_item("iron", 5)
 	container.consume_item("iron", 2)
 	assert_eq(container.get_item_count("iron"), 3, "5 - 2 = 3 になるべき")
 
 
-func test_消費して0になったらエントリが消えるか0になる():
-	if not container:
-		return
+func test_消費して0になったらエントリが消える():
 	container.add_item("iron", 2)
 	container.consume_item("iron", 2)
 	assert_eq(container.get_item_count("iron"), 0, "2 - 2 = 0")
 
 
-func test_アイテム変更時にシグナルが発火される():
-	if not container:
-		return
-
+func test_アイテム追加時にシグナルが発火される():
 	watch_signals(container)
 	container.add_item("iron", 1)
 	assert_signal_emitted(container, "inventory_changed", "追加時にシグナルが出るべき")
 
+
+func test_アイテム消費時にシグナルが発火される():
+	container.add_item("iron", 1)
+	watch_signals(container)
 	container.consume_item("iron", 1)
 	assert_signal_emitted(container, "inventory_changed", "消費時にシグナルが出るべき")
 
 
 func test_合計アイテム数を取得できる():
-	if not container:
-		return
-
 	container.add_item("iron", 5)
 	container.add_item("copper", 3)
 	assert_eq(container.get_total_item_count(), 8, "5 + 3 = 8 であるべき")
 
+
+func test_合計アイテム数は消費後に減る():
+	container.add_item("iron", 5)
+	container.add_item("copper", 3)
 	container.consume_item("iron", 2)
 	assert_eq(container.get_total_item_count(), 6, "8 - 2 = 6 であるべき")
 
 
 func test_満杯状態を正しく判定できる():
-	if not container:
-		return
-
-	# デフォルト容量は20とする
-	assert_false(container.is_full(), "初期状態は満杯ではない")
-
 	container.add_item("junk", 20)
 	assert_true(container.is_full(), "20個入れたら満杯判定されるべき")
 
 
-func test_容量を自由に変更できる():
-	if not container:
-		return
+func test_初期状態は満杯でない():
+	assert_false(container.is_full(), "初期状態は満杯ではない")
 
+
+func test_容量を変更できる():
 	container.capacity = 5
-	container.add_item("junk", 4)
-	assert_false(container.is_full())
-
-	container.add_item("junk", 1)
+	container.add_item("junk", 5)
 	assert_true(container.is_full(), "変更した容量(5)で判定されるべき")

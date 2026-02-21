@@ -13,7 +13,7 @@ func test_detail_mode_toggles_visibility():
 	# 初期状態では詳細情報は非表示であるべき
 	piece.set_detail_mode(false)
 
-	var input_icon = piece.get_node_or_null("InputInventory/Icon")
+	var input_icon = piece.get_node_or_null("Input/Icon")
 	var speed_label = piece.get_node_or_null("SpeedLabel")
 	var count_label = piece.get_node_or_null("Output/Icon/CountLabel")
 
