@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://diffgwrvtlkbc"]
+[gd_scene load_steps=5 format=3 uid="uid://diffgwrvtlkbc"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" uid="uid://hww32r0llld" path="res://scenes/components/piece/item_container.gd" id="2_item_container"]
+[ext_resource type="Script" uid="uid://ds80p0800p0" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
+[ext_resource type="Script" uid="uid://ds90p0900p0" path="res://scenes/components/piece/transporter.gd" id="4_transporter"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
@@ -23,13 +26,13 @@ visible = false
 offset_left = -20.0
 offset_top = -30.0
 offset_right = 20.0
-offset_bottom = -23.0
+offset_bottom = -26.0
+value = 50.0
 show_percentage = false
 
 [node name="InputIcon" type="Sprite2D" parent="."]
-visible = false
-position = Vector2(-15, -15)
-scale = Vector2(0.4, 0.4)
+position = Vector2(-20, 15)
+scale = Vector2(0.3, 0.3)
 
 [node name="InputLabel" type="Label" parent="InputIcon"]
 offset_right = 40.0
@@ -51,3 +54,19 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="InputInventory" type="Node" parent="."]
+script = ExtResource("2_item_container")
+
+[node name="OutputInventory" type="Node" parent="."]
+script = ExtResource("2_item_container")
+
+[node name="Crafter" type="Node" parent="."]
+script = ExtResource("3_crafter")
+
+[node name="Transporter" type="Node" parent="."]
+script = ExtResource("4_transporter")
+
+[connection signal="inventory_changed" from="InputInventory" to="." method="_update_visuals"]
+[connection signal="inventory_changed" from="OutputInventory" to="." method="_update_visuals"]
+[connection signal="inventory_changed" from="OutputInventory" to="." method="_push_items"]

@@ -9,12 +9,6 @@ var piece_type: int = -1
 # 回転状態 (0-5)
 var rotation_state: int = 0
 
-# コンポーネント
-var input_storage: ItemContainer
-var output_storage: ItemContainer
-var crafter: Crafter
-var transporter: Transporter
-
 # トポロジー情報 (Managerによって管理される)
 var destinations: Array[Piece] = []
 
@@ -39,6 +33,12 @@ var processing_progress: float:
 
 var _cached_data: PieceData  # キャッシュされた定義データ
 
+# コンポーネント
+@onready var input_storage: ItemContainer = get_node_or_null("InputInventory")
+@onready var output_storage: ItemContainer = get_node_or_null("OutputInventory")
+@onready var crafter: Crafter = get_node_or_null("Crafter")
+@onready var transporter: Transporter = get_node_or_null("Transporter")
+
 @onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
 
@@ -48,7 +48,12 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 
 
 func _ready():
-	_ensure_components_created()
+	# PIECE_SCENE.instantiate() で呼ばれた場合、@onready 済みのノードをセットアップ
+	if crafter and input_storage and output_storage:
+		crafter.setup(input_storage, output_storage)
+	if transporter and output_storage:
+		transporter.setup(output_storage)
+
 	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
 	_update_visuals()
 
@@ -58,8 +63,6 @@ func _process(delta: float):
 
 
 func setup(data: PieceData, rotation: int = 0):
-	_ensure_components_created()
-
 	if crafter:
 		crafter.set_recipe(null)
 
@@ -171,33 +174,6 @@ func can_accept_item(_item_name: String) -> bool:
 
 
 # --- Private Methods ---
-
-
-func _ensure_components_created():
-	if not input_storage:
-		input_storage = ItemContainer.new()
-		input_storage.name = "InputInventory"
-		add_child(input_storage)
-		input_storage.inventory_changed.connect(_update_visuals)
-
-	if not output_storage:
-		output_storage = ItemContainer.new()
-		output_storage.name = "OutputInventory"
-		add_child(output_storage)
-		output_storage.inventory_changed.connect(_update_visuals)
-		output_storage.inventory_changed.connect(_push_items)
-
-	if not crafter:
-		crafter = Crafter.new()
-		crafter.name = "Crafter"
-		add_child(crafter)
-		crafter.setup(input_storage, output_storage)
-
-	if not transporter:
-		transporter = Transporter.new()
-		transporter.name = "Transporter"
-		add_child(transporter)
-		transporter.setup(output_storage)
 
 
 func _update_visuals():

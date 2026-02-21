@@ -100,15 +100,15 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 	# Pieceノードを生成
 	var piece = piece_scene.instantiate()
 
-	# データセットアップ
-	if piece.has_method("setup"):
-		piece.setup(data, rotation)
-
 	# 座標設定（基準Hexの位置に配置）
 	piece.position = hex_to_pixel(base_hex)
 
 	# シーンツリーに追加
 	add_child(piece)
+
+	# データセットアップ
+	if piece.has_method("setup"):
+		piece.setup(data, rotation)
 
 	# 詳細モードの設定を適用
 	if piece.has_method("set_detail_mode"):

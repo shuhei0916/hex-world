@@ -11,14 +11,16 @@ class TestPieceUnit:
 	var target: Piece
 
 	func before_each():
-		source = Piece.new()
+		source = PIECE_SCENE.instantiate()
+		add_child(source)
+		autofree(source)
 		var s_data = PieceData.new([Hex.new(0, 0)], [], "miner")
 		source.setup(s_data)
-		add_child_autofree(source)
 
-		target = Piece.new()
+		target = PIECE_SCENE.instantiate()
+		add_child(target)
+		autofree(target)
 		target.setup(PieceData.get_data(PieceData.Type.CHEST))
-		add_child_autofree(target)
 
 	func test_接続先のピースにアイテムが搬出される():
 		source.destinations = [target]
@@ -106,7 +108,7 @@ class TestPieceTransformation:
 	var p: Piece
 
 	func before_each():
-		p = Piece.new()
+		p = PIECE_SCENE.instantiate()
 		p.setup(PieceData.get_data(PieceData.Type.WAVE))
 		add_child_autofree(p)
 
@@ -131,7 +133,9 @@ class TestPieceRoles:
 	extends GutTest
 
 	func test_製錬所ロールは初期化時に自動的に適切なレシピとポートが設定される():
-		var p = Piece.new()
+		var p = PIECE_SCENE.instantiate()
+		add_child(p)
+		autofree(p)
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
@@ -141,10 +145,11 @@ class TestPieceRoles:
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
 	func test_採掘機ロールは時間経過でアイテムを自動生産する():
-		var p = Piece.new()
+		var p = PIECE_SCENE.instantiate()
+		add_child(p)
+		autofree(p)
 		var data = PieceData.new([Hex.new(0, 0)], [], "miner")
 		p.setup(data)
-		add_child_autofree(p)
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
