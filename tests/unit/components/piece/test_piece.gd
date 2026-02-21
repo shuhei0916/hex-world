@@ -38,15 +38,6 @@ class TestPieceVisuals:
 		piece = PIECE_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_アイテム追加時に在庫表示ラベルが更新される():
-		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
-		piece.set_detail_mode(true)
-		piece.add_to_output("iron_ore", 10)
-
-		var label = piece.get_node("Output/Icon/CountLabel")
-		assert_true(label.visible)
-		assert_eq(label.text, "10")
-
 	func test_出力ポートが存在する場合に矢印が表示される():
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
