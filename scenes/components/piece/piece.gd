@@ -39,10 +39,10 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 @onready var transporter: Transporter = get_node_or_null("Transporter")
 
-@onready var status_icon: Sprite2D = get_node_or_null("StatusIcon")
+@onready var status_icon: Sprite2D = get_node_or_null("OutputInventory/StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
 
-@onready var input_icon: Sprite2D = get_node_or_null("InputIcon")
+@onready var input_icon: Sprite2D = get_node_or_null("InputInventory/InputIcon")
 @onready var input_label: Label = input_icon.get_node_or_null("InputLabel") if input_icon else null
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
@@ -83,6 +83,10 @@ func setup(data: PieceData, rotation: int = 0):
 
 func set_detail_mode(enabled: bool):
 	is_detail_mode = enabled
+	if input_storage:
+		input_storage.set_detail_mode(enabled)
+	if output_storage:
+		output_storage.set_detail_mode(enabled)
 	_update_visuals()
 
 
@@ -177,8 +181,6 @@ func can_accept_item(_item_name: String) -> bool:
 
 
 func _update_visuals():
-	_update_output_visuals()
-	_update_input_visuals()
 	_update_speed_visuals()
 
 
@@ -200,93 +202,6 @@ func _update_arrow_visuals():
 
 		arrow.position = center_pos + Vector2(offset_dist, 0).rotated(angle)
 		arrow.rotation = angle
-
-
-func _update_output_visuals():
-	if not status_icon:
-		return
-
-	var item_id = ""
-
-	if not input_storage or not output_storage:
-		return
-
-	# 表示すべきアイテムを決定 (Recipe Output優先)
-	if current_recipe:
-		# 最初の出力アイテムを代表アイコンとする
-		var outputs = current_recipe.outputs.keys()
-		if not outputs.is_empty():
-			item_id = outputs[0]
-	else:
-		# レシピがない場合（Chest等）、Outputにあるものを表示
-		var max_count = 0
-		var all_items = []
-
-		all_items.append_array(output_storage._items.keys())
-		if output_storage._items.is_empty():
-			all_items.append_array(input_storage._items.keys())
-
-		for key in all_items:
-			var c = get_item_count(key)
-			if c > max_count:
-				max_count = c
-				item_id = key
-
-	# アイコン更新
-	if item_id != "":
-		var item_def = ItemDB.get_item(item_id)
-		if item_def:
-			status_icon.texture = item_def.icon
-			status_icon.visible = true
-
-			if count_label:
-				if is_detail_mode:
-					var count = get_item_count(item_id)
-					if count > 0:
-						count_label.text = str(count)
-						count_label.visible = true
-					else:
-						count_label.visible = false
-				else:
-					count_label.visible = false
-		else:
-			status_icon.visible = false
-			if count_label:
-				count_label.visible = false
-	else:
-		status_icon.visible = false
-		if count_label:
-			count_label.visible = false
-
-
-func _update_input_visuals():
-	if not input_icon or not input_label:
-		return
-	if not input_storage:
-		return
-
-	if not is_detail_mode:
-		input_icon.visible = false
-		return
-
-	var max_count = 0
-	var item_id = ""
-
-	for key in input_storage._items:
-		if input_storage._items[key] > max_count:
-			max_count = input_storage._items[key]
-			item_id = key
-
-	if item_id != "":
-		var item_def = ItemDB.get_item(item_id)
-		if item_def:
-			input_icon.texture = item_def.icon
-			input_icon.visible = true
-			input_label.text = str(max_count)
-		else:
-			input_icon.visible = false
-	else:
-		input_icon.visible = false
 
 
 func _update_speed_visuals():

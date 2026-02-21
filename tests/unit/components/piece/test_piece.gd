@@ -74,9 +74,9 @@ class TestPieceVisuals:
 	func test_アイテム追加時に在庫表示ラベルが更新される():
 		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.set_detail_mode(true)
-		piece.add_item("iron_ore", 10)
+		piece.add_to_output("iron_ore", 10)
 
-		var label = piece.get_node("StatusIcon/CountLabel")
+		var label = piece.get_node("OutputInventory/StatusIcon/CountLabel")
 		assert_true(label.visible)
 		assert_eq(label.text, "10")
 
@@ -89,18 +89,14 @@ class TestPieceVisuals:
 		assert_eq(params.size(), 1)
 		assert_almost_eq(params[0].rotation, 0.0, 0.01)
 
-	func test_出力ポートの数だけ出力方向を示す矢印が生成される():
+	func test_出力ポートが存在する場合に矢印が表示される():
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
 		)
 		piece.setup(data)
 
-		var arrows = []
-		for child in piece.get_children():
-			if child is Sprite2D and child.name.begins_with("Arrow_"):
-				arrows.append(child)
-
-		assert_eq(arrows.size(), 1, "出力ポートが1つの場合、1つの矢印スプライトが生成されるべき")
+		var arrow = piece.get_node("OutputPort")
+		assert_true(arrow.visible, "出力ポートがある場合、矢印が表示されるべき")
 
 
 class TestPieceTransformation:

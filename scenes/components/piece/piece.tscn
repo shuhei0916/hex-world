@@ -9,19 +9,6 @@
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
 
-[node name="StatusIcon" type="Sprite2D" parent="."]
-scale = Vector2(0.5, 0.5)
-
-[node name="CountLabel" type="Label" parent="StatusIcon"]
-offset_right = 40.0
-offset_bottom = 23.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 2
-
 [node name="CraftingProgressBar" type="ProgressBar" parent="."]
 visible = false
 offset_left = -20.0
@@ -30,20 +17,6 @@ offset_right = 20.0
 offset_bottom = -26.0
 value = 50.0
 show_percentage = false
-
-[node name="InputIcon" type="Sprite2D" parent="."]
-position = Vector2(-20, 15)
-scale = Vector2(0.3, 0.3)
-
-[node name="InputLabel" type="Label" parent="InputIcon"]
-offset_right = 40.0
-offset_bottom = 23.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 2
 
 [node name="SpeedLabel" type="Label" parent="."]
 offset_left = -30.0
@@ -56,11 +29,38 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InputInventory" type="Node" parent="."]
+[node name="InputInventory" type="Node2D" parent="."]
+position = Vector2(-20, 15)
 script = ExtResource("2_item_container")
 
-[node name="OutputInventory" type="Node" parent="."]
+[node name="InputIcon" type="Sprite2D" parent="InputInventory"]
+scale = Vector2(0.3, 0.3)
+
+[node name="InputLabel" type="Label" parent="InputInventory/InputIcon"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="OutputInventory" type="Node2D" parent="."]
 script = ExtResource("2_item_container")
+
+[node name="StatusIcon" type="Sprite2D" parent="OutputInventory"]
+scale = Vector2(0.5, 0.5)
+
+[node name="CountLabel" type="Label" parent="OutputInventory/StatusIcon"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="Crafter" type="Node" parent="."]
 script = ExtResource("3_crafter")
