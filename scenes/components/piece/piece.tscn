@@ -34,10 +34,10 @@ position = Vector2(-20, 15)
 script = ExtResource("2_item_container")
 detail_mode_only = true
 
-[node name="InputIcon" type="Sprite2D" parent="InputInventory"]
+[node name="Icon" type="Sprite2D" parent="InputInventory"]
 scale = Vector2(0.3, 0.3)
 
-[node name="InputLabel" type="Label" parent="InputInventory/InputIcon"]
+[node name="CountLabel" type="Label" parent="InputInventory/Icon"]
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -50,10 +50,10 @@ vertical_alignment = 2
 [node name="OutputInventory" type="Node2D" parent="."]
 script = ExtResource("2_item_container")
 
-[node name="StatusIcon" type="Sprite2D" parent="OutputInventory"]
+[node name="Icon" type="Sprite2D" parent="OutputInventory"]
 scale = Vector2(0.5, 0.5)
 
-[node name="CountLabel" type="Label" parent="OutputInventory/StatusIcon"]
+[node name="CountLabel" type="Label" parent="OutputInventory/Icon"]
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)

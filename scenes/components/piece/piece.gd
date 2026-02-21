@@ -15,8 +15,6 @@ var destinations: Array[Piece] = []
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
 
-var count_label: Label
-
 var is_detail_mode: bool = false
 
 # プロパティアクセサ
@@ -39,11 +37,7 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 @onready var transporter: Transporter = get_node_or_null("Transporter")
 
-@onready var status_icon: Sprite2D = get_node_or_null("OutputInventory/StatusIcon")
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
-
-@onready var input_icon: Sprite2D = get_node_or_null("InputInventory/InputIcon")
-@onready var input_label: Label = input_icon.get_node_or_null("InputLabel") if input_icon else null
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
@@ -54,7 +48,6 @@ func _ready():
 	if transporter and output_storage:
 		transporter.setup(output_storage)
 
-	count_label = status_icon.get_node_or_null("CountLabel") if status_icon else null
 	_update_visuals()
 
 

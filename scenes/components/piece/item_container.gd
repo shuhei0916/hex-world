@@ -17,8 +17,8 @@ var is_detail_mode: bool = false
 # インベントリデータ (アイテム名: 数量)
 var _items: Dictionary = {}
 
-@onready var _icon: Sprite2D = _find_child_by_type("Sprite2D")
-@onready var _label: Label = _find_child_by_type("Label", _icon)
+@onready var _icon: Sprite2D = $Icon
+@onready var _label: Label = $Icon/CountLabel
 
 
 func _ready():
@@ -89,13 +89,3 @@ func get_total_item_count() -> int:
 
 func is_full() -> bool:
 	return get_total_item_count() >= capacity
-
-
-func _find_child_by_type(type_name: String, parent_node: Node = self) -> Node:
-	for child in parent_node.get_children():
-		if child.is_class(type_name) or child.get_class() == type_name:
-			return child
-		var res = _find_child_by_type(type_name, child)
-		if res:
-			return res
-	return null

@@ -76,7 +76,7 @@ class TestPieceVisuals:
 		piece.set_detail_mode(true)
 		piece.add_to_output("iron_ore", 10)
 
-		var label = piece.get_node("OutputInventory/StatusIcon/CountLabel")
+		var label = piece.get_node("OutputInventory/Icon/CountLabel")
 		assert_true(label.visible)
 		assert_eq(label.text, "10")
 
