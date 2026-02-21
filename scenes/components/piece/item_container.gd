@@ -5,6 +5,10 @@ extends Node2D
 
 signal inventory_changed
 
+# true の場合、detail_mode が ON の時だけアイコンを表示する（Input 側用）
+# false の場合、アイテムがあれば常時アイコンを表示する（Output 側用）
+@export var detail_mode_only: bool = false
+
 # 最大容量 (合計アイテム数)
 var capacity: int = 20
 
@@ -43,14 +47,18 @@ func update_visuals():
 		var item_def = ItemDB.get_item(item_id)
 		if item_def:
 			_icon.texture = item_def.icon
-			_icon.visible = true
+			_icon.visible = not detail_mode_only or is_detail_mode
 			if _label:
 				_label.text = str(max_count)
 				_label.visible = is_detail_mode
 		else:
 			_icon.visible = false
+			if _label:
+				_label.visible = false
 	else:
 		_icon.visible = false
+		if _label:
+			_label.visible = false
 
 
 func add_item(item_name: String, amount: int):

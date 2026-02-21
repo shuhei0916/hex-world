@@ -32,6 +32,7 @@ vertical_alignment = 1
 [node name="InputInventory" type="Node2D" parent="."]
 position = Vector2(-20, 15)
 script = ExtResource("2_item_container")
+detail_mode_only = true
 
 [node name="InputIcon" type="Sprite2D" parent="InputInventory"]
 scale = Vector2(0.3, 0.3)

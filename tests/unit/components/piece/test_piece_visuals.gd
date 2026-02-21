@@ -13,9 +13,9 @@ func test_detail_mode_toggles_visibility():
 	# 初期状態では詳細情報は非表示であるべき
 	piece.set_detail_mode(false)
 
-	var input_icon = piece.get_node_or_null("InputIcon")
+	var input_icon = piece.get_node_or_null("InputInventory/InputIcon")
 	var speed_label = piece.get_node_or_null("SpeedLabel")
-	var count_label = piece.get_node_or_null("StatusIcon/CountLabel")  # Output count
+	var count_label = piece.get_node_or_null("OutputInventory/StatusIcon/CountLabel")
 
 	if input_icon:
 		assert_false(input_icon.visible, "InputIcon should be hidden by default")
