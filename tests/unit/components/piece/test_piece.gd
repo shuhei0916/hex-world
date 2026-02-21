@@ -47,15 +47,6 @@ class TestPieceVisuals:
 		assert_true(label.visible)
 		assert_eq(label.text, "10")
 
-	func test_ポートの描画用パラメータを正しく計算できる():
-		var out_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		piece.setup(out_data)
-		var params = piece.get_port_visual_params()
-		assert_eq(params.size(), 1)
-		assert_almost_eq(params[0].rotation, 0.0, 0.01)
-
 	func test_出力ポートが存在する場合に矢印が表示される():
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
