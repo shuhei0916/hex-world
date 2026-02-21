@@ -33,7 +33,6 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 @onready var output: Node2D = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 
-@onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
@@ -104,15 +103,6 @@ func get_item_count(item_name: String) -> int:
 func tick(delta: float):
 	if crafter:
 		crafter.tick(delta)
-
-	if current_recipe:
-		if progress_bar:
-			progress_bar.visible = processing_progress > 0
-			progress_bar.max_value = current_recipe.craft_time
-			progress_bar.value = processing_progress
-	else:
-		if progress_bar:
-			progress_bar.visible = false
 
 	if _cached_data and _cached_data.role == "storage":
 		return

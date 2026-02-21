@@ -7,6 +7,8 @@ var processing_progress: float = 0.0
 var input_container: Node
 var output_container: Node
 
+@onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
+
 
 func setup(in_container: Node, out_container: Node):
 	input_container = in_container
@@ -25,6 +27,8 @@ func start_crafting():
 
 func tick(delta: float):
 	if not current_recipe:
+		if _progress_bar:
+			_progress_bar.visible = false
 		return
 
 	# 未開始なら開始を試みる
@@ -37,6 +41,11 @@ func tick(delta: float):
 		processing_progress += delta
 		if processing_progress >= current_recipe.craft_time:
 			_complete_crafting()
+
+	if _progress_bar:
+		_progress_bar.visible = processing_progress > 0
+		_progress_bar.max_value = current_recipe.craft_time
+		_progress_bar.value = processing_progress
 
 
 func _can_start_crafting() -> bool:
