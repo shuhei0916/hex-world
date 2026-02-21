@@ -15,7 +15,7 @@ func test_detail_mode_toggles_visibility():
 
 	var input_icon = piece.get_node_or_null("InputInventory/Icon")
 	var speed_label = piece.get_node_or_null("SpeedLabel")
-	var count_label = piece.get_node_or_null("OutputInventory/Icon/CountLabel")
+	var count_label = piece.get_node_or_null("Output/Icon/CountLabel")
 
 	if input_icon:
 		assert_false(input_icon.visible, "InputIcon should be hidden by default")

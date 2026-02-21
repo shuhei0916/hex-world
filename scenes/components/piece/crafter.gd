@@ -5,10 +5,10 @@ var current_recipe: Recipe
 var processing_progress: float = 0.0
 
 var input_container: ItemContainer
-var output_container: ItemContainer
+var output_container: Node
 
 
-func setup(in_container: ItemContainer, out_container: ItemContainer):
+func setup(in_container: ItemContainer, out_container: Node):
 	input_container = in_container
 	output_container = out_container
 

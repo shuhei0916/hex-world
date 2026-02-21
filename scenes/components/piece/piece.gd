@@ -9,9 +9,6 @@ var piece_type: int = -1
 # 回転状態 (0-5)
 var rotation_state: int = 0
 
-# トポロジー情報 (Managerによって管理される)
-var destinations: Array[Piece] = []
-
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
 
@@ -33,20 +30,16 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 
 # コンポーネント
 @onready var input_storage: ItemContainer = get_node_or_null("InputInventory")
-@onready var output_storage: ItemContainer = get_node_or_null("OutputInventory")
+@onready var output: Node2D = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
-@onready var transporter: Transporter = get_node_or_null("Transporter")
 
 @onready var progress_bar: ProgressBar = get_node_or_null("CraftingProgressBar")
 @onready var speed_label: Label = get_node_or_null("SpeedLabel")
 
 
 func _ready():
-	# PIECE_SCENE.instantiate() で呼ばれた場合、@onready 済みのノードをセットアップ
-	if crafter and input_storage and output_storage:
-		crafter.setup(input_storage, output_storage)
-	if transporter and output_storage:
-		transporter.setup(output_storage)
+	if crafter and input_storage and output:
+		crafter.setup(input_storage, output)
 
 	_update_visuals()
 
@@ -78,8 +71,8 @@ func set_detail_mode(enabled: bool):
 	is_detail_mode = enabled
 	if input_storage:
 		input_storage.set_detail_mode(enabled)
-	if output_storage:
-		output_storage.set_detail_mode(enabled)
+	if output:
+		output.set_detail_mode(enabled)
 	_update_visuals()
 
 
@@ -95,16 +88,16 @@ func add_item(item_name: String, amount: int):
 
 
 func add_to_output(item_name: String, amount: int):
-	if output_storage:
-		output_storage.add_item(item_name, amount)
+	if output:
+		output.add_item(item_name, amount)
 
 
 func get_item_count(item_name: String) -> int:
 	var count = 0
 	if input_storage:
 		count += input_storage.get_item_count(item_name)
-	if output_storage:
-		count += output_storage.get_item_count(item_name)
+	if output:
+		count += output.get_item_count(item_name)
 	return count
 
 
@@ -215,11 +208,3 @@ func _update_speed_visuals():
 			speed_label.visible = true
 	else:
 		speed_label.visible = false
-
-
-func _push_items():
-	if not output_storage or output_storage._items.is_empty():
-		return
-
-	if transporter and not destinations.is_empty():
-		transporter.push(destinations)

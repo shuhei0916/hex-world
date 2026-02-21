@@ -4,39 +4,6 @@ extends GutTest
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 
 
-class TestPieceUnit:
-	extends GutTest
-
-	var source: Piece
-	var target: Piece
-
-	func before_each():
-		source = PIECE_SCENE.instantiate()
-		add_child(source)
-		autofree(source)
-		var s_data = PieceData.new([Hex.new(0, 0)], [], "miner")
-		source.setup(s_data)
-
-		target = PIECE_SCENE.instantiate()
-		add_child(target)
-		autofree(target)
-		target.setup(PieceData.get_data(PieceData.Type.CHEST))
-
-	func test_接続先のピースにアイテムが搬出される():
-		source.destinations = [target]
-		source.add_to_output("iron", 1)
-		source._push_items()
-		assert_eq(source.get_item_count("iron"), 0)
-		assert_eq(target.get_item_count("iron"), 1)
-
-	func test_接続先がない場合はアイテムが搬出されない():
-		source.destinations = []
-		source.add_to_output("iron", 1)
-		source._push_items()
-		assert_eq(source.get_item_count("iron"), 1)
-		assert_eq(target.get_item_count("iron"), 0)
-
-
 class TestPieceBasics:
 	extends GutTest
 
@@ -76,7 +43,7 @@ class TestPieceVisuals:
 		piece.set_detail_mode(true)
 		piece.add_to_output("iron_ore", 10)
 
-		var label = piece.get_node("OutputInventory/Icon/CountLabel")
+		var label = piece.get_node("Output/Icon/CountLabel")
 		assert_true(label.visible)
 		assert_eq(label.text, "10")
 
