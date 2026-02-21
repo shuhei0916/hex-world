@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://diffgwrvtlkbc"]
+[gd_scene load_steps=6 format=3 uid="uid://diffgwrvtlkbc"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" uid="uid://hww32r0llld" path="res://scenes/components/piece/item_container.gd" id="2_item_container"]
-[ext_resource type="Script" uid="uid://ds80p0800p0" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
-[ext_resource type="Script" uid="uid://ds90p0900p0" path="res://scenes/components/piece/transporter.gd" id="4_transporter"]
+[ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
+[ext_resource type="Script" uid="uid://8fuqfx254m5k" path="res://scenes/components/piece/transporter.gd" id="4_transporter"]
+[ext_resource type="Texture2D" uid="uid://dxmsv0vwl0ybu" path="res://scenes/components/piece/forward.png" id="5_dqdi4"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
@@ -67,6 +68,11 @@ script = ExtResource("3_crafter")
 [node name="Transporter" type="Node" parent="."]
 script = ExtResource("4_transporter")
 
+[node name="OutputPort" type="Sprite2D" parent="."]
+modulate = Color(0.9607843, 0.6509804, 0.13725491, 1)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("5_dqdi4")
+
 [connection signal="inventory_changed" from="InputInventory" to="." method="_update_visuals"]
-[connection signal="inventory_changed" from="OutputInventory" to="." method="_update_visuals"]
 [connection signal="inventory_changed" from="OutputInventory" to="." method="_push_items"]
+[connection signal="inventory_changed" from="OutputInventory" to="." method="_update_visuals"]

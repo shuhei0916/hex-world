@@ -77,8 +77,8 @@ func setup(data: PieceData, rotation: int = 0):
 				# 暫定的に最初のレシピを採用
 				set_recipe(recipes[0])
 
-	# 初期状態は詳細モードOFF
 	_update_visuals()
+	_update_arrow_visuals()
 
 
 func set_detail_mode(enabled: bool):
@@ -180,31 +180,19 @@ func _update_visuals():
 	_update_output_visuals()
 	_update_input_visuals()
 	_update_speed_visuals()
-	_update_arrow_visuals()
 
 
 func _update_arrow_visuals():
-	# 既存の矢印を削除
-	for child in get_children():
-		if child.name.begins_with("Arrow_"):
-			child.free()  # テストでの即時反映のため queue_free ではなく free
-
-	if not _cached_data:
-		return
-
 	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
 	var ports = get_output_ports()
 	var offset_dist = 35.0
 
+	# NOTE: portsが複数の場合は未対応なので注意
 	for i in range(ports.size()):
 		var port = ports[i]
-		var arrow = Sprite2D.new()
-		arrow.name = "Arrow_" + str(i)
-		arrow.texture = ARROW_TEXTURE
-		arrow.modulate = Color("#F5A623")
-		arrow.scale = Vector2(0.5, 0.5)
 
-		# 位置と回転の計算
+		var arrow = $OutputPort
+
 		var center_pos = Layout.hex_to_pixel(layout, port.hex)
 		var neighbor_hex = Hex.neighbor(port.hex, port.direction)
 		var neighbor_pos = Layout.hex_to_pixel(layout, neighbor_hex)
@@ -212,8 +200,6 @@ func _update_arrow_visuals():
 
 		arrow.position = center_pos + Vector2(offset_dist, 0).rotated(angle)
 		arrow.rotation = angle
-
-		add_child(arrow)
 
 
 func _update_output_visuals():
