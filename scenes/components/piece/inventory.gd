@@ -80,3 +80,7 @@ func is_full() -> bool:
 
 func is_empty() -> bool:
 	return _items.is_empty()
+
+
+func get_item_names() -> Array:
+	return _items.keys()

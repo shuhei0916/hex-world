@@ -3,7 +3,6 @@ extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 const InventoryScript = preload("res://scenes/components/piece/inventory.gd")
-const OutputScript = preload("res://scenes/components/piece/output.gd")
 
 
 class TestCrafterLogic:
@@ -16,7 +15,7 @@ class TestCrafterLogic:
 	func before_each():
 		crafter = Crafter.new()
 		input_container = InventoryScript.new()
-		output_container = OutputScript.new()
+		output_container = InventoryScript.new()
 		crafter.setup(input_container, output_container)
 
 	func after_each():
