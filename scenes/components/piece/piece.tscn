@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://diffgwrvtlkbc"]
+[gd_scene load_steps=10 format=3 uid="uid://diffgwrvtlkbc"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dxmsv0vwl0ybu" path="res://scenes/components/piece/forward.png" id="5_dqdi4"]
 [ext_resource type="Script" uid="uid://dypi1nf4ql5kk" path="res://scenes/components/piece/speed_label.gd" id="6_speed_label"]
 [ext_resource type="Script" uid="uid://c3rxnl5xvu3u0" path="res://scenes/components/piece/output_port.gd" id="7_output_port"]
+[ext_resource type="PackedScene" uid="uid://inventory_scene" path="res://scenes/components/piece/inventory.tscn" id="8_inventory"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
@@ -27,34 +28,12 @@ script = ExtResource("6_speed_label")
 position = Vector2(-20, 15)
 script = ExtResource("2_input")
 
-[node name="Icon" type="Sprite2D" parent="Input"]
-scale = Vector2(0.3, 0.3)
-
-[node name="CountLabel" type="Label" parent="Input/Icon"]
-offset_right = 40.0
-offset_bottom = 23.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 2
+[node name="Inventory" parent="Input" instance=ExtResource("8_inventory")]
 
 [node name="Output" type="Node2D" parent="."]
 script = ExtResource("4_output")
 
-[node name="Icon" type="Sprite2D" parent="Output"]
-scale = Vector2(0.5, 0.5)
-
-[node name="CountLabel" type="Label" parent="Output/Icon"]
-offset_right = 40.0
-offset_bottom = 23.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 2
+[node name="Inventory" parent="Output" instance=ExtResource("8_inventory")]
 
 [node name="Crafter" type="Node2D" parent="."]
 script = ExtResource("3_crafter")
