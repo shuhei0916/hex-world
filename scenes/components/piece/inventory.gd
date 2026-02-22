@@ -13,6 +13,10 @@ var _items: Dictionary = {}
 @onready var _label: Label = $CountLabel
 
 
+func _ready():
+	update_visuals()
+
+
 func update_visuals():
 	if not _icon:
 		return

@@ -1,16 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://inventory_scene"]
+[gd_scene load_steps=3 format=3 uid="uid://inventory_scene"]
 
 [ext_resource type="Script" path="res://scenes/components/piece/inventory.gd" id="1_inventory"]
+[ext_resource type="Texture2D" uid="uid://c038a652mb0ng" path="res://assets/items/iron_ore.png" id="2_placeholder"]
 
 [node name="Inventory" type="Node2D"]
 script = ExtResource("1_inventory")
 
 [node name="Icon" type="Sprite2D" parent="."]
-visible = false
+texture = ExtResource("2_placeholder")
 scale = Vector2(0.3, 0.3)
 
 [node name="CountLabel" type="Label" parent="."]
-visible = false
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
