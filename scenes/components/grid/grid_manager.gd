@@ -190,7 +190,8 @@ func _update_piece_neighbors(piece: Piece):
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
 
-	piece.destinations = current_connections
+	if piece.output:
+		piece.output.connected_pieces = current_connections
 
 
 func _is_physically_connected(
