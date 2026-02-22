@@ -14,7 +14,9 @@
 ### piece, test_piece関連
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] PIECE_SCENEを使っているところを削除し、Piece.new()で代用する（純粋な単体テスト化）
-- [x] output.gd, input.gdに共通している部分をinventory.tscnとして切り出し、outputとinputはそれぞれiventoryを持つ、という設計にする
+- [ ] outputport.gd, speedlabel.gd等は過実装なのではないか（ただの矢印を表示したいだけなので）。simplify出来ないか検討する
+- [ ] アイテムの移動が正しく行われていない？テストコードを確認する
+
 
 ### それ以外
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
