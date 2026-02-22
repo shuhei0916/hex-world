@@ -12,14 +12,9 @@
 
 ## リファクタリング
 ### piece, test_piece関連
-- [x] test_piece.TestPieceVisualsの各テストスイートで重複があるので、これを取り除く。
-- [x] 動的生成ではなく、ItemContainerやCrafterをあらかじめPieceの子ノードとして配置しておく
-- [x] pieceクラスにおいて、機能部分とview部分が混在しているので, これを修正するべきか検討する
-	- [x] statusiconの更新などはstatusiconシーンにスクリプトをアタッチするなど（SpeedLabel / OutputPort / Output / Input が自律管理化）
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
-- [x] crafter.gdにある、0.001等のマジックナンバーは不吉な臭いなので、これを修正する（CRAFTING_START_PROGRESS 定数化）
-- [x] piece.gd: destinationよりもconnected_pieceの方が分かりやすいか、命名変更を検討する（output.connected_pieces に変更済み）
 - [ ] PIECE_SCENEを使っているところを削除し、Piece.new()で代用する（純粋な単体テスト化）
+- [x] output.gd, input.gdに共通している部分をinventory.tscnとして切り出し、outputとinputはそれぞれiventoryを持つ、という設計にする
 
 ### それ以外
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
