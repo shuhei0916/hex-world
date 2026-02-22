@@ -1,12 +1,12 @@
 [gd_scene load_steps=8 format=3 uid="uid://diffgwrvtlkbc"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" path="res://scenes/components/piece/input.gd" id="2_input"]
+[ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
-[ext_resource type="Script" path="res://scenes/components/piece/output.gd" id="4_output"]
+[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/output.gd" id="4_output"]
 [ext_resource type="Texture2D" uid="uid://dxmsv0vwl0ybu" path="res://scenes/components/piece/forward.png" id="5_dqdi4"]
-[ext_resource type="Script" path="res://scenes/components/piece/speed_label.gd" id="6_speed_label"]
-[ext_resource type="Script" path="res://scenes/components/piece/output_port.gd" id="7_output_port"]
+[ext_resource type="Script" uid="uid://dypi1nf4ql5kk" path="res://scenes/components/piece/speed_label.gd" id="6_speed_label"]
+[ext_resource type="Script" uid="uid://c3rxnl5xvu3u0" path="res://scenes/components/piece/output_port.gd" id="7_output_port"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
@@ -56,7 +56,7 @@ text = "0"
 horizontal_alignment = 2
 vertical_alignment = 2
 
-[node name="Crafter" type="Node" parent="."]
+[node name="Crafter" type="Node2D" parent="."]
 script = ExtResource("3_crafter")
 
 [node name="ProgressBar" type="ProgressBar" parent="Crafter"]
@@ -74,5 +74,5 @@ scale = Vector2(1.2, 1.2)
 texture = ExtResource("5_dqdi4")
 script = ExtResource("7_output_port")
 
-[connection signal="recipe_changed" from="." to="SpeedLabel" method="on_recipe_changed"]
 [connection signal="detail_mode_changed" from="." to="SpeedLabel" method="on_detail_mode_changed"]
+[connection signal="recipe_changed" from="." to="SpeedLabel" method="on_recipe_changed"]
