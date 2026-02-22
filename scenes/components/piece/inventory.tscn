@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://inventory_scene"]
+
+[ext_resource type="Script" path="res://scenes/components/piece/inventory.gd" id="1_inventory"]
+
+[node name="Inventory" type="Node2D"]
+script = ExtResource("1_inventory")
+
+[node name="Icon" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(0.3, 0.3)
+
+[node name="CountLabel" type="Label" parent="."]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 12
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[connection signal="inventory_changed" from="." to="." method="update_visuals"]
