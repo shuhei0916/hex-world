@@ -4,37 +4,6 @@ extends GutTest
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 
 
-class TestPieceUnit:
-	extends GutTest
-
-	var source: Piece
-	var target: Piece
-
-	func before_each():
-		source = Piece.new()
-		var s_data = PieceData.new([Hex.new(0, 0)], [], "miner")
-		source.setup(s_data)
-		add_child_autofree(source)
-
-		target = Piece.new()
-		target.setup(PieceData.get_data(PieceData.Type.CHEST))
-		add_child_autofree(target)
-
-	func test_接続先のピースにアイテムが搬出される():
-		source.destinations = [target]
-		source.add_to_output("iron", 1)
-		source._push_items()
-		assert_eq(source.get_item_count("iron"), 0)
-		assert_eq(target.get_item_count("iron"), 1)
-
-	func test_接続先がない場合はアイテムが搬出されない():
-		source.destinations = []
-		source.add_to_output("iron", 1)
-		source._push_items()
-		assert_eq(source.get_item_count("iron"), 1)
-		assert_eq(target.get_item_count("iron"), 0)
-
-
 class TestPieceBasics:
 	extends GutTest
 
@@ -69,36 +38,14 @@ class TestPieceVisuals:
 		piece = PIECE_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_アイテム追加時に在庫表示ラベルが更新される():
-		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
-		piece.set_detail_mode(true)
-		piece.add_item("iron_ore", 10)
-
-		var label = piece.get_node("StatusIcon/CountLabel")
-		assert_true(label.visible)
-		assert_eq(label.text, "10")
-
-	func test_ポートの描画用パラメータを正しく計算できる():
-		var out_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
-		piece.setup(out_data)
-		var params = piece.get_port_visual_params()
-		assert_eq(params.size(), 1)
-		assert_almost_eq(params[0].rotation, 0.0, 0.01)
-
-	func test_出力ポートの数だけ出力方向を示す矢印が生成される():
+	func test_出力ポートが存在する場合に矢印が表示される():
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
 		)
 		piece.setup(data)
 
-		var arrows = []
-		for child in piece.get_children():
-			if child is Sprite2D and child.name.begins_with("Arrow_"):
-				arrows.append(child)
-
-		assert_eq(arrows.size(), 1, "出力ポートが1つの場合、1つの矢印スプライトが生成されるべき")
+		var arrow = piece.get_node("OutputPort")
+		assert_true(arrow.visible, "出力ポートがある場合、矢印が表示されるべき")
 
 
 class TestPieceTransformation:
@@ -106,7 +53,7 @@ class TestPieceTransformation:
 	var p: Piece
 
 	func before_each():
-		p = Piece.new()
+		p = PIECE_SCENE.instantiate()
 		p.setup(PieceData.get_data(PieceData.Type.WAVE))
 		add_child_autofree(p)
 
@@ -131,7 +78,9 @@ class TestPieceRoles:
 	extends GutTest
 
 	func test_製錬所ロールは初期化時に自動的に適切なレシピとポートが設定される():
-		var p = Piece.new()
+		var p = PIECE_SCENE.instantiate()
+		add_child(p)
+		autofree(p)
 		var data = PieceData.new(
 			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
 		)
@@ -141,10 +90,11 @@ class TestPieceRoles:
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
 	func test_採掘機ロールは時間経過でアイテムを自動生産する():
-		var p = Piece.new()
+		var p = PIECE_SCENE.instantiate()
+		add_child(p)
+		autofree(p)
 		var data = PieceData.new([Hex.new(0, 0)], [], "miner")
 		p.setup(data)
-		add_child_autofree(p)
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)

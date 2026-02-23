@@ -100,15 +100,15 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 	# Pieceノードを生成
 	var piece = piece_scene.instantiate()
 
-	# データセットアップ
-	if piece.has_method("setup"):
-		piece.setup(data, rotation)
-
 	# 座標設定（基準Hexの位置に配置）
 	piece.position = hex_to_pixel(base_hex)
 
 	# シーンツリーに追加
 	add_child(piece)
+
+	# データセットアップ
+	if piece.has_method("setup"):
+		piece.setup(data, rotation)
 
 	# 詳細モードの設定を適用
 	if piece.has_method("set_detail_mode"):
@@ -190,7 +190,8 @@ func _update_piece_neighbors(piece: Piece):
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
 
-	piece.destinations = current_connections
+	if piece.output:
+		piece.output.connected_pieces = current_connections
 
 
 func _is_physically_connected(

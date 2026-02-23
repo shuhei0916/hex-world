@@ -1,14 +1,19 @@
 class_name Crafter
 extends Node
 
+# 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
+const CRAFTING_START_PROGRESS = 0.001
+
 var current_recipe: Recipe
 var processing_progress: float = 0.0
 
-var input_container: ItemContainer
-var output_container: ItemContainer
+var input_container: Node
+var output_container: Node
+
+@onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
 
 
-func setup(in_container: ItemContainer, out_container: ItemContainer):
+func setup(in_container: Node, out_container: Node):
 	input_container = in_container
 	output_container = out_container
 
@@ -20,11 +25,13 @@ func set_recipe(recipe: Recipe):
 
 func start_crafting():
 	# 手動開始用（テストなどで使用）
-	processing_progress = 0.001
+	processing_progress = CRAFTING_START_PROGRESS
 
 
 func tick(delta: float):
 	if not current_recipe:
+		if _progress_bar:
+			_progress_bar.visible = false
 		return
 
 	# 未開始なら開始を試みる
@@ -37,6 +44,11 @@ func tick(delta: float):
 		processing_progress += delta
 		if processing_progress >= current_recipe.craft_time:
 			_complete_crafting()
+
+	if _progress_bar:
+		_progress_bar.visible = processing_progress > 0
+		_progress_bar.max_value = current_recipe.craft_time
+		_progress_bar.value = processing_progress
 
 
 func _can_start_crafting() -> bool:
@@ -64,7 +76,7 @@ func _start_crafting():
 	if input_container:
 		for item_name in current_recipe.inputs:
 			input_container.consume_item(item_name, current_recipe.inputs[item_name])
-	processing_progress = 0.001
+	processing_progress = CRAFTING_START_PROGRESS
 
 
 func _complete_crafting():
