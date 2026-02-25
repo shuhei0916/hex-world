@@ -1,14 +1,16 @@
 # gdlint:disable=constant-name
 extends GutTest
 
+const Island = preload("res://scenes/components/island/island.gd")
+
 
 class TestGridLogic:
 	extends GutTest
 
-	var gm: GridManager
+	var gm
 
 	func before_each():
-		gm = GridManager.new()
+		gm = Island.new()
 		add_child_autofree(gm)
 		gm.clear_grid()
 
@@ -29,10 +31,10 @@ class TestGridLogic:
 class TestPiecePlacement:
 	extends GutTest
 
-	var gm: GridManager
+	var gm
 
 	func before_each():
-		gm = GridManager.new()
+		gm = Island.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -73,10 +75,10 @@ class TestPiecePlacement:
 class TestNeighbors:
 	extends GutTest
 
-	var gm: GridManager
+	var gm
 
 	func before_each():
-		gm = GridManager.new()
+		gm = Island.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -129,10 +131,10 @@ class TestNeighbors:
 class TestDetailMode:
 	extends GutTest
 
-	var gm: GridManager
+	var gm
 
 	func before_each():
-		gm = GridManager.new()
+		gm = Island.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 

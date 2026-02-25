@@ -1,7 +1,7 @@
 extends GutTest
 
 var piece_placer: PiecePlacer
-var grid_manager: GridManager
+var island: Island
 var mouse_container: Node2D
 var ghost_container: Node2D
 
@@ -18,9 +18,9 @@ func before_all():
 
 
 func before_each():
-	grid_manager = GridManager.new()
-	add_child_autofree(grid_manager)
-	grid_manager.create_hex_grid(2)
+	island = Island.new()
+	add_child_autofree(island)
+	island.create_hex_grid(2)
 
 	piece_placer = PiecePlacer.new()
 	add_child_autofree(piece_placer)
@@ -30,7 +30,7 @@ func before_each():
 	piece_placer.add_child(mouse_container)
 	piece_placer.add_child(ghost_container)
 
-	piece_placer.setup(grid_manager, mouse_container, ghost_container)
+	piece_placer.setup(island, mouse_container, ghost_container)
 
 
 func after_each():
@@ -47,7 +47,7 @@ func test_指定したHexに選択中のピースを配置できる():
 
 	for offset in data.shape:
 		var h = Hex.add(target_hex, offset)
-		assert_true(grid_manager.is_occupied(h))
+		assert_true(island.is_occupied(h))
 
 
 func test_ピース回転処理が正しい形状を返す():
@@ -78,21 +78,21 @@ func test_回転メソッドを呼ぶと現在の形状が更新される():
 
 
 func test_指定した座標のピースを削除できる():
-	grid_manager.create_hex_grid(2)
+	island.create_hex_grid(2)
 	var target_hex = Hex.new(0, 0)
 
 	var data = PieceData.get_data(PieceData.Type.BAR)
 	piece_placer.select_piece(data)
 	piece_placer.place_piece_at_hex(target_hex)
-	assert_true(grid_manager.is_occupied(target_hex), "Hex should be occupied")
+	assert_true(island.is_occupied(target_hex), "Hex should be occupied")
 
 	var result = piece_placer.remove_piece_at_hex(target_hex)
 	assert_true(result, "Remove should return true")
-	assert_false(grid_manager.is_occupied(target_hex), "Hex should be empty")
+	assert_false(island.is_occupied(target_hex), "Hex should be empty")
 
 	for offset in data.shape:
 		var h = Hex.add(target_hex, offset)
-		assert_false(grid_manager.is_occupied(h), "All parts of piece should be removed")
+		assert_false(island.is_occupied(h), "All parts of piece should be removed")
 
 
 func test_マウス追従とスナップの2つのプレビューが表示される():
@@ -122,4 +122,4 @@ func test_select_pieceでPieceDataを外部からセットして配置できる(
 	var result = piece_placer.place_piece_at_hex(target_hex)
 
 	assert_true(result, "PieceDataをセットすれば配置できるべき")
-	assert_true(grid_manager.is_occupied(target_hex), "指定した座標が占有されているべき")
+	assert_true(island.is_occupied(target_hex), "指定した座標が占有されているべき")

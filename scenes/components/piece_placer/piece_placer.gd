@@ -4,7 +4,7 @@ extends Node2D
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # 依存関係（Mainから注入される）
-var grid_manager
+var island
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
@@ -17,8 +17,8 @@ var ghost_preview_container: Node2D
 var selected_piece_data: PieceData
 
 
-func setup(grid_manager_ref, mouse_container_ref: Node2D, ghost_container_ref: Node2D):
-	grid_manager = grid_manager_ref
+func setup(island_ref, mouse_container_ref: Node2D, ghost_container_ref: Node2D):
+	island = island_ref
 	mouse_preview_container = mouse_container_ref
 	ghost_preview_container = ghost_container_ref
 
@@ -39,13 +39,13 @@ func _draw_preview():
 	if current_piece_shape.is_empty() or not selected_piece_data:
 		return
 
-	if not grid_manager or not mouse_preview_container or not ghost_preview_container:
+	if not island or not mouse_preview_container or not ghost_preview_container:
 		return
 
 	var color = selected_piece_data.color
 
 	for hex_coord in current_piece_shape:
-		var pos = grid_manager.hex_to_pixel(hex_coord)
+		var pos = island.hex_to_pixel(hex_coord)
 
 		# カーソル用タイル (手持ち)
 		var cursor_tile = HexTileScene.instantiate()
@@ -74,10 +74,10 @@ func _clear_preview():
 
 
 func update_hover(local_mouse_pos: Vector2):
-	var hex_coord = Layout.pixel_to_hex_rounded(grid_manager.layout, local_mouse_pos)
+	var hex_coord = Layout.pixel_to_hex_rounded(island.layout, local_mouse_pos)
 	current_hovered_hex = hex_coord
 
-	var snapped_pos = Layout.hex_to_pixel(grid_manager.layout, hex_coord)
+	var snapped_pos = Layout.hex_to_pixel(island.layout, hex_coord)
 
 	# コンテナの位置を更新
 	mouse_preview_container.position = local_mouse_pos
@@ -99,10 +99,8 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if current_piece_shape.is_empty() or not selected_piece_data:
 		return false
 
-	if grid_manager.can_place(current_piece_shape, target_hex):
-		grid_manager.place_piece(
-			current_piece_shape, target_hex, selected_piece_data, current_rotation
-		)
+	if island.can_place(current_piece_shape, target_hex):
+		island.place_piece(current_piece_shape, target_hex, selected_piece_data, current_rotation)
 		return true
 
 	return false
@@ -119,7 +117,7 @@ func rotate_current_piece():
 
 # 指定した座標にあるピースを削除する
 func remove_piece_at_hex(target_hex: Hex) -> bool:
-	if grid_manager.remove_piece_at(target_hex):
+	if island.remove_piece_at(target_hex):
 		return true
 	return false
 

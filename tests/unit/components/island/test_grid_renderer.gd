@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const GridRenderer = preload("res://scenes/components/grid/grid_renderer.gd")
+const GridRenderer = preload("res://scenes/components/island/grid_renderer.gd")
 
 
 class TestFindHexTile:

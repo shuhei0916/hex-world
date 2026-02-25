@@ -1,8 +1,8 @@
 @tool
-class_name GridManager
+class_name Island
 extends Node2D
 
-# GridManager - グリッドの外部API・ピース管理・隣接判定・詳細モードを管理する
+# Island - グリッドの外部API・ピース管理・隣接判定・詳細モードを管理する
 
 signal grid_updated(hexes: Array[Hex])
 
@@ -20,7 +20,7 @@ var piece_scene = preload("res://scenes/components/piece/piece.tscn")
 var is_detail_mode_enabled: bool = false
 
 # 論理グリッドの状態
-var _hex_grid = preload("res://scenes/components/grid/hex_grid.gd").new()
+var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
 var _renderer: Node2D  # GridRenderer（preload で実体化）
 var _hex_to_piece_map: Dictionary = {}  # Hex座標 -> Pieceノードのマッピング
 var _piece_to_base_hex_map: Dictionary = {}  # PieceインスタンスID -> 起点Hex座標
@@ -35,7 +35,7 @@ func _init():
 
 
 func _ready():
-	_renderer = preload("res://scenes/components/grid/grid_renderer.gd").new()
+	_renderer = preload("res://scenes/components/island/grid_renderer.gd").new()
 	_renderer.setup(layout)
 	add_child(_renderer)
 	_update_grid_visuals()
