@@ -1,7 +1,5 @@
 extends GutTest
 
-const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
-
 var piece_placer: PiecePlacer
 var grid_manager: GridManager
 var mouse_container: Node2D
@@ -21,7 +19,6 @@ func before_all():
 
 func before_each():
 	grid_manager = GridManager.new()
-	grid_manager.hex_tile_scene = HexTileScene
 	add_child_autofree(grid_manager)
 	grid_manager.create_hex_grid(2)
 

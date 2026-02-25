@@ -15,11 +15,12 @@
 - [ ] チェスト(Storage)などのピースタイプに応じて、ItemContainerコンポーネントの生成構成を最適化する（Input/Outputで実体を共有するなど）
 - [ ] outputport.gd, speedlabel.gd等は過実装なのではないか（ただの矢印を表示したいだけなので）。simplify出来ないか検討する
 - [ ] インベントリ周りのUIの改良
+- [ ] pieceを継承シーンとし、それぞれのピースごとのシーンを作成する（miner.tscn, assembler.tscn, chest.tscnなど）
 
 ### それ以外
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
-- [ ] grid_managerのテストコードに内部クラスを追加して構造化する
-- [ ] grid_managerの責務が膨大となっているので、これを分離する
+- [x] grid_managerのテストコードに内部クラスを追加して構造化する
+- [x] grid_managerの責務が膨大となっているので、これを分離する
 - [ ] test_main: 内部クラスに整理し、命名を日本語に統一する
 - [ ] paletteとpalette_uiの責務分離が分かりづらい。統合したほうが良いか検討する。
 - [ ] HUDがPiecePlacerを知っているのは密結合なので、これを修正する

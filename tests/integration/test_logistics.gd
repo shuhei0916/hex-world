@@ -1,8 +1,6 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
-
 
 # --- 物流と接続のテスト（結合テスト） ---
 class TestPieceLogistics:
@@ -12,7 +10,6 @@ class TestPieceLogistics:
 
 	func before_each():
 		grid_manager = GridManager.new()
-		grid_manager.hex_tile_scene = HEX_TILE_SCENE
 		add_child_autofree(grid_manager)
 		grid_manager.create_hex_grid(3)
 

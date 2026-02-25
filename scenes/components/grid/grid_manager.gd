@@ -2,8 +2,7 @@
 class_name GridManager
 extends Node2D
 
-# GridManager - グリッドの論理的な状態と視覚的な表示を管理する
-# Unity版のGridManager.csとGridDisplayの機能を統合
+# GridManager - グリッドの外部API・ピース管理・隣接判定・詳細モードを管理する
 
 signal grid_updated(hexes: Array[Hex])
 
@@ -16,23 +15,19 @@ signal grid_updated(hexes: Array[Hex])
 			return
 		_update_grid_visuals()
 
-# 視覚グリッドの状態
 var layout: Layout
-var hex_tile_scene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 var piece_scene = preload("res://scenes/components/piece/piece.tscn")
 var is_detail_mode_enabled: bool = false
 
 # 論理グリッドの状態
-var _registered_hexes: Dictionary = {}
-var _occupied_hexes: Dictionary = {}
+var _hex_grid = preload("res://scenes/components/grid/hex_grid.gd").new()
+var _renderer: Node2D  # GridRenderer（preload で実体化）
 var _hex_to_piece_map: Dictionary = {}  # Hex座標 -> Pieceノードのマッピング
 var _piece_to_base_hex_map: Dictionary = {}  # PieceインスタンスID -> 起点Hex座標
 var _drawn_hexes: Array[Hex] = []
 
 
 func _init():
-	_registered_hexes.clear()
-	_occupied_hexes.clear()
 	_hex_to_piece_map.clear()
 	_piece_to_base_hex_map.clear()
 
@@ -40,47 +35,34 @@ func _init():
 
 
 func _ready():
+	_renderer = preload("res://scenes/components/grid/grid_renderer.gd").new()
+	_renderer.setup(layout)
+	add_child(_renderer)
 	_update_grid_visuals()
 
 
-# ==============================================================================
-# 論理グリッド管理
-# ==============================================================================
-
-
 func register_grid_hex(hex: Hex):
-	var key = _hex_to_key(hex)
-	_registered_hexes[key] = hex
+	_hex_grid.register_grid_hex(hex)
 
 
 func is_inside_grid(hex: Hex) -> bool:
-	var key = _hex_to_key(hex)
-	return _registered_hexes.has(key)
+	return _hex_grid.is_inside_grid(hex)
 
 
 func is_occupied(hex: Hex) -> bool:
-	var key = _hex_to_key(hex)
-	return _occupied_hexes.has(key)
+	return _hex_grid.is_occupied(hex)
 
 
 func occupy(hex: Hex):
-	var key = _hex_to_key(hex)
-	_occupied_hexes[key] = hex
+	_hex_grid.occupy(hex)
 
 
 func occupy_many(hexes: Array):
-	for hex in hexes:
-		occupy(hex)
+	_hex_grid.occupy_many(hexes)
 
 
 func can_place(shape: Array, base_hex: Hex) -> bool:
-	for offset in shape:
-		var target = Hex.add(base_hex, offset)
-		if not is_inside_grid(target):
-			return false
-		if is_occupied(target):
-			return false
-	return true
+	return _hex_grid.can_place(shape, base_hex)
 
 
 func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0):
@@ -93,9 +75,7 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 		occupied_hexes.append(target)
 
 		# 配置されたHexTileの色を更新
-		var hex_tile = find_hex_tile(target)
-		if hex_tile:
-			hex_tile.set_color(effective_color)
+		_renderer.set_tile_color(target, effective_color)
 
 	# Pieceノードを生成
 	var piece = piece_scene.instantiate()
@@ -116,7 +96,7 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 
 	# マップに登録
 	for hex in occupied_hexes:
-		var key = _hex_to_key(hex)
+		var key = _hex_grid.hex_to_key(hex)
 		_hex_to_piece_map[key] = piece
 
 	_piece_to_base_hex_map[piece.get_instance_id()] = base_hex
@@ -126,7 +106,7 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 
 
 func remove_piece_at(target_hex: Hex) -> bool:
-	var key = _hex_to_key(target_hex)
+	var key = _hex_grid.hex_to_key(target_hex)
 	if not _hex_to_piece_map.has(key):
 		return false
 
@@ -139,7 +119,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	var hexes_to_remove = get_piece_occupied_hexes(piece)
 
 	for hex in hexes_to_remove:
-		var h_key = _hex_to_key(hex)
+		var h_key = _hex_grid.hex_to_key(hex)
 		_hex_to_piece_map.erase(h_key)
 		_unplace_single_hex(hex)
 
@@ -153,25 +133,13 @@ func remove_piece_at(target_hex: Hex) -> bool:
 
 
 func _unplace_single_hex(hex: Hex):
-	var key = _hex_to_key(hex)
-	_occupied_hexes.erase(key)
-
-	var hex_tile = find_hex_tile(hex)
-	if hex_tile:
-		hex_tile.reset_color()
-
-
-# 旧メソッドを削除 (unplace_piece は不要になったため)
+	_hex_grid.unoccupy(hex)
+	_renderer.reset_tile_color(hex)
 
 
 func clear_grid():
-	_registered_hexes.clear()
-	_occupied_hexes.clear()
+	_hex_grid.clear_grid()
 	_hex_to_piece_map.clear()
-
-
-func _hex_to_key(hex: Hex) -> String:
-	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
 
 
 func _update_piece_neighbors(piece: Piece):
@@ -231,7 +199,7 @@ func _update_neighbors_around_piece(piece: Piece, precalculated_hexes = null):
 
 
 func get_piece_at_hex(hex: Hex) -> Piece:
-	var key = _hex_to_key(hex)
+	var key = _hex_grid.hex_to_key(hex)
 	return _hex_to_piece_map.get(key, null)
 
 
@@ -254,19 +222,12 @@ func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
 	return get_piece_at_hex(neighbor_hex)
 
 
-# ==============================================================================
-# 詳細表示モード管理
-# ==============================================================================
-
-
 func toggle_detail_mode():
 	is_detail_mode_enabled = not is_detail_mode_enabled
 	_update_all_pieces_detail_mode()
 
 
 func _update_all_pieces_detail_mode():
-	# ピースノードは子ノードとして存在するか、マップで管理されている
-	# ここではマップの値（ピース参照）を使ってユニークなピースに対して設定を行う
 	var processed_pieces = {}
 	for key in _hex_to_piece_map:
 		var piece = _hex_to_piece_map[key]
@@ -276,19 +237,10 @@ func _update_all_pieces_detail_mode():
 			processed_pieces[piece.get_instance_id()] = true
 
 
-# ==============================================================================
-# 視覚グリッド管理
-# ==============================================================================
-
-
 func _update_grid_visuals():
-	while get_child_count() > 0:
-		var child = get_child(0)
-		remove_child(child)
-		child.queue_free()
-
 	create_hex_grid(grid_radius)
-	draw_grid()
+	if _renderer:
+		_renderer.draw_grid(_drawn_hexes)
 
 
 func create_hex_grid(radius: int):
@@ -316,26 +268,7 @@ func hex_to_pixel(hex: Hex) -> Vector2:
 	return Layout.hex_to_pixel(layout, hex)
 
 
-func draw_grid():
-	for i in range(_drawn_hexes.size()):
-		var hex = _drawn_hexes[i]
-		var world_pos = hex_to_pixel(hex)
-		var hex_instance = hex_tile_scene.instantiate()
-		hex_instance.position = world_pos
-		add_child(hex_instance)
-		hex_instance.setup_hex(hex)
-
-
 func find_hex_tile(target_hex: Hex) -> HexTile:
-	for child in get_children():
-		if child is HexTile and child.hex_coordinate:
-			if Hex.equals(child.hex_coordinate, target_hex):
-				return child
+	if _renderer:
+		return _renderer.find_hex_tile(target_hex)
 	return null
-
-
-func is_within_bounds(hex_coord: Hex) -> bool:
-	if not hex_coord:
-		return false
-	var key = _hex_to_key(hex_coord)
-	return _registered_hexes.has(key)
