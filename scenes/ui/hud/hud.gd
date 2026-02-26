@@ -84,6 +84,11 @@ func _create_piece_icon(parent: Control, piece_data: PieceData):
 		tile.set_color(color)
 
 
+func deselect():
+	_deselect_all_buttons()
+	slot_selected.emit(null)
+
+
 func get_active_index() -> int:
 	if not _button_group:
 		return -1
