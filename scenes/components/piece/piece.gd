@@ -40,8 +40,6 @@ func _ready():
 	if crafter and input_storage and output:
 		crafter.setup(input_storage, output)
 
-	_update_visuals()
-
 
 func _process(delta: float):
 	tick(delta)
@@ -131,10 +129,3 @@ func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
 	return not input_storage.is_full()
-
-
-# --- Private Methods ---
-
-
-func _update_visuals():
-	pass

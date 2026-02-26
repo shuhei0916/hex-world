@@ -87,12 +87,10 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 	add_child(piece)
 
 	# データセットアップ
-	if piece.has_method("setup"):
-		piece.setup(data, rotation)
+	piece.setup(data, rotation)
 
 	# 詳細モードの設定を適用
-	if piece.has_method("set_detail_mode"):
-		piece.set_detail_mode(is_detail_mode_enabled)
+	piece.set_detail_mode(is_detail_mode_enabled)
 
 	# マップに登録
 	for hex in occupied_hexes:
@@ -232,8 +230,7 @@ func _update_all_pieces_detail_mode():
 	for key in _hex_to_piece_map:
 		var piece = _hex_to_piece_map[key]
 		if is_instance_valid(piece) and not processed_pieces.has(piece.get_instance_id()):
-			if piece.has_method("set_detail_mode"):
-				piece.set_detail_mode(is_detail_mode_enabled)
+			piece.set_detail_mode(is_detail_mode_enabled)
 			processed_pieces[piece.get_instance_id()] = true
 
 
