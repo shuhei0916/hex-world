@@ -42,16 +42,4 @@ func _handle_mouse_click(event):
 				hud.on_slot_pressed(-1)  # まず選択を解除する
 			elif piece_placer.current_hovered_hex != null:
 				# 何も選択していないなら、グリッド上のピースを削除する
-				piece_placer.remove_piece_at_hex(piece_placer.current_hovered_hex)
-
-
-func place_selected_piece(target_hex: Hex) -> bool:
-	return piece_placer.place_piece_at_hex(target_hex)
-
-
-func rotate_current_piece():
-	piece_placer.rotate_current_piece()
-
-
-func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
-	return piece_placer._get_rotated_piece_shape(original_shape)
+				island.remove_piece_at(piece_placer.current_hovered_hex)

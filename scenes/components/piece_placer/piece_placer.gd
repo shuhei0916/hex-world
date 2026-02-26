@@ -1,6 +1,8 @@
 class_name PiecePlacer
 extends Node2D
 
+# ユーザーがいま何を、どの向きで、どこに置こうとしているか」というUI操作のステートマシン
+
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # 依存関係（Mainから注入される）
@@ -112,11 +114,6 @@ func rotate_current_piece():
 	current_rotation = (current_rotation + 1) % 6
 	current_piece_shape = _get_rotated_piece_shape(current_piece_shape)
 	_draw_preview()
-
-
-# 指定した座標にあるピースを削除する
-func remove_piece_at_hex(target_hex: Hex) -> bool:
-	return island.remove_piece_at(target_hex)
 
 
 func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:

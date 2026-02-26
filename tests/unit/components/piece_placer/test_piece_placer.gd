@@ -58,23 +58,6 @@ func test_回転メソッドを呼ぶと現在の形状が更新される():
 		)
 
 
-func test_指定した座標のピースを削除できる():
-	var target_hex = Hex.new(0, 0)
-
-	var data = PieceData.get_data(PieceData.Type.BAR)
-	piece_placer.select_piece(data)
-	piece_placer.place_piece_at_hex(target_hex)
-	assert_true(island.is_occupied(target_hex), "Hex should be occupied")
-
-	var result = piece_placer.remove_piece_at_hex(target_hex)
-	assert_true(result, "Remove should return true")
-	assert_false(island.is_occupied(target_hex), "Hex should be empty")
-
-	for offset in data.shape:
-		var h = Hex.add(target_hex, offset)
-		assert_false(island.is_occupied(h), "All parts of piece should be removed")
-
-
 func test_cursor_previewはマウス位置に追従する():
 	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
 	piece_placer.update_hover(Vector2(10, 10))
