@@ -8,9 +8,11 @@ extends Node2D
 
 func _ready():
 	island.create_hex_grid(island.grid_radius)
-
-	hud.setup(piece_placer)
 	piece_placer.setup(island)
+
+
+func _on_hud_slot_selected(piece_data: PieceData):
+	piece_placer.select_piece(piece_data)
 
 
 func _unhandled_input(event):

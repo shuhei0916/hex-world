@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy70ai8vrba2e"
-path="res://.godot/imported/HexagonFlatTop.png-4189431d7a356a4ec3afb694fc01de9e.ctex"
+uid="uid://dona0evtbqtst"
+path="res://.godot/imported/hex_map_image.webp-faafbe9f7cfcaa53de27b90d00c71919.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/HexagonFlatTop.png"
-dest_files=["res://.godot/imported/HexagonFlatTop.png-4189431d7a356a4ec3afb694fc01de9e.ctex"]
+source_file="res://assets/hex_map_image.webp"
+dest_files=["res://.godot/imported/hex_map_image.webp-faafbe9f7cfcaa53de27b90d00c71919.ctex"]
 
 [params]
 

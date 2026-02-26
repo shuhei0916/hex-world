@@ -1,12 +1,12 @@
 class_name HUD
 extends CanvasLayer
 
+signal slot_selected(piece_data: PieceData)
+
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
-var piece_placer: PiecePlacer
-
 # スロットに割り当てるピースタイプの定義
-var _assignments: Array = [
+var _assignments: Array[PieceData.Type] = [
 	PieceData.Type.BEE,
 	PieceData.Type.WORM,
 	PieceData.Type.WAVE,
@@ -19,14 +19,13 @@ var _assignments: Array = [
 
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
+@onready var _button_group: ButtonGroup = (
+	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
+)
 
 
 func _ready():
 	_initialize_toolbar()
-
-
-func setup(piece_placer_ref: PiecePlacer):
-	piece_placer = piece_placer_ref
 
 
 func _initialize_toolbar():
@@ -40,31 +39,19 @@ func _initialize_toolbar():
 func on_slot_pressed(index: int):
 	if index < 0 or index >= slot_buttons.size():
 		_deselect_all_buttons()
-		_deselect_piece()
+		slot_selected.emit(null)
 		return
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		_select_piece(index)
+		slot_selected.emit(get_piece_data_for_slot(index))
 	else:
-		_deselect_piece()
-
-
-func _select_piece(index: int):
-	if piece_placer:
-		var data = get_piece_data_for_slot(index)
-		piece_placer.select_piece(data)
-
-
-func _deselect_piece():
-	if piece_placer:
-		piece_placer.select_piece(null)
+		slot_selected.emit(null)
 
 
 func _deselect_all_buttons():
-	var group = _get_button_group()
-	if group and group.get_pressed_button():
-		group.get_pressed_button().button_pressed = false
+	if _button_group and _button_group.get_pressed_button():
+		_button_group.get_pressed_button().button_pressed = false
 
 
 func get_piece_data_for_slot(index: int) -> PieceData:
@@ -98,14 +85,7 @@ func _create_piece_icon(parent: Control, piece_data: PieceData):
 
 
 func get_active_index() -> int:
-	var group = _get_button_group()
-	if not group:
+	if not _button_group:
 		return -1
-	var pressed_btn = group.get_pressed_button()
+	var pressed_btn = _button_group.get_pressed_button()
 	return pressed_btn.get_index() if pressed_btn else -1
-
-
-func _get_button_group() -> ButtonGroup:
-	if not slot_buttons.is_empty():
-		return (slot_buttons[0] as Button).button_group
-	return null

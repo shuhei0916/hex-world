@@ -33,11 +33,11 @@ func test_グリッド更新シグナルでIslandに登録される():
 
 
 func test_MainはHUDを持つ():
-	var hud = main.hud
-	assert_not_null(hud, "HUD node should be linked in Main")
+	assert_not_null(main.hud, "HUD node should be linked in Main")
 
-	if hud:
-		assert_true(hud is HUD)
+
+func test_MainのHUDはHUD型である():
+	assert_true(main.hud is HUD)
 
 
 func test_Tキー入力で詳細モードが切り替わる():
@@ -52,3 +52,10 @@ func test_Tキー入力で詳細モードが切り替わる():
 
 	main._unhandled_input(event)
 	assert_false(main.island.is_detail_mode_enabled, "再度Tキーでfalseになるべき")
+
+
+func test_HUDのスロット選択でPiecePlacerが更新される():
+	var btn = main.hud.toolbar.get_child(0) as Button
+	btn.button_pressed = true
+	main.hud.on_slot_pressed(0)
+	assert_not_null(main.piece_placer.selected_piece_data)
