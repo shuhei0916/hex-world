@@ -30,8 +30,8 @@ var processing_progress: float:
 var _cached_data: PieceData  # キャッシュされた定義データ
 
 # コンポーネント
-@onready var input_storage: Node2D = get_node_or_null("Input")
-@onready var output: Node2D = get_node_or_null("Output")
+@onready var input_storage: PieceInput = get_node_or_null("Input")
+@onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 @onready var output_port: Sprite2D = get_node_or_null("OutputPort")
 

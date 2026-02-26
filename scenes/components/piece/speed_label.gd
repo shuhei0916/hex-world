@@ -1,3 +1,4 @@
+class_name SpeedLabel
 extends Label
 
 ## 生産速度を表示するコンポーネント。detail_mode 時のみ表示。

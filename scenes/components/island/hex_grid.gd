@@ -28,7 +28,7 @@ func unoccupy(hex: Hex):
 	_occupied_hexes.erase(hex_to_key(hex))
 
 
-func occupy_many(hexes: Array):
+func occupy_many(hexes: Array[Hex]):
 	for hex in hexes:
 		occupy(hex)
 

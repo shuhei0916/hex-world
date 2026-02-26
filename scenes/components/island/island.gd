@@ -21,7 +21,7 @@ var is_detail_mode_enabled: bool = false
 
 # 論理グリッドの状態
 var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
-var _renderer: Node2D  # GridRenderer（preload で実体化）
+var _renderer: GridRenderer
 var _hex_to_piece_map: Dictionary = {}  # Hex座標 -> Pieceノードのマッピング
 var _piece_to_base_hex_map: Dictionary = {}  # PieceインスタンスID -> 起点Hex座標
 var _drawn_hexes: Array[Hex] = []
@@ -57,7 +57,7 @@ func occupy(hex: Hex):
 	_hex_grid.occupy(hex)
 
 
-func occupy_many(hexes: Array):
+func occupy_many(hexes: Array[Hex]):
 	_hex_grid.occupy_many(hexes)
 
 
