@@ -10,17 +10,16 @@ var island
 var current_piece_shape: Array[Hex] = []
 var current_rotation: int = 0
 var current_hovered_hex: Hex
-var mouse_preview_container: Node2D
-var ghost_preview_container: Node2D
 
 # 選択中のピースデータ
 var selected_piece_data: PieceData
 
+@onready var cursor_preview: Node2D = $CursorPreview
+@onready var snap_preview: Node2D = $SnapPreview
 
-func setup(island_ref, mouse_container_ref: Node2D, ghost_container_ref: Node2D):
+
+func setup(island_ref):
 	island = island_ref
-	mouse_preview_container = mouse_container_ref
-	ghost_preview_container = ghost_container_ref
 
 
 func select_piece(data: PieceData):
@@ -39,7 +38,7 @@ func _draw_preview():
 	if current_piece_shape.is_empty() or not selected_piece_data:
 		return
 
-	if not island or not mouse_preview_container or not ghost_preview_container:
+	if not island or not cursor_preview or not snap_preview:
 		return
 
 	var color = selected_piece_data.color
@@ -49,7 +48,7 @@ func _draw_preview():
 
 		# カーソル用タイル (手持ち)
 		var cursor_tile = HexTileScene.instantiate()
-		mouse_preview_container.add_child(cursor_tile)
+		cursor_preview.add_child(cursor_tile)
 		cursor_tile.position = pos
 		cursor_tile.setup_hex(hex_coord)
 		cursor_tile.set_color(color)
@@ -57,7 +56,7 @@ func _draw_preview():
 
 		# ゴースト用タイル (スナップ)
 		var ghost_tile = HexTileScene.instantiate()
-		ghost_preview_container.add_child(ghost_tile)
+		snap_preview.add_child(ghost_tile)
 		ghost_tile.position = pos
 		ghost_tile.setup_hex(hex_coord)
 		ghost_tile.set_color(Color.GHOST_WHITE)
@@ -65,11 +64,11 @@ func _draw_preview():
 
 
 func _clear_preview():
-	if mouse_preview_container:
-		for child in mouse_preview_container.get_children():
+	if cursor_preview:
+		for child in cursor_preview.get_children():
 			child.queue_free()
-	if ghost_preview_container:
-		for child in ghost_preview_container.get_children():
+	if snap_preview:
+		for child in snap_preview.get_children():
 			child.queue_free()
 
 
@@ -80,8 +79,8 @@ func update_hover(local_mouse_pos: Vector2):
 	var snapped_pos = Layout.hex_to_pixel(island.layout, hex_coord)
 
 	# コンテナの位置を更新
-	mouse_preview_container.position = local_mouse_pos
-	ghost_preview_container.position = snapped_pos
+	cursor_preview.position = local_mouse_pos
+	snap_preview.position = snapped_pos
 
 
 func place_current_piece() -> bool:

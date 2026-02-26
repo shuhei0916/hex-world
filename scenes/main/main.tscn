@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bcpl4euiuawxf" path="res://scenes/components/camera_controller.gd" id="2_6q06x"]
 [ext_resource type="PackedScene" uid="uid://qqa8dhve6xp8" path="res://scenes/ui/hud/hud.tscn" id="3_ow5a4"]
 [ext_resource type="Script" uid="uid://o5snqylsxhj3" path="res://scenes/components/island/island.gd" id="4_hujxm"]
-[ext_resource type="Script" uid="uid://dyow6gxqtnhfj" path="res://scenes/components/piece_placer/piece_placer.gd" id="5_6q06x"]
+[ext_resource type="PackedScene" uid="uid://piece_placer_scene" path="res://scenes/components/piece_placer/piece_placer.tscn" id="5_piece_placer"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_l3cfh")
@@ -17,9 +17,4 @@ script = ExtResource("2_6q06x")
 [node name="Island" type="Node2D" parent="."]
 script = ExtResource("4_hujxm")
 
-[node name="PiecePlacer" type="Node2D" parent="."]
-script = ExtResource("5_6q06x")
-
-[node name="GhostPreviewContainer" type="Node2D" parent="PiecePlacer"]
-
-[node name="MousePreviewContainer" type="Node2D" parent="PiecePlacer"]
+[node name="PiecePlacer" parent="." instance=ExtResource("5_piece_placer")]

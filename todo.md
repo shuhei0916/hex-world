@@ -16,6 +16,14 @@
 - [ ] pieceを継承シーンとし、それぞれのピースごとのシーンを作成する（miner.tscn, assembler.tscn, chest.tscnなど）
 
 ### それ以外
+- [x] PiecePlacer をシーン化する（piece_placer.tscn）
+	- [x] setup(island) だけで初期化できる（コンテナは内部管理）
+	- [x] cursor_preview と snap_preview を内部コンテナとして持つ
+	- [x] cursor_preview はマウス位置に追従する
+	- [x] snap_preview はグリッドにスナップした位置に移動する
+	- [x] cursor_preview にタイルが描画される
+	- [x] snap_preview にタイルが描画される
+- [ ] Islandをシーン化するべきかどうか検討する
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
 - [ ] HUDがPiecePlacerを知っているのは密結合なので、これを修正する
 	- [ ] HUDは「何番のスロットが選ばれたか」という シグナル（signal） を発行するだけに留める

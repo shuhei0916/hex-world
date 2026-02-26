@@ -4,15 +4,13 @@ extends Node2D
 @onready var hud: HUD = $HUD
 @onready var island: Island = $Island
 @onready var piece_placer: PiecePlacer = $PiecePlacer
-@onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
-@onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
 
 
 func _ready():
 	island.create_hex_grid(island.grid_radius)
 
 	hud.setup(piece_placer)
-	piece_placer.setup(island, mouse_preview_container, ghost_preview_container)
+	piece_placer.setup(island)
 
 
 func _unhandled_input(event):

@@ -1,9 +1,9 @@
 extends GutTest
 
+const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
+
 var piece_placer: PiecePlacer
 var island: Island
-var mouse_container: Node2D
-var ghost_container: Node2D
 
 # テスト用データ
 var shape_arch: Array[Hex]
@@ -22,15 +22,10 @@ func before_each():
 	add_child_autofree(island)
 	island.create_hex_grid(2)
 
-	piece_placer = PiecePlacer.new()
+	piece_placer = PiecePlacerScene.instantiate()
 	add_child_autofree(piece_placer)
 
-	mouse_container = Node2D.new()
-	ghost_container = Node2D.new()
-	piece_placer.add_child(mouse_container)
-	piece_placer.add_child(ghost_container)
-
-	piece_placer.setup(island, mouse_container, ghost_container)
+	piece_placer.setup(island)
 
 
 func after_each():
@@ -103,8 +98,8 @@ func test_マウス追従とスナップの2つのプレビューが表示され
 
 	piece_placer.update_hover(mouse_pos)
 
-	var cursor_container = piece_placer.mouse_preview_container
-	var ghost_container = piece_placer.ghost_preview_container
+	var cursor_container = piece_placer.cursor_preview
+	var ghost_container = piece_placer.snap_preview
 
 	assert_not_null(cursor_container, "CursorContainer should exist")
 	assert_not_null(ghost_container, "GhostContainer should exist")
