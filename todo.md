@@ -17,14 +17,14 @@
 
 ### コード品質改善（全スクリプトレビューより）
 #### 優先度高
-- [ ] `piece.gd`: `_update_visuals()` メソッドと `_ready()` からの呼び出しを削除（空メソッド）
-- [ ] `island.gd`: `has_method("setup")` / `has_method("set_detail_mode")` を直接呼び出しに変更
-- [ ] `speed_label.gd`: `class_name SpeedLabel` を追加
-- [ ] `piece.gd`: `input_storage: PieceInput`, `output: Output` に型注釈強化
-- [ ] `island.gd`: `_renderer: GridRenderer` に型注釈強化
-- [ ] `piece_placer.gd`: `island: Island`, `setup(island_ref: Island)` に型注釈追加
-- [ ] `hex_grid.gd`: `occupy_many(hexes: Array[Hex])` に型注釈追加
-- [ ] `hud.gd`: `deselect()` メソッドを追加し、`main.gd` の `hud.on_slot_pressed(-1)` を `hud.deselect()` に変更
+- [x] `piece.gd`: `_update_visuals()` メソッドと `_ready()` からの呼び出しを削除（空メソッド）
+- [x] `island.gd`: `has_method("setup")` / `has_method("set_detail_mode")` を直接呼び出しに変更
+- [x] `speed_label.gd`: `class_name SpeedLabel` を追加
+- [x] `piece.gd`: `input_storage: PieceInput`, `output: Output` に型注釈強化
+- [x] `island.gd`: `_renderer: GridRenderer` に型注釈強化
+- [x] `piece_placer.gd`: `island: Island`, `setup(island_ref: Island)` に型注釈追加
+- [x] `hex_grid.gd`: `occupy_many(hexes: Array[Hex])` に型注釈追加
+- [x] `hud.gd`: `deselect()` メソッドを追加し、`main.gd` の `hud.on_slot_pressed(-1)` を `hud.deselect()` に変更
 
 #### 将来検討
 - [ ] Island を PieceRegistry / NeighborManager に分割（責務分離）
