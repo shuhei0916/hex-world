@@ -45,20 +45,6 @@ func test_指定したHexに選択中のピースを配置できる():
 		assert_true(island.is_occupied(h))
 
 
-func test_ピース回転処理が正しい形状を返す():
-	var rotated = piece_placer._get_rotated_piece_shape(shape_arch)
-
-	assert_eq(rotated.size(), shape_arch_rotated.size(), "Rotated shape size mismatch")
-	for i in range(shape_arch_rotated.size()):
-		assert_true(
-			Hex.equals(rotated[i], shape_arch_rotated[i]),
-			(
-				"Rotated hex at index %d should be %s but was %s"
-				% [i, str(shape_arch_rotated[i]), str(rotated[i])]
-			)
-		)
-
-
 func test_回転メソッドを呼ぶと現在の形状が更新される():
 	piece_placer.current_piece_shape = shape_arch
 	piece_placer.rotate_current_piece()
@@ -73,7 +59,6 @@ func test_回転メソッドを呼ぶと現在の形状が更新される():
 
 
 func test_指定した座標のピースを削除できる():
-	island.create_hex_grid(2)
 	var target_hex = Hex.new(0, 0)
 
 	var data = PieceData.get_data(PieceData.Type.BAR)
@@ -90,23 +75,28 @@ func test_指定した座標のピースを削除できる():
 		assert_false(island.is_occupied(h), "All parts of piece should be removed")
 
 
-func test_マウス追従とスナップの2つのプレビューが表示される():
-	var data = PieceData.get_data(PieceData.Type.BAR)
-	piece_placer.select_piece(data)
-	var mouse_pos = Vector2(10, 10)
-	var expected_snap_pos = Vector2(0, 0)
+func test_cursor_previewはマウス位置に追従する():
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.update_hover(Vector2(10, 10))
+	assert_eq(piece_placer.cursor_preview.position, Vector2(10, 10))
 
-	piece_placer.update_hover(mouse_pos)
 
-	var cursor_container = piece_placer.cursor_preview
-	var ghost_container = piece_placer.snap_preview
+func test_snap_previewはグリッドにスナップする():
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.update_hover(Vector2(10, 10))
+	assert_eq(piece_placer.snap_preview.position, Vector2(0, 0))
 
-	assert_not_null(cursor_container, "CursorContainer should exist")
-	assert_not_null(ghost_container, "GhostContainer should exist")
-	assert_eq(cursor_container.position, mouse_pos, "CursorContainer should follow mouse")
-	assert_eq(ghost_container.position, expected_snap_pos, "GhostContainer should snap to grid")
-	assert_gt(cursor_container.get_child_count(), 0, "CursorContainer should have tiles")
-	assert_gt(ghost_container.get_child_count(), 0, "GhostContainer should have tiles")
+
+func test_cursor_previewにタイルが描画される():
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.update_hover(Vector2(10, 10))
+	assert_gt(piece_placer.cursor_preview.get_child_count(), 0)
+
+
+func test_snap_previewにタイルが描画される():
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.update_hover(Vector2(10, 10))
+	assert_gt(piece_placer.snap_preview.get_child_count(), 0)
 
 
 func test_select_pieceでPieceDataを外部からセットして配置できる():

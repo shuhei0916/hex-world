@@ -116,9 +116,7 @@ func rotate_current_piece():
 
 # 指定した座標にあるピースを削除する
 func remove_piece_at_hex(target_hex: Hex) -> bool:
-	if island.remove_piece_at(target_hex):
-		return true
-	return false
+	return island.remove_piece_at(target_hex)
 
 
 func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
