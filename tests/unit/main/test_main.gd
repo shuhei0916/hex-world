@@ -52,3 +52,10 @@ func test_Tキー入力で詳細モードが切り替わる():
 
 	main._unhandled_input(event)
 	assert_false(main.island.is_detail_mode_enabled, "再度Tキーでfalseになるべき")
+
+
+func test_HUDのスロット選択でPiecePlacerが更新される():
+	var btn = main.hud.toolbar.get_child(0) as Button
+	btn.button_pressed = true
+	main.hud.on_slot_pressed(0)
+	assert_not_null(main.piece_placer.selected_piece_data)

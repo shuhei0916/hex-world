@@ -1,9 +1,9 @@
 class_name HUD
 extends CanvasLayer
 
-const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+signal slot_selected(index: int)
 
-var piece_placer: PiecePlacer
+const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # スロットに割り当てるピースタイプの定義
 var _assignments: Array = [
@@ -25,10 +25,6 @@ func _ready():
 	_initialize_toolbar()
 
 
-func setup(piece_placer_ref: PiecePlacer):
-	piece_placer = piece_placer_ref
-
-
 func _initialize_toolbar():
 	for i in slot_buttons.size():
 		var btn = slot_buttons[i] as Button
@@ -40,25 +36,14 @@ func _initialize_toolbar():
 func on_slot_pressed(index: int):
 	if index < 0 or index >= slot_buttons.size():
 		_deselect_all_buttons()
-		_deselect_piece()
+		slot_selected.emit(-1)
 		return
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		_select_piece(index)
+		slot_selected.emit(index)
 	else:
-		_deselect_piece()
-
-
-func _select_piece(index: int):
-	if piece_placer:
-		var data = get_piece_data_for_slot(index)
-		piece_placer.select_piece(data)
-
-
-func _deselect_piece():
-	if piece_placer:
-		piece_placer.select_piece(null)
+		slot_selected.emit(-1)
 
 
 func _deselect_all_buttons():
