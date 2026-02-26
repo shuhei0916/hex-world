@@ -33,11 +33,11 @@ func test_グリッド更新シグナルでIslandに登録される():
 
 
 func test_MainはHUDを持つ():
-	var hud = main.hud
-	assert_not_null(hud, "HUD node should be linked in Main")
+	assert_not_null(main.hud, "HUD node should be linked in Main")
 
-	if hud:
-		assert_true(hud is HUD)
+
+func test_MainのHUDはHUD型である():
+	assert_true(main.hud is HUD)
 
 
 func test_Tキー入力で詳細モードが切り替わる():
