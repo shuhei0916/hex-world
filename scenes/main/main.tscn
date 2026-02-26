@@ -1,20 +1,22 @@
-[gd_scene load_steps=6 format=3 uid="uid://caxv1jymj8x1p"]
+[gd_scene format=3 uid="uid://caxv1jymj8x1p"]
 
 [ext_resource type="Script" uid="uid://b4lych0hgwlc4" path="res://scenes/main/main.gd" id="1_l3cfh"]
 [ext_resource type="Script" uid="uid://bcpl4euiuawxf" path="res://scenes/components/camera_controller.gd" id="2_6q06x"]
 [ext_resource type="PackedScene" uid="uid://qqa8dhve6xp8" path="res://scenes/ui/hud/hud.tscn" id="3_ow5a4"]
 [ext_resource type="Script" uid="uid://o5snqylsxhj3" path="res://scenes/components/island/island.gd" id="4_hujxm"]
-[ext_resource type="PackedScene" uid="uid://piece_placer_scene" path="res://scenes/components/piece_placer/piece_placer.tscn" id="5_piece_placer"]
+[ext_resource type="PackedScene" uid="uid://4pii2eovb0nu" path="res://scenes/components/piece_placer/piece_placer.tscn" id="5_piece_placer"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1442817315]
 script = ExtResource("1_l3cfh")
 
-[node name="CameraController" type="Camera2D" parent="."]
+[node name="CameraController" type="Camera2D" parent="." unique_id=2116735940]
 script = ExtResource("2_6q06x")
 
-[node name="HUD" parent="." instance=ExtResource("3_ow5a4")]
+[node name="HUD" parent="." unique_id=2086667818 instance=ExtResource("3_ow5a4")]
 
-[node name="Island" type="Node2D" parent="."]
+[node name="Island" type="Node2D" parent="." unique_id=176488843]
 script = ExtResource("4_hujxm")
 
-[node name="PiecePlacer" parent="." instance=ExtResource("5_piece_placer")]
+[node name="PiecePlacer" parent="." unique_id=154715246 instance=ExtResource("5_piece_placer")]
+
+[connection signal="slot_selected" from="HUD" to="." method="_on_hud_slot_selected"]
