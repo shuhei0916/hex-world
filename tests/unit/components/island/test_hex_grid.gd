@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const HexGrid = preload("res://scenes/components/grid/hex_grid.gd")
+const HexGrid = preload("res://scenes/components/island/hex_grid.gd")
 
 
 class TestRegisterAndQuery:

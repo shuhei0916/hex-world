@@ -2,17 +2,17 @@ class_name Main
 extends Node2D
 
 @onready var hud: HUD = $HUD
-@onready var grid_manager: GridManager = $GridManager
+@onready var island: Island = $Island
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var ghost_preview_container = $PiecePlacer/GhostPreviewContainer
 @onready var mouse_preview_container = $PiecePlacer/MousePreviewContainer
 
 
 func _ready():
-	grid_manager.create_hex_grid(grid_manager.grid_radius)
+	island.create_hex_grid(island.grid_radius)
 
 	hud.setup(piece_placer)
-	piece_placer.setup(grid_manager, mouse_preview_container, ghost_preview_container)
+	piece_placer.setup(island, mouse_preview_container, ghost_preview_container)
 
 
 func _unhandled_input(event):
@@ -24,7 +24,7 @@ func _unhandled_input(event):
 func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_T:
-			grid_manager.toggle_detail_mode()
+			island.toggle_detail_mode()
 		elif event.is_action_pressed("rotate_piece"):
 			piece_placer.rotate_current_piece()
 

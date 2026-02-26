@@ -1,6 +1,7 @@
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
+const Island = preload("res://scenes/components/island/island.gd")
 
 var main: Main
 
@@ -14,15 +15,15 @@ func after_each():
 	await get_tree().process_frame
 
 
-func test_MainはGridManagerを持つ():
-	assert_not_null(main.grid_manager)
-	assert_true(main.grid_manager is GridManager)
+func test_MainはIslandを持つ():
+	assert_not_null(main.island)
+	assert_true(main.island is Island)
 
 
-func test_グリッド更新シグナルでGridManagerに登録される():
-	var gm = main.grid_manager
+func test_グリッド更新シグナルでIslandに登録される():
+	var gm = main.island
 	if gm == null:
-		fail_test("GridManager not found")
+		fail_test("Island not found")
 		return
 
 	gm.clear_grid()
@@ -40,14 +41,14 @@ func test_MainはHUDを持つ():
 
 
 func test_Tキー入力で詳細モードが切り替わる():
-	assert_false(main.grid_manager.is_detail_mode_enabled, "初期状態はfalse")
+	assert_false(main.island.is_detail_mode_enabled, "初期状態はfalse")
 
 	var event = InputEventKey.new()
 	event.keycode = KEY_T
 	event.pressed = true
 
 	main._unhandled_input(event)
-	assert_true(main.grid_manager.is_detail_mode_enabled, "Tキーでtrueになるべき")
+	assert_true(main.island.is_detail_mode_enabled, "Tキーでtrueになるべき")
 
 	main._unhandled_input(event)
-	assert_false(main.grid_manager.is_detail_mode_enabled, "再度Tキーでfalseになるべき")
+	assert_false(main.island.is_detail_mode_enabled, "再度Tキーでfalseになるべき")
