@@ -1,7 +1,7 @@
 class_name HUD
 extends CanvasLayer
 
-signal slot_selected(index: int)
+signal slot_selected(piece_data: PieceData)
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
@@ -36,14 +36,14 @@ func _initialize_toolbar():
 func on_slot_pressed(index: int):
 	if index < 0 or index >= slot_buttons.size():
 		_deselect_all_buttons()
-		slot_selected.emit(-1)
+		slot_selected.emit(null)
 		return
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		slot_selected.emit(index)
+		slot_selected.emit(get_piece_data_for_slot(index))
 	else:
-		slot_selected.emit(-1)
+		slot_selected.emit(null)
 
 
 func _deselect_all_buttons():
