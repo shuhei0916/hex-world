@@ -102,9 +102,6 @@ func tick(delta: float):
 	if crafter:
 		crafter.tick(delta)
 
-	if _cached_data and _cached_data.role == "storage":
-		return
-
 
 func get_hex_shape() -> Array[Hex]:
 	if not _cached_data:
