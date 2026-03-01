@@ -24,7 +24,8 @@ class TestRegisterAndQuery:
 		assert_true(grid.is_occupied(Hex.new(0, 0)))
 
 	func test_occupy_manyで複数hexを一括占有できる():
-		grid.occupy_many([Hex.new(0, 0), Hex.new(1, 0)])
+		var hexes: Array[Hex] = [Hex.new(0, 0), Hex.new(1, 0)]
+		grid.occupy_many(hexes)
 		assert_true(grid.is_occupied(Hex.new(0, 0)))
 		assert_true(grid.is_occupied(Hex.new(1, 0)))
 

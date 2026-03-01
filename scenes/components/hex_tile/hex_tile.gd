@@ -11,6 +11,8 @@ var normal_color: Color = Color("#3D3D3D")
 var highlight_color: Color = Color("#7c7c7c")
 var _current_color: Color  # 追加: 現在のHexの色 (ピースの色が優先される)
 
+@onready var _sprite: Sprite2D = $Sprite2D
+
 
 func setup_hex(hex: Hex):
 	hex_coordinate = hex
@@ -50,9 +52,9 @@ func set_transparency(alpha: float):
 
 # スプライトの色を更新するヘルパー
 func _update_sprite_color():
-	var sprite = get_node_or_null("Sprite2D")
-	if sprite:
-		if is_highlighted:
-			sprite.modulate = highlight_color
-		else:
-			sprite.modulate = _current_color
+	if not _sprite:
+		return
+	if is_highlighted:
+		_sprite.modulate = highlight_color
+	else:
+		_sprite.modulate = _current_color

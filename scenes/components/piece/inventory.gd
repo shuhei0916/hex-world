@@ -86,5 +86,7 @@ func is_empty() -> bool:
 	return _items.is_empty()
 
 
-func get_item_names() -> Array:
-	return _items.keys()
+func get_item_names() -> Array[String]:
+	var keys: Array[String] = []
+	keys.assign(_items.keys())
+	return keys

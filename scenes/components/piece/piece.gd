@@ -30,8 +30,8 @@ var processing_progress: float:
 var _cached_data: PieceData  # キャッシュされた定義データ
 
 # コンポーネント
-@onready var input_storage: Node2D = get_node_or_null("Input")
-@onready var output: Node2D = get_node_or_null("Output")
+@onready var input_storage: PieceInput = get_node_or_null("Input")
+@onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 @onready var output_port: Sprite2D = get_node_or_null("OutputPort")
 
@@ -39,8 +39,6 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 func _ready():
 	if crafter and input_storage and output:
 		crafter.setup(input_storage, output)
-
-	_update_visuals()
 
 
 func _process(delta: float):
@@ -104,9 +102,6 @@ func tick(delta: float):
 	if crafter:
 		crafter.tick(delta)
 
-	if _cached_data and _cached_data.role == "storage":
-		return
-
 
 func get_hex_shape() -> Array[Hex]:
 	if not _cached_data:
@@ -131,10 +126,3 @@ func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
 	return not input_storage.is_full()
-
-
-# --- Private Methods ---
-
-
-func _update_visuals():
-	pass

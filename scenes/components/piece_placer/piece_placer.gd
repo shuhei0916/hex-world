@@ -6,7 +6,7 @@ extends Node2D
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # 依存関係（Mainから注入される）
-var island
+var island: Island
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
@@ -20,7 +20,7 @@ var selected_piece_data: PieceData
 @onready var snap_preview: Node2D = $SnapPreview
 
 
-func setup(island_ref):
+func setup(island_ref: Island):
 	island = island_ref
 
 

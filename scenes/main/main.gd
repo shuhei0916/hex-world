@@ -41,7 +41,7 @@ func _handle_mouse_click(event):
 			piece_placer.place_current_piece()
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			if hud.get_active_index() != -1:  # ツールバーで何かを選択中なら
-				hud.on_slot_pressed(-1)  # まず選択を解除する
+				hud.deselect()  # まず選択を解除する
 			elif piece_placer.current_hovered_hex != null:
 				# 何も選択していないなら、グリッド上のピースを削除する
 				island.remove_piece_at(piece_placer.current_hovered_hex)
