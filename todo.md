@@ -22,6 +22,8 @@
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
 - [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理
+- [ ] input.gd / output.gd の共通 InventoryContainer 基底クラスを抽出する
+- [ ] OutputPort の複数ポート対応テストを追加する
 
 ### それ以外
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する

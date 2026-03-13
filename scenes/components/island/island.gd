@@ -19,19 +19,16 @@ var layout: Layout
 var piece_scene = preload("res://scenes/components/piece/piece.tscn")
 var is_detail_mode_enabled: bool = false
 
-# 論理グリッドの状態
 var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
+var _registry = preload("res://scenes/components/island/piece_registry.gd").new()
+var _neighbor_manager = preload("res://scenes/components/island/neighbor_manager.gd").new()
 var _renderer: GridRenderer
-var _hex_to_piece_map: Dictionary = {}  # Hex座標 -> Pieceノードのマッピング
-var _piece_to_base_hex_map: Dictionary = {}  # PieceインスタンスID -> 起点Hex座標
 var _drawn_hexes: Array[Hex] = []
 
 
 func _init():
-	_hex_to_piece_map.clear()
-	_piece_to_base_hex_map.clear()
-
 	layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2(0.0, 0.0))
+	_neighbor_manager.setup(_registry, _hex_grid)
 
 
 func _ready():
@@ -66,149 +63,61 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 
 
 func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0):
-	var effective_color = data.color
-
 	var occupied_hexes: Array[Hex] = []
 	for offset in shape:
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
 		occupied_hexes.append(target)
+		_renderer.set_tile_color(target, data.color)
 
-		# 配置されたHexTileの色を更新
-		_renderer.set_tile_color(target, effective_color)
-
-	# Pieceノードを生成
 	var piece = piece_scene.instantiate()
-
-	# 座標設定（基準Hexの位置に配置）
 	piece.position = hex_to_pixel(base_hex)
-
-	# シーンツリーに追加
 	add_child(piece)
-
-	# データセットアップ
 	piece.setup(data, rotation)
-
-	# 詳細モードの設定を適用
 	piece.set_detail_mode(is_detail_mode_enabled)
 
-	# マップに登録
-	for hex in occupied_hexes:
-		var key = _hex_grid.hex_to_key(hex)
-		_hex_to_piece_map[key] = piece
-
-	_piece_to_base_hex_map[piece.get_instance_id()] = base_hex
-
-	# 隣接情報を更新
-	_update_neighbors_around_piece(piece)
+	_registry.register(piece, base_hex, occupied_hexes)
+	_neighbor_manager.update_connections_around(piece)
 
 
 func remove_piece_at(target_hex: Hex) -> bool:
-	var key = _hex_grid.hex_to_key(target_hex)
-	if not _hex_to_piece_map.has(key):
+	var piece = _registry.get_piece_at_hex(target_hex)
+	if piece == null:
 		return false
 
-	var piece = _hex_to_piece_map[key]
-
 	if not is_instance_valid(piece) or not piece is Node:
-		_hex_to_piece_map.erase(key)
+		_registry.unregister(piece, [target_hex])
 		return false
 
 	var hexes_to_remove = get_piece_occupied_hexes(piece)
 
 	for hex in hexes_to_remove:
-		var h_key = _hex_grid.hex_to_key(hex)
-		_hex_to_piece_map.erase(h_key)
-		_unplace_single_hex(hex)
+		_hex_grid.unoccupy(hex)
+		_renderer.reset_tile_color(hex)
 
-	_piece_to_base_hex_map.erase(piece.get_instance_id())
-
-	# 削除されるピースの周囲の隣接情報を更新
-	_update_neighbors_around_piece(piece, hexes_to_remove)
+	# 隣接更新の前にマップから削除する（削除済みピースが接続先として残らないようにするため）
+	_registry.unregister(piece, hexes_to_remove)
+	_neighbor_manager.update_connections_around(piece, hexes_to_remove)
 
 	piece.queue_free()
 	return true
 
 
-func _unplace_single_hex(hex: Hex):
-	_hex_grid.unoccupy(hex)
-	_renderer.reset_tile_color(hex)
-
-
 func clear_grid():
 	_hex_grid.clear_grid()
-	_hex_to_piece_map.clear()
-
-
-func _update_piece_neighbors(piece: Piece):
-	if not is_instance_valid(piece):
-		return
-
-	var current_connections: Array[Piece] = []
-	var occupied_hexes = get_piece_occupied_hexes(piece)
-
-	for hex in occupied_hexes:
-		for direction in range(6):
-			var neighbor = get_neighbor_piece(hex, direction)
-			if neighbor and neighbor != piece:
-				# ポート接続の判定
-				if _is_physically_connected(piece, hex, direction, neighbor):
-					if not neighbor in current_connections:
-						current_connections.append(neighbor)
-
-	if piece.output:
-		piece.output.connected_pieces = current_connections
-
-
-func _is_physically_connected(
-	source: Piece, source_hex: Hex, direction: int, _target: Piece
-) -> bool:
-	var base_hex = _piece_to_base_hex_map.get(source.get_instance_id())
-	if base_hex == null:
-		return false
-
-	# sourceのsource_hexからdirection方向に出力ポートがあるか確認
-	for port in source.get_output_ports():
-		# ポートの相対座標を、配置時の基準座標を使って絶対座標に変換
-		var absolute_port_hex = Hex.add(base_hex, port.hex)
-		if Hex.equals(absolute_port_hex, source_hex) and port.direction == direction:
-			return true
-	return false
-
-
-func _update_neighbors_around_piece(piece: Piece, precalculated_hexes = null):
-	# このピース自身の隣人を更新
-	_update_piece_neighbors(piece)
-
-	# このピースの周囲にいるピースたちの隣人リストも更新（自分が入る/消えるため）
-	var surrounding_pieces = {}
-	var occupied_hexes = precalculated_hexes
-	if occupied_hexes == null:
-		occupied_hexes = get_piece_occupied_hexes(piece)
-
-	for hex in occupied_hexes:
-		for direction in range(6):
-			var neighbor = get_neighbor_piece(hex, direction)
-			if neighbor and neighbor != piece:
-				surrounding_pieces[neighbor.get_instance_id()] = neighbor
-
-	for p in surrounding_pieces.values():
-		_update_piece_neighbors(p)
+	_registry.clear()
 
 
 func get_piece_at_hex(hex: Hex) -> Piece:
-	var key = _hex_grid.hex_to_key(hex)
-	return _hex_to_piece_map.get(key, null)
+	return _registry.get_piece_at_hex(hex)
 
 
 func get_piece_occupied_hexes(piece: Piece) -> Array[Hex]:
 	var result: Array[Hex] = []
-	var base_hex = _piece_to_base_hex_map.get(piece.get_instance_id())
+	var base_hex = _registry.get_base_hex(piece)
 	if base_hex == null:
-		return []
-
-	var shape = piece.get_hex_shape()
-	for offset in shape:
+		return result
+	for offset in piece.get_hex_shape():
 		result.append(Hex.add(base_hex, offset))
 	return result
 
@@ -222,16 +131,9 @@ func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
 
 func toggle_detail_mode():
 	is_detail_mode_enabled = not is_detail_mode_enabled
-	_update_all_pieces_detail_mode()
-
-
-func _update_all_pieces_detail_mode():
-	var processed_pieces = {}
-	for key in _hex_to_piece_map:
-		var piece = _hex_to_piece_map[key]
-		if is_instance_valid(piece) and not processed_pieces.has(piece.get_instance_id()):
+	for piece in _registry.get_all_pieces():
+		if is_instance_valid(piece):
 			piece.set_detail_mode(is_detail_mode_enabled)
-			processed_pieces[piece.get_instance_id()] = true
 
 
 func _update_grid_visuals():
