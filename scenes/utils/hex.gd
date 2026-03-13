@@ -121,6 +121,10 @@ static func lerp(a: Hex, b: Hex, t: float) -> Hex:
 	return Hex.new(a.q * (1.0 - t) + b.q * t, a.r * (1.0 - t) + b.r * t, a.s * (1.0 - t) + b.s * t)
 
 
+static func to_key(hex: Hex) -> String:
+	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+
+
 static func linedraw(a: Hex, b: Hex) -> Array[Hex]:
 	var dist = distance(a, b)
 	var a_nudge = Hex.new(a.q + 1e-06, a.r + 1e-06, a.s - 2e-06)

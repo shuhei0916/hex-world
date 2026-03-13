@@ -43,4 +43,4 @@ func reset_tile_color(hex: Hex):
 
 
 func _key(hex: Hex) -> String:
-	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+	return Hex.to_key(hex)

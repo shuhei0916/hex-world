@@ -61,4 +61,4 @@ func clear() -> void:
 
 
 func _key(hex: Hex) -> String:
-	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+	return Hex.to_key(hex)

@@ -49,4 +49,4 @@ func clear_grid():
 
 
 func hex_to_key(hex: Hex) -> String:
-	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+	return Hex.to_key(hex)
