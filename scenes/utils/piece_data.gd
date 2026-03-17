@@ -2,25 +2,25 @@ class_name PieceData
 extends RefCounted
 
 enum Type {
-	BAR,
-	WORM,
-	PISTOL,
-	PROPELLER,
-	ARCH,
-	BEE,
-	WAVE,
+	CONVEYOR,
+	SMELTER,
+	CUTTER,
+	MIXER,
+	PAINTER,
+	MINER,
+	ASSEMBLER,
 	CHEST,
 }
 
 const FACILITY_COLORS = {
 	"miner": Color("#F3D283"),
 	"smelter": Color("#6AD38D"),
-	"constructor": Color("#85F7F2"),
+	"assembler": Color("#85F7F2"),
 	"storage": Color("#999999"),
-	"hoge": Color("#D49A69"),
-	"foo": Color("#C2E479"),
-	"bar": Color("#8184F0"),
-	"hoho": Color("#F081AA"),
+	"conveyor": Color("#D49A69"),
+	"cutter": Color("#C2E479"),
+	"mixer": Color("#8184F0"),
+	"painter": Color("#F081AA"),
 	"": Color("#D49A69")
 }
 
@@ -64,47 +64,47 @@ static func get_data(type: Type) -> PieceData:
 
 static func _initialize_data():
 	_data_map = {
-		Type.BAR:
+		Type.CONVEYOR:
 		new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			[{"hex": Hex.new(2, 0, -2), "direction": "E"}],
-			"hoge"
+			"conveyor"
 		),
-		Type.WORM:
+		Type.SMELTER:
 		new(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
 			"smelter"
 		),
-		Type.PISTOL:
+		Type.CUTTER:
 		new(
 			[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(1, -1, 0), "direction": "NE"}],
-			"foo"
+			"cutter"
 		),
-		Type.PROPELLER:
+		Type.MIXER:
 		new(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"bar"
+			"mixer"
 		),
-		Type.ARCH:
+		Type.PAINTER:
 		new(
 			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, -1, 1), "direction": "NW"}],
-			"hoho"
+			"painter"
 		),
-		Type.BEE:
+		Type.MINER:
 		new(
 			[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 1, -1), "direction": "SW"}],
 			"miner"
 		),
-		Type.WAVE:
+		Type.ASSEMBLER:
 		new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
-			"constructor"
+			"assembler"
 		),
 		Type.CHEST: new([Hex.new(0, 0, 0)], [], "storage"),
 	}

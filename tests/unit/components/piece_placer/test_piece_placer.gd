@@ -33,7 +33,7 @@ func after_each():
 
 
 func test_指定したHexに選択中のピースを配置できる():
-	var data = PieceData.get_data(PieceData.Type.BAR)
+	var data = PieceData.get_data(PieceData.Type.CONVEYOR)
 	piece_placer.select_piece(data)
 	var target_hex = Hex.new(0, 0)
 
@@ -59,25 +59,25 @@ func test_回転メソッドを呼ぶと現在の形状が更新される():
 
 
 func test_cursor_previewはマウス位置に追従する():
-	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.CONVEYOR))
 	piece_placer.update_hover(Vector2(10, 10))
 	assert_eq(piece_placer.cursor_preview.position, Vector2(10, 10))
 
 
 func test_snap_previewはグリッドにスナップする():
-	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.CONVEYOR))
 	piece_placer.update_hover(Vector2(10, 10))
 	assert_eq(piece_placer.snap_preview.position, Vector2(0, 0))
 
 
 func test_cursor_previewにタイルが描画される():
-	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.CONVEYOR))
 	piece_placer.update_hover(Vector2(10, 10))
 	assert_gt(piece_placer.cursor_preview.get_child_count(), 0)
 
 
 func test_snap_previewにタイルが描画される():
-	piece_placer.select_piece(PieceData.get_data(PieceData.Type.BAR))
+	piece_placer.select_piece(PieceData.get_data(PieceData.Type.CONVEYOR))
 	piece_placer.update_hover(Vector2(10, 10))
 	assert_gt(piece_placer.snap_preview.get_child_count(), 0)
 

@@ -14,9 +14,9 @@ class TestPieceBasics:
 		add_child_autofree(piece)
 
 	func test_セットアップでデータを正しく設定できる():
-		var data = PieceData.get_data(PieceData.Type.BAR)
+		var data = PieceData.get_data(PieceData.Type.CONVEYOR)
 		piece.setup(data)
-		assert_eq(piece._cached_data.role, "hoge")
+		assert_eq(piece._cached_data.role, "conveyor")
 
 	func test_add_itemでPieceにアイテムを追加できる():
 		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
@@ -54,7 +54,7 @@ class TestPieceTransformation:
 
 	func before_each():
 		p = PIECE_SCENE.instantiate()
-		p.setup(PieceData.get_data(PieceData.Type.WAVE))
+		p.setup(PieceData.get_data(PieceData.Type.ASSEMBLER))
 		add_child_autofree(p)
 
 	func test_ピースの回転に合わせてポートの向きも変更される():

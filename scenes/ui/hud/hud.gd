@@ -7,13 +7,13 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # スロットに割り当てるピースタイプの定義
 var _assignments: Array[PieceData.Type] = [
-	PieceData.Type.BEE,
-	PieceData.Type.WORM,
-	PieceData.Type.WAVE,
-	PieceData.Type.PISTOL,
-	PieceData.Type.BAR,
-	PieceData.Type.PROPELLER,
-	PieceData.Type.ARCH,
+	PieceData.Type.MINER,
+	PieceData.Type.SMELTER,
+	PieceData.Type.ASSEMBLER,
+	PieceData.Type.CUTTER,
+	PieceData.Type.CONVEYOR,
+	PieceData.Type.MIXER,
+	PieceData.Type.PAINTER,
 	PieceData.Type.CHEST
 ]
 

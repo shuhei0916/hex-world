@@ -40,7 +40,7 @@ class RecipeDB:
 
 		# Constructor: Iron Plate (3.0s)
 		register_recipe(
-			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0, "constructor")
+			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0, "assembler")
 		)
 
 	static func register_recipe(recipe: Recipe):

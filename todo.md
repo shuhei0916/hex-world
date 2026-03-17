@@ -11,9 +11,27 @@
 - [ ] グリッドの上をキャラクターが移動したり（chessのような感じ）、敵と戦ったりできる要素（gloomhavenなど）
 
 ## リファクタリング
+### feature/refactor-piece-types
+
+#### Step 1: Type enum と role 文字列の統一（リファクタリング）
+- [x] PieceData.Type を機能名にリネーム（BEE→MINER, WORM→SMELTER, WAVE→ASSEMBLER, BAR→CONVEYOR, PISTOL→CUTTER, PROPELLER→MIXER, ARCH→PAINTER）
+- [x] role 文字列を機能名に統一（"hoge"→"conveyor", "foo"→"cutter", "bar"→"mixer", "hoho"→"painter", "constructor"→"assembler"）
+- [x] FACILITY_COLORS のキーを新 role 名に更新
+- [x] hud.gd の _assignments を新 Type 名に更新
+- [x] 全テストファイルの Type・role 参照を新名称に更新
+
+#### Step 2: ピース個別シーン化（CHEST は保留）
+- [ ] PieceData に scene フィールドを追加する
+- [ ] PieceData.get_data(Type.MINER) が null でない scene を返す
+- [ ] PieceData.get_data(Type.SMELTER) が null でない scene を返す
+- [ ] PieceData.get_data(Type.ASSEMBLER) が null でない scene を返す
+- [ ] miner.tscn を piece.tscn の継承シーンとして作成し、Input ノードを持たない
+- [ ] smelter.tscn を piece.tscn の継承シーンとして作成する
+- [ ] assembler.tscn を piece.tscn の継承シーンとして作成する
+- [ ] island.place_piece() が piece.tscn の固定参照ではなく data.scene を使う
+
 ### piece, test_piece関連
 - [ ] インベントリ周りのUIの改良
-- [ ] pieceを継承シーンとし、それぞれのピースごとのシーンを作成する（miner.tscn, assembler.tscn, chest.tscnなど）
 
 #### 将来検討
 - [x] Island を PieceRegistry / NeighborManager に分割（責務分離）
