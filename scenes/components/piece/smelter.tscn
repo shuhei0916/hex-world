@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://smelter001"]
+[gd_scene format=3 uid="uid://smelter001"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
