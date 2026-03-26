@@ -39,6 +39,7 @@ var shape: Array[Hex]
 var color: Color
 var output_ports: Array = []
 var role: String = ""
+var scene: PackedScene = null
 
 
 func _init(hex_shape: Array[Hex], outputs: Array = [], role_val: String = ""):

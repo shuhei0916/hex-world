@@ -37,6 +37,7 @@
 - [x] Island を PieceRegistry / NeighborManager に分割（責務分離）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [x] HexGrid.hex_to_key() と GridRenderer._key() の重複ロジックを統一（Hex.to_key() に集約）
+- [ ] role フィールドを廃止し PieceData.Type を唯一の識別子にする（RecipeDB を Type ベースに移行）
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
 - [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理

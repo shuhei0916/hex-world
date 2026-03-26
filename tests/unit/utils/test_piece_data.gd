@@ -1,6 +1,11 @@
 extends GutTest
 
 
+func test_PieceDataはsceneフィールドを持つ():
+	var data = PieceData.get_data(PieceData.Type.MINER)
+	assert_true("scene" in data)
+
+
 func test_PieceDataをトップレベルクラスとしてインスタンス化できる():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 	var data = PieceData.new(shape, [], "miner")
