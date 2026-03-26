@@ -54,11 +54,13 @@ func setup(data: PieceData, rotation: int = 0):
 
 	# デフォルトレシピの適用
 	if _cached_data:
-		if _cached_data.role != "":
-			var recipes = Recipe.RecipeDB.get_recipes_by_role(_cached_data.role)
-			if not recipes.is_empty():
-				# 暫定的に最初のレシピを採用
-				set_recipe(recipes[0])
+		var recipes: Array[Recipe] = []
+		if _cached_data.piece_type >= 0:
+			recipes = Recipe.RecipeDB.get_recipes_by_type(_cached_data.piece_type as PieceData.Type)
+		elif _cached_data.role != "":
+			recipes = Recipe.RecipeDB.get_recipes_by_role(_cached_data.role)
+		if not recipes.is_empty():
+			set_recipe(recipes[0])
 
 	if output_port:
 		output_port.setup(get_output_ports())
