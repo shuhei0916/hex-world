@@ -53,12 +53,8 @@ func setup(data: PieceData, rotation: int = 0):
 	rotation_state = rotation
 
 	# デフォルトレシピの適用
-	if _cached_data:
-		var recipes: Array[Recipe] = []
-		if _cached_data.piece_type >= 0:
-			recipes = Recipe.RecipeDB.get_recipes_by_type(_cached_data.piece_type as PieceData.Type)
-		elif _cached_data.role != "":
-			recipes = Recipe.RecipeDB.get_recipes_by_role(_cached_data.role)
+	if _cached_data and _cached_data.piece_type >= 0:
+		var recipes = Recipe.RecipeDB.get_recipes_by_type(_cached_data.piece_type as PieceData.Type)
 		if not recipes.is_empty():
 			set_recipe(recipes[0])
 

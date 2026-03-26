@@ -5,7 +5,6 @@ var id: String
 var inputs: Dictionary
 var outputs: Dictionary
 var craft_time: float
-var role: String
 
 
 func _init(
@@ -13,13 +12,11 @@ func _init(
 	inputs_val: Dictionary,
 	outputs_val: Dictionary,
 	craft_time_val: float,
-	role_val: String = ""
 ):
 	id = id_val
 	inputs = inputs_val
 	outputs = outputs_val
 	craft_time = craft_time_val
-	role = role_val
 
 
 class RecipeDB:
@@ -32,19 +29,17 @@ class RecipeDB:
 
 	static func _register_defaults():
 		# Miner: Iron Ore (1.0s)
-		register_recipe(
-			Recipe.new("iron_ore", {}, {"iron_ore": 1}, 1.0, "miner"), PieceData.Type.MINER
-		)
+		register_recipe(Recipe.new("iron_ore", {}, {"iron_ore": 1}, 1.0), PieceData.Type.MINER)
 
 		# Smelter: Iron Ingot (2.0s)
 		register_recipe(
-			Recipe.new("iron_ingot", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0, "smelter"),
+			Recipe.new("iron_ingot", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0),
 			PieceData.Type.SMELTER
 		)
 
 		# Assembler: Iron Plate (3.0s)
 		register_recipe(
-			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0, "assembler"),
+			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0),
 			PieceData.Type.ASSEMBLER
 		)
 
@@ -65,12 +60,4 @@ class RecipeDB:
 		var result: Array[Recipe] = []
 		for r in _recipes_by_type.get(piece_type, []):
 			result.append(r)
-		return result
-
-	static func get_recipes_by_role(role: String) -> Array[Recipe]:
-		_static_init()
-		var result: Array[Recipe] = []
-		for recipe in _recipes.values():
-			if recipe.role == role:
-				result.append(recipe)
 		return result

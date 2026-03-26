@@ -23,16 +23,14 @@ func test_ASSEMBLERはsceneを持つ():
 
 func test_PieceDataをトップレベルクラスとしてインスタンス化できる():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
-	var data = PieceData.new(shape, [], "miner")
+	var data = PieceData.new(shape, [])
 
 	assert_not_null(data)
-	assert_eq(data.role, "miner")
 
 
 func test_PieceDataの静的メソッドで定義済みデータを取得できる():
 	var data = PieceData.get_data(PieceData.Type.CHEST)
 	assert_not_null(data)
-	assert_eq(data.role, "storage")
 	assert_eq(data.shape.size(), 1)
 
 
