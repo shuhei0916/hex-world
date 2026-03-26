@@ -33,9 +33,9 @@ static var DATA: Dictionary:
 
 # gdlint:disable=class-variable-name
 static var _data_map = {}
-static var _miner_scene: PackedScene = preload("res://scenes/components/piece/miner.tscn")
-static var _smelter_scene: PackedScene = preload("res://scenes/components/piece/smelter.tscn")
-static var _assembler_scene: PackedScene = preload("res://scenes/components/piece/assembler.tscn")
+static var _miner_scene: PackedScene
+static var _smelter_scene: PackedScene
+static var _assembler_scene: PackedScene
 
 # インスタンス変数
 var shape: Array[Hex]
@@ -75,6 +75,9 @@ static func _make(
 
 
 static func _initialize_data():
+	_miner_scene = load("res://scenes/components/piece/miner.tscn")
+	_smelter_scene = load("res://scenes/components/piece/smelter.tscn")
+	_assembler_scene = load("res://scenes/components/piece/assembler.tscn")
 	_data_map = {
 		Type.CONVEYOR:
 		new(

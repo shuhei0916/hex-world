@@ -28,7 +28,7 @@
 - [x] miner.tscn を作成し、Input ノードを持たない
 - [x] smelter.tscn を作成する
 - [x] assembler.tscn を作成する
-- [ ] island.place_piece() が piece.tscn の固定参照ではなく data.scene を使う
+- [x] island.place_piece() が piece.tscn の固定参照ではなく data.scene を使う
 
 ### piece, test_piece関連
 - [ ] インベントリ周りのUIの改良
