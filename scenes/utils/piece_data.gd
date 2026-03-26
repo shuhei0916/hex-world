@@ -24,6 +24,17 @@ const FACILITY_COLORS = {
 	"": Color("#D49A69")
 }
 
+const FACILITY_COLORS_BY_TYPE = {
+	0: Color("#D49A69"),  # CONVEYOR
+	1: Color("#6AD38D"),  # SMELTER
+	2: Color("#C2E479"),  # CUTTER
+	3: Color("#8184F0"),  # MIXER
+	4: Color("#F081AA"),  # PAINTER
+	5: Color("#F3D283"),  # MINER
+	6: Color("#85F7F2"),  # ASSEMBLER
+	7: Color("#999999"),  # CHEST
+}
+
 # gdlint:disable=class-variable-name
 static var DATA: Dictionary:
 	get:
@@ -77,6 +88,8 @@ static func _make(
 	var d = PieceData.new(hex_shape, outputs, role_val)
 	d.scene = scene_val
 	d.piece_type = type_val
+	if type_val >= 0 and FACILITY_COLORS_BY_TYPE.has(type_val):
+		d.color = FACILITY_COLORS_BY_TYPE[type_val]
 	return d
 
 
