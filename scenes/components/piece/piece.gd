@@ -37,7 +37,7 @@ var _cached_data: PieceData  # キャッシュされた定義データ
 
 
 func _ready():
-	if crafter and input_storage and output:
+	if crafter and output:
 		crafter.setup(input_storage, output)
 
 

@@ -2,25 +2,25 @@ class_name PieceData
 extends RefCounted
 
 enum Type {
-	BAR,
-	WORM,
-	PISTOL,
-	PROPELLER,
-	ARCH,
-	BEE,
-	WAVE,
+	CONVEYOR,
+	SMELTER,
+	CUTTER,
+	MIXER,
+	PAINTER,
+	MINER,
+	ASSEMBLER,
 	CHEST,
 }
 
 const FACILITY_COLORS = {
 	"miner": Color("#F3D283"),
 	"smelter": Color("#6AD38D"),
-	"constructor": Color("#85F7F2"),
+	"assembler": Color("#85F7F2"),
 	"storage": Color("#999999"),
-	"hoge": Color("#D49A69"),
-	"foo": Color("#C2E479"),
-	"bar": Color("#8184F0"),
-	"hoho": Color("#F081AA"),
+	"conveyor": Color("#D49A69"),
+	"cutter": Color("#C2E479"),
+	"mixer": Color("#8184F0"),
+	"painter": Color("#F081AA"),
 	"": Color("#D49A69")
 }
 
@@ -33,12 +33,16 @@ static var DATA: Dictionary:
 
 # gdlint:disable=class-variable-name
 static var _data_map = {}
+static var _miner_scene: PackedScene
+static var _smelter_scene: PackedScene
+static var _assembler_scene: PackedScene
 
 # インスタンス変数
 var shape: Array[Hex]
 var color: Color
 var output_ports: Array = []
 var role: String = ""
+var scene: PackedScene = null
 
 
 func _init(hex_shape: Array[Hex], outputs: Array = [], role_val: String = ""):
@@ -62,49 +66,63 @@ static func get_data(type: Type) -> PieceData:
 	return _data_map.get(type)
 
 
+static func _make(
+	hex_shape: Array[Hex], outputs: Array, role_val: String, scene_val: PackedScene = null
+) -> PieceData:
+	var d = PieceData.new(hex_shape, outputs, role_val)
+	d.scene = scene_val
+	return d
+
+
 static func _initialize_data():
+	_miner_scene = load("res://scenes/components/piece/miner.tscn")
+	_smelter_scene = load("res://scenes/components/piece/smelter.tscn")
+	_assembler_scene = load("res://scenes/components/piece/assembler.tscn")
 	_data_map = {
-		Type.BAR:
+		Type.CONVEYOR:
 		new(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			[{"hex": Hex.new(2, 0, -2), "direction": "E"}],
-			"hoge"
+			"conveyor"
 		),
-		Type.WORM:
-		new(
+		Type.SMELTER:
+		_make(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"smelter"
+			"smelter",
+			_smelter_scene
 		),
-		Type.PISTOL:
+		Type.CUTTER:
 		new(
 			[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(1, -1, 0), "direction": "NE"}],
-			"foo"
+			"cutter"
 		),
-		Type.PROPELLER:
+		Type.MIXER:
 		new(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"bar"
+			"mixer"
 		),
-		Type.ARCH:
+		Type.PAINTER:
 		new(
 			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, -1, 1), "direction": "NW"}],
-			"hoho"
+			"painter"
 		),
-		Type.BEE:
-		new(
+		Type.MINER:
+		_make(
 			[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 1, -1), "direction": "SW"}],
-			"miner"
+			"miner",
+			_miner_scene
 		),
-		Type.WAVE:
-		new(
+		Type.ASSEMBLER:
+		_make(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
-			"constructor"
+			"assembler",
+			_assembler_scene
 		),
 		Type.CHEST: new([Hex.new(0, 0, 0)], [], "storage"),
 	}

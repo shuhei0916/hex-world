@@ -70,7 +70,7 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 		occupied_hexes.append(target)
 		_renderer.set_tile_color(target, data.color)
 
-	var piece = piece_scene.instantiate()
+	var piece = (data.scene if data.scene else piece_scene).instantiate()
 	piece.position = hex_to_pixel(base_hex)
 	add_child(piece)
 	piece.setup(data, rotation)

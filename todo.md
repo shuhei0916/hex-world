@@ -11,14 +11,34 @@
 - [ ] グリッドの上をキャラクターが移動したり（chessのような感じ）、敵と戦ったりできる要素（gloomhavenなど）
 
 ## リファクタリング
+### feature/refactor-piece-types
+
+#### Step 1: Type enum と role 文字列の統一（リファクタリング）
+- [x] PieceData.Type を機能名にリネーム（BEE→MINER, WORM→SMELTER, WAVE→ASSEMBLER, BAR→CONVEYOR, PISTOL→CUTTER, PROPELLER→MIXER, ARCH→PAINTER）
+- [x] role 文字列を機能名に統一（"hoge"→"conveyor", "foo"→"cutter", "bar"→"mixer", "hoho"→"painter", "constructor"→"assembler"）
+- [x] FACILITY_COLORS のキーを新 role 名に更新
+- [x] hud.gd の _assignments を新 Type 名に更新
+- [x] 全テストファイルの Type・role 参照を新名称に更新
+
+#### Step 2: ピース個別シーン化（CHEST は保留）
+- [x] PieceData に scene フィールドを追加する
+- [x] PieceData.get_data(Type.MINER) が null でない scene を返す
+- [x] PieceData.get_data(Type.SMELTER) が null でない scene を返す
+- [x] PieceData.get_data(Type.ASSEMBLER) が null でない scene を返す
+- [x] miner.tscn を作成し、Input ノードを持たない
+- [x] smelter.tscn を作成する
+- [x] assembler.tscn を作成する
+- [x] island.place_piece() が piece.tscn の固定参照ではなく data.scene を使う
+
 ### piece, test_piece関連
 - [ ] インベントリ周りのUIの改良
-- [ ] pieceを継承シーンとし、それぞれのピースごとのシーンを作成する（miner.tscn, assembler.tscn, chest.tscnなど）
 
 #### 将来検討
 - [x] Island を PieceRegistry / NeighborManager に分割（責務分離）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [x] HexGrid.hex_to_key() と GridRenderer._key() の重複ロジックを統一（Hex.to_key() に集約）
+- [ ] role フィールドを廃止し PieceData.Type を唯一の識別子にする（RecipeDB を Type ベースに移行）
+- [ ] ヘックスタイルをピースシーンに内包する設計へ移行（GridRenderer の責務再定義・PiecePlacer プレビュー再設計を伴う大規模リファクタリング）
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
 - [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理

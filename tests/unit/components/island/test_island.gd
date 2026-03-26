@@ -38,6 +38,12 @@ class TestPiecePlacement:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
+	func test_data_sceneが設定されていればそのシーンでインスタンス化される():
+		var data = PieceData.get_data(PieceData.Type.MINER)
+		gm.place_piece(data.shape, Hex.new(0, 0), data)
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		assert_null(piece.get_node_or_null("Input"), "MINERはInputノードを持たないはず")
+
 	func test_有効な場所にピースを配置できる():
 		var shape = [Hex.new(0, 0), Hex.new(1, 0)]
 		var data = PieceData.get_data(PieceData.Type.CHEST)
