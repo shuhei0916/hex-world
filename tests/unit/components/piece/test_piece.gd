@@ -98,3 +98,13 @@ class TestPieceRoles:
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
+
+	func test_Inputノードなしのピースでもcrafterがアイテムを生産できる():
+		const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+		var p = MINER_SCENE.instantiate()
+		add_child(p)
+		autofree(p)
+		p.setup(PieceData.get_data(PieceData.Type.MINER))
+
+		p.tick(1.1)
+		assert_eq(p.get_item_count("iron_ore"), 1)
