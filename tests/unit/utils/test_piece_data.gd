@@ -11,6 +11,16 @@ func test_MINERはsceneを持つ():
 	assert_not_null(data.scene)
 
 
+func test_SMELTERはsceneを持つ():
+	var data = PieceData.get_data(PieceData.Type.SMELTER)
+	assert_not_null(data.scene)
+
+
+func test_ASSEMBLERはsceneを持つ():
+	var data = PieceData.get_data(PieceData.Type.ASSEMBLER)
+	assert_not_null(data.scene)
+
+
 func test_PieceDataをトップレベルクラスとしてインスタンス化できる():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 	var data = PieceData.new(shape, [], "miner")

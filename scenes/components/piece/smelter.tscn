@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3 uid="uid://smelter001"]
+
+[ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
+[ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
+[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/output.gd" id="4_output"]
+[ext_resource type="Texture2D" uid="uid://dxmsv0vwl0ybu" path="res://scenes/components/piece/forward.png" id="5_fwd"]
+[ext_resource type="Script" uid="uid://dypi1nf4ql5kk" path="res://scenes/components/piece/speed_label.gd" id="6_speed_label"]
+[ext_resource type="Script" uid="uid://c3rxnl5xvu3u0" path="res://scenes/components/piece/output_port.gd" id="7_output_port"]
+[ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="8_inventory"]
+
+[node name="Piece" type="Node2D"]
+script = ExtResource("1_piece")
+
+[node name="SpeedLabel" type="Label" parent="."]
+offset_left = -30.0
+offset_top = -50.0
+offset_right = 30.0
+offset_bottom = -30.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("6_speed_label")
+
+[node name="Input" type="Node2D" parent="."]
+position = Vector2(-20, 15)
+script = ExtResource("2_input")
+
+[node name="Inventory" parent="Input" instance=ExtResource("8_inventory")]
+
+[node name="Output" type="Node2D" parent="."]
+script = ExtResource("4_output")
+
+[node name="Inventory" parent="Output" instance=ExtResource("8_inventory")]
+
+[node name="Crafter" type="Node2D" parent="."]
+script = ExtResource("3_crafter")
+
+[node name="ProgressBar" type="ProgressBar" parent="Crafter"]
+visible = false
+offset_left = -20.0
+offset_top = -30.0
+offset_right = 20.0
+offset_bottom = -26.0
+value = 50.0
+show_percentage = false
+
+[node name="OutputPort" type="Sprite2D" parent="."]
+modulate = Color(0.9607843, 0.6509804, 0.13725491, 1)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_fwd")
+script = ExtResource("7_output_port")
+
+[connection signal="detail_mode_changed" from="." to="SpeedLabel" method="on_detail_mode_changed"]
+[connection signal="recipe_changed" from="." to="SpeedLabel" method="on_recipe_changed"]

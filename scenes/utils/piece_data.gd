@@ -34,6 +34,8 @@ static var DATA: Dictionary:
 # gdlint:disable=class-variable-name
 static var _data_map = {}
 static var _miner_scene: PackedScene = preload("res://scenes/components/piece/miner.tscn")
+static var _smelter_scene: PackedScene = preload("res://scenes/components/piece/smelter.tscn")
+static var _assembler_scene: PackedScene = preload("res://scenes/components/piece/assembler.tscn")
 
 # インスタンス変数
 var shape: Array[Hex]
@@ -81,10 +83,11 @@ static func _initialize_data():
 			"conveyor"
 		),
 		Type.SMELTER:
-		new(
+		_make(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"smelter"
+			"smelter",
+			_smelter_scene
 		),
 		Type.CUTTER:
 		new(
@@ -112,10 +115,11 @@ static func _initialize_data():
 			_miner_scene
 		),
 		Type.ASSEMBLER:
-		new(
+		_make(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
-			"assembler"
+			"assembler",
+			_assembler_scene
 		),
 		Type.CHEST: new([Hex.new(0, 0, 0)], [], "storage"),
 	}

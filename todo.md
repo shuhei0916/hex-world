@@ -23,11 +23,11 @@
 #### Step 2: ピース個別シーン化（CHEST は保留）
 - [x] PieceData に scene フィールドを追加する
 - [x] PieceData.get_data(Type.MINER) が null でない scene を返す
-- [ ] PieceData.get_data(Type.SMELTER) が null でない scene を返す
-- [ ] PieceData.get_data(Type.ASSEMBLER) が null でない scene を返す
-- [ ] miner.tscn を piece.tscn の継承シーンとして作成し、Input ノードを持たない
-- [ ] smelter.tscn を piece.tscn の継承シーンとして作成する
-- [ ] assembler.tscn を piece.tscn の継承シーンとして作成する
+- [x] PieceData.get_data(Type.SMELTER) が null でない scene を返す
+- [x] PieceData.get_data(Type.ASSEMBLER) が null でない scene を返す
+- [x] miner.tscn を作成し、Input ノードを持たない
+- [x] smelter.tscn を作成する
+- [x] assembler.tscn を作成する
 - [ ] island.place_piece() が piece.tscn の固定参照ではなく data.scene を使う
 
 ### piece, test_piece関連
