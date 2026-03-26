@@ -21,8 +21,8 @@
 - [x] 全テストファイルの Type・role 参照を新名称に更新
 
 #### Step 2: ピース個別シーン化（CHEST は保留）
-- [ ] PieceData に scene フィールドを追加する
-- [ ] PieceData.get_data(Type.MINER) が null でない scene を返す
+- [x] PieceData に scene フィールドを追加する
+- [x] PieceData.get_data(Type.MINER) が null でない scene を返す
 - [ ] PieceData.get_data(Type.SMELTER) が null でない scene を返す
 - [ ] PieceData.get_data(Type.ASSEMBLER) が null でない scene を返す
 - [ ] miner.tscn を piece.tscn の継承シーンとして作成し、Input ノードを持たない
@@ -38,6 +38,7 @@
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [x] HexGrid.hex_to_key() と GridRenderer._key() の重複ロジックを統一（Hex.to_key() に集約）
 - [ ] role フィールドを廃止し PieceData.Type を唯一の識別子にする（RecipeDB を Type ベースに移行）
+- [ ] ヘックスタイルをピースシーンに内包する設計へ移行（GridRenderer の責務再定義・PiecePlacer プレビュー再設計を伴う大規模リファクタリング）
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
 - [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理
