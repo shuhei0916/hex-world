@@ -24,6 +24,7 @@ func _init(
 
 class RecipeDB:
 	static var _recipes = {}
+	static var _recipes_by_type: Dictionary = {}
 
 	static func _static_init():
 		if _recipes.is_empty():
@@ -31,24 +32,40 @@ class RecipeDB:
 
 	static func _register_defaults():
 		# Miner: Iron Ore (1.0s)
-		register_recipe(Recipe.new("iron_ore", {}, {"iron_ore": 1}, 1.0, "miner"))
+		register_recipe(
+			Recipe.new("iron_ore", {}, {"iron_ore": 1}, 1.0, "miner"), PieceData.Type.MINER
+		)
 
 		# Smelter: Iron Ingot (2.0s)
 		register_recipe(
-			Recipe.new("iron_ingot", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0, "smelter")
+			Recipe.new("iron_ingot", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0, "smelter"),
+			PieceData.Type.SMELTER
 		)
 
-		# Constructor: Iron Plate (3.0s)
+		# Assembler: Iron Plate (3.0s)
 		register_recipe(
-			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0, "assembler")
+			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0, "assembler"),
+			PieceData.Type.ASSEMBLER
 		)
 
-	static func register_recipe(recipe: Recipe):
+	static func register_recipe(
+		recipe: Recipe, piece_type: PieceData.Type = PieceData.Type.CONVEYOR
+	):
 		_recipes[recipe.id] = recipe
+		if not _recipes_by_type.has(piece_type):
+			_recipes_by_type[piece_type] = []
+		_recipes_by_type[piece_type].append(recipe)
 
 	static func get_recipe(id: String) -> Recipe:
 		_static_init()
 		return _recipes.get(id)
+
+	static func get_recipes_by_type(piece_type: PieceData.Type) -> Array[Recipe]:
+		_static_init()
+		var result: Array[Recipe] = []
+		for r in _recipes_by_type.get(piece_type, []):
+			result.append(r)
+		return result
 
 	static func get_recipes_by_role(role: String) -> Array[Recipe]:
 		_static_init()

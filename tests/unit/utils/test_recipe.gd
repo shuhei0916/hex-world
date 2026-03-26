@@ -36,3 +36,9 @@ func test_指定したロールのレシピ一覧を取得できる():
 	# Unknown
 	var unknown_recipes = Recipe.RecipeDB.get_recipes_by_role("unknown_role")
 	assert_eq(unknown_recipes.size(), 0, "不明なロールのレシピは空であるべき")
+
+
+func test_TypeでMinerのレシピ一覧を取得できる():
+	Recipe.RecipeDB._static_init()
+	var miner_recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.MINER)
+	assert_gt(miner_recipes.size(), 0, "MINER用レシピがあるべき")
