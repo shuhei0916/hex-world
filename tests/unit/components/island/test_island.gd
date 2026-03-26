@@ -72,7 +72,7 @@ class TestPiecePlacement:
 		assert_true(piece.is_queued_for_deletion())
 
 	func test_配置時にタイルの色がピースの色に更新される():
-		var data = PieceData.new([Hex.new(0, 0)], [], "miner")  # Miner color: #F3D283
+		var data = PieceData.get_data(PieceData.Type.MINER)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), data)
 		var tile = gm.find_hex_tile(Hex.new(0, 0))
 		assert_eq(tile.get_color(), data.color)
@@ -98,9 +98,7 @@ class TestNeighbors:
 		assert_null(gm.get_neighbor_piece(Hex.new(0, 0), 3), "存在しない方向はnull")
 
 	func test_出力ポートの先にピースがある場合は搬送先として登録される():
-		var port_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
+		var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
 		var chest_data = PieceData.get_data(PieceData.Type.CHEST)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), port_data)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), chest_data)
@@ -110,9 +108,7 @@ class TestNeighbors:
 		assert_true(target in source.output.connected_pieces)
 
 	func test_ポートが向いていない隣接ピースは搬送先に登録されない():
-		var port_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
+		var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
 		var chest_data = PieceData.get_data(PieceData.Type.CHEST)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), port_data)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(0, -1), chest_data)
@@ -122,9 +118,7 @@ class TestNeighbors:
 		assert_false(target in source.output.connected_pieces)
 
 	func test_ピース削除時に周囲の搬送先リストが自動更新される():
-		var port_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test"
-		)
+		var port_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
 		var chest_data = PieceData.get_data(PieceData.Type.CHEST)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), port_data)
 		gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), chest_data)

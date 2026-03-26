@@ -52,15 +52,13 @@ static var _assembler_scene: PackedScene
 var shape: Array[Hex]
 var color: Color
 var output_ports: Array = []
-var role: String = ""
 var scene: PackedScene = null
 var piece_type: int = -1
 
 
-func _init(hex_shape: Array[Hex], outputs: Array = [], role_val: String = ""):
+func _init(hex_shape: Array[Hex], outputs: Array = []):
 	shape = hex_shape
-	role = role_val
-	color = FACILITY_COLORS.get(role, FACILITY_COLORS[""])
+	color = FACILITY_COLORS[""]
 
 	output_ports = []
 	for out in outputs:
@@ -81,14 +79,13 @@ static func get_data(type: Type) -> PieceData:
 static func _make(
 	hex_shape: Array[Hex],
 	outputs: Array,
-	role_val: String,
+	type_val: int,
 	scene_val: PackedScene = null,
-	type_val: int = -1
 ) -> PieceData:
-	var d = PieceData.new(hex_shape, outputs, role_val)
+	var d = PieceData.new(hex_shape, outputs)
 	d.scene = scene_val
 	d.piece_type = type_val
-	if type_val >= 0 and FACILITY_COLORS_BY_TYPE.has(type_val):
+	if FACILITY_COLORS_BY_TYPE.has(type_val):
 		d.color = FACILITY_COLORS_BY_TYPE[type_val]
 	return d
 
@@ -102,59 +99,48 @@ static func _initialize_data():
 		_make(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2)],
 			[{"hex": Hex.new(2, 0, -2), "direction": "E"}],
-			"conveyor",
-			null,
 			Type.CONVEYOR
 		),
 		Type.SMELTER:
 		_make(
 			[Hex.new(-2, 0, 2), Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"smelter",
-			_smelter_scene,
-			Type.SMELTER
+			Type.SMELTER,
+			_smelter_scene
 		),
 		Type.CUTTER:
 		_make(
 			[Hex.new(1, -1, 0), Hex.new(0, -1, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(1, -1, 0), "direction": "NE"}],
-			"cutter",
-			null,
 			Type.CUTTER
 		),
 		Type.MIXER:
 		_make(
 			[Hex.new(0, 0, 0), Hex.new(-1, 0, 1), Hex.new(0, 1, -1), Hex.new(1, -1, 0)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "E"}],
-			"mixer",
-			null,
 			Type.MIXER
 		),
 		Type.PAINTER:
 		_make(
 			[Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)],
 			[{"hex": Hex.new(0, -1, 1), "direction": "NW"}],
-			"painter",
-			null,
 			Type.PAINTER
 		),
 		Type.MINER:
 		_make(
 			[Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 0, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 1, -1), "direction": "SW"}],
-			"miner",
-			_miner_scene,
-			Type.MINER
+			Type.MINER,
+			_miner_scene
 		),
 		Type.ASSEMBLER:
 		_make(
 			[Hex.new(-1, 0, 1), Hex.new(0, 0, 0), Hex.new(0, 1, -1), Hex.new(1, 1, -2)],
 			[{"hex": Hex.new(0, 0, 0), "direction": "NW"}],
-			"assembler",
-			_assembler_scene,
-			Type.ASSEMBLER
+			Type.ASSEMBLER,
+			_assembler_scene
 		),
-		Type.CHEST: _make([Hex.new(0, 0, 0)], [], "storage", null, Type.CHEST),
+		Type.CHEST: _make([Hex.new(0, 0, 0)], [], Type.CHEST),
 	}
 
 

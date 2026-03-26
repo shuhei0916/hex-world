@@ -21,6 +21,11 @@ func test_ASSEMBLERはsceneを持つ():
 	assert_not_null(data.scene)
 
 
+func test_PieceDataにはroleフィールドが存在しない():
+	var data = PieceData.get_data(PieceData.Type.MINER)
+	assert_false("role" in data, "PieceData に role フィールドは不要")
+
+
 func test_PieceDataをトップレベルクラスとしてインスタンス化できる():
 	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
 	var data = PieceData.new(shape, [])
@@ -48,10 +53,9 @@ func test_PieceData構造体が正しく動作する():
 	var hex_array: Array[Hex] = [
 		Hex.new(0, 0, 0), Hex.new(1, 0, -1), Hex.new(2, 0, -2), Hex.new(3, 0, -3)
 	]
-	var data = PieceData.new(hex_array, [], "miner")
+	var data = PieceData.new(hex_array, [])
 
 	assert_eq(data.shape.size(), 4)
-	assert_eq(data.color, Color("#F3D283"))
 
 
 func test_全ての形状データが定義されている():
@@ -121,17 +125,15 @@ func test_FACILITY_COLORS_BY_TYPEが全Typeの色を持つ():
 		assert_true(PieceData.FACILITY_COLORS_BY_TYPE.has(type), "Type %d の色が定義されているべき" % type)
 
 
-func test_PieceDataはroleに基づいて色を自動設定する():
-	var shape: Array[Hex] = [Hex.new(0, 0, 0)]
-
-	# Miner -> Orange (#F3D283)
-	var miner_data = PieceData.new(shape, [], "miner")
-	assert_eq(miner_data.color, Color("#F3D283"), "Miner should be orange")
-
-	# Smelter -> Green (#6AD38D)
-	var smelter_data = PieceData.new(shape, [], "smelter")
-	assert_eq(smelter_data.color, Color("#6AD38D"), "Smelter should be green")
-
-	# Storage -> Gray (#999999)
-	var storage_data = PieceData.new(shape, [], "storage")
-	assert_eq(storage_data.color, Color("#999999"), "Storage should be gray")
+func test_get_dataで取得したPieceDataはTypeに対応する色を持つ():
+	assert_eq(
+		PieceData.get_data(PieceData.Type.MINER).color, Color("#F3D283"), "Miner should be orange"
+	)
+	assert_eq(
+		PieceData.get_data(PieceData.Type.SMELTER).color,
+		Color("#6AD38D"),
+		"Smelter should be green"
+	)
+	assert_eq(
+		PieceData.get_data(PieceData.Type.CHEST).color, Color("#999999"), "Chest should be gray"
+	)

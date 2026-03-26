@@ -54,7 +54,7 @@ class TestOutputTransport:
 		source = PIECE_SCENE.instantiate()
 		add_child(source)
 		autofree(source)
-		source.setup(PieceData.new([Hex.new(0, 0)], [], "miner"))
+		source.setup(PieceData.new([Hex.new(0, 0)], []))
 
 		target = PIECE_SCENE.instantiate()
 		add_child(target)

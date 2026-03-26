@@ -16,7 +16,7 @@ class TestPieceBasics:
 	func test_セットアップでデータを正しく設定できる():
 		var data = PieceData.get_data(PieceData.Type.CONVEYOR)
 		piece.setup(data)
-		assert_eq(piece._cached_data.role, "conveyor")
+		assert_eq(piece._cached_data.piece_type, PieceData.Type.CONVEYOR)
 
 	func test_add_itemでPieceにアイテムを追加できる():
 		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
@@ -39,9 +39,7 @@ class TestPieceVisuals:
 		add_child_autofree(piece)
 
 	func test_出力ポートが存在する場合に矢印が表示される():
-		var data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
-		)
+		var data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
 		piece.setup(data)
 
 		var arrow = piece.get_node("OutputPort")
@@ -94,15 +92,6 @@ class TestPieceRoles:
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
-
-	func test_roleが空でもpiece_typeからレシピが設定される():
-		var p = PIECE_SCENE.instantiate()
-		add_child(p)
-		autofree(p)
-		var data = PieceData.get_data(PieceData.Type.SMELTER)
-		data.role = ""
-		p.setup(data)
-		assert_not_null(p.current_recipe, "piece_type からレシピが設定されるべき")
 
 	func test_Inputノードなしのピースでもcrafterがアイテムを生産できる():
 		const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
