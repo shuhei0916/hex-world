@@ -43,6 +43,11 @@ class RecipeDB:
 			PieceData.Type.ASSEMBLER
 		)
 
+		# Cutter: Iron Rod (4.0s)
+		register_recipe(
+			Recipe.new("iron_rod", {"iron_ingot": 1}, {"iron_rod": 1}, 4.0), PieceData.Type.CUTTER
+		)
+
 	static func register_recipe(
 		recipe: Recipe, piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 	):
