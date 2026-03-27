@@ -26,9 +26,10 @@ func _register_defaults():
 	register_item(
 		ItemDefinition.new("iron_ingot", "Iron Ingot", load("res://assets/items/iron_ingot.png"))
 	)
-	register_item(
-		ItemDefinition.new("iron_plate", "Iron Plate", load("res://assets/items/iron_plate.png"))
-	)
+	var iron_plate_icon = load("res://assets/items/iron_plate.png")
+	register_item(ItemDefinition.new("iron_plate", "Iron Plate", iron_plate_icon))
+	register_item(ItemDefinition.new("iron_rod", "Iron Rod", iron_plate_icon))
+	register_item(ItemDefinition.new("screw", "Screw", iron_plate_icon))
 
 
 func register_item(item: ItemDefinition):
