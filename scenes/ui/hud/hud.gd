@@ -44,7 +44,10 @@ func on_slot_pressed(index: int):
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		slot_selected.emit(get_piece_data_for_slot(index))
+		var data = get_piece_data_for_slot(index)
+		if data:
+			print("selected: ", PieceData.Type.keys()[data.piece_type])
+		slot_selected.emit(data)
 	else:
 		slot_selected.emit(null)
 
