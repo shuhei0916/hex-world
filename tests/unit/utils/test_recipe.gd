@@ -20,19 +20,24 @@ func test_レシピデータベースからIDでレシピを取得できる():
 	assert_eq(recipe.inputs.size(), 1, "入力アイテムは1つであるべき")
 
 
-func test_指定したロールのレシピ一覧を取得できる():
+func test_TypeでSmelterのレシピ一覧を取得できる():
 	Recipe.RecipeDB._static_init()
+	var smelter_recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.SMELTER)
+	assert_gt(smelter_recipes.size(), 0, "SMELTER用レシピがあるべき")
 
-	# Miner (iron_ore)
-	var miner_recipes = Recipe.RecipeDB.get_recipes_by_role("miner")
-	assert_gt(miner_recipes.size(), 0, "Miner用レシピがあるべき")
-	assert_eq(miner_recipes[0].role, "miner")
 
-	# Smelter (iron_ingot)
-	var smelter_recipes = Recipe.RecipeDB.get_recipes_by_role("smelter")
-	assert_gt(smelter_recipes.size(), 0, "Smelter用レシピがあるべき")
-	assert_eq(smelter_recipes[0].role, "smelter")
+func test_未定義Typeはレシピなしになる():
+	Recipe.RecipeDB._static_init()
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.CONVEYOR)
+	assert_eq(recipes.size(), 0, "CONVEYOR用レシピは未定義のため空であるべき")
 
-	# Unknown
-	var unknown_recipes = Recipe.RecipeDB.get_recipes_by_role("unknown_role")
-	assert_eq(unknown_recipes.size(), 0, "不明なロールのレシピは空であるべき")
+
+func test_TypeでMinerのレシピ一覧を取得できる():
+	Recipe.RecipeDB._static_init()
+	var miner_recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.MINER)
+	assert_gt(miner_recipes.size(), 0, "MINER用レシピがあるべき")
+
+
+func test_Recipeにはroleフィールドが存在しない():
+	var recipe = Recipe.new("test", {}, {"iron_ore": 1}, 1.0)
+	assert_false("role" in recipe, "Recipe に role フィールドは不要")

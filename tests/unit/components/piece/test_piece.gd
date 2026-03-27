@@ -16,7 +16,7 @@ class TestPieceBasics:
 	func test_セットアップでデータを正しく設定できる():
 		var data = PieceData.get_data(PieceData.Type.CONVEYOR)
 		piece.setup(data)
-		assert_eq(piece._cached_data.role, "conveyor")
+		assert_eq(piece._cached_data.piece_type, PieceData.Type.CONVEYOR)
 
 	func test_add_itemでPieceにアイテムを追加できる():
 		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
@@ -39,9 +39,7 @@ class TestPieceVisuals:
 		add_child_autofree(piece)
 
 	func test_出力ポートが存在する場合に矢印が表示される():
-		var data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "test_arrow"
-		)
+		var data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
 		piece.setup(data)
 
 		var arrow = piece.get_node("OutputPort")
@@ -77,24 +75,20 @@ class TestPieceTransformation:
 class TestPieceRoles:
 	extends GutTest
 
-	func test_製錬所ロールは初期化時に自動的に適切なレシピとポートが設定される():
+	func test_製錬所は初期化時に自動的に適切なレシピとポートが設定される():
 		var p = PIECE_SCENE.instantiate()
 		add_child(p)
 		autofree(p)
-		var data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
-		)
-		p.setup(data)
+		p.setup(PieceData.get_data(PieceData.Type.SMELTER))
 
 		assert_not_null(p.current_recipe, "製錬所はレシピを持つべき")
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
-	func test_採掘機ロールは時間経過でアイテムを自動生産する():
+	func test_採掘機は時間経過でアイテムを自動生産する():
 		var p = PIECE_SCENE.instantiate()
 		add_child(p)
 		autofree(p)
-		var data = PieceData.new([Hex.new(0, 0)], [], "miner")
-		p.setup(data)
+		p.setup(PieceData.get_data(PieceData.Type.MINER))
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)

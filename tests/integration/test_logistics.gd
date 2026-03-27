@@ -14,12 +14,10 @@ class TestPieceLogistics:
 		island.create_hex_grid(3)
 
 	func test_生産ライン全体の連携が正しく機能する():
-		var m_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "miner"
-		)
-		var s_data = PieceData.new(
-			[Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}], "smelter"
-		)
+		var m_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
+		m_data.piece_type = PieceData.Type.MINER
+		var s_data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
+		s_data.piece_type = PieceData.Type.SMELTER
 		var chest_data = PieceData.get_data(PieceData.Type.CHEST)
 
 		island.place_piece([Hex.new(0, 0)], Hex.new(0, 0), m_data)
