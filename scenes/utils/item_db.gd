@@ -29,6 +29,10 @@ func _register_defaults():
 	register_item(
 		ItemDefinition.new("iron_plate", "Iron Plate", load("res://assets/items/iron_plate.png"))
 	)
+	register_item(
+		ItemDefinition.new("iron_rod", "Iron Rod", load("res://assets/items/Iron_Rod.png.webp"))
+	)
+	register_item(ItemDefinition.new("screw", "Screw", load("res://assets/items/Screw.png.webp")))
 
 
 func register_item(item: ItemDefinition):

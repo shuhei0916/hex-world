@@ -26,6 +26,20 @@ func test_TypeでSmelterのレシピ一覧を取得できる():
 	assert_gt(smelter_recipes.size(), 0, "SMELTER用レシピがあるべき")
 
 
+func test_TypeでCutterのレシピ一覧を取得できる():
+	Recipe.RecipeDB._static_init()
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.CUTTER)
+	assert_gt(recipes.size(), 0, "CUTTER用レシピがあるべき")
+	assert_eq(recipes[0].outputs.get("iron_rod", 0), 1, "iron_rod を出力するべき")
+
+
+func test_TypeでMixerのレシピ一覧を取得できる():
+	Recipe.RecipeDB._static_init()
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.MIXER)
+	assert_gt(recipes.size(), 0, "MIXER用レシピがあるべき")
+	assert_eq(recipes[0].outputs.get("screw", 0), 1, "screw を出力するべき")
+
+
 func test_未定義Typeはレシピなしになる():
 	Recipe.RecipeDB._static_init()
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.CONVEYOR)
