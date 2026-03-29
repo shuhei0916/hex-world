@@ -126,26 +126,3 @@ class TestNeighbors:
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		gm.remove_piece_at(Hex.new(1, 0))
 		assert_eq(source.output.connected_pieces.size(), 0, "削除後は接続が切れているべき")
-
-
-class TestDetailMode:
-	extends GutTest
-
-	var gm
-
-	func before_each():
-		gm = Island.new()
-		add_child_autofree(gm)
-		gm.create_hex_grid(2)
-
-	func test_詳細モード設定が既存および新規ピースに反映される():
-		var data = PieceData.get_data(PieceData.Type.CHEST)
-		gm.place_piece([Hex.new(0, 0)], Hex.new(0, 0), data)
-		var piece_old = gm.get_piece_at_hex(Hex.new(0, 0))
-
-		gm.toggle_detail_mode()
-		assert_true(piece_old.is_detail_mode)
-
-		gm.place_piece([Hex.new(0, 0)], Hex.new(1, 0), data)
-		var piece_new = gm.get_piece_at_hex(Hex.new(1, 0))
-		assert_true(piece_new.is_detail_mode)

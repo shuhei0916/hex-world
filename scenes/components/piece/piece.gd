@@ -2,7 +2,6 @@ class_name Piece
 extends Node2D
 
 signal recipe_changed(recipe: Recipe)
-signal detail_mode_changed(enabled: bool)
 
 # ピースの種類ID (PieceData.Type)
 var piece_type: int = -1
@@ -12,8 +11,6 @@ var rotation_state: int = 0
 
 # 採掘ロジック用 (BARタイプ等)
 var processing_state: float = 0.0
-
-var is_detail_mode: bool = false
 
 # プロパティアクセサ
 var current_recipe: Recipe:
@@ -60,15 +57,6 @@ func setup(data: PieceData, rotation: int = 0):
 
 	if output_port:
 		output_port.setup(get_output_ports())
-
-
-func set_detail_mode(enabled: bool):
-	is_detail_mode = enabled
-	if input_storage:
-		input_storage.set_detail_mode(enabled)
-	if output:
-		output.set_detail_mode(enabled)
-	detail_mode_changed.emit(enabled)
 
 
 func set_recipe(recipe: Recipe):

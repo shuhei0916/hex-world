@@ -40,20 +40,6 @@ func test_MainのHUDはHUD型である():
 	assert_true(main.hud is HUD)
 
 
-func test_Tキー入力で詳細モードが切り替わる():
-	assert_false(main.island.is_detail_mode_enabled, "初期状態はfalse")
-
-	var event = InputEventKey.new()
-	event.keycode = KEY_T
-	event.pressed = true
-
-	main._unhandled_input(event)
-	assert_true(main.island.is_detail_mode_enabled, "Tキーでtrueになるべき")
-
-	main._unhandled_input(event)
-	assert_false(main.island.is_detail_mode_enabled, "再度Tキーでfalseになるべき")
-
-
 func test_HUDのスロット選択でPiecePlacerが更新される():
 	var btn = main.hud.toolbar.get_child(0) as Button
 	btn.button_pressed = true

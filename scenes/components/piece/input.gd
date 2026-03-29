@@ -7,14 +7,6 @@ extends Node2D
 @onready var inventory: Node2D = $Inventory
 
 
-func _ready():
-	inventory.detail_mode_only = true
-
-
-func set_detail_mode(enabled: bool):
-	inventory.set_detail_mode(enabled)
-
-
 func add_item(item_name: String, amount: int):
 	inventory.add_item(item_name, amount)
 

@@ -4,9 +4,8 @@ extends Node2D
 signal inventory_changed
 
 @export var capacity: int = 20
-@export var detail_mode_only: bool = false
 
-var is_detail_mode: bool = false
+var expected_item: String = ""
 var _items: Dictionary = {}
 
 @onready var _icon: Sprite2D = $Icon
@@ -33,23 +32,27 @@ func update_visuals():
 		var item_def = ItemDB.get_item(item_id)
 		if item_def:
 			_icon.texture = item_def.icon
-			_icon.visible = not detail_mode_only or is_detail_mode
+			_icon.visible = true
 			if _label:
 				_label.text = str(max_count)
-				_label.visible = is_detail_mode
+				_label.visible = true
 		else:
 			_icon.visible = false
 			if _label:
 				_label.visible = false
+	elif expected_item != "":
+		var item_def = ItemDB.get_item(expected_item)
+		if item_def:
+			_icon.texture = item_def.icon
+			_icon.visible = true
+		else:
+			_icon.visible = false
+		if _label:
+			_label.visible = false
 	else:
 		_icon.visible = false
 		if _label:
 			_label.visible = false
-
-
-func set_detail_mode(enabled: bool):
-	is_detail_mode = enabled
-	update_visuals()
 
 
 func add_item(item_name: String, amount: int):

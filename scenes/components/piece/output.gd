@@ -13,10 +13,6 @@ func _ready():
 	inventory.inventory_changed.connect(_push_items)
 
 
-func set_detail_mode(enabled: bool):
-	inventory.set_detail_mode(enabled)
-
-
 func add_item(item_name: String, amount: int):
 	inventory.add_item(item_name, amount)
 
@@ -39,6 +35,11 @@ func is_full() -> bool:
 
 func is_empty() -> bool:
 	return inventory.is_empty()
+
+
+func set_expected_output(item_id: String):
+	inventory.expected_item = item_id
+	inventory.update_visuals()
 
 
 func _push_items():

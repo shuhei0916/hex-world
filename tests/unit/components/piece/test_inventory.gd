@@ -73,22 +73,11 @@ class TestInventoryVisuals:
 	func test_アイテムがない場合Iconが非表示になる():
 		assert_false(inv.get_node("Icon").visible)
 
-	func test_detail_modeがfalseの場合CountLabelが非表示():
+	func test_アイテムがある場合CountLabelが表示される():
 		inv.add_item("iron_ore", 1)
-		assert_false(inv.get_node("CountLabel").visible)
-
-	func test_detail_modeがtrueの場合CountLabelが表示される():
-		inv.add_item("iron_ore", 1)
-		inv.set_detail_mode(true)
 		assert_true(inv.get_node("CountLabel").visible)
 
-	func test_detail_mode_onlyがtrueかつdetail_modeがfalseの場合Iconが非表示():
-		inv.detail_mode_only = true
-		inv.add_item("iron_ore", 1)
-		assert_false(inv.get_node("Icon").visible)
-
-	func test_detail_mode_onlyがtrueかつdetail_modeがtrueでアイテムありの場合Iconが表示():
-		inv.detail_mode_only = true
-		inv.set_detail_mode(true)
-		inv.add_item("iron_ore", 1)
+	func test_expected_itemがセットされていると0個でもIconが表示される():
+		inv.expected_item = "iron_ore"
+		inv.update_visuals()
 		assert_true(inv.get_node("Icon").visible)
