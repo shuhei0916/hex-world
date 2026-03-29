@@ -23,9 +23,7 @@ func _unhandled_input(event):
 
 func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.keycode == KEY_T:
-			island.toggle_detail_mode()
-		elif event.is_action_pressed("rotate_piece"):
+		if event.is_action_pressed("rotate_piece"):
 			piece_placer.rotate_current_piece()
 
 

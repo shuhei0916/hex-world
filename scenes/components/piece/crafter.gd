@@ -77,9 +77,13 @@ func _start_crafting():
 		for item_name in current_recipe.inputs:
 			input_container.consume_item(item_name, current_recipe.inputs[item_name])
 	processing_progress = CRAFTING_START_PROGRESS
+	if output_container is Output and not current_recipe.outputs.is_empty():
+		output_container.set_expected_output(current_recipe.outputs.keys()[0])
 
 
 func _complete_crafting():
+	if output_container is Output:
+		output_container.set_expected_output("")
 	if output_container:
 		for item_name in current_recipe.outputs:
 			output_container.add_item(item_name, current_recipe.outputs[item_name])

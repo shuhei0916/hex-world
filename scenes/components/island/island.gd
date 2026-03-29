@@ -2,7 +2,7 @@
 class_name Island
 extends Node2D
 
-# Island - グリッドの外部API・ピース管理・隣接判定・詳細モードを管理する
+# Island - グリッドの外部API・ピース管理・隣接判定を管理する
 
 signal grid_updated(hexes: Array[Hex])
 
@@ -17,7 +17,6 @@ signal grid_updated(hexes: Array[Hex])
 
 var layout: Layout
 var piece_scene = preload("res://scenes/components/piece/piece.tscn")
-var is_detail_mode_enabled: bool = false
 
 var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
 var _registry = preload("res://scenes/components/island/piece_registry.gd").new()
@@ -74,7 +73,6 @@ func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0
 	piece.position = hex_to_pixel(base_hex)
 	add_child(piece)
 	piece.setup(data, rotation)
-	piece.set_detail_mode(is_detail_mode_enabled)
 
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
@@ -127,13 +125,6 @@ func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
 	if not is_inside_grid(neighbor_hex):
 		return null
 	return get_piece_at_hex(neighbor_hex)
-
-
-func toggle_detail_mode():
-	is_detail_mode_enabled = not is_detail_mode_enabled
-	for piece in _registry.get_all_pieces():
-		if is_instance_valid(piece):
-			piece.set_detail_mode(is_detail_mode_enabled)
 
 
 func _update_grid_visuals():

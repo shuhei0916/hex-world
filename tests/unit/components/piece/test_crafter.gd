@@ -126,3 +126,11 @@ class TestCrafterProgressBar:
 		if not progress_bar:
 			return
 		assert_false(progress_bar.visible, "レシピなしは ProgressBar が非表示であるべき")
+
+	func test_加工開始時に出力Iconが表示される():
+		var recipe = Recipe.new("test", {}, {"iron_ore": 1}, 1.0)
+		piece.set_recipe(recipe)
+		piece.tick(0.01)
+		var output_icon = piece.get_node_or_null("Output/Inventory/Icon")
+		if output_icon:
+			assert_true(output_icon.visible, "加工開始後は出力Iconが表示されるべき")
