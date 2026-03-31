@@ -39,12 +39,6 @@ var processing_progress: float:
 
 
 func _ready():
-	if input_storage:
-		input_storage.z_index = 1
-	if output:
-		output.z_index = 1
-	if output_port:
-		output_port.z_index = 1
 	if Engine.is_editor_hint():
 		if output_port:
 			output_port.setup(get_output_ports())
