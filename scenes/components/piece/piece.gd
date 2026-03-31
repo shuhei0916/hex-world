@@ -64,6 +64,7 @@ func _create_hex_tiles():
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
+		tile.z_index = -1
 		add_child(tile)
 		tile.setup_hex(hex)
 		tile.set_color(piece_color)
