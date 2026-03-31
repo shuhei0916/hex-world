@@ -4,6 +4,8 @@ extends Node2D
 
 signal recipe_changed(recipe: Recipe)
 
+const Z_LAYER_ICONS = 1
+const Z_LAYER_UI = 2
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
@@ -36,9 +38,21 @@ var processing_progress: float:
 @onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 @onready var output_port: Sprite2D = get_node_or_null("OutputPort")
+@onready var _speed_label: Label = get_node_or_null("SpeedLabel")
+@onready var _progress_bar: ProgressBar = get_node_or_null("Crafter/ProgressBar")
 
 
 func _ready():
+	if input_storage:
+		input_storage.z_index = Z_LAYER_ICONS
+	if output:
+		output.z_index = Z_LAYER_ICONS
+	if output_port:
+		output_port.z_index = Z_LAYER_ICONS
+	if _speed_label:
+		_speed_label.z_index = Z_LAYER_UI
+	if _progress_bar:
+		_progress_bar.z_index = Z_LAYER_UI
 	if Engine.is_editor_hint():
 		if output_port:
 			output_port.setup(get_output_ports())

@@ -18,7 +18,6 @@ port_direction = 0
 piece_color = Color(0.505882, 0.517647, 0.941176, 1)
 
 [node name="SpeedLabel" type="Label" parent="."]
-z_index = 2
 offset_left = -30.0
 offset_top = -50.0
 offset_right = 30.0
@@ -30,14 +29,12 @@ vertical_alignment = 1
 script = ExtResource("6_speed_label")
 
 [node name="Input" type="Node2D" parent="."]
-z_index = 1
 position = Vector2(-20, 15)
 script = ExtResource("2_input")
 
 [node name="Inventory" parent="Input" instance=ExtResource("8_inventory")]
 
 [node name="Output" type="Node2D" parent="."]
-z_index = 1
 script = ExtResource("4_output")
 
 [node name="Inventory" parent="Output" instance=ExtResource("8_inventory")]
@@ -47,7 +44,6 @@ script = ExtResource("3_crafter")
 
 [node name="ProgressBar" type="ProgressBar" parent="Crafter"]
 visible = false
-z_index = 2
 offset_left = -20.0
 offset_top = -30.0
 offset_right = 20.0
@@ -56,7 +52,6 @@ value = 50.0
 show_percentage = false
 
 [node name="OutputPort" type="Sprite2D" parent="."]
-z_index = 1
 modulate = Color(0.9607843, 0.6509804, 0.13725491, 1)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("5_fwd")
