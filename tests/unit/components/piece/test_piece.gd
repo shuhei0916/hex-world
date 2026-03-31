@@ -2,6 +2,9 @@
 extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
+const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
 
 
 class TestPieceBasics:
@@ -13,18 +16,15 @@ class TestPieceBasics:
 		piece = PIECE_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_セットアップでデータを正しく設定できる():
-		var data = PieceData.get_data(PieceData.Type.CONVEYOR)
-		piece.setup(data)
-		assert_eq(piece._cached_data.piece_type, PieceData.Type.CONVEYOR)
+	func test_セットアップでrotation_stateを設定できる():
+		piece.setup(2)
+		assert_eq(piece.rotation_state, 2)
 
 	func test_add_itemでPieceにアイテムを追加できる():
-		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.add_item("iron", 10)
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
-		piece.setup(PieceData.get_data(PieceData.Type.CHEST))
 		piece.add_item("iron", 20)
 		assert_false(piece.can_accept_item("copper"))
 
@@ -39,8 +39,9 @@ class TestPieceVisuals:
 		add_child_autofree(piece)
 
 	func test_出力ポートが存在する場合に矢印が表示される():
-		var data = PieceData.new([Hex.new(0, 0)], [{"hex": Hex.new(0, 0), "direction": 0}])
-		piece.setup(data)
+		piece.port_direction = 0
+		piece.port_hex = Vector2i(0, 0)
+		piece.setup()
 
 		var arrow = piece.get_node("OutputPort")
 		assert_true(arrow.visible, "出力ポートがある場合、矢印が表示されるべき")
@@ -51,8 +52,8 @@ class TestPieceTransformation:
 	var p: Piece
 
 	func before_each():
-		p = PIECE_SCENE.instantiate()
-		p.setup(PieceData.get_data(PieceData.Type.ASSEMBLER))
+		p = ASSEMBLER_SCENE.instantiate()
+		p.setup()
 		add_child_autofree(p)
 
 	func test_ピースの回転に合わせてポートの向きも変更される():
@@ -76,29 +77,28 @@ class TestPieceRoles:
 	extends GutTest
 
 	func test_製錬所は初期化時に自動的に適切なレシピとポートが設定される():
-		var p = PIECE_SCENE.instantiate()
+		var p = SMELTER_SCENE.instantiate()
 		add_child(p)
 		autofree(p)
-		p.setup(PieceData.get_data(PieceData.Type.SMELTER))
+		p.setup()
 
 		assert_not_null(p.current_recipe, "製錬所はレシピを持つべき")
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
 	func test_採掘機は時間経過でアイテムを自動生産する():
-		var p = PIECE_SCENE.instantiate()
+		var p = MINER_SCENE.instantiate()
 		add_child(p)
 		autofree(p)
-		p.setup(PieceData.get_data(PieceData.Type.MINER))
+		p.setup()
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
 
 	func test_Inputノードなしのピースでもcrafterがアイテムを生産できる():
-		const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 		var p = MINER_SCENE.instantiate()
 		add_child(p)
 		autofree(p)
-		p.setup(PieceData.get_data(PieceData.Type.MINER))
+		p.setup()
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)

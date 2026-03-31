@@ -37,7 +37,7 @@ func test_レシピなしはSpeedLabelが非表示():
 
 func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
-	piece.setup(PieceData.get_data(PieceData.Type.SMELTER))
+	piece.setup()
 	piece.set_recipe(recipe)
 	var icon = piece.get_node_or_null("Output/Inventory/Icon")
 	if icon:

@@ -61,18 +61,18 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 	return _hex_grid.can_place(shape, base_hex)
 
 
-func place_piece(shape: Array, base_hex: Hex, data: PieceData, rotation: int = 0):
+func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
+	var piece = packed_scene.instantiate()
+	piece.position = hex_to_pixel(base_hex)
+	add_child(piece)
+	piece.setup(rotation)
+
 	var occupied_hexes: Array[Hex] = []
-	for offset in shape:
+	for offset in piece.get_hex_shape():
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
 		occupied_hexes.append(target)
-		_renderer.set_tile_color(target, data.color)
-
-	var piece = (data.scene if data.scene else piece_scene).instantiate()
-	piece.position = hex_to_pixel(base_hex)
-	add_child(piece)
-	piece.setup(data, rotation)
+		_renderer.set_tile_color(target, piece.piece_color)
 
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
