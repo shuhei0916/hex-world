@@ -39,6 +39,12 @@ var processing_progress: float:
 
 
 func _ready():
+	if input_storage:
+		input_storage.z_index = 1
+	if output:
+		output.z_index = 1
+	if output_port:
+		output_port.z_index = 1
 	if Engine.is_editor_hint():
 		if output_port:
 			output_port.setup(get_output_ports())
@@ -64,7 +70,6 @@ func _create_hex_tiles():
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
-		tile.z_index = -1
 		add_child(tile)
 		tile.setup_hex(hex)
 		tile.set_color(piece_color)
