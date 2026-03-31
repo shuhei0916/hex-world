@@ -30,17 +30,5 @@ func find_hex_tile(hex: Hex) -> HexTile:
 	return _hex_to_tile.get(_key(hex), null)
 
 
-func set_tile_color(hex: Hex, color: Color):
-	var tile = find_hex_tile(hex)
-	if tile:
-		tile.set_color(color)
-
-
-func reset_tile_color(hex: Hex):
-	var tile = find_hex_tile(hex)
-	if tile:
-		tile.reset_color()
-
-
 func _key(hex: Hex) -> String:
 	return Hex.to_key(hex)

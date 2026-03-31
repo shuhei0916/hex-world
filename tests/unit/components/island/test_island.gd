@@ -66,12 +66,14 @@ class TestPiecePlacement:
 		assert_false(gm.is_occupied(Hex.new(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
 
-	func test_配置時にタイルの色がピースの色に更新される():
-		# MINER shape: (0,0),(0,1),(1,0),(1,1) → すべて半径2以内
+	func test_配置時にピースの色でHexTileが生成される():
 		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		var tile = gm.find_hex_tile(Hex.new(0, 0))
-		assert_eq(tile.get_color(), piece.piece_color)
+		for child in piece.get_children():
+			if child is HexTile:
+				assert_eq((child as HexTile).get_color(), piece.piece_color)
+				return
+		fail_test("ピースにHexTileが存在しない")
 
 
 class TestNeighbors:

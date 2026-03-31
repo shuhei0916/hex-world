@@ -16,7 +16,6 @@ signal grid_updated(hexes: Array[Hex])
 		_update_grid_visuals()
 
 var layout: Layout
-var piece_scene = preload("res://scenes/components/piece/piece.tscn")
 
 var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
 var _registry = preload("res://scenes/components/island/piece_registry.gd").new()
@@ -72,7 +71,6 @@ func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
 		var target = Hex.add(base_hex, offset)
 		occupy(target)
 		occupied_hexes.append(target)
-		_renderer.set_tile_color(target, piece.piece_color)
 
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
@@ -91,7 +89,6 @@ func remove_piece_at(target_hex: Hex) -> bool:
 
 	for hex in hexes_to_remove:
 		_hex_grid.unoccupy(hex)
-		_renderer.reset_tile_color(hex)
 
 	# 隣接更新の前にマップから削除する（削除済みピースが接続先として残らないようにするため）
 	_registry.unregister(piece, hexes_to_remove)
