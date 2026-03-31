@@ -13,8 +13,9 @@ var current_piece_shape: Array[Hex] = []
 var current_rotation: int = 0
 var current_hovered_hex: Hex
 
-# 選択中のピースデータ
-var selected_piece_data: PieceData
+# 選択中のピースシーン
+var selected_scene: PackedScene
+var _selected_color: Color
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
@@ -24,11 +25,14 @@ func setup(island_ref: Island):
 	island = island_ref
 
 
-func select_piece(data: PieceData):
-	selected_piece_data = data
+func select_piece(scene: PackedScene):
+	selected_scene = scene
 	current_rotation = 0
-	if selected_piece_data:
-		current_piece_shape = selected_piece_data.shape.duplicate()
+	if selected_scene:
+		var piece = selected_scene.instantiate()
+		current_piece_shape = piece.get_hex_shape()
+		_selected_color = piece.piece_color
+		piece.free()
 	else:
 		current_piece_shape = []
 	_draw_preview()
@@ -37,13 +41,13 @@ func select_piece(data: PieceData):
 func _draw_preview():
 	_clear_preview()
 
-	if current_piece_shape.is_empty() or not selected_piece_data:
+	if current_piece_shape.is_empty() or not selected_scene:
 		return
 
 	if not island or not cursor_preview or not snap_preview:
 		return
 
-	var color = selected_piece_data.color
+	var color = _selected_color
 
 	for hex_coord in current_piece_shape:
 		var pos = island.hex_to_pixel(hex_coord)
@@ -97,11 +101,11 @@ func place_piece_at_hex(target_hex: Hex) -> bool:
 
 
 func _place_piece_at(target_hex: Hex) -> bool:
-	if current_piece_shape.is_empty() or not selected_piece_data:
+	if current_piece_shape.is_empty() or not selected_scene:
 		return false
 
 	if island.can_place(current_piece_shape, target_hex):
-		island.place_piece(current_piece_shape, target_hex, selected_piece_data, current_rotation)
+		island.place_piece(selected_scene, target_hex, current_rotation)
 		return true
 
 	return false

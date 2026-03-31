@@ -1,20 +1,28 @@
 class_name HUD
 extends CanvasLayer
 
-signal slot_selected(piece_data: PieceData)
+signal slot_selected(scene: PackedScene)
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
-# スロットに割り当てるピースタイプの定義
-var _assignments: Array[PieceData.Type] = [
-	PieceData.Type.MINER,
-	PieceData.Type.SMELTER,
-	PieceData.Type.ASSEMBLER,
-	PieceData.Type.CUTTER,
-	PieceData.Type.CONVEYOR,
-	PieceData.Type.MIXER,
-	PieceData.Type.PAINTER,
-	PieceData.Type.CHEST
+const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
+const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
+const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
+const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+
+var _scenes: Array[PackedScene] = [
+	MINER_SCENE,
+	SMELTER_SCENE,
+	ASSEMBLER_SCENE,
+	CUTTER_SCENE,
+	CONVEYOR_SCENE,
+	MIXER_SCENE,
+	PAINTER_SCENE,
+	CHEST_SCENE,
 ]
 
 @onready var toolbar: HBoxContainer = $ToolBar
@@ -31,9 +39,9 @@ func _ready():
 func _initialize_toolbar():
 	for i in slot_buttons.size():
 		var btn = slot_buttons[i] as Button
-		var piece_data = get_piece_data_for_slot(i)
-		if piece_data:
-			_create_piece_icon(btn, piece_data)
+		var scene = get_scene_for_slot(i)
+		if scene:
+			_create_piece_icon(btn, scene)
 
 
 func on_slot_pressed(index: int):
@@ -44,10 +52,12 @@ func on_slot_pressed(index: int):
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		var data = get_piece_data_for_slot(index)
-		if data:
-			print("selected: ", PieceData.Type.keys()[data.piece_type])
-		slot_selected.emit(data)
+		var scene = get_scene_for_slot(index)
+		if scene:
+			var piece = scene.instantiate()
+			print("selected: ", PieceData.Type.keys()[piece.piece_type])
+			piece.free()
+		slot_selected.emit(scene)
 	else:
 		slot_selected.emit(null)
 
@@ -57,17 +67,22 @@ func _deselect_all_buttons():
 		_button_group.get_pressed_button().button_pressed = false
 
 
-func get_piece_data_for_slot(index: int) -> PieceData:
-	if index < 0 or index >= _assignments.size():
+func get_scene_for_slot(index: int) -> PackedScene:
+	if index < 0 or index >= _scenes.size():
 		return null
-	return PieceData.get_data(_assignments[index])
+	return _scenes[index]
 
 
-func _create_piece_icon(parent: Control, piece_data: PieceData):
+func _create_piece_icon(parent: Control, scene: PackedScene):
 	# 既存のアイコンがあれば削除
 	for child in parent.get_children():
 		if child.name == "IconRoot":
 			child.queue_free()
+
+	var piece = scene.instantiate()
+	var shape = piece.get_hex_shape()
+	var color = piece.piece_color
+	piece.free()
 
 	var icon_root = Node2D.new()
 	icon_root.name = "IconRoot"
@@ -75,8 +90,6 @@ func _create_piece_icon(parent: Control, piece_data: PieceData):
 	icon_root.scale = Vector2(0.15, 0.15)
 	parent.add_child(icon_root)
 
-	var shape = piece_data.shape
-	var color = piece_data.color
 	var layout = Layout.new(Layout.layout_pointy, Vector2(42, 42), Vector2(0, 0))
 
 	for hex in shape:

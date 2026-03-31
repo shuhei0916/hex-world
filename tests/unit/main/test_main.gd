@@ -44,4 +44,4 @@ func test_HUDのスロット選択でPiecePlacerが更新される():
 	var btn = main.hud.toolbar.get_child(0) as Button
 	btn.button_pressed = true
 	main.hud.on_slot_pressed(0)
-	assert_not_null(main.piece_placer.selected_piece_data)
+	assert_not_null(main.piece_placer.selected_scene)

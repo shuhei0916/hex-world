@@ -11,8 +11,8 @@ func _ready():
 	piece_placer.setup(island)
 
 
-func _on_hud_slot_selected(piece_data: PieceData):
-	piece_placer.select_piece(piece_data)
+func _on_hud_slot_selected(scene: PackedScene):
+	piece_placer.select_piece(scene)
 
 
 func _unhandled_input(event):

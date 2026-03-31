@@ -54,12 +54,12 @@ class TestOutputTransport:
 		source = PIECE_SCENE.instantiate()
 		add_child(source)
 		autofree(source)
-		source.setup(PieceData.new([Hex.new(0, 0)], []))
+		source.setup()
 
 		target = PIECE_SCENE.instantiate()
 		add_child(target)
 		autofree(target)
-		target.setup(PieceData.get_data(PieceData.Type.CHEST))
+		target.setup()
 
 	func test_接続先のピースにアイテムが搬出される():
 		source.output.connected_pieces = [target]

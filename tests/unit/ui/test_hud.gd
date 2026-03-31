@@ -40,13 +40,13 @@ func test_スロットをクリックすると選択が更新される():
 	assert_eq(hud.get_active_index(), 2, "スロット2を選択したらインデックス2がアクティブになるべき")
 
 
-func test_スロット選択時にslot_selectedがPieceDataを持って発火される():
+func test_スロット選択時にslot_selectedがPackedSceneを持って発火される():
 	watch_signals(hud)
 	var btn = hud.toolbar.get_child(3) as Button
 	btn.button_pressed = true
 	hud.on_slot_pressed(3)
-	var expected_data = hud.get_piece_data_for_slot(3)
-	assert_signal_emitted_with_parameters(hud, "slot_selected", [expected_data])
+	var expected_scene = hud.get_scene_for_slot(3)
+	assert_signal_emitted_with_parameters(hud, "slot_selected", [expected_scene])
 
 
 func test_選択解除時にslot_selectedがnullを持って発火される():
