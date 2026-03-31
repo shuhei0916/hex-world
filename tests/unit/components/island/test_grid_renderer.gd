@@ -11,7 +11,7 @@ class TestFindHexTile:
 	var layout: Layout
 
 	func before_each():
-		layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2(0.0, 0.0))
+		layout = Layout.make_default()
 		renderer = GridRenderer.new()
 		renderer.setup(layout)
 		add_child_autofree(renderer)

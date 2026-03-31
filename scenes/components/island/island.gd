@@ -25,7 +25,7 @@ var _drawn_hexes: Array[Hex] = []
 
 
 func _init():
-	layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2(0.0, 0.0))
+	layout = Layout.make_default()
 	_neighbor_manager.setup(_registry, _hex_grid)
 
 

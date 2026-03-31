@@ -90,7 +90,7 @@ func _create_piece_icon(parent: Control, scene: PackedScene):
 	icon_root.scale = Vector2(0.15, 0.15)
 	parent.add_child(icon_root)
 
-	var layout = Layout.new(Layout.layout_pointy, Vector2(42, 42), Vector2(0, 0))
+	var layout = Layout.make_default()
 
 	for hex in shape:
 		var tile = HexTileScene.instantiate()

@@ -185,6 +185,11 @@ class TestHexTwoArgConstructor:
 class TestLayout:
 	extends GutTest
 
+	func test_make_defaultは標準レイアウトを返す():
+		var layout = Layout.make_default()
+		assert_eq(layout.size, Vector2(42.0, 42.0))
+		assert_eq(layout.origin, Vector2.ZERO)
+
 	func test_hexとピクセル座標を相互変換できる():
 		var h = Hex.new(3, 4, -7)
 

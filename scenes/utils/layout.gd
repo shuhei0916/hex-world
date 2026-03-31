@@ -36,6 +36,10 @@ func _init(orientation_val: Orientation, size_val: Vector2, origin_val: Vector2)
 #     return Point(x + origin.x, y + origin.y)
 
 
+static func make_default() -> Layout:
+	return Layout.new(layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+
+
 static func hex_to_pixel(layout: Layout, h: Hex) -> Vector2:
 	var matrix = layout.orientation
 	var size = layout.size

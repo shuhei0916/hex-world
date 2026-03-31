@@ -14,7 +14,7 @@ func setup(ports: Array):
 
 	visible = true
 
-	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+	var layout = Layout.make_default()
 
 	# NOTE: ports が複数の場合は未対応なので注意
 	var port = ports[0]

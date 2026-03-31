@@ -74,7 +74,7 @@ func _create_hex_tiles():
 			child.queue_free()
 	if piece_shape.is_empty():
 		return
-	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
+	var layout = Layout.make_default()
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
