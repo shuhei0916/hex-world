@@ -43,6 +43,11 @@ var processing_progress: float:
 
 
 func _ready():
+	if Engine.is_editor_hint():
+		if output_port:
+			output_port.setup(get_output_ports())
+		_create_hex_tiles()
+		return
 	if input_storage:
 		input_storage.z_index = Z_LAYER_ICONS
 	if output:
@@ -53,11 +58,6 @@ func _ready():
 		_speed_label.z_index = Z_LAYER_UI
 	if _progress_bar:
 		_progress_bar.z_index = Z_LAYER_UI
-	if Engine.is_editor_hint():
-		if output_port:
-			output_port.setup(get_output_ports())
-		_create_hex_tiles()
-		return
 	if crafter and output:
 		crafter.setup(input_storage, output)
 
