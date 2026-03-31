@@ -4,7 +4,7 @@ extends Node2D
 
 signal recipe_changed(recipe: Recipe)
 
-const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
+const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
@@ -42,7 +42,7 @@ func _ready():
 	if Engine.is_editor_hint():
 		if output_port:
 			output_port.setup(get_output_ports())
-		queue_redraw()
+		_create_hex_tiles()
 		return
 	if crafter and output:
 		crafter.setup(input_storage, output)
@@ -54,48 +54,19 @@ func _process(delta: float):
 	tick(delta)
 
 
-func _draw():
-	if not Engine.is_editor_hint():
-		return
+func _create_hex_tiles():
+	for child in get_children():
+		if child is HexTile:
+			child.queue_free()
 	if piece_shape.is_empty():
 		return
 	var layout = Layout.new(Layout.layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
-	for v in piece_shape:
-		var hex = Hex.new(v.x, v.y, -v.x - v.y)
-		var corners = _get_hex_corners(layout, hex)
-		var is_pivot = v.x == 0 and v.y == 0
-		var fill = Color(piece_color.r, piece_color.g, piece_color.b, 0.55)
-		draw_polygon(corners, [fill])
-		var outline_color = Color.WHITE if is_pivot else Color(1.0, 1.0, 1.0, 0.4)
-		var outline = PackedVector2Array(corners)
-		outline.append(corners[0])
-		draw_polyline(outline, outline_color, 2.0 if is_pivot else 1.0)
-	var pivot_px = Layout.hex_to_pixel(layout, Hex.new(0, 0))
-	draw_circle(pivot_px, 5.0, Color.WHITE)
-	if port_direction >= 0:
-		_draw_output_port(layout)
-
-
-func _get_hex_corners(layout: Layout, hex: Hex) -> PackedVector2Array:
-	var center = Layout.hex_to_pixel(layout, hex)
-	var pts = PackedVector2Array()
-	for i in 6:
-		var angle_rad = deg_to_rad(60.0 * i - 30.0)
-		pts.append(center + Vector2(cos(angle_rad), sin(angle_rad)) * layout.size.x)
-	return pts
-
-
-func _draw_output_port(layout: Layout):
-	var hex = Hex.new(port_hex.x, port_hex.y, -port_hex.x - port_hex.y)
-	var port_px = Layout.hex_to_pixel(layout, hex)
-	var neighbor = Hex.add(hex, Hex.hex_directions[port_direction])
-	var neighbor_px = Layout.hex_to_pixel(layout, neighbor)
-	var angle = (neighbor_px - port_px).angle()
-	var pos = port_px + Vector2(35.0, 0).rotated(angle)
-	var half = FORWARD_TEXTURE.get_size() / 2.0
-	draw_set_transform(pos, angle, Vector2(0.5, 0.5))
-	draw_texture(FORWARD_TEXTURE, -half, Color(0.9607843, 0.6509804, 0.13725491, 1))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for hex in get_hex_shape():
+		var tile = HEX_TILE_SCENE.instantiate()
+		tile.position = Layout.hex_to_pixel(layout, hex)
+		add_child(tile)
+		tile.setup_hex(hex)
+		tile.set_color(piece_color)
 
 
 func setup(rotation: int = 0):
@@ -107,6 +78,7 @@ func setup(rotation: int = 0):
 		set_recipe(recipes[0])
 	if output_port:
 		output_port.setup(get_output_ports())
+	_create_hex_tiles()
 
 
 func set_recipe(recipe: Recipe):
@@ -151,7 +123,7 @@ func get_hex_shape() -> Array[Hex]:
 
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
-	queue_redraw()
+	_create_hex_tiles()
 
 
 func get_output_ports() -> Array:
