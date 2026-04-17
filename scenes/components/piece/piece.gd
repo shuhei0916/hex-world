@@ -4,8 +4,6 @@ extends Node2D
 
 signal recipe_changed(recipe: Recipe)
 
-const Z_LAYER_ICONS = 1
-const Z_LAYER_UI = 2
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
@@ -48,16 +46,6 @@ func _ready():
 			output_port.setup(get_output_ports())
 		_create_hex_tiles()
 		return
-	if input_storage:
-		input_storage.z_index = Z_LAYER_ICONS
-	if output:
-		output.z_index = Z_LAYER_ICONS
-	if output_port:
-		output_port.z_index = Z_LAYER_ICONS
-	if _speed_label:
-		_speed_label.z_index = Z_LAYER_UI
-	if _progress_bar:
-		_progress_bar.z_index = Z_LAYER_UI
 	if crafter and output:
 		crafter.setup(input_storage, output)
 
@@ -75,10 +63,13 @@ func _create_hex_tiles():
 	if piece_shape.is_empty():
 		return
 	var layout = Layout.make_default()
+	var tile_index := 0
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
 		add_child(tile)
+		move_child(tile, tile_index)
+		tile_index += 1
 		tile.setup_hex(hex)
 		tile.set_color(piece_color)
 
