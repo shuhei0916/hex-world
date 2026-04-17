@@ -14,7 +14,8 @@
       "Read(//mnt/c/Users/Ito/projects/GodotProjects/godot-demo-projects-master/2d/hexagonal_map/**)",
       "Bash(grep -A 5 \"func is_full\" /mnt/c/Users/Ito/projects/GodotProjects/hex-world/scenes/components/piece/*.gd)",
       "Bash(grep -v \"^$\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(gdlint:*)"
     ],
     "deny": [],
     "ask": []
