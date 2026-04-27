@@ -115,3 +115,44 @@ class TestNeighbors:
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		gm.remove_piece_at(Hex.new(2, 0))
 		assert_eq(source.output.connected_pieces.size(), 0, "削除後は接続が切れているべき")
+
+
+class TestOuterHexes:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Island.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_get_outer_hexesは外縁ヘックスのみを返す():
+		var outer = gm.get_outer_hexes()
+		for hex in outer:
+			var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+			assert_eq(max_coord, 2, "外縁ヘックスは max(|q|,|r|,|s|)==radius であるべき")
+
+	func test_get_outer_hexesは内側のヘックスを含まない():
+		var outer = gm.get_outer_hexes()
+		for hex in outer:
+			var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+			assert_true(max_coord >= 2, "内側ヘックスが含まれていてはならない")
+
+
+class TestDeliveryProtection:
+	extends GutTest
+
+	const DELIVERY_SCENE = preload("res://scenes/components/piece/delivery.tscn")
+
+	var gm
+
+	func before_each():
+		gm = Island.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_DELIVERYピースはremove_piece_atで削除できない():
+		gm.place_piece(DELIVERY_SCENE, Hex.new(0, 0))
+		var result = gm.remove_piece_at(Hex.new(0, 0))
+		assert_false(result)

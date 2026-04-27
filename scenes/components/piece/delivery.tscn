@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://delivery00001"]
+
+[ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
+[ext_resource type="Script" path="res://scenes/components/piece/delivery.gd" id="3_delivery"]
+[ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="4_inventory"]
+
+[node name="Piece" type="Node2D"]
+script = ExtResource("1_piece")
+piece_type = 8
+piece_shape = Array[Vector2i]([Vector2i(0, 0)])
+port_direction = -1
+piece_color = Color(1, 0.419608, 0.419608, 1)
+
+[node name="GoalLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -50.0
+offset_right = 40.0
+offset_bottom = -30.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Input" type="Node2D" parent="."]
+script = ExtResource("2_input")
+
+[node name="Inventory" parent="Input" instance=ExtResource("4_inventory")]
+
+[node name="Delivery" type="Node" parent="."]
+script = ExtResource("3_delivery")

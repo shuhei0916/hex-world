@@ -13,9 +13,9 @@
 - [x] Delivery.add_received(1) で received_count が 1 増える
 - [x] received_count < goal_count のとき is_completed() は false
 - [x] received_count >= goal_count のとき is_completed() は true
-- [ ] Island.get_outer_hexes() が外縁ヘックス（max(|q|,|r|,|s|)==radius）のみを返す
-- [ ] Island.get_outer_hexes() が内側のヘックスを含まない
-- [ ] Island.remove_piece_at() が DELIVERY ピースに対して false を返す（削除拒否）
+- [x] Island.get_outer_hexes() が外縁ヘックス（max(|q|,|r|,|s|)==radius）のみを返す
+- [x] Island.get_outer_hexes() が内側のヘックスを含まない
+- [x] Island.remove_piece_at() が DELIVERY ピースに対して false を返す（削除拒否）
 - [ ] minerが鉱石を採掘する際、地面が鉱石タイルでないといけない、などの制約を設ける
 - [ ] 地面のタイルを多様化させる（kenney assetsを使うのもありかも）
 

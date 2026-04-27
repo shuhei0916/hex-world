@@ -81,6 +81,9 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	if piece == null:
 		return false
 
+	if piece.piece_type == PieceData.Type.DELIVERY:
+		return false
+
 	if not is_instance_valid(piece) or not piece is Node:
 		_registry.unregister(piece, [target_hex])
 		return false
@@ -159,3 +162,26 @@ func find_hex_tile(target_hex: Hex) -> HexTile:
 	if _renderer:
 		return _renderer.find_hex_tile(target_hex)
 	return null
+
+
+func get_outer_hexes() -> Array[Hex]:
+	var result: Array[Hex] = []
+	for hex in _drawn_hexes:
+		var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+		if max_coord == grid_radius:
+			result.append(hex)
+	return result
+
+
+func place_delivery_zone(item_name: String, goal_count: int):
+	var outer = get_outer_hexes()
+	outer.shuffle()
+	var shape: Array[Hex] = [Hex.new(0, 0)]
+	for hex in outer:
+		if can_place(shape, hex):
+			var scene = load("res://scenes/components/piece/delivery.tscn")
+			place_piece(scene, hex)
+			var piece = get_piece_at_hex(hex)
+			piece.get_node("Delivery").setup(item_name, goal_count)
+			piece.get_node("GoalLabel").text = "%s: 0/%d" % [item_name, goal_count]
+			return

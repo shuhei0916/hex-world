@@ -9,6 +9,7 @@ extends Node2D
 func _ready():
 	island.create_hex_grid(island.grid_radius)
 	piece_placer.setup(island)
+	island.place_delivery_zone("iron_plate", 10)
 
 
 func _on_hud_slot_selected(scene: PackedScene):
