@@ -12,6 +12,10 @@ func test_PieceTypeエニュームが存在する():
 	assert_true(PieceData.Type.CHEST == 7)
 
 
+func test_PieceType_DELIVERYが存在する():
+	assert_true("DELIVERY" in PieceData.Type.keys())
+
+
 func test_FACILITY_COLORS_BY_TYPEが全Typeの色を持つ():
 	for type in PieceData.Type.values():
 		assert_true(PieceData.FACILITY_COLORS_BY_TYPE.has(type), "Type %d の色が定義されているべき" % type)
@@ -28,4 +32,4 @@ func test_PieceDataにはshapeフィールドが存在しない():
 
 
 func test_PieceDataにはget_dataメソッドが存在しない():
-	assert_false(PieceData.has_method("get_data"), "get_data は削除済み")
+	assert_false(PieceData.new().has_method("get_data"), "get_data は削除済み")

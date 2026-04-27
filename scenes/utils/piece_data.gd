@@ -10,6 +10,7 @@ enum Type {
 	MINER,
 	ASSEMBLER,
 	CHEST,
+	DELIVERY,
 }
 
 const FACILITY_COLORS = {
@@ -33,4 +34,5 @@ const FACILITY_COLORS_BY_TYPE = {
 	5: Color("#F3D283"),  # MINER
 	6: Color("#85F7F2"),  # ASSEMBLER
 	7: Color("#999999"),  # CHEST
+	8: Color("#FF6B6B"),  # DELIVERY
 }
