@@ -13,6 +13,7 @@ func setup(item_name: String, count: int):
 
 func add_received(amount: int):
 	received_count += amount
+	_update_label()
 	if is_completed():
 		print("Clear!")
 
@@ -29,6 +30,12 @@ func _connect_to_inventory():
 	var input = get_parent().get_node_or_null("Input")
 	if input:
 		input.get_node("Inventory").inventory_changed.connect(_on_inventory_changed)
+
+
+func _update_label():
+	var label = get_parent().get_node_or_null("GoalLabel")
+	if label:
+		label.text = "%s: %d/%d" % [goal_item, received_count, goal_count]
 
 
 func _on_inventory_changed():
