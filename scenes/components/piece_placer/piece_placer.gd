@@ -4,6 +4,7 @@ extends Node2D
 # ユーザーがいま何を、どの向きで、どこに置こうとしているか」というUI操作のステートマシン
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 
 # 依存関係（Mainから注入される）
 var island: Island
@@ -68,14 +69,44 @@ func _draw_preview():
 		ghost_tile.set_color(Color.GHOST_WHITE)
 		ghost_tile.set_transparency(0.5)
 
+	var ports = _get_current_output_ports()
+	if not ports.is_empty():
+		_add_output_arrow(cursor_preview, ports)
+		_add_output_arrow(snap_preview, ports)
+
+
+func _get_current_output_ports() -> Array:
+	if not selected_scene:
+		return []
+	var piece = selected_scene.instantiate()
+	piece.rotation_state = current_rotation
+	var ports = piece.get_output_ports()
+	piece.free()
+	return ports
+
+
+func _add_output_arrow(container: Node2D, ports: Array):
+	var layout = Layout.make_default()
+	var port = ports[0]
+	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
+	var neighbor_pos = Layout.hex_to_pixel(layout, Hex.neighbor(port["hex"], port["direction"]))
+	var angle = (neighbor_pos - center_pos).angle()
+	var arrow = Sprite2D.new()
+	arrow.texture = FORWARD_TEXTURE
+	arrow.scale = Vector2(0.5, 0.5)
+	arrow.modulate = Color(0.9607843, 0.6509804, 0.13725491, 1)
+	arrow.position = center_pos + Vector2(35.0, 0).rotated(angle)
+	arrow.rotation = angle
+	container.add_child(arrow)
+
 
 func _clear_preview():
 	if cursor_preview:
 		for child in cursor_preview.get_children():
-			child.queue_free()
+			child.free()
 	if snap_preview:
 		for child in snap_preview.get_children():
-			child.queue_free()
+			child.free()
 
 
 func update_hover(local_mouse_pos: Vector2):

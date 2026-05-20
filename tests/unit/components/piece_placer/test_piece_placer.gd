@@ -92,3 +92,25 @@ func test_select_pieceでシーンを外部からセットして配置できる(
 
 	assert_true(result, "シーンをセットすれば配置できるべき")
 	assert_true(island.is_occupied(target_hex), "指定した座標が占有されているべき")
+
+
+func test_出力ポートを持つピースのプレビューに矢印が追加される():
+	piece_placer.select_piece(CONVEYOR_SCENE)
+	var shape_size = piece_placer.current_piece_shape.size()
+	assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size + 1)
+
+
+func test_出力ポートを持たないピースのプレビューには矢印が追加されない():
+	piece_placer.select_piece(CHEST_SCENE)
+	var shape_size = piece_placer.current_piece_shape.size()
+	assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size)
+
+
+func test_回転後にプレビューの矢印向きが変わる():
+	piece_placer.select_piece(CONVEYOR_SCENE)
+	var shape_size = piece_placer.current_piece_shape.size()
+	var arrow_before = piece_placer.cursor_preview.get_child(shape_size)
+	var rotation_before = arrow_before.rotation
+	piece_placer.rotate_current_piece()
+	var arrow_after = piece_placer.cursor_preview.get_child(shape_size)
+	assert_ne(arrow_after.rotation, rotation_before)
