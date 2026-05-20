@@ -47,10 +47,8 @@ class TestPiecePlacement:
 		assert_null(piece.get_node_or_null("Input"), "MINERはInputノードを持たないはず")
 
 	func test_有効な場所にピースを配置できる():
-		# CONVEYOR shape: (-1,0),(0,0),(1,0),(2,0) relative to base
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		assert_true(gm.is_occupied(Hex.new(0, 0)))
-		assert_true(gm.is_occupied(Hex.new(1, 0)))
 		assert_not_null(gm.get_piece_at_hex(Hex.new(0, 0)))
 
 	func test_占有済みまたは範囲外には配置できない():
@@ -94,26 +92,25 @@ class TestNeighbors:
 		assert_null(gm.get_neighbor_piece(Hex.new(0, 0), 3), "存在しない方向はnull")
 
 	func test_出力ポートの先にピースがある場合は搬送先として登録される():
-		# CONVEYOR at (-1,0): occupies (-2,0),(-1,0),(0,0),(1,0)
-		# port_hex=(2,0) offset → absolute (1,0), direction E → neighbor (2,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		# CONVEYOR at (0,0): 1ヘックス、port_direction=0(East) → neighbor (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
-		var target = gm.get_piece_at_hex(Hex.new(2, 0))
+		var target = gm.get_piece_at_hex(Hex.new(1, 0))
 		assert_true(target in source.output.connected_pieces)
 
 	func test_ポートが向いていない隣接ピースは搬送先に登録されない():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(0, -1))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		var target = gm.get_piece_at_hex(Hex.new(0, -1))
 		assert_false(target in source.output.connected_pieces)
 
 	func test_ピース削除時に周囲の搬送先リストが自動更新される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
-		gm.remove_piece_at(Hex.new(2, 0))
+		gm.remove_piece_at(Hex.new(1, 0))
 		assert_eq(source.output.connected_pieces.size(), 0, "削除後は接続が切れているべき")
 
 

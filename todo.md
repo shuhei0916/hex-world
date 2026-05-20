@@ -6,6 +6,14 @@
 - [ ] mixerでscrewを生産するなど、直感的でないレシピを調整する。
 - [ ] 鉄板を10個納品するなどのミッションを追加する
 
+### コンベア実装
+- [x] conveyor が1ヘックスの形状で配置できる
+- [x] conveyor の出力ポートが向いている隣接ピースに接続される
+- [x] conveyor に add_item するとInputインベントリに格納される
+- [x] ConveyorLogic.tick(0.4) ではアイテムは転送されない（0.5秒未満）
+- [x] ConveyorLogic.tick(0.5) でInputのアイテムがOutputに転送される
+- [x] conveyor のOutputから接続先ピースへアイテムが搬出される
+
 ### 納品所（Delivery Zone）実装
 - [x] PieceData.Type.DELIVERY が存在する
 - [x] Delivery.setup(item_name, count) で goal_item と goal_count を設定できる
