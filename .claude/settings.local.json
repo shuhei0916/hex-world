@@ -15,7 +15,9 @@
       "Bash(grep -A 5 \"func is_full\" /mnt/c/Users/Ito/projects/GodotProjects/hex-world/scenes/components/piece/*.gd)",
       "Bash(grep -v \"^$\")",
       "Bash(ls:*)",
-      "Bash(gdlint:*)"
+      "Bash(gdlint:*)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)"
     ],
     "deny": [],
     "ask": []

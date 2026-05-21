@@ -1,9 +1,9 @@
-# gdlint:disable=constant-name
+# gdlint:disable=constant-name,function-name
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
-const Island = preload("res://scenes/components/island/island.gd")
+const Island = preload("res://scenes/components/chunk/chunk.gd")
 
 
 class TestConveyorShape:

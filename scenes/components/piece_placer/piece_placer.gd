@@ -7,7 +7,7 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 
 # 依存関係（Mainから注入される）
-var island: Island
+var island: Chunk
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
@@ -22,7 +22,7 @@ var _selected_color: Color
 @onready var snap_preview: Node2D = $SnapPreview
 
 
-func setup(island_ref: Island):
+func setup(island_ref: Chunk):
 	island = island_ref
 
 

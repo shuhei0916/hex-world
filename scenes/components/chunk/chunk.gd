@@ -1,9 +1,9 @@
 # gdlint:disable=max-public-methods
 @tool
-class_name Island
+class_name Chunk
 extends Node2D
 
-# Island - グリッドの外部API・ピース管理・隣接判定を管理する
+# Chunk - グリッドの外部API・ピース管理・隣接判定を管理する
 
 signal grid_updated(hexes: Array[Hex])
 
@@ -22,9 +22,9 @@ const RESOURCE_COLORS = {
 
 var layout: Layout
 
-var _hex_grid = preload("res://scenes/components/island/hex_grid.gd").new()
-var _registry = preload("res://scenes/components/island/piece_registry.gd").new()
-var _neighbor_manager = preload("res://scenes/components/island/neighbor_manager.gd").new()
+var _hex_grid = preload("res://scenes/components/chunk/hex_grid.gd").new()
+var _registry = preload("res://scenes/components/chunk/piece_registry.gd").new()
+var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.gd").new()
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Hex] = []
 var _resources: Dictionary = {}
@@ -36,7 +36,7 @@ func _init():
 
 
 func _ready():
-	_renderer = preload("res://scenes/components/island/grid_renderer.gd").new()
+	_renderer = preload("res://scenes/components/chunk/grid_renderer.gd").new()
 	_renderer.setup(layout)
 	add_child(_renderer)
 	_update_grid_visuals()

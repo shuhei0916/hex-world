@@ -2,15 +2,15 @@ class_name Main
 extends Node2D
 
 @onready var hud: HUD = $HUD
-@onready var island: Island = $Island
+@onready var chunk: Chunk = $Chunk
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 
 
 func _ready():
-	island.create_hex_grid(island.grid_radius)
-	piece_placer.setup(island)
-	island.generate_ore_deposits(5)
-	island.place_delivery_zone("iron_plate", 10)
+	chunk.create_hex_grid(chunk.grid_radius)
+	piece_placer.setup(chunk)
+	chunk.generate_ore_deposits(5)
+	chunk.place_delivery_zone("iron_plate", 10)
 
 
 func _on_hud_slot_selected(scene: PackedScene):
@@ -44,4 +44,4 @@ func _handle_mouse_click(event):
 				hud.deselect()  # まず選択を解除する
 			elif piece_placer.current_hovered_hex != null:
 				# 何も選択していないなら、グリッド上のピースを削除する
-				island.remove_piece_at(piece_placer.current_hovered_hex)
+				chunk.remove_piece_at(piece_placer.current_hovered_hex)

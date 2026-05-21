@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name,function-name
 extends GutTest
 
-const Island = preload("res://scenes/components/island/island.gd")
+const Island = preload("res://scenes/components/chunk/chunk.gd")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")

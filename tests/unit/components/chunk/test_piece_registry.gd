@@ -1,7 +1,7 @@
-# gdlint:disable=constant-name
+# gdlint:disable=constant-name,function-name
 extends GutTest
 
-const PieceRegistry = preload("res://scenes/components/island/piece_registry.gd")
+const PieceRegistry = preload("res://scenes/components/chunk/piece_registry.gd")
 
 
 class TestRegisterAndGet:

@@ -1,7 +1,8 @@
+# gdlint:disable=function-name
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
-const Island = preload("res://scenes/components/island/island.gd")
+const Island = preload("res://scenes/components/chunk/chunk.gd")
 
 var main: Main
 
@@ -16,12 +17,12 @@ func after_each():
 
 
 func test_MainはIslandを持つ():
-	assert_not_null(main.island)
-	assert_true(main.island is Island)
+	assert_not_null(main.chunk)
+	assert_true(main.chunk is Island)
 
 
 func test_グリッド更新シグナルでIslandに登録される():
-	var gm = main.island
+	var gm = main.chunk
 	if gm == null:
 		fail_test("Island not found")
 		return

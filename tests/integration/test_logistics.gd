@@ -10,10 +10,10 @@ class TestPieceLogistics:
 	const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 	const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 
-	var island: Island
+	var island: Chunk
 
 	func before_each():
-		island = Island.new()
+		island = Chunk.new()
 		add_child_autofree(island)
 		island.create_hex_grid(3)
 

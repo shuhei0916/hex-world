@@ -1,3 +1,4 @@
+# gdlint:disable=function-name
 extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
@@ -5,7 +6,7 @@ const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 
 var piece_placer: PiecePlacer
-var island: Island
+var island: Chunk
 
 # テスト用データ
 var shape_arch: Array[Hex]
@@ -20,7 +21,7 @@ func before_all():
 
 
 func before_each():
-	island = Island.new()
+	island = Chunk.new()
 	add_child_autofree(island)
 	island.create_hex_grid(2)
 
