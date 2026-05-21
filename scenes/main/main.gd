@@ -9,6 +9,7 @@ extends Node2D
 func _ready():
 	island.create_hex_grid(island.grid_radius)
 	piece_placer.setup(island)
+	island.generate_ore_deposits(5)
 	island.place_delivery_zone("iron_plate", 10)
 
 

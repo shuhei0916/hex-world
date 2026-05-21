@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 @tool
 class_name Island
 extends Node2D
@@ -5,6 +6,10 @@ extends Node2D
 # Island - グリッドの外部API・ピース管理・隣接判定を管理する
 
 signal grid_updated(hexes: Array[Hex])
+
+const RESOURCE_COLORS = {
+	"iron_ore": Color("#8B6914"),
+}
 
 @export var grid_radius: int = 4:
 	set(value):
@@ -22,6 +27,7 @@ var _registry = preload("res://scenes/components/island/piece_registry.gd").new(
 var _neighbor_manager = preload("res://scenes/components/island/neighbor_manager.gd").new()
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Hex] = []
+var _resources: Dictionary = {}
 
 
 func _init():
@@ -74,6 +80,7 @@ func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
 
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
+	_apply_mining_constraint(piece, occupied_hexes)
 
 
 func remove_piece_at(target_hex: Hex) -> bool:
@@ -171,6 +178,69 @@ func get_outer_hexes() -> Array[Hex]:
 		if max_coord == grid_radius:
 			result.append(hex)
 	return result
+
+
+func mark_resource_hex(hex: Hex, resource_type: String):
+	_resources[Hex.to_key(hex)] = resource_type
+	var tile = find_hex_tile(hex)
+	if tile and resource_type in RESOURCE_COLORS:
+		tile.set_color(RESOURCE_COLORS[resource_type])
+
+
+func get_hex_resource(hex: Hex) -> String:
+	return _resources.get(Hex.to_key(hex), "")
+
+
+func get_inner_hexes() -> Array[Hex]:
+	var result: Array[Hex] = []
+	for hex in _drawn_hexes:
+		var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+		if max_coord < grid_radius:
+			result.append(hex)
+	return result
+
+
+func generate_ore_deposits(count: int):
+	var inner = get_inner_hexes()
+	if inner.is_empty():
+		return
+	var inner_set: Dictionary = {}
+	for hex in inner:
+		inner_set[Hex.to_key(hex)] = hex
+
+	inner.shuffle()
+	var cluster: Array[Hex] = [inner[0]]
+	var cluster_set: Dictionary = {Hex.to_key(inner[0]): true}
+	var frontier: Array[Hex] = [inner[0]]
+
+	while cluster.size() < count and not frontier.is_empty():
+		frontier.shuffle()
+		var current = frontier.pop_back()
+		for dir in range(6):
+			var neighbor = Hex.neighbor(current, dir)
+			var key = Hex.to_key(neighbor)
+			if key in inner_set and not (key in cluster_set) and not (key in _resources):
+				cluster.append(neighbor)
+				cluster_set[key] = true
+				frontier.append(neighbor)
+				if cluster.size() >= count:
+					break
+
+	for hex in cluster:
+		mark_resource_hex(hex, "iron_ore")
+
+
+func _apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]):
+	if piece.piece_type != PieceData.Type.MINER:
+		return
+	var ore_count = 0
+	for hex in occupied_hexes:
+		if get_hex_resource(hex) == "iron_ore":
+			ore_count += 1
+	if ore_count == 0:
+		piece.set_recipe(null)
+	else:
+		piece.set_output_multiplier(ore_count)
 
 
 func place_delivery_zone(item_name: String, goal_count: int):

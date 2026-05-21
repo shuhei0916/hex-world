@@ -92,6 +92,14 @@ func set_recipe(recipe: Recipe):
 	recipe_changed.emit(recipe)
 
 
+func set_output_multiplier(n: int):
+	if crafter:
+		crafter.output_multiplier = n
+	var speed_label = get_node_or_null("SpeedLabel")
+	if speed_label and speed_label.has_method("set_multiplier"):
+		speed_label.set_multiplier(n)
+
+
 func add_item(item_name: String, amount: int):
 	if input_storage:
 		input_storage.add_item(item_name, amount)

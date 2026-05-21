@@ -1,4 +1,4 @@
-# gdlint:disable=constant-name
+# gdlint:disable=constant-name,function-name
 extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
@@ -83,6 +83,14 @@ class TestCrafterLogic:
 	func test_レシピがない場合はtickで何もしない():
 		crafter.tick(1.0)
 		assert_eq(crafter.processing_progress, 0.0)
+
+	func test_output_multiplier_3のとき完成時に3個生産される():
+		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		crafter.output_multiplier = 3
+		crafter.processing_progress = 0.9
+		crafter.tick(0.2)
+		assert_eq(output_container.get_item_count("ingot"), 3)
 
 	func test_アウトプットが満杯の場合は開始不可と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)

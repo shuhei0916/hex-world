@@ -6,6 +6,7 @@ const CRAFTING_START_PROGRESS = 0.001
 
 var current_recipe: Recipe
 var processing_progress: float = 0.0
+var output_multiplier: int = 1
 
 var input_container: Node
 var output_container: Node
@@ -86,5 +87,7 @@ func _complete_crafting():
 		output_container.set_expected_output("")
 	if output_container:
 		for item_name in current_recipe.outputs:
-			output_container.add_item(item_name, current_recipe.outputs[item_name])
+			output_container.add_item(
+				item_name, current_recipe.outputs[item_name] * output_multiplier
+			)
 	processing_progress = 0.0

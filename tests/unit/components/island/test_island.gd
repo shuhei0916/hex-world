@@ -1,4 +1,4 @@
-# gdlint:disable=constant-name
+# gdlint:disable=constant-name,function-name
 extends GutTest
 
 const Island = preload("res://scenes/components/island/island.gd")
@@ -135,6 +135,72 @@ class TestOuterHexes:
 		for hex in outer:
 			var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
 			assert_true(max_coord >= 2, "内側ヘックスが含まれていてはならない")
+
+
+class TestOreDeposits:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Island.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_get_hex_resourceが登録済みヘックスのリソース名を返す():
+		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
+		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "iron_ore")
+
+	func test_get_hex_resourceが未登録ヘックスに空文字を返す():
+		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+
+	func test_generate_ore_depositsがN個をiron_oreとして登録する():
+		gm.generate_ore_deposits(3)
+		var count = 0
+		for hex in gm.get_inner_hexes():
+			if gm.get_hex_resource(hex) == "iron_ore":
+				count += 1
+		assert_eq(count, 3)
+
+	func test_generate_ore_depositsが外縁ヘックスを含まない():
+		gm.generate_ore_deposits(100)
+		for hex in gm.get_outer_hexes():
+			assert_eq(gm.get_hex_resource(hex), "", "外縁に鉱床があってはならない")
+
+
+class TestMinerConstraint:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Island.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_MINER_を非鉱床ヘックスに設置するとレシピがnull():
+		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var crafter = piece.get_node_or_null("Crafter")
+		assert_null(crafter.current_recipe)
+
+	func test_MINER_を2鉱床ヘックス上に設置するとoutput_multiplierが2():
+		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
+		gm.mark_resource_hex(Hex.new(0, 1), "iron_ore")
+		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var crafter = piece.get_node_or_null("Crafter")
+		assert_eq(crafter.output_multiplier, 2)
+
+	func test_MINER_を4鉱床ヘックス上に設置するとoutput_multiplierが4():
+		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
+		gm.mark_resource_hex(Hex.new(0, 1), "iron_ore")
+		gm.mark_resource_hex(Hex.new(1, 0), "iron_ore")
+		gm.mark_resource_hex(Hex.new(1, 1), "iron_ore")
+		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var crafter = piece.get_node_or_null("Crafter")
+		assert_eq(crafter.output_multiplier, 4)
 
 
 class TestDeliveryProtection:

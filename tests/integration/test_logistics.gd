@@ -1,4 +1,4 @@
-# gdlint:disable=constant-name
+# gdlint:disable=constant-name,function-name
 extends GutTest
 
 
@@ -23,6 +23,7 @@ class TestPieceLogistics:
 		# SMELTER at (-1,2): occupies (-3,2),(-2,2),(-1,2),(-1,3)
 		#   port at offset (0,0) → absolute (-1,2), direction E → neighbor (0,2)
 		# CHEST at (0,2): occupies (0,2)
+		island.mark_resource_hex(Hex.new(0, 0), "iron_ore")
 		island.place_piece(MINER_SCENE, Hex.new(0, 0))
 		island.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
 		island.place_piece(CHEST_SCENE, Hex.new(0, 2))

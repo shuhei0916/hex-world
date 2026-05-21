@@ -6,6 +6,16 @@
 - [ ] mixerでscrewを生産するなど、直感的でないレシピを調整する。
 - [ ] 鉄板を10個納品するなどのミッションを追加する
 
+### 鉱床・Miner地形制約
+- [x] get_hex_resource() が登録済みヘックスのリソース名を返す
+- [x] get_hex_resource() が未登録ヘックスに空文字を返す
+- [x] generate_ore_deposits(N) が N 個を "iron_ore" として登録する
+- [x] generate_ore_deposits() が外縁ヘックスを除いた内側に生成する
+- [x] MINER を4鉱床ヘックス上に設置すると output_multiplier = 4
+- [x] MINER を2鉱床ヘックス上に設置すると output_multiplier = 2
+- [x] MINER を非鉱床ヘックスに設置するとレシピが null
+- [x] Crafter.output_multiplier = 3 のとき完成時に3個生産される
+
 ### プレビュー出力方向矢印
 - [x] 出力ポートを持つピースのプレビューに矢印スプライトが追加される
 - [x] 出力ポートを持たないピースのプレビューには矢印が追加されない
