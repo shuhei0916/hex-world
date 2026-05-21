@@ -1,4 +1,4 @@
-# gdlint:disable=constant-name,function-name
+# gdlint:disable=constant-name
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")

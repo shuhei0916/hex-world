@@ -1,4 +1,3 @@
-# gdlint:disable=function-name
 extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")

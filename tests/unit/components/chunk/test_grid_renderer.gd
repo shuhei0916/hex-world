@@ -1,4 +1,4 @@
-# gdlint:disable=constant-name,function-name
+# gdlint:disable=constant-name
 extends GutTest
 
 const GridRenderer = preload("res://scenes/components/chunk/grid_renderer.gd")

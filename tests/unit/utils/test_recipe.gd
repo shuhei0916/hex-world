@@ -1,5 +1,3 @@
-# gdlint:disable=function-name
-
 extends GutTest
 
 

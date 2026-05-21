@@ -1,4 +1,3 @@
-# gdlint:disable=function-name
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
