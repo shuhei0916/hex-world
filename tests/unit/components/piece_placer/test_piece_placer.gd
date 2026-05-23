@@ -5,7 +5,7 @@ const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 
 var piece_placer: PiecePlacer
-var island: Chunk
+var chunk: Chunk
 
 # テスト用データ
 var shape_arch: Array[Hex]
@@ -20,14 +20,14 @@ func before_all():
 
 
 func before_each():
-	island = Chunk.new()
-	add_child_autofree(island)
-	island.create_hex_grid(2)
+	chunk = Chunk.new()
+	add_child_autofree(chunk)
+	chunk.create_hex_grid(2)
 
 	piece_placer = PiecePlacerScene.instantiate()
 	add_child_autofree(piece_placer)
 
-	piece_placer.setup(island)
+	piece_placer.setup(chunk)
 
 
 func after_each():
@@ -44,7 +44,7 @@ func test_指定したHexに選択中のピースを配置できる():
 	# CONVEYOR shape: (-1,0),(0,0),(1,0),(2,0)
 	for offset in piece_placer.current_piece_shape:
 		var h = Hex.add(target_hex, offset)
-		assert_true(island.is_occupied(h))
+		assert_true(chunk.is_occupied(h))
 
 
 func test_回転メソッドを呼ぶと現在の形状が更新される():
@@ -91,7 +91,7 @@ func test_select_pieceでシーンを外部からセットして配置できる(
 	var result = piece_placer.place_piece_at_hex(target_hex)
 
 	assert_true(result, "シーンをセットすれば配置できるべき")
-	assert_true(island.is_occupied(target_hex), "指定した座標が占有されているべき")
+	assert_true(chunk.is_occupied(target_hex), "指定した座標が占有されているべき")
 
 
 func test_出力ポートを持つピースのプレビューに矢印が追加される():

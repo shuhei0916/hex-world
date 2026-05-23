@@ -7,7 +7,7 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 
 # 依存関係（Mainから注入される）
-var island: Chunk
+var chunk: Chunk
 
 # 内部状態
 var current_piece_shape: Array[Hex] = []
@@ -22,8 +22,8 @@ var _selected_color: Color
 @onready var snap_preview: Node2D = $SnapPreview
 
 
-func setup(island_ref: Chunk):
-	island = island_ref
+func setup(chunk_ref: Chunk):
+	chunk = chunk_ref
 
 
 func select_piece(scene: PackedScene):
@@ -45,13 +45,13 @@ func _draw_preview():
 	if current_piece_shape.is_empty() or not selected_scene:
 		return
 
-	if not island or not cursor_preview or not snap_preview:
+	if not chunk or not cursor_preview or not snap_preview:
 		return
 
 	var color = _selected_color
 
 	for hex_coord in current_piece_shape:
-		var pos = island.hex_to_pixel(hex_coord)
+		var pos = chunk.hex_to_pixel(hex_coord)
 
 		# カーソル用タイル (手持ち)
 		var cursor_tile = HexTileScene.instantiate()
@@ -72,7 +72,6 @@ func _draw_preview():
 	var ports = _get_current_output_ports()
 	if not ports.is_empty():
 		_add_output_arrow(cursor_preview, ports)
-		_add_output_arrow(snap_preview, ports)
 
 
 func _get_current_output_ports() -> Array:
@@ -110,10 +109,10 @@ func _clear_preview():
 
 
 func update_hover(local_mouse_pos: Vector2):
-	var hex_coord = Layout.pixel_to_hex_rounded(island.layout, local_mouse_pos)
+	var hex_coord = Layout.pixel_to_hex_rounded(chunk.layout, local_mouse_pos)
 	current_hovered_hex = hex_coord
 
-	var snapped_pos = Layout.hex_to_pixel(island.layout, hex_coord)
+	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
 	# コンテナの位置を更新
 	cursor_preview.position = local_mouse_pos
@@ -135,8 +134,8 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if current_piece_shape.is_empty() or not selected_scene:
 		return false
 
-	if island.can_place(current_piece_shape, target_hex):
-		island.place_piece(selected_scene, target_hex, current_rotation)
+	if chunk.can_place(current_piece_shape, target_hex):
+		chunk.place_piece(selected_scene, target_hex, current_rotation)
 		return true
 
 	return false
