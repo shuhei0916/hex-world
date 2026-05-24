@@ -7,7 +7,7 @@
 
 ### ドラッグ設置
 - [x] start_drag() を呼ぶと is_dragging が true になる
-- [ ] stop_drag() を呼ぶと is_dragging が false になる
+- [x] stop_drag() を呼ぶと is_dragging が false になる
 - [ ] ドラッグ中に update_hover で新しいヘックスに移動するとピースが設置される
 - [ ] ドラッグ中に同じヘックスに連続して hover しても 2 回設置されない
 - [ ] stop_drag() 後は hover が更新されても設置されない

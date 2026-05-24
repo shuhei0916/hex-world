@@ -119,3 +119,9 @@ func test_回転後にプレビューの矢印向きが変わる():
 func test_start_dragを呼ぶとis_draggingがtrueになる():
 	piece_placer.start_drag()
 	assert_true(piece_placer.is_dragging)
+
+
+func test_stop_dragを呼ぶとis_draggingがfalseになる():
+	piece_placer.start_drag()
+	piece_placer.stop_drag()
+	assert_false(piece_placer.is_dragging)
