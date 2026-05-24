@@ -114,3 +114,8 @@ func test_回転後にプレビューの矢印向きが変わる():
 	piece_placer.rotate_current_piece()
 	var arrow_after = piece_placer.cursor_preview.get_child(shape_size)
 	assert_ne(arrow_after.rotation, rotation_before)
+
+
+func test_start_dragを呼ぶとis_draggingがtrueになる():
+	piece_placer.start_drag()
+	assert_true(piece_placer.is_dragging)

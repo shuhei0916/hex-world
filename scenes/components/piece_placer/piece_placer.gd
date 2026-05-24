@@ -13,6 +13,7 @@ var chunk: Chunk
 var current_piece_shape: Array[Hex] = []
 var current_rotation: int = 0
 var current_hovered_hex: Hex
+var is_dragging: bool = false
 
 # 選択中のピースシーン
 var selected_scene: PackedScene
@@ -20,6 +21,14 @@ var _selected_color: Color
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
+
+
+func start_drag():
+	is_dragging = true
+
+
+func stop_drag():
+	is_dragging = false
 
 
 func setup(chunk_ref: Chunk):
