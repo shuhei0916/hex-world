@@ -14,9 +14,8 @@ var current_piece_shape: Array[Hex] = []
 var current_rotation: int = 0
 var current_hovered_hex: Hex
 var is_dragging: bool = false
-
-# 選択中のピースシーン
 var selected_scene: PackedScene
+var _last_drag_hex: Hex = null
 var _selected_color: Color
 
 @onready var cursor_preview: Node2D = $CursorPreview
@@ -25,10 +24,12 @@ var _selected_color: Color
 
 func start_drag():
 	is_dragging = true
+	_last_drag_hex = null
 
 
 func stop_drag():
 	is_dragging = false
+	_last_drag_hex = null
 
 
 func setup(chunk_ref: Chunk):
@@ -123,9 +124,12 @@ func update_hover(local_mouse_pos: Vector2):
 
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
-	# コンテナの位置を更新
 	cursor_preview.position = local_mouse_pos
 	snap_preview.position = snapped_pos
+
+	if is_dragging and (_last_drag_hex == null or not Hex.equals(hex_coord, _last_drag_hex)):
+		_place_piece_at(hex_coord)
+		_last_drag_hex = hex_coord
 
 
 func place_current_piece() -> bool:

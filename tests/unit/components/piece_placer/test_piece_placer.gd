@@ -125,3 +125,12 @@ func test_stop_dragを呼ぶとis_draggingがfalseになる():
 	piece_placer.start_drag()
 	piece_placer.stop_drag()
 	assert_false(piece_placer.is_dragging)
+
+
+func test_ドラッグ中にupdate_hoverで新しいヘックスに移動するとピースが設置される():
+	piece_placer.select_piece(CONVEYOR_SCENE)
+	piece_placer.start_drag()
+	var target_hex = Hex.new(0, 0)
+	var target_pos = chunk.hex_to_pixel(target_hex)
+	piece_placer.update_hover(target_pos)
+	assert_true(chunk.is_occupied(target_hex))
