@@ -36,10 +36,14 @@ func _handle_mouse_motion(event):
 
 
 func _handle_mouse_click(event):
-	if event is InputEventMouseButton and event.pressed:
+	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			piece_placer.place_current_piece()
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				piece_placer.start_drag()
+				piece_placer.place_current_piece()
+			else:
+				piece_placer.stop_drag()
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			if hud.get_active_index() != -1:  # ツールバーで何かを選択中なら
 				hud.deselect()  # まず選択を解除する
 			elif piece_placer.current_hovered_hex != null:
