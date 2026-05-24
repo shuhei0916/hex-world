@@ -1,7 +1,6 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
@@ -13,7 +12,7 @@ class TestPieceBasics:
 	var piece: Piece
 
 	func before_each():
-		piece = PIECE_SCENE.instantiate()
+		piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 
 	func test_セットアップでrotation_stateを設定できる():
@@ -35,7 +34,7 @@ class TestPieceVisuals:
 	var piece: Piece
 
 	func before_each():
-		piece = PIECE_SCENE.instantiate()
+		piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 
 	func test_出力ポートが存在する場合に矢印が表示される():

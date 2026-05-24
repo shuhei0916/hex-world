@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const PIECE_SCENE = preload("res://scenes/components/piece/piece.tscn")
+const PIECE_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 
 
 class TestOutputInventory:

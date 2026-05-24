@@ -1,6 +1,6 @@
 extends GutTest
 
-var piece_scene = load("res://scenes/components/piece/piece.tscn")
+var piece_scene = load("res://scenes/components/piece/smelter.tscn")
 var piece: Piece
 
 
