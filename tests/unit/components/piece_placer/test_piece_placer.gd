@@ -144,3 +144,12 @@ func test_ドラッグ中に同じヘックスにhoverしても2回設置され�
 	var placed_count_before = chunk.get_piece_count()
 	piece_placer.update_hover(target_pos)
 	assert_eq(chunk.get_piece_count(), placed_count_before)
+
+
+func test_stop_drag後はhoverが更新されても設置されない():
+	piece_placer.select_piece(CONVEYOR_SCENE)
+	piece_placer.start_drag()
+	piece_placer.stop_drag()
+	var count_before = chunk.get_piece_count()
+	piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+	assert_eq(chunk.get_piece_count(), count_before)
