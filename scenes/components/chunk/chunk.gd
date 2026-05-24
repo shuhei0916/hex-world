@@ -117,6 +117,10 @@ func get_piece_at_hex(hex: Hex) -> Piece:
 	return _registry.get_piece_at_hex(hex)
 
 
+func get_piece_count() -> int:
+	return _registry.get_all_pieces().size()
+
+
 func get_piece_occupied_hexes(piece: Piece) -> Array[Hex]:
 	var result: Array[Hex] = []
 	var base_hex = _registry.get_base_hex(piece)
