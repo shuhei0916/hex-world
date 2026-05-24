@@ -54,6 +54,7 @@
 - [ ] 個別シーンファイル化（miner.tscn, smelter.tscn）は果たして必要だったのか、検討する。
 
 #### 将来検討
+- [ ] プレビュー矢印と OutputPort の位置計算ロジックを一本化する（output_port.gd の PORT_OFFSET とマジックナンバーの重複、port.hex vs port["hex"] の不統一を解消）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
