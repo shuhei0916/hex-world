@@ -153,3 +153,10 @@ func test_stop_drag後はhoverが更新されても設置されない():
 	var count_before = chunk.get_piece_count()
 	piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
 	assert_eq(chunk.get_piece_count(), count_before)
+
+
+func test_ピースが未選択の状態でドラッグしても設置されない():
+	piece_placer.start_drag()
+	var count_before = chunk.get_piece_count()
+	piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+	assert_eq(chunk.get_piece_count(), count_before)
