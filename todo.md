@@ -5,13 +5,6 @@
 - [ ] 強化鉄板のレシピを追加する（複数入力対応後）
 - [ ] mixerでscrewを生産するなど、直感的でないレシピを調整する。
 
-### ドラッグ設置
-- [x] start_drag() を呼ぶと is_dragging が true になる
-- [x] stop_drag() を呼ぶと is_dragging が false になる
-- [x] ドラッグ中に update_hover で新しいヘックスに移動するとピースが設置される
-- [x] ドラッグ中に同じヘックスに連続して hover しても 2 回設置されない
-- [x] stop_drag() 後は hover が更新されても設置されない
-- [x] ピースが未選択の状態でドラッグしても設置されない
 
 ### 納品所（Delivery Zone）実装
 - [ ] 地面のタイルを多様化させる（kenney assetsを使うのもありかも）
@@ -33,6 +26,7 @@
 - [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理
 - [ ] input.gd / output.gd の共通 InventoryContainer 基底クラスを抽出する
 - [ ] OutputPort の複数ポート対応テストを追加する
+- [ ] コンベア設置UXの改善（Factorio: 直線制約、shapez2: パス収集＋自動向き、を参考に検討）
 
 ### それ以外
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
