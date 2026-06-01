@@ -71,6 +71,14 @@ class TestPieceTransformation:
 		var result = p.get_hex_shape()
 		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
 
+	func test_回転後にInputノードの位置が更新される():
+		var s = SMELTER_SCENE.instantiate()
+		add_child_autofree(s)
+		s.setup(0)
+		s.rotate_cw()
+		var expected = Layout.hex_to_pixel(Layout.make_default(), Hex.new(0, -1, 1))
+		assert_eq(s.input_storage.position, expected)
+
 
 class TestPieceRoles:
 	extends GutTest

@@ -10,6 +10,7 @@ const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 @export var piece_shape: Array[Vector2i] = []
 @export var port_hex: Vector2i = Vector2i.ZERO
+@export var input_hex: Vector2i = Vector2i.ZERO
 @export var port_direction: int = -1  # -1 = 出力ポートなし
 @export var piece_color: Color
 
@@ -84,6 +85,7 @@ func setup(rotation: int = 0):
 	if output_port:
 		output_port.setup(get_output_ports())
 	_create_hex_tiles()
+	_update_component_positions()
 
 
 func set_recipe(recipe: Recipe):
@@ -137,6 +139,16 @@ func get_hex_shape() -> Array[Hex]:
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
 	_create_hex_tiles()
+	_update_component_positions()
+
+
+func _update_component_positions():
+	var layout = Layout.make_default()
+	if input_storage:
+		var hex = Hex.new(input_hex.x, input_hex.y, -input_hex.x - input_hex.y)
+		for i in range(rotation_state):
+			hex = Hex.rotate_right(hex)
+		input_storage.position = Layout.hex_to_pixel(layout, hex)
 
 
 func get_output_ports() -> Array:

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dip2uyihe5w6y"]
+[gd_scene format=3 uid="uid://smelter001"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
@@ -9,11 +9,11 @@
 [ext_resource type="Script" uid="uid://c3rxnl5xvu3u0" path="res://scenes/components/piece/output_port.gd" id="7_output_port"]
 [ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="8_inventory"]
 
-[node name="Piece" type="Node2D" unique_id=593433044]
+[node name="Piece3" type="Node2D" unique_id=593433044]
 script = ExtResource("1_piece")
 piece_type = 1
 piece_shape = Array[Vector2i]([Vector2i(-2, 0), Vector2i(-1, 0), Vector2i(0, 0), Vector2i(0, 1)])
-port_hex = Vector2i(0, 0)
+input_hex = Vector2i(-1, 0)
 port_direction = 0
 piece_color = Color(0.415686, 0.827451, 0.552941, 1)
 
@@ -29,7 +29,7 @@ vertical_alignment = 1
 script = ExtResource("6_speed_label")
 
 [node name="Input" type="Node2D" parent="." unique_id=141778808]
-position = Vector2(-20, 15)
+position = Vector2(-72.7, 0)
 script = ExtResource("2_input")
 
 [node name="Inventory" parent="Input" unique_id=1890818902 instance=ExtResource("8_inventory")]
@@ -53,6 +53,7 @@ show_percentage = false
 
 [node name="OutputPort" type="Sprite2D" parent="." unique_id=1161768943]
 modulate = Color(0.9607843, 0.6509804, 0.13725491, 1)
+position = Vector2(35, 0)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("5_fwd")
 script = ExtResource("7_output_port")
