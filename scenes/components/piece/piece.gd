@@ -17,9 +17,6 @@ const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 # 回転状態 (0-5)
 var rotation_state: int = 0
 
-# 採掘ロジック用
-var processing_state: float = 0.0
-
 # プロパティアクセサ
 var current_recipe: Recipe:
 	get:

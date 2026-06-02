@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const Island = preload("res://scenes/components/chunk/chunk.gd")
+const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
@@ -13,7 +13,7 @@ class TestGridLogic:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.clear_grid()
 
@@ -37,7 +37,7 @@ class TestPiecePlacement:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -80,7 +80,7 @@ class TestNeighbors:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -120,7 +120,7 @@ class TestItemTransfer:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(3)
 
@@ -143,7 +143,7 @@ class TestOuterHexes:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -166,7 +166,7 @@ class TestOreDeposits:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
@@ -197,7 +197,7 @@ class TestMinerConstraint:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(3)
 
@@ -234,7 +234,7 @@ class TestDeliveryProtection:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 

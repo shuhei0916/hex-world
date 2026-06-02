@@ -3,7 +3,7 @@ extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
-const Island = preload("res://scenes/components/chunk/chunk.gd")
+const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 
 class TestConveyorShape:
@@ -64,7 +64,7 @@ class TestConveyorConnection:
 	var gm
 
 	func before_each():
-		gm = Island.new()
+		gm = Chunk.new()
 		add_child_autofree(gm)
 		gm.create_hex_grid(3)
 
