@@ -42,6 +42,10 @@ func set_expected_output(item_id: String):
 	inventory.update_visuals()
 
 
+func try_push():
+	_push_items()
+
+
 func _push_items():
 	if inventory.is_empty() or connected_pieces.is_empty():
 		return

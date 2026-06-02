@@ -47,6 +47,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 
 	if piece.output:
 		piece.output.connected_pieces = current_connections
+		piece.output.try_push()
 
 
 func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:

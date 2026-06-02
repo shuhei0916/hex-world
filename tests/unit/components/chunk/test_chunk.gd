@@ -114,6 +114,29 @@ class TestNeighbors:
 		assert_eq(source.output.connected_pieces.size(), 0, "削除後は接続が切れているべき")
 
 
+class TestItemTransfer:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Island.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_出力インベントリが満杯の状態で接続するとアイテムが転送される():
+		# コンベアを設置し、出力を満杯にしてから受け取り先を接続する
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		var source = gm.get_piece_at_hex(Hex.new(0, 0))
+		source.add_to_output("iron_plate", 20)  # 満杯（capacity=20）
+
+		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+
+		assert_gt(chest.get_item_count("iron_plate"), 0, "満杯状態で接続してもアイテムが転送されるべき")
+
+
 class TestOuterHexes:
 	extends GutTest
 
