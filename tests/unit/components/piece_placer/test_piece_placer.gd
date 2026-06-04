@@ -160,3 +160,10 @@ func test_ピースが未選択の状態でドラッグしても設置されな�
 	var count_before = chunk.get_piece_count()
 	piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
 	assert_eq(chunk.get_piece_count(), count_before)
+
+
+func test_コンベア選択時はドラッグ中にhoverしてもピースが設置されない():
+	piece_placer.select_piece(CONVEYOR_SCENE)
+	piece_placer.start_drag()
+	piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+	assert_false(chunk.is_occupied(Hex.new(0, 0)))

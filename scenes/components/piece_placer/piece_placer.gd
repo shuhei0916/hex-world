@@ -17,6 +17,9 @@ var is_dragging: bool = false
 var selected_scene: PackedScene
 var _last_drag_hex: Hex = null
 var _selected_color: Color
+var _is_conveyor: bool = false
+var _selected_port_direction: int = -1
+var _conveyor_drag_path: Array[Hex] = []
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
@@ -43,6 +46,8 @@ func select_piece(scene: PackedScene):
 		var piece = selected_scene.instantiate()
 		current_piece_shape = piece.get_hex_shape()
 		_selected_color = piece.piece_color
+		_is_conveyor = (piece.piece_type == PieceData.Type.CONVEYOR)
+		_selected_port_direction = piece.port_direction
 		piece.free()
 	else:
 		current_piece_shape = []
@@ -146,12 +151,22 @@ func place_piece_at_hex(target_hex: Hex) -> bool:
 func _place_piece_at(target_hex: Hex) -> bool:
 	if current_piece_shape.is_empty() or not selected_scene:
 		return false
-
+	if _is_conveyor and is_dragging:
+		return _add_to_conveyor_path(target_hex)
 	if chunk.can_place(current_piece_shape, target_hex):
 		chunk.place_piece(selected_scene, target_hex, current_rotation)
 		return true
-
 	return false
+
+
+func _add_to_conveyor_path(hex: Hex) -> bool:
+	for h in _conveyor_drag_path:
+		if Hex.equals(h, hex):
+			return false
+	if not chunk.can_place(current_piece_shape, hex):
+		return false
+	_conveyor_drag_path.append(hex)
+	return true
 
 
 func rotate_current_piece():
