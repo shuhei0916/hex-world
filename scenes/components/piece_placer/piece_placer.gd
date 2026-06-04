@@ -33,6 +33,9 @@ func start_drag():
 func stop_drag():
 	is_dragging = false
 	_last_drag_hex = null
+	if _is_conveyor and not _conveyor_drag_path.is_empty():
+		_place_conveyor_chain()
+	_conveyor_drag_path.clear()
 
 
 func setup(chunk_ref: Chunk):
@@ -167,6 +170,23 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 		return false
 	_conveyor_drag_path.append(hex)
 	return true
+
+
+func _place_conveyor_chain():
+	if _conveyor_drag_path.size() == 1:
+		chunk.place_piece(selected_scene, _conveyor_drag_path[0], current_rotation)
+		return
+	for i in range(_conveyor_drag_path.size()):
+		var hex = _conveyor_drag_path[i]
+		if not chunk.can_place(current_piece_shape, hex):
+			continue
+		var direction: int
+		if i < _conveyor_drag_path.size() - 1:
+			direction = Hex.get_direction_to(hex, _conveyor_drag_path[i + 1])
+		else:
+			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
+		var rotation = (_selected_port_direction - direction + 6) % 6
+		chunk.place_piece(selected_scene, hex, rotation)
 
 
 func rotate_current_piece():
