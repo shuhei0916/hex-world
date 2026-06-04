@@ -196,3 +196,14 @@ class TestDragBehavior:
 		piece_placer.stop_drag()
 		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
 		assert_eq(first.rotation_state, 0)
+
+	func test_コンベアチェーンで最後のコンベアは最後の移動方向を向く():
+		# (0,0)→(1,0)→(1,-1) のチェーン: 最後のステップはNW=方向2 → rotation=(0-2+6)%6=4
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, -1)))
+		piece_placer.stop_drag()
+		var last = chunk.get_piece_at_hex(Hex.new(1, -1))
+		assert_eq(last.rotation_state, 4)
