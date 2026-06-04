@@ -186,3 +186,13 @@ class TestDragBehavior:
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
 		piece_placer.stop_drag()
 		assert_true(chunk.is_occupied(Hex.new(0, 0)))
+
+	func test_コンベアチェーンで最初のコンベアは次のヘックスへの方向を向く():
+		# (0,0)→(1,0) のチェーン: 方向0(East)なのでrotation_state=0
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(first.rotation_state, 0)
