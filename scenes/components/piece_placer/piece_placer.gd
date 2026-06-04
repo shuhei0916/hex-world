@@ -28,6 +28,7 @@ var _conveyor_drag_path: Array[Hex] = []
 func start_drag():
 	is_dragging = true
 	_last_drag_hex = null
+	_conveyor_drag_path.clear()
 
 
 func stop_drag():
