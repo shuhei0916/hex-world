@@ -207,3 +207,10 @@ class TestDragBehavior:
 		piece_placer.stop_drag()
 		var last = chunk.get_piece_at_hex(Hex.new(1, -1))
 		assert_eq(last.rotation_state, 4)
+
+	func test_コンベアドラッグ中のsnap_previewはパス上のヘックス数のタイルを表示する():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		assert_eq(piece_placer.snap_preview.get_child_count(), 2)

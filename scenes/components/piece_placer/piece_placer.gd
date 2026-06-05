@@ -140,6 +140,9 @@ func update_hover(local_mouse_pos: Vector2):
 		_place_piece_at(hex_coord)
 		_last_drag_hex = hex_coord
 
+	if _is_conveyor and is_dragging and not _conveyor_drag_path.is_empty():
+		_update_conveyor_path_preview()
+
 
 func place_current_piece() -> bool:
 	if current_hovered_hex == null:
@@ -171,6 +174,19 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 		return false
 	_conveyor_drag_path.append(hex)
 	return true
+
+
+func _update_conveyor_path_preview():
+	for child in snap_preview.get_children():
+		child.free()
+	snap_preview.position = Vector2.ZERO
+	for hex in _conveyor_drag_path:
+		var ghost_tile = HexTileScene.instantiate()
+		snap_preview.add_child(ghost_tile)
+		ghost_tile.position = Layout.hex_to_pixel(chunk.layout, hex)
+		ghost_tile.setup_hex(hex)
+		ghost_tile.set_color(Color.GHOST_WHITE)
+		ghost_tile.set_transparency(0.5)
 
 
 func _place_conveyor_chain():
