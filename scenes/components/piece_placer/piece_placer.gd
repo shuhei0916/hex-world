@@ -19,6 +19,7 @@ var _last_drag_hex: Hex = null
 var _selected_color: Color
 var _is_conveyor: bool = false
 var _selected_port_direction: int = -1
+var _selected_port_hex: Vector2i = Vector2i.ZERO
 var _conveyor_drag_path: Array[Hex] = []
 
 @onready var cursor_preview: Node2D = $CursorPreview
@@ -53,6 +54,7 @@ func select_piece(scene: PackedScene):
 		_selected_color = piece.piece_color
 		_is_conveyor = (piece.piece_type == PieceData.Type.CONVEYOR)
 		_selected_port_direction = piece.port_direction
+		_selected_port_hex = piece.port_hex
 		piece.free()
 	else:
 		current_piece_shape = []
@@ -71,23 +73,16 @@ func _draw_preview():
 	var color = _selected_color
 
 	for hex_coord in current_piece_shape:
-		var pos = chunk.hex_to_pixel(hex_coord)
-
 		# カーソル用タイル (手持ち)
 		var cursor_tile = HexTileScene.instantiate()
 		cursor_preview.add_child(cursor_tile)
-		cursor_tile.position = pos
+		cursor_tile.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
 		cursor_tile.setup_hex(hex_coord)
 		cursor_tile.set_color(color)
 		cursor_tile.set_transparency(1.0)
 
 		# ゴースト用タイル (スナップ)
-		var ghost_tile = HexTileScene.instantiate()
-		snap_preview.add_child(ghost_tile)
-		ghost_tile.position = pos
-		ghost_tile.setup_hex(hex_coord)
-		ghost_tile.set_color(Color.GHOST_WHITE)
-		ghost_tile.set_transparency(0.5)
+		_add_ghost_tile(hex_coord)
 
 	var ports = _get_current_output_ports()
 	if not ports.is_empty():
@@ -95,13 +90,15 @@ func _draw_preview():
 
 
 func _get_current_output_ports() -> Array:
-	if not selected_scene:
+	if _selected_port_direction < 0:
 		return []
-	var piece = selected_scene.instantiate()
-	piece.rotation_state = current_rotation
-	var ports = piece.get_output_ports()
-	piece.free()
-	return ports
+	var hex = Hex.new(
+		_selected_port_hex.x, _selected_port_hex.y, -_selected_port_hex.x - _selected_port_hex.y
+	)
+	for i in range(current_rotation):
+		hex = Hex.rotate_right(hex)
+	var direction = (_selected_port_direction - current_rotation + 6) % 6
+	return [{"hex": hex, "direction": direction}]
 
 
 func _add_output_arrow(container: Node2D, ports: Array):
@@ -135,7 +132,6 @@ func update_hover(local_mouse_pos: Vector2):
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
 	cursor_preview.position = local_mouse_pos
-	snap_preview.position = snapped_pos
 
 	if is_dragging and (_last_drag_hex == null or not Hex.equals(hex_coord, _last_drag_hex)):
 		_place_piece_at(hex_coord)
@@ -143,6 +139,8 @@ func update_hover(local_mouse_pos: Vector2):
 
 	if _is_conveyor and is_dragging and not _conveyor_drag_path.is_empty():
 		_update_conveyor_path_preview()
+	else:
+		snap_preview.position = snapped_pos
 
 
 func place_current_piece() -> bool:
@@ -177,17 +175,21 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 	return true
 
 
+func _add_ghost_tile(hex: Hex):
+	var ghost_tile = HexTileScene.instantiate()
+	snap_preview.add_child(ghost_tile)
+	ghost_tile.position = Layout.hex_to_pixel(chunk.layout, hex)
+	ghost_tile.setup_hex(hex)
+	ghost_tile.set_color(Color.GHOST_WHITE)
+	ghost_tile.set_transparency(0.5)
+
+
 func _update_conveyor_path_preview():
 	for child in snap_preview.get_children():
 		child.free()
 	snap_preview.position = Vector2.ZERO
 	for hex in _conveyor_drag_path:
-		var ghost_tile = HexTileScene.instantiate()
-		snap_preview.add_child(ghost_tile)
-		ghost_tile.position = Layout.hex_to_pixel(chunk.layout, hex)
-		ghost_tile.setup_hex(hex)
-		ghost_tile.set_color(Color.GHOST_WHITE)
-		ghost_tile.set_transparency(0.5)
+		_add_ghost_tile(hex)
 
 
 func _place_conveyor_chain():
