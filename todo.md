@@ -23,7 +23,7 @@
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
-- [ ] プレビュー矢印と OutputPort の位置計算ロジックを一本化する（output_port.gd の PORT_OFFSET とマジックナンバーの重複、port.hex vs port["hex"] の不統一を解消）
+- [ ] output_port.tscn を作成し、設置済みピースのOutputPortとプレビュー矢印を共用化する（PORT_OFFSET・色・スケール・位置計算の重複解消、port.hex vs port["hex"] の統一）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
