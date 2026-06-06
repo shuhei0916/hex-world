@@ -214,3 +214,12 @@ class TestDragBehavior:
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
 		assert_eq(piece_placer.snap_preview.get_child_count(), 2)
+
+	func test_stop_drag後にhoverするとsnap_previewが通常の1ピースゴーストに戻る():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(-1, 0)))
+		assert_eq(piece_placer.snap_preview.get_child_count(), 1)
