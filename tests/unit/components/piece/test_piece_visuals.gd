@@ -1,5 +1,8 @@
 extends GutTest
 
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+
 var piece_scene = load("res://scenes/components/piece/smelter.tscn")
 var piece: Piece
 
@@ -33,6 +36,13 @@ func test_レシピなしはSpeedLabelが非表示():
 	var speed_label = piece.get_node_or_null("SpeedLabel")
 	if speed_label:
 		assert_false(speed_label.visible, "SpeedLabel should be hidden with no recipe")
+
+
+func test_make_output_arrowがSprite2Dを返す():
+	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var arrow = Piece.make_output_arrow(port)
+	assert_is(arrow, Sprite2D)
+	arrow.free()
 
 
 func test_レシピをセットしても出力Iconは表示されない():

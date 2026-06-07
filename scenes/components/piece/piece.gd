@@ -5,6 +5,9 @@ extends Node2D
 signal recipe_changed(recipe: Recipe)
 
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
+const PORT_OFFSET = 35.0
+const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
@@ -162,3 +165,17 @@ func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
 	return not input_storage.is_full()
+
+
+static func make_output_arrow(port: Dictionary) -> Sprite2D:
+	var layout = Layout.make_default()
+	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
+	var neighbor_pos = Layout.hex_to_pixel(layout, Hex.neighbor(port["hex"], port["direction"]))
+	var angle = (neighbor_pos - center_pos).angle()
+	var arrow = Sprite2D.new()
+	arrow.texture = FORWARD_TEXTURE
+	arrow.scale = Vector2(0.5, 0.5)
+	arrow.modulate = ARROW_COLOR
+	arrow.position = center_pos + Vector2(PORT_OFFSET, 0).rotated(angle)
+	arrow.rotation = angle
+	return arrow
