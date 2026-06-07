@@ -63,7 +63,7 @@ func _create_hex_tiles():
 	for child in get_children():
 		if child is HexTile:
 			child.queue_free()
-	if piece_shape.is_empty() or piece_type == PieceData.Type.CONVEYOR:
+	if piece_shape.is_empty():
 		return
 	var layout = Layout.make_default()
 	var tile_index := 0
@@ -189,7 +189,7 @@ func _refresh_conveyor_line():
 	_conveyor_line.add_point(Vector2.ZERO)
 	_conveyor_line.add_point(out_edge)
 	_conveyor_line.width = 10.0
-	_conveyor_line.default_color = piece_color
+	_conveyor_line.default_color = Color(0.9, 0.85, 0.6, 0.9)
 	add_child(_conveyor_line)
 
 
