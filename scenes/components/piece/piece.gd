@@ -34,6 +34,7 @@ var processing_progress: float:
 
 var _output_arrow: Sprite2D = null
 var _conveyor_line: Line2D = null
+var _input_direction: int = -1
 
 # コンポーネント
 @onready var input_storage: PieceInput = get_node_or_null("Input")
@@ -164,6 +165,11 @@ func get_output_ports() -> Array:
 	return [{"hex": hex, "direction": direction}]
 
 
+func set_input_direction(direction: int):
+	_input_direction = direction
+	_refresh_conveyor_line()
+
+
 func _refresh_conveyor_line():
 	if _conveyor_line:
 		_conveyor_line.queue_free()
@@ -175,7 +181,7 @@ func _refresh_conveyor_line():
 		return
 	var layout = Layout.make_default()
 	var output_dir = ports[0]["direction"]
-	var input_dir = (output_dir + 3) % 6
+	var input_dir = _input_direction if _input_direction >= 0 else (output_dir + 3) % 6
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	_conveyor_line = Line2D.new()

@@ -49,6 +49,32 @@ func _update_piece_neighbors(piece: Piece) -> void:
 		piece.output.connected_pieces = current_connections
 		piece.output.try_push()
 
+	_update_conveyor_input_direction(piece)
+
+
+func _update_conveyor_input_direction(piece: Piece) -> void:
+	if piece.piece_type != PieceData.Type.CONVEYOR:
+		return
+	var base_hex = _registry.get_base_hex(piece)
+	if base_hex == null:
+		piece.set_input_direction(-1)
+		return
+	for direction in range(6):
+		var input_hex = Hex.neighbor(base_hex, direction)
+		var neighbor = _registry.get_piece_at_hex(input_hex)
+		if neighbor == null or neighbor == piece:
+			continue
+		var neighbor_base = _registry.get_base_hex(neighbor)
+		if neighbor_base == null:
+			continue
+		for port in neighbor.get_output_ports():
+			var abs_port_hex = Hex.add(neighbor_base, port.hex)
+			var port_target = Hex.neighbor(abs_port_hex, port.direction)
+			if Hex.equals(port_target, base_hex):
+				piece.set_input_direction(direction)
+				return
+	piece.set_input_direction(-1)
+
 
 func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:
 	var base_hex = _registry.get_base_hex(source)
