@@ -189,7 +189,7 @@ func _refresh_conveyor_line():
 	_conveyor_line.add_point(Vector2.ZERO)
 	_conveyor_line.add_point(out_edge)
 	_conveyor_line.width = 10.0
-	_conveyor_line.default_color = Color(0.9, 0.85, 0.6, 0.9)
+	_conveyor_line.default_color = piece_color
 	add_child(_conveyor_line)
 
 
