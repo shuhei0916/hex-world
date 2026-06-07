@@ -75,6 +75,16 @@ func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	assert_eq(lines.size(), 1)
 
 
+func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
+	# direction=0 (East): 出力エッジ点は正のX方向にあるはず
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var line = conveyor.get_children().filter(func(c): return c is Line2D)[0] as Line2D
+	var out_edge = line.get_point_position(2)
+	assert_gt(out_edge.x, 0.0)
+
+
 func test_CONVEYORのLine2Dは3点を持つ():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
