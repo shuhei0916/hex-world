@@ -75,6 +75,14 @@ func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	assert_eq(lines.size(), 1)
 
 
+func test_CONVEYORのLine2Dは3点を持つ():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var line = conveyor.get_children().filter(func(c): return c is Line2D)[0] as Line2D
+	assert_eq(line.get_point_count(), 3)
+
+
 func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
