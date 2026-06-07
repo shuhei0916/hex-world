@@ -100,6 +100,11 @@ func test_CONVEYORのLine2Dは3点を持つ():
 	assert_eq(conveyor._conveyor_line.get_point_count(), 3)
 
 
+func test_SMELTERをsetupしてもLine2Dは追加されない():
+	piece.setup(0)
+	assert_null(piece._conveyor_line)
+
+
 func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
