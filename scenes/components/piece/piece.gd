@@ -83,6 +83,7 @@ func setup(rotation: int = 0):
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
 	_refresh_output_arrow()
+	_refresh_conveyor_line()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -159,6 +160,29 @@ func get_output_ports() -> Array:
 		hex = Hex.rotate_right(hex)
 	var direction = (port_direction - rotation_state + 6) % 6
 	return [{"hex": hex, "direction": direction}]
+
+
+func _refresh_conveyor_line():
+	for child in get_children():
+		if child is Line2D:
+			child.queue_free()
+	if piece_type != PieceData.Type.CONVEYOR:
+		return
+	var ports = get_output_ports()
+	if ports.is_empty():
+		return
+	var layout = Layout.make_default()
+	var output_dir = ports[0]["direction"]
+	var input_dir = (output_dir + 3) % 6
+	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
+	var line = Line2D.new()
+	line.add_point(in_edge)
+	line.add_point(Vector2.ZERO)
+	line.add_point(out_edge)
+	line.width = 10.0
+	line.default_color = Color(0.9, 0.85, 0.6, 0.9)
+	add_child(line)
 
 
 func _refresh_output_arrow():

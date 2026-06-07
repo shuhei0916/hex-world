@@ -67,6 +67,14 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
+func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var lines = conveyor.get_children().filter(func(c): return c is Line2D)
+	assert_eq(lines.size(), 1)
+
+
 func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
