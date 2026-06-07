@@ -105,20 +105,11 @@ func test_SMELTERをsetupしてもLine2Dは追加されない():
 	assert_null(piece._conveyor_line)
 
 
-func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
+func test_CONVEYORをsetupすると_output_arrowはnull():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_null(conveyor.get_node_or_null("OutputPort"), "OutputPortノードは存在しないはず")
-
-
-func test_rotate_cw後に矢印のrotationが更新される():
-	var conveyor = CONVEYOR_SCENE.instantiate()
-	add_child_autofree(conveyor)
-	conveyor.setup(0)
-	var rotation_before = conveyor._output_arrow.rotation
-	conveyor.rotate_cw()
-	assert_ne(conveyor._output_arrow.rotation, rotation_before)
+	assert_null(conveyor._output_arrow, "CONVEYORは矢印スプライトではなくLine2Dで方向を表示する")
 
 
 func test_CHESTをsetupしても矢印の子ノードは追加されない():

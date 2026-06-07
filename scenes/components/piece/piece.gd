@@ -191,6 +191,8 @@ func _refresh_output_arrow():
 	if _output_arrow:
 		_output_arrow.queue_free()
 		_output_arrow = null
+	if piece_type == PieceData.Type.CONVEYOR:
+		return
 	var ports = get_output_ports()
 	if ports.is_empty():
 		return
