@@ -120,11 +120,11 @@ func test_SMELTERをsetupしてもLine2Dは追加されない():
 	assert_null(piece._conveyor_line)
 
 
-func test_CONVEYORをsetupすると_output_arrowはnull():
+func test_CONVEYORをsetupすると出力方向矢印が追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_null(conveyor._output_arrow, "CONVEYORは矢印スプライトではなくLine2Dで方向を表示する")
+	assert_not_null(conveyor._output_arrow, "CONVEYORにも出力方向矢印が表示されるべき")
 
 
 func test_CHESTをsetupしても矢印の子ノードは追加されない():
