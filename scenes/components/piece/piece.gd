@@ -33,6 +33,7 @@ var processing_progress: float:
 			crafter.processing_progress = value
 
 var _output_arrow: Sprite2D = null
+var _conveyor_line: Line2D = null
 
 # コンポーネント
 @onready var input_storage: PieceInput = get_node_or_null("Input")
@@ -139,6 +140,7 @@ func get_hex_shape() -> Array[Hex]:
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
 	_refresh_output_arrow()
+	_refresh_conveyor_line()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -163,9 +165,9 @@ func get_output_ports() -> Array:
 
 
 func _refresh_conveyor_line():
-	for child in get_children():
-		if child is Line2D:
-			child.queue_free()
+	if _conveyor_line:
+		_conveyor_line.queue_free()
+		_conveyor_line = null
 	if piece_type != PieceData.Type.CONVEYOR:
 		return
 	var ports = get_output_ports()
@@ -176,13 +178,13 @@ func _refresh_conveyor_line():
 	var input_dir = (output_dir + 3) % 6
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
-	var line = Line2D.new()
-	line.add_point(in_edge)
-	line.add_point(Vector2.ZERO)
-	line.add_point(out_edge)
-	line.width = 10.0
-	line.default_color = Color(0.9, 0.85, 0.6, 0.9)
-	add_child(line)
+	_conveyor_line = Line2D.new()
+	_conveyor_line.add_point(in_edge)
+	_conveyor_line.add_point(Vector2.ZERO)
+	_conveyor_line.add_point(out_edge)
+	_conveyor_line.width = 10.0
+	_conveyor_line.default_color = Color(0.9, 0.85, 0.6, 0.9)
+	add_child(_conveyor_line)
 
 
 func _refresh_output_arrow():

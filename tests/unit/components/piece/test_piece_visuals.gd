@@ -71,8 +71,17 @@ func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var lines = conveyor.get_children().filter(func(c): return c is Line2D)
-	assert_eq(lines.size(), 1)
+	assert_not_null(conveyor._conveyor_line)
+
+
+func test_rotate_cw後にLine2Dの出力エッジ点が更新される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var out_before = conveyor._conveyor_line.get_point_position(2)
+	conveyor.rotate_cw()
+	var out_after = conveyor._conveyor_line.get_point_position(2)
+	assert_ne(out_after, out_before)
 
 
 func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
@@ -80,8 +89,7 @@ func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var line = conveyor.get_children().filter(func(c): return c is Line2D)[0] as Line2D
-	var out_edge = line.get_point_position(2)
+	var out_edge = conveyor._conveyor_line.get_point_position(2)
 	assert_gt(out_edge.x, 0.0)
 
 
@@ -89,8 +97,7 @@ func test_CONVEYORのLine2Dは3点を持つ():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var line = conveyor.get_children().filter(func(c): return c is Line2D)[0] as Line2D
-	assert_eq(line.get_point_count(), 3)
+	assert_eq(conveyor._conveyor_line.get_point_count(), 3)
 
 
 func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
