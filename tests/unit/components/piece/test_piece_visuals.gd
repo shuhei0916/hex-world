@@ -67,6 +67,14 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
+func test_CONVEYORをsetupするとHexTileが追加されない():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var tiles = conveyor.get_children().filter(func(c): return c is HexTile)
+	assert_eq(tiles.size(), 0)
+
+
 func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)

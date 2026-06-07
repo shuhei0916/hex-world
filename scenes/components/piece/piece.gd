@@ -63,7 +63,7 @@ func _create_hex_tiles():
 	for child in get_children():
 		if child is HexTile:
 			child.queue_free()
-	if piece_shape.is_empty():
+	if piece_shape.is_empty() or piece_type == PieceData.Type.CONVEYOR:
 		return
 	var layout = Layout.make_default()
 	var tile_index := 0
