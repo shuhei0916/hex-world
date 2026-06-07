@@ -5,6 +5,9 @@ extends Node2D
 signal recipe_changed(recipe: Recipe)
 
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
+const PORT_OFFSET = 35.0
+const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
@@ -29,19 +32,19 @@ var processing_progress: float:
 		if crafter:
 			crafter.processing_progress = value
 
+var _output_arrow: Sprite2D = null
+
 # コンポーネント
 @onready var input_storage: PieceInput = get_node_or_null("Input")
 @onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
-@onready var output_port: Sprite2D = get_node_or_null("OutputPort")
 @onready var _speed_label: Label = get_node_or_null("SpeedLabel")
 @onready var _progress_bar: ProgressBar = get_node_or_null("Crafter/ProgressBar")
 
 
 func _ready():
 	if Engine.is_editor_hint():
-		if output_port:
-			output_port.setup(get_output_ports())
+		_refresh_output_arrow()
 		_create_hex_tiles()
 		return
 	if crafter and output:
@@ -79,8 +82,7 @@ func setup(rotation: int = 0):
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
-	if output_port:
-		output_port.setup(get_output_ports())
+	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -135,6 +137,7 @@ func get_hex_shape() -> Array[Hex]:
 
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
+	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -158,7 +161,32 @@ func get_output_ports() -> Array:
 	return [{"hex": hex, "direction": direction}]
 
 
+func _refresh_output_arrow():
+	if _output_arrow:
+		_output_arrow.queue_free()
+		_output_arrow = null
+	var ports = get_output_ports()
+	if ports.is_empty():
+		return
+	_output_arrow = make_output_arrow(ports[0])
+	add_child(_output_arrow)
+
+
 func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
 	return not input_storage.is_full()
+
+
+static func make_output_arrow(port: Dictionary) -> Sprite2D:
+	var layout = Layout.make_default()
+	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
+	var neighbor_pos = Layout.hex_to_pixel(layout, Hex.neighbor(port["hex"], port["direction"]))
+	var angle = (neighbor_pos - center_pos).angle()
+	var arrow = Sprite2D.new()
+	arrow.texture = FORWARD_TEXTURE
+	arrow.scale = Vector2(0.5, 0.5)
+	arrow.modulate = ARROW_COLOR
+	arrow.position = center_pos + Vector2(PORT_OFFSET, 0).rotated(angle)
+	arrow.rotation = angle
+	return arrow
