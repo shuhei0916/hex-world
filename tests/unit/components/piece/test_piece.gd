@@ -42,8 +42,7 @@ class TestPieceVisuals:
 		piece.port_hex = Vector2i(0, 0)
 		piece.setup()
 
-		var arrow = piece.get_node("OutputPort")
-		assert_true(arrow.visible, "出力ポートがある場合、矢印が表示されるべき")
+		assert_not_null(piece._output_arrow, "出力ポートがある場合、矢印Sprite2Dが生成されるべき")
 
 
 class TestPieceTransformation:

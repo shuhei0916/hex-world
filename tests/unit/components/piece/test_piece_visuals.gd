@@ -67,6 +67,32 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
+func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	assert_null(conveyor.get_node_or_null("OutputPort"), "OutputPortノードは存在しないはず")
+
+
+func test_rotate_cw後に矢印のrotationが更新される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var rotation_before = conveyor._output_arrow.rotation
+	conveyor.rotate_cw()
+	assert_ne(conveyor._output_arrow.rotation, rotation_before)
+
+
+func test_CHESTをsetupしても矢印の子ノードは追加されない():
+	var chest = CHEST_SCENE.instantiate()
+	add_child_autofree(chest)
+	chest.setup(0)
+	var arrows = chest.get_children().filter(
+		func(c): return c is Sprite2D and c.texture == Piece.FORWARD_TEXTURE
+	)
+	assert_eq(arrows.size(), 0)
+
+
 func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.setup()

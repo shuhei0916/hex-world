@@ -32,19 +32,19 @@ var processing_progress: float:
 		if crafter:
 			crafter.processing_progress = value
 
+var _output_arrow: Sprite2D = null
+
 # コンポーネント
 @onready var input_storage: PieceInput = get_node_or_null("Input")
 @onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
-@onready var output_port: Sprite2D = get_node_or_null("OutputPort")
 @onready var _speed_label: Label = get_node_or_null("SpeedLabel")
 @onready var _progress_bar: ProgressBar = get_node_or_null("Crafter/ProgressBar")
 
 
 func _ready():
 	if Engine.is_editor_hint():
-		if output_port:
-			output_port.setup(get_output_ports())
+		_refresh_output_arrow()
 		_create_hex_tiles()
 		return
 	if crafter and output:
@@ -82,8 +82,7 @@ func setup(rotation: int = 0):
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
-	if output_port:
-		output_port.setup(get_output_ports())
+	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -138,6 +137,7 @@ func get_hex_shape() -> Array[Hex]:
 
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
+	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -159,6 +159,17 @@ func get_output_ports() -> Array:
 		hex = Hex.rotate_right(hex)
 	var direction = (port_direction - rotation_state + 6) % 6
 	return [{"hex": hex, "direction": direction}]
+
+
+func _refresh_output_arrow():
+	if _output_arrow:
+		_output_arrow.queue_free()
+		_output_arrow = null
+	var ports = get_output_ports()
+	if ports.is_empty():
+		return
+	_output_arrow = make_output_arrow(ports[0])
+	add_child(_output_arrow)
 
 
 func can_accept_item(_item_name: String) -> bool:
