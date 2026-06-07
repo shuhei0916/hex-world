@@ -45,6 +45,18 @@ func test_make_output_arrowがSprite2Dを返す():
 	arrow.free()
 
 
+func test_make_output_arrowのrotationが進行方向の角度になる():
+	# direction=0 (East): 隣接ヘックスはEast方向 → angle=0
+	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var arrow = Piece.make_output_arrow(port)
+	var layout = Layout.make_default()
+	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
+	var neighbor_pos = Layout.hex_to_pixel(layout, Hex.neighbor(port["hex"], 0))
+	var expected_angle = (neighbor_pos - center_pos).angle()
+	assert_almost_eq(arrow.rotation, expected_angle, 0.001)
+	arrow.free()
+
+
 func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
 	var arrow = Piece.make_output_arrow(port)
