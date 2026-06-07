@@ -45,6 +45,16 @@ func test_make_output_arrowがSprite2Dを返す():
 	arrow.free()
 
 
+func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
+	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var arrow = Piece.make_output_arrow(port)
+	var layout = Layout.make_default()
+	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
+	var dist = arrow.position.distance_to(center_pos)
+	assert_almost_eq(dist, Piece.PORT_OFFSET, 0.01)
+	arrow.free()
+
+
 func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.setup()
