@@ -23,7 +23,10 @@
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
-- [ ] output_port.tscn を作成し、設置済みピースのOutputPortとプレビュー矢印を共用化する（PORT_OFFSET・色・スケール・位置計算の重複解消、port.hex vs port["hex"] の統一）
+- [ ] Conveyor extends Piece 継承に切り出す（splitter/merger 実装前に実施）
+  - conveyor.gd を新規作成、_conveyor_line / _input_direction / _refresh_conveyor_line / set_input_direction を移管
+  - piece.gd からコンベア専用コードを削除、piece_type 判定も撤廃
+  - NeighborManager の piece.piece_type == CONVEYOR を piece is Conveyor に変更
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
