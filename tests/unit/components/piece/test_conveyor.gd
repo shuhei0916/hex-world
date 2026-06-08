@@ -83,3 +83,15 @@ class TestConveyorConnection:
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(chest.get_item_count("iron_plate"), 1)
+
+	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
+		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン
+		# (1,0)のコンベアは West(3) 側から入力を受け取るべき
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East 方向
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 4)  # NW 方向
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 0)  # East 方向（接続先）
+		var bend = gm.get_piece_at_hex(Hex.new(1, 0))
+		var layout = Layout.make_default()
+		var in_edge = bend._conveyor_line.get_point_position(0)
+		var expected = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
+		assert_almost_eq(in_edge.x, expected.x, 0.1)

@@ -67,20 +67,49 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
-func test_CONVEYORをsetupするとOutputPortノードではなくSprite2Dで矢印が追加される():
+func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_null(conveyor.get_node_or_null("OutputPort"), "OutputPortノードは存在しないはず")
+	assert_not_null(conveyor._conveyor_line)
 
 
-func test_rotate_cw後に矢印のrotationが更新される():
+func test_rotate_cw後にLine2Dの出力エッジ点が更新される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var rotation_before = conveyor._output_arrow.rotation
+	var out_before = conveyor._conveyor_line.get_point_position(2)
 	conveyor.rotate_cw()
-	assert_ne(conveyor._output_arrow.rotation, rotation_before)
+	var out_after = conveyor._conveyor_line.get_point_position(2)
+	assert_ne(out_after, out_before)
+
+
+func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
+	# direction=0 (East): 出力エッジ点は正のX方向にあるはず
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var out_edge = conveyor._conveyor_line.get_point_position(2)
+	assert_gt(out_edge.x, 0.0)
+
+
+func test_CONVEYORのLine2Dは3点を持つ():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	assert_eq(conveyor._conveyor_line.get_point_count(), 3)
+
+
+func test_SMELTERをsetupしてもLine2Dは追加されない():
+	piece.setup(0)
+	assert_null(piece._conveyor_line)
+
+
+func test_CONVEYORをsetupすると出力方向矢印が追加される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	assert_not_null(conveyor._output_arrow, "CONVEYORにも出力方向矢印が表示されるべき")
 
 
 func test_CHESTをsetupしても矢印の子ノードは追加されない():
