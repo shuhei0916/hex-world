@@ -13,8 +13,10 @@ const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 @export var piece_shape: Array[Vector2i] = []
 @export var port_hex: Vector2i = Vector2i.ZERO
+@export var port_hex2: Vector2i = Vector2i.ZERO
 @export var input_hex: Vector2i = Vector2i.ZERO
 @export var port_direction: int = -1  # -1 = 出力ポートなし
+@export var port_direction2: int = -1  # -1 = 第2出力なし
 @export var piece_color: Color
 
 # 回転状態 (0-5)
@@ -156,13 +158,20 @@ func _update_component_positions():
 
 
 func get_output_ports() -> Array:
-	if port_direction < 0:
-		return []
-	var hex = Hex.new(port_hex.x, port_hex.y, -port_hex.x - port_hex.y)
-	for i in range(rotation_state):
-		hex = Hex.rotate_right(hex)
-	var direction = (port_direction - rotation_state + 6) % 6
-	return [{"hex": hex, "direction": direction}]
+	var ports = []
+	if port_direction >= 0:
+		var hex = Hex.new(port_hex.x, port_hex.y, -port_hex.x - port_hex.y)
+		for i in range(rotation_state):
+			hex = Hex.rotate_right(hex)
+		var direction = (port_direction - rotation_state + 6) % 6
+		ports.append({"hex": hex, "direction": direction})
+	if port_direction2 >= 0:
+		var hex2 = Hex.new(port_hex2.x, port_hex2.y, -port_hex2.x - port_hex2.y)
+		for i in range(rotation_state):
+			hex2 = Hex.rotate_right(hex2)
+		var direction2 = (port_direction2 - rotation_state + 6) % 6
+		ports.append({"hex": hex2, "direction": direction2})
+	return ports
 
 
 func set_input_direction(direction: int):
