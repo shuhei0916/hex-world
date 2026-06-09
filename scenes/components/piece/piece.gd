@@ -35,6 +35,7 @@ var processing_progress: float:
 			crafter.processing_progress = value
 
 var _output_arrow: Sprite2D = null
+var _output_arrow2: Sprite2D = null
 var _conveyor_line: Line2D = null
 var _input_direction: int = -1
 
@@ -206,11 +207,17 @@ func _refresh_output_arrow():
 	if _output_arrow:
 		_output_arrow.queue_free()
 		_output_arrow = null
+	if _output_arrow2:
+		_output_arrow2.queue_free()
+		_output_arrow2 = null
 	var ports = get_output_ports()
 	if ports.is_empty():
 		return
 	_output_arrow = make_output_arrow(ports[0])
 	add_child(_output_arrow)
+	if ports.size() > 1:
+		_output_arrow2 = make_output_arrow(ports[1])
+		add_child(_output_arrow2)
 
 
 func can_accept_item(_item_name: String) -> bool:
