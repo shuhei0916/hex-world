@@ -81,3 +81,40 @@ class TestOutputTransport:
 		target.add_item("junk", 20)
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
+
+
+class TestOutputRoundRobin:
+	extends GutTest
+
+	var source: Piece
+	var target_a: Piece
+	var target_b: Piece
+
+	func before_each():
+		source = PIECE_SCENE.instantiate()
+		add_child(source)
+		autofree(source)
+		source.setup()
+		target_a = PIECE_SCENE.instantiate()
+		add_child(target_a)
+		autofree(target_a)
+		target_b = PIECE_SCENE.instantiate()
+		add_child(target_b)
+		autofree(target_b)
+		source.output.connected_pieces = [target_a, target_b]
+
+	func test_1回目はtarget_aへ送られる():
+		source.output.add_item("iron", 1)
+		assert_eq(target_a.get_item_count("iron"), 1)
+		assert_eq(target_b.get_item_count("iron"), 0)
+
+	func test_2回目はtarget_bへ送られる():
+		source.output.add_item("iron", 1)
+		source.output.add_item("iron", 1)
+		assert_eq(target_b.get_item_count("iron"), 1)
+
+	func test_3回目はtarget_aへ戻る():
+		source.output.add_item("iron", 1)
+		source.output.add_item("iron", 1)
+		source.output.add_item("iron", 1)
+		assert_eq(target_a.get_item_count("iron"), 2)

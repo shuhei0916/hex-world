@@ -5,6 +5,7 @@ extends Node2D
 ## インベントリロジックは $Inventory に委譲する。
 
 var connected_pieces: Array = []
+var _rr_index: int = 0
 
 @onready var inventory: Node2D = $Inventory
 
@@ -56,11 +57,14 @@ func _push_items():
 		var items_to_push = inventory.get_item_names().duplicate()
 
 		for item_name in items_to_push:
-			for target in connected_pieces:
+			var n = connected_pieces.size()
+			for i in range(n):
+				var target = connected_pieces[(_rr_index + i) % n]
 				if target.has_method("add_item") and target.has_method("can_accept_item"):
 					if target.can_accept_item(item_name):
 						target.add_item(item_name, 1)
 						consume_item(item_name, 1)
+						_rr_index = (_rr_index + 1) % n
 						still_pushing = true
 						break
 

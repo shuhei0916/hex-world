@@ -11,6 +11,7 @@ enum Type {
 	ASSEMBLER,
 	CHEST,
 	DELIVERY,
+	SPLITTER,
 }
 
 const FACILITY_COLORS = {
@@ -35,4 +36,5 @@ const FACILITY_COLORS_BY_TYPE = {
 	6: Color("#85F7F2"),  # ASSEMBLER
 	7: Color("#999999"),  # CHEST
 	8: Color("#FF6B6B"),  # DELIVERY
+	9: Color("#FFB347"),  # SPLITTER
 }
