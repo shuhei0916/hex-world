@@ -131,6 +131,14 @@ func get_piece_occupied_hexes(piece: Piece) -> Array[Hex]:
 	return result
 
 
+func update_connections_around(piece: Piece) -> void:
+	_neighbor_manager.update_connections_around(piece)
+
+
+func get_base_hex(piece: Piece) -> Hex:
+	return _registry.get_base_hex(piece)
+
+
 func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
 	var neighbor_hex = Hex.neighbor(hex, direction)
 	if not is_inside_grid(neighbor_hex):
