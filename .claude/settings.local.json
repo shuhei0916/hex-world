@@ -18,7 +18,16 @@
       "Bash(gdlint:*)",
       "Bash(git checkout *)",
       "Bash(git merge *)",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(gh api *)",
+      "Bash(curl -s \"https://api.github.com/repos/tobspr-games/shapez.io/contents/src/game/systems\")",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(d['name']\\) for d in data]\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/tobspr-games/shapez.io/master/gulpfile.js\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/tobspr-games/shapez.io/main/src/game/systems/belt.js\")",
+      "Bash(curl -L -s \"https://github.com/tobspr-games/shapez.io/archive/refs/heads/master.tar.gz\" -o /tmp/shapez.tar.gz)",
+      "Read(//tmp/**)",
+      "Bash(tar -tzf shapez.tar.gz)",
+      "Bash(grep -E \"src/game/\\(systems|components\\)/.*\\\\.js$\")"
     ],
     "deny": [],
     "ask": []

@@ -118,3 +118,7 @@ class TestOutputRoundRobin:
 		source.output.add_item("iron", 1)
 		source.output.add_item("iron", 1)
 		assert_eq(target_a.get_item_count("iron"), 2)
+
+	func test_2個まとめて追加すると両方の接続先に分配される():
+		source.output.add_item("iron", 2)
+		assert_eq(target_b.get_item_count("iron"), 1)
