@@ -27,7 +27,9 @@
       "Bash(curl -L -s \"https://github.com/tobspr-games/shapez.io/archive/refs/heads/master.tar.gz\" -o /tmp/shapez.tar.gz)",
       "Read(//tmp/**)",
       "Bash(tar -tzf shapez.tar.gz)",
-      "Bash(grep -E \"src/game/\\(systems|components\\)/.*\\\\.js$\")"
+      "Bash(grep -E \"src/game/\\(systems|components\\)/.*\\\\.js$\")",
+      "Bash(tar -tzf /tmp/shapez.tar.gz)",
+      "Bash(grep -iE \"\\(sound|sprite|asset|\\\\.png$|\\\\.mp3$|\\\\.ogg$|\\\\.wav$|res/\\)\")"
     ],
     "deny": [],
     "ask": []

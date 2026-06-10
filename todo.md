@@ -34,6 +34,7 @@
 - [ ] input.gd / output.gd の共通 InventoryContainer 基底クラスを抽出する
 - [ ] OutputPort の複数ポート対応テストを追加する
 - [ ] コンベア設置UXの改善（Factorio: 直線制約、shapez2: パス収集＋自動向き、を参考に検討）
+- [ ] Splitter/Mergerを専用ピースではなく、既存コンベアラインからの分岐・合流操作で実現する（shapez2ではsplitter/merger自体が廃止されている）。UXとして親切だが大掛かりな変更になるため、専用ピース方式が立ち行かなくなった場合に再検討する
 - [ ] コンベアアイテム搬送アニメーション（TransportLine方式）
   - 設計方針: シミュレーション+描画分離。アイテムを progress 付き配列で管理し _physics_process で前進、描画は Sprite2D プール or MultiMeshInstance2D
   - ベルト表面は UV スクロールシェーダー
