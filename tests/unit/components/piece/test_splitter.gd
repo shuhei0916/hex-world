@@ -3,6 +3,7 @@ extends GutTest
 
 const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 
@@ -53,3 +54,25 @@ class TestSplitterConnection:
 		splitter.add_item("iron_ore", 1)
 		splitter.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
+
+	func test_2アイテム送ると両方の接続先に1個ずつ届く():
+		# コンベアラインを通じたシナリオ
+		# Splitter(0,0) → conveyor_e(1,0) と conveyor_se(0,1) に分岐
+		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East出力
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1), 1)  # SE→NE... rotation確認
+		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 1))
+		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
+		var conv_e = gm.get_piece_at_hex(Hex.new(1, 0))
+		var conv_se = gm.get_piece_at_hex(Hex.new(0, 1))
+		# 各コンベアが正しいchestに繋がっているか確認
+		assert_eq(splitter.output.connected_pieces.size(), 2, "Splitterは2方向に接続されるべき")
+		splitter.add_item("iron_ore", 1)
+		splitter.get_node("ConveyorLogic").tick(0.5)
+		splitter.add_item("iron_ore", 1)
+		splitter.get_node("ConveyorLogic").tick(0.5)
+		var total_in_conveyors = (
+			conv_e.get_item_count("iron_ore") + conv_se.get_item_count("iron_ore")
+		)
+		assert_eq(total_in_conveyors, 2, "2アイテムが両コンベアに1個ずつ届くべき")

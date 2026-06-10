@@ -6,6 +6,7 @@ extends Node2D
 
 var connected_pieces: Array = []
 var _rr_index: int = 0
+var _is_pushing: bool = false
 
 @onready var inventory: Node2D = $Inventory
 
@@ -48,9 +49,12 @@ func try_push():
 
 
 func _push_items():
+	if _is_pushing:
+		return
 	if inventory.is_empty() or connected_pieces.is_empty():
 		return
 
+	_is_pushing = true
 	var still_pushing = true
 	while still_pushing and not inventory.is_empty():
 		still_pushing = false
@@ -70,3 +74,5 @@ func _push_items():
 
 			if still_pushing:
 				break
+
+	_is_pushing = false
