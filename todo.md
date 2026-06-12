@@ -1,5 +1,17 @@
 # todo
 
+## ドラッグUX修正（fix/drag-ux）
+
+### 不具合: コンベアドラッグのリリース時に中央ヘックスが一瞬白くハイライトされる
+原因仮説: stop_drag 時の _draw_preview が、_update_conveyor_path_preview で
+Vector2.ZERO にされたままの snap_preview にゴーストを描くため、中央に白タイルが出る。
+- [x] コンベアドラッグの stop_drag 後、snap_preview はホバー中のヘックス位置にある（中央 ZERO に残らない）
+
+### 機能: 右ドラッグで複数ピースを削除できるようにする
+- [ ] start_delete_drag 中に新しいヘックスへ hover すると、そのヘックスのピースが削除される
+- [ ] stop_delete_drag 後は hover してもピースが削除されない
+- [ ] 削除ドラッグはピース未選択時のみ発動する（main の右クリック既存挙動と整合）
+
 ## 効果音の導入（feature/sfx）
 
 assets/sounds/sfx の素材（shapez由来）を使用する。

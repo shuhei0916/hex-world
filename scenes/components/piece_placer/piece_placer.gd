@@ -39,6 +39,10 @@ func stop_drag():
 	if _is_conveyor and not _conveyor_drag_path.is_empty():
 		_place_conveyor_chain()
 	_conveyor_drag_path.clear()
+	# パスプレビューで ZERO に移動した snap_preview をホバー位置へ戻してから描き直す
+	# （戻さないとゴーストがチャンク中央に一瞬表示される）
+	if current_hovered_hex != null:
+		snap_preview.position = Layout.hex_to_pixel(chunk.layout, current_hovered_hex)
 	_draw_preview()
 
 
