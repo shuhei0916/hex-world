@@ -36,8 +36,6 @@ var processing_progress: float:
 
 var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
-var _conveyor_line: Line2D = null
-var _input_direction: int = -1
 
 # コンポーネント
 @onready var input_storage: PieceInput = get_node_or_null("Input")
@@ -88,7 +86,6 @@ func setup(rotation: int = 0):
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
 	_refresh_output_arrow()
-	_refresh_conveyor_line()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -144,7 +141,6 @@ func get_hex_shape() -> Array[Hex]:
 func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
 	_refresh_output_arrow()
-	_refresh_conveyor_line()
 	_create_hex_tiles()
 	_update_component_positions()
 
@@ -173,34 +169,6 @@ func get_output_ports() -> Array:
 		var direction2 = (port_direction2 - rotation_state + 6) % 6
 		ports.append({"hex": hex2, "direction": direction2})
 	return ports
-
-
-func set_input_direction(direction: int):
-	_input_direction = direction
-	_refresh_conveyor_line()
-
-
-func _refresh_conveyor_line():
-	if _conveyor_line:
-		_conveyor_line.queue_free()
-		_conveyor_line = null
-	if piece_type != PieceData.Type.CONVEYOR:
-		return
-	var ports = get_output_ports()
-	if ports.is_empty():
-		return
-	var layout = Layout.make_default()
-	var output_dir = ports[0]["direction"]
-	var input_dir = _input_direction if _input_direction >= 0 else (output_dir + 3) % 6
-	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
-	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
-	_conveyor_line = Line2D.new()
-	_conveyor_line.add_point(in_edge)
-	_conveyor_line.add_point(Vector2.ZERO)
-	_conveyor_line.add_point(out_edge)
-	_conveyor_line.width = 10.0
-	_conveyor_line.default_color = Color(0.9, 0.85, 0.6, 0.9)
-	add_child(_conveyor_line)
 
 
 func _refresh_output_arrow():

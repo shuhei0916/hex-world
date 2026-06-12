@@ -51,7 +51,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 
 
 func _update_conveyor_input_direction(piece: Piece) -> void:
-	if piece.piece_type != PieceData.Type.CONVEYOR:
+	if not piece is Conveyor:
 		return
 	var base_hex = _registry.get_base_hex(piece)
 	if base_hex == null:

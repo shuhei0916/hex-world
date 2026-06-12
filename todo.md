@@ -36,8 +36,8 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 - [x] 進行度に応じてアイコンがコンベアライン上を移動する（進行度0で入力エッジ位置）
 
 ### リファクタリング候補（テスト不要・挙動維持）
-- [ ] piece.gd のコンベア専用コード（_conveyor_line / _input_direction / set_input_direction / _refresh_conveyor_line）を conveyor.gd へ移管
-- [ ] NeighborManager の piece.piece_type == CONVEYOR 判定を piece is Conveyor に変更
+- [x] piece.gd のコンベア専用コード（_conveyor_line / _input_direction / set_input_direction / _refresh_conveyor_line）を conveyor.gd へ移管
+- [x] NeighborManager の piece.piece_type == CONVEYOR 判定を piece is Conveyor に変更
 
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
