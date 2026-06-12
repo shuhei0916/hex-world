@@ -6,6 +6,7 @@ extends Node2D
 # Chunk - グリッドの外部API・ピース管理・隣接判定を管理する
 
 signal grid_updated(hexes: Array[Hex])
+signal piece_placed(piece: Piece)
 
 const RESOURCE_COLORS = {
 	"iron_ore": Color("#8B6914"),
@@ -81,6 +82,7 @@ func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
 	_apply_mining_constraint(piece, occupied_hexes)
+	piece_placed.emit(piece)
 
 
 func remove_piece_at(target_hex: Hex) -> bool:

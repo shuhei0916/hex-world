@@ -5,7 +5,7 @@
 assets/sounds/sfx の素材（shapez由来）を使用する。
 
 ### Chunkシグナル
-- [ ] place_piece すると piece_placed シグナルが発火する
+- [x] place_piece すると piece_placed シグナルが発火する
 - [ ] remove_piece_at が成功すると piece_removed シグナルが発火する
 - [ ] remove_piece_at が失敗したときは piece_removed は発火しない
 

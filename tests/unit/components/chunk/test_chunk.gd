@@ -42,6 +42,11 @@ class TestPiecePlacement:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
+	func test_place_pieceするとpiece_placedシグナルが発火する():
+		watch_signals(gm)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		assert_signal_emitted(gm, "piece_placed")
+
 	func test_MINERシーンを使うとInputノードがない():
 		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
