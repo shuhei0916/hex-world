@@ -7,9 +7,9 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 
 ### 保持モデル
 - [x] conveyor.tscn のルートは Conveyor 型である（piece is Conveyor が true）
-- [ ] 空のコンベアは can_accept_item が true を返す
+- [x] 空のコンベアは can_accept_item が true を返す（既存挙動で充足・保持中テストの対で担保）
 - [ ] add_item したアイテムは get_item_count で数えられる
-- [ ] アイテム保持中のコンベアは can_accept_item が false を返す（容量1）
+- [x] アイテム保持中のコンベアは can_accept_item が false を返す（容量1）
 
 ### 搬送
 - [ ] tick 0.4秒ではアイテムは接続先に渡らない
@@ -28,6 +28,7 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 ### シーン構造
 - [ ] conveyor は Input ノードを持たない
 - [ ] conveyor は Output ノードを持たない
+- [ ] splitter も同モデルに移行する（splitter.tscn は ConveyorLogic を共有しているため。2出力のラウンドロビン分配は維持）
 
 ### 表示
 - [ ] アイテム保持中はアイコンが表示される

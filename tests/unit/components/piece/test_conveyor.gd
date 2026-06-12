@@ -44,6 +44,10 @@ class TestConveyorLogic:
 		conveyor.add_item("iron_plate", 1)
 		assert_eq(conveyor.input_storage.get_item_count("iron_plate"), 1)
 
+	func test_アイテム保持中はcan_accept_itemがfalseを返す():
+		conveyor.add_item("iron_plate", 1)
+		assert_false(conveyor.can_accept_item("iron_plate"))
+
 	func test_tick_0_4秒ではアイテムはOutputに転送されない():
 		conveyor.add_item("iron_plate", 1)
 		var logic = conveyor.get_node("ConveyorLogic")
