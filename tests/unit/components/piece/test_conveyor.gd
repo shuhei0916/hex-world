@@ -83,6 +83,12 @@ class TestConveyorVisuals:
 		conveyor.tick(0.0)
 		assert_false(conveyor.get_node("ItemIcon").visible)
 
+	func test_進行度0でアイコンは入力エッジ位置にある():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		var in_edge = conveyor._conveyor_line.get_point_position(0)
+		assert_almost_eq(conveyor.get_node("ItemIcon").position, in_edge, Vector2(0.1, 0.1))
+
 
 class TestConveyorConnection:
 	extends GutTest

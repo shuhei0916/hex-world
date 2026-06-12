@@ -26,6 +26,19 @@ func _update_item_icon():
 		return
 	_item_icon.texture = item_def.icon
 	_item_icon.visible = true
+	_item_icon.position = _item_position_on_line()
+
+
+func _item_position_on_line() -> Vector2:
+	if not _conveyor_line or _conveyor_line.get_point_count() < 3:
+		return Vector2.ZERO
+	var t = _logic.progress / ConveyorLogic.TRANSFER_TIME
+	var in_edge = _conveyor_line.get_point_position(0)
+	var center = _conveyor_line.get_point_position(1)
+	var out_edge = _conveyor_line.get_point_position(2)
+	if t < 0.5:
+		return in_edge.lerp(center, t * 2.0)
+	return center.lerp(out_edge, (t - 0.5) * 2.0)
 
 
 func can_accept_item(_item_name: String) -> bool:
