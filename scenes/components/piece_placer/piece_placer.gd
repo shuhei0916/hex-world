@@ -15,6 +15,7 @@ var current_piece_shape: Array[Hex] = []
 var current_rotation: int = 0
 var current_hovered_hex: Hex
 var is_dragging: bool = false
+var is_delete_dragging: bool = false
 var selected_scene: PackedScene
 var _last_drag_hex: Hex = null
 var _selected_color: Color
@@ -44,6 +45,16 @@ func stop_drag():
 	if current_hovered_hex != null:
 		snap_preview.position = Layout.hex_to_pixel(chunk.layout, current_hovered_hex)
 	_draw_preview()
+
+
+func start_delete_drag():
+	is_delete_dragging = true
+	if current_hovered_hex != null:
+		chunk.remove_piece_at(current_hovered_hex)
+
+
+func stop_delete_drag():
+	is_delete_dragging = false
 
 
 func setup(chunk_ref: Chunk):
@@ -118,6 +129,9 @@ func _clear_preview():
 func update_hover(local_mouse_pos: Vector2):
 	var hex_coord = Layout.pixel_to_hex_rounded(chunk.layout, local_mouse_pos)
 	current_hovered_hex = hex_coord
+
+	if is_delete_dragging:
+		chunk.remove_piece_at(hex_coord)
 
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
