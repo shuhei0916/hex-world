@@ -10,17 +10,17 @@
 script = ExtResource("1_script")
 
 [node name="PlaceBuilding" type="AudioStreamPlayer" parent="." unique_id=1885542657]
-volume_db = -6.0
 stream = ExtResource("2_place_building")
+volume_db = -6.0
 
 [node name="PlaceBelt" type="AudioStreamPlayer" parent="." unique_id=495058276]
-volume_db = -6.0
 stream = ExtResource("3_place_belt")
+volume_db = -6.0
 
 [node name="DestroyBuilding" type="AudioStreamPlayer" parent="." unique_id=237517180]
-volume_db = -6.0
 stream = ExtResource("4_destroy")
+volume_db = -6.0
 
 [node name="UiClick" type="AudioStreamPlayer" parent="." unique_id=1783296922]
-volume_db = -6.0
 stream = ExtResource("5_ui_click")
+volume_db = -6.0
