@@ -7,6 +7,10 @@ extends Node2D
 @onready var inventory: Node2D = $Inventory
 
 
+func can_accept_item(_item_name: String) -> bool:
+	return not is_full()
+
+
 func add_item(item_name: String, amount: int):
 	inventory.add_item(item_name, amount)
 
