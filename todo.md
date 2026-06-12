@@ -1,5 +1,43 @@
 # todo
 
+## コンベア専用化・1アイテム保持モデル（feature/conveyor-single-item）
+
+shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベース搬送」に変更する。
+インベントリ(カウント式バッファ)はコンベアから廃止する。
+
+### 保持モデル
+- [x] conveyor.tscn のルートは Conveyor 型である（piece is Conveyor が true）
+- [ ] 空のコンベアは can_accept_item が true を返す
+- [ ] add_item したアイテムは get_item_count で数えられる
+- [ ] アイテム保持中のコンベアは can_accept_item が false を返す（容量1）
+
+### 搬送
+- [ ] tick 0.4秒ではアイテムは接続先に渡らない
+- [ ] tick 0.5秒でアイテムが接続先ピースに渡る
+- [ ] 転送後、コンベアは空になる（get_item_count が 0）
+- [ ] 転送後、コンベアは再び受け入れ可能になる（can_accept_item が true）
+- [ ] 接続先が受け入れ不可の間、アイテムは保持されたまま消えない
+- [ ] 接続先が受け入れ可能になったら、その後の tick で転送される
+- [ ] 接続先が存在しない場合、アイテムは保持されたまま
+
+### 接続（Chunk/NeighborManager 経由）
+- [ ] Chunk に配置したコンベアに接続先が設定され、隣のピースへアイテムが流れる
+- [ ] 機械の Output からコンベアへアイテムが push される
+- [ ] コンベア→コンベアのチェーンでアイテムが1個ずつ流れる
+
+### シーン構造
+- [ ] conveyor は Input ノードを持たない
+- [ ] conveyor は Output ノードを持たない
+
+### 表示
+- [ ] アイテム保持中はアイコンが表示される
+- [ ] アイテム非保持時はアイコンが非表示
+- [ ] 進行度に応じてアイコンがコンベアライン上を移動する（進行度0で入力エッジ位置）
+
+### リファクタリング候補（テスト不要・挙動維持）
+- [ ] piece.gd のコンベア専用コード（_conveyor_line / _input_direction / set_input_direction / _refresh_conveyor_line）を conveyor.gd へ移管
+- [ ] NeighborManager の piece.piece_type == CONVEYOR 判定を piece is Conveyor に変更
+
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
 - [ ] 強化鉄板のレシピを追加する（複数入力対応後）
