@@ -89,6 +89,10 @@ class TestConveyorVisuals:
 		var in_edge = conveyor._conveyor_line.get_point_position(0)
 		assert_almost_eq(conveyor.get_node("ItemIcon").position, in_edge, Vector2(0.1, 0.1))
 
+	func test_アイテムアイコンはコンベアラインより手前に描画される():
+		var icon: Sprite2D = conveyor.get_node("ItemIcon")
+		assert_gt(icon.z_index, conveyor._conveyor_line.z_index)
+
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.25)
