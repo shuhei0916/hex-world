@@ -1,93 +1,27 @@
 # todo
 
-- [ ] selected: CONVEYOR等のプリントデバッグを削除し、代わりにコンベアあるいはピースが選択された際、画面右上にその名前と、簡単な説明文をUIとして表示する。
+## 直近タスク
+
+### 不具合調査: 施設からアイテムが搬出されないことがある
 - [ ] コンベアが詰まっているわけではないのに、施設からアイテムが搬出されていない問題を調査する
-- [ ] コンベア状にあるアイテム同士の間隔を調整する（いまだとちょっと疎すぎるかなという印象）
-- [ ] shapezに合わせ、コンベア以外の建築物もコンテナ（アイテムバッファ）を持たないようにするべきか検討する。
+  - 仮説: 機械の Output が push を試みるのは inventory_changed 発火時と接続更新時のみ。
+    押し先のコンベアが後から空いても再送のきっかけがない（ConveyorLogic は tick ごとに
+    再試行するが、Output には同等の仕組みがない）。再現手順の確認から始める
 
-## ドラッグUX修正（fix/drag-ux）
+### UI: 選択中ピースの情報表示
+- [ ] hud.gd の `print("selected: ...")` デバッグ出力を削除する
+- [ ] ピース選択時、画面右上にピース名と簡単な説明文を UI として表示する
 
-### 不具合: コンベアドラッグのリリース時に中央ヘックスが一瞬白くハイライトされる
-原因仮説: stop_drag 時の _draw_preview が、_update_conveyor_path_preview で
-Vector2.ZERO にされたままの snap_preview にゴーストを描くため、中央に白タイルが出る。
-- [x] コンベアドラッグの stop_drag 後、snap_preview はホバー中のヘックス位置にある（中央 ZERO に残らない）
-
-### 機能: 右ドラッグで複数ピースを削除できるようにする
-- [x] start_delete_drag 中に新しいヘックスへ hover すると、そのヘックスのピースが削除される
-- [x] stop_delete_drag 後は hover してもピースが削除されない
-- [x] 削除ドラッグはピース未選択時のみ発動する（main の右クリック既存挙動と整合）
-
-## 効果音の導入（feature/sfx）
-
-assets/sounds/sfx の素材（shapez由来）を使用する。
-
-### Chunkシグナル
-- [x] place_piece すると piece_placed シグナルが発火する
-- [x] remove_piece_at が成功すると piece_removed シグナルが発火する
-- [x] remove_piece_at が失敗したときは piece_removed は発火しない
-
-### SfxPlayer
-- [x] ピース設置で place_building.wav が再生される
-- [x] コンベア設置では place_belt.wav が再生される
-- [x] ピース削除で destroy_building.wav が再生される
-- [x] ツールバーでピースを選択すると ui_click.wav が再生される
-- [x] ツールバー選択解除（null）では音が鳴らない
-
-### 統合
-- [x] main シーンでピースを設置すると音が鳴る（配線確認）
-- [x] 起動時の DELIVERY ZONE 自動配置では音が鳴らない（接続順で担保）
-
-### コンベアドラッグ時の発音（1本ごと）
-- [x] ドラッグパスにコンベアが1本追加されるたび PiecePlacer がシグナルを発火する
-- [x] パス追加に失敗したとき（重複ヘックス等）はシグナルを発火しない
-- [x] パス追加シグナルで place_belt.wav が再生される
-- [x] コンベアの piece_placed（リリース時の一括設置）では音を重ねて鳴らさない
-- [x] 統合: main でドラッグパスに追加すると音が鳴る
-
-## コンベア専用化・1アイテム保持モデル（feature/conveyor-single-item）
-
-shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベース搬送」に変更する。
-インベントリ(カウント式バッファ)はコンベアから廃止する。
-
-### 保持モデル
-- [x] conveyor.tscn のルートは Conveyor 型である（piece is Conveyor が true）
-- [x] 空のコンベアは can_accept_item が true を返す（既存挙動で充足・保持中テストの対で担保）
-- [x] add_item したアイテムは get_item_count で数えられる
-- [x] アイテム保持中のコンベアは can_accept_item が false を返す（容量1）
-
-### 搬送
-- [x] tick 0.4秒ではアイテムは接続先に渡らない
-- [x] tick 0.5秒でアイテムが接続先ピースに渡る（既存テスト「Outputから接続先ピースへアイテムが搬出される」で担保）
-- [x] 転送後、コンベアは空になる（get_item_count が 0）
-- [x] 転送後、コンベアは再び受け入れ可能になる（can_accept_item が true）
-- [x] 接続先が受け入れ不可の間、アイテムは保持されたまま消えない
-- [x] 接続先が受け入れ可能になったら、その後の tick で転送される
-- [x] 接続先が存在しない場合、アイテムは保持されたまま
-
-### 接続（Chunk/NeighborManager 経由）
-- [x] Chunk に配置したコンベアに接続先が設定され、隣のピースへアイテムが流れる（既存テストで担保）
-- [x] 機械の Output からコンベアへアイテムが push される
-- [x] コンベア→コンベアのチェーンでアイテムが1個ずつ流れる
-
-### シーン構造
-- [x] conveyor は Input ノードを持たない
-- [x] conveyor は Output ノードを持たない
-- [x] splitter も同モデルに移行する（splitter.tscn は ConveyorLogic を共有しているため。2出力のラウンドロビン分配は維持）
-
-### 表示
-- [x] アイテム保持中はアイコンが表示される
-- [x] アイテム非保持時はアイコンが非表示
-- [x] 進行度に応じてアイコンがコンベアライン上を移動する（進行度0で入力エッジ位置）
-
-### リファクタリング候補（テスト不要・挙動維持）
-- [x] piece.gd のコンベア専用コード（_conveyor_line / _input_direction / set_input_direction / _refresh_conveyor_line）を conveyor.gd へ移管
-- [x] NeighborManager の piece.piece_type == CONVEYOR 判定を piece is Conveyor に変更
+### コンベア上のアイテム間隔の調整
+- [ ] アイテム同士の間隔が疎すぎる印象があるため調整する
+  - 現仕様は 1ヘックス=最大1アイテム。参考: shapez は itemSpacingOnBelts = 0.63 タイル
+  - 1コンベアに複数アイテムを載せるなら「コンベアアイテム搬送アニメーション（TransportLine方式）」
+    （将来検討の項）と合わせて設計する
 
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
 - [ ] 強化鉄板のレシピを追加する（複数入力対応後）
 - [ ] mixerでscrewを生産するなど、直感的でないレシピを調整する。
-
 
 ### 納品所（Delivery Zone）実装
 - [ ] 地面のタイルを多様化させる（kenney assetsを使うのもありかも）
@@ -97,23 +31,6 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 - [ ] グリッドの上をキャラクターが移動したり（chessのような感じ）、敵と戦ったりできる要素（gloomhavenなど）
 
 ## リファクタリング
-
-### 次期大型タスク候補: 継承から合成へ（shapez ECS 風）
-conveyor.gd extends Piece の継承を解消し、Piece を「配置・形状・ポート」の薄い殻にする。
-shapez の Entity+Component、Godot の composition 哲学の両方に揃える。
-
-- [x] ステップ1: アイテム受け入れ口をピース本体からコンポーネントへ移す
-  - [x] PieceInput は can_accept_item を実装する（満杯でなければ true）
-  - [x] 満杯の PieceInput は can_accept_item が false を返す
-  - [x] ConveyorLogic は can_accept_item / add_item を実装する（保持中は false）
-  - [x] 機械ピースの get_acceptor は Input コンポーネントを返す
-  - [x] コンベアの get_acceptor は ConveyorLogic を返す
-  - [x] 受け入れ口を持たないピース（MINER）の get_acceptor は null を返す
-  - [x] Piece の can_accept_item / add_item / get_item_count を acceptor 経由のファサードに置き換える（挙動維持・既存テストで担保）
-- [x] ステップ2: Output / ConveyorLogic の搬出先解決は Piece ファサード(can_accept_item/add_item→acceptor委譲)経由で実現（ステップ1で同時達成）
-- [x] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
-- [x] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
-- 効果: 新ピース追加が「シーンに子ノードを足すだけ」になる。命名リネーム（piece→building）を実施するならこの直後が最小コスト
 
 ### テストの棚卸し（動作するドキュメント化）
 - [ ] 振る舞いテストに包含された足場テスト（型チェック・存在確認のみのテスト）を削除する
@@ -129,11 +46,14 @@ shapez の Entity+Component、Godot の composition 哲学の両方に揃える�
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
+- [ ] shapez に合わせ、コンベア以外の建築物もコンテナ（アイテムバッファ）を持たない設計にするか検討する
+  - shapez は機械も「1スロット1アイテム」でカウント式バッファは Storage 専用建物のみ
+  - 全廃しない場合も、capacity 20 を「レシピ必要数の2倍」程度に縮小すれば詰まりの可視性が上がる
 - [ ] 命名を shapez に揃えるリネーム検討（piece → building 等）
   - 背景: 本プロジェクトは六角形版 shapez を軸としており、アイコン・音素材も shapez 語彙（belt, balancer, place_building 等）のため、コードとアセットで用語がずれている
   - 影響範囲: gd ファイル25個・約630箇所（Piece/PieceData/PiecePlacer/piece_registry/get_piece_at_hex 等）+ ディレクトリ名・シーンパス・テスト名
   - 留意点: パズル要素（piece_shape, PiecePlacer）は piece の方が自然な箇所もあるため、一括置換ではなく対訳表を作ってから実施する
-- [x] Conveyor extends Piece 継承に切り出す（feature/conveyor-single-item で実施済み）
+  - 合成リファクタリング（実施済み）の直後である今が比較的低コスト
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
