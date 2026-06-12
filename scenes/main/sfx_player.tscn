@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://sfxplayer001"]
+
+[ext_resource type="Script" uid="uid://bnexsjbabgesn" path="res://scenes/main/sfx_player.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://b8smhodhxq7yu" path="res://assets/sounds/sfx/place_building.wav" id="2_place_building"]
+[ext_resource type="AudioStream" uid="uid://csosrk1kfdw2q" path="res://assets/sounds/sfx/place_belt.wav" id="3_place_belt"]
+[ext_resource type="AudioStream" uid="uid://nwlxx5x2lh3c" path="res://assets/sounds/sfx/destroy_building.wav" id="4_destroy"]
+[ext_resource type="AudioStream" uid="uid://be3yaoy73r7pf" path="res://assets/sounds/sfx/ui_click.wav" id="5_ui_click"]
+
+[node name="SfxPlayer" type="Node" unique_id=1570466865]
+script = ExtResource("1_script")
+
+[node name="PlaceBuilding" type="AudioStreamPlayer" parent="." unique_id=1885542657]
+volume_db = -6.0
+stream = ExtResource("2_place_building")
+
+[node name="PlaceBelt" type="AudioStreamPlayer" parent="." unique_id=495058276]
+volume_db = -6.0
+stream = ExtResource("3_place_belt")
+
+[node name="DestroyBuilding" type="AudioStreamPlayer" parent="." unique_id=237517180]
+volume_db = -6.0
+stream = ExtResource("4_destroy")
+
+[node name="UiClick" type="AudioStreamPlayer" parent="." unique_id=1783296922]
+volume_db = -6.0
+stream = ExtResource("5_ui_click")
