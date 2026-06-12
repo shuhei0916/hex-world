@@ -1,5 +1,25 @@
 # todo
 
+## 効果音の導入（feature/sfx）
+
+assets/sounds/sfx の素材（shapez由来）を使用する。
+
+### Chunkシグナル
+- [ ] place_piece すると piece_placed シグナルが発火する
+- [ ] remove_piece_at が成功すると piece_removed シグナルが発火する
+- [ ] remove_piece_at が失敗したときは piece_removed は発火しない
+
+### SfxPlayer
+- [ ] ピース設置で place_building.wav が再生される
+- [ ] コンベア設置では place_belt.wav が再生される
+- [ ] ピース削除で destroy_building.wav が再生される
+- [ ] ツールバーでピースを選択すると ui_click.wav が再生される
+- [ ] ツールバー選択解除（null）では音が鳴らない
+
+### 統合
+- [ ] main シーンでピースを設置すると音が鳴る（配線確認）
+- [ ] 起動時の DELIVERY ZONE 自動配置では音が鳴らない（接続順で担保）
+
 ## コンベア専用化・1アイテム保持モデル（feature/conveyor-single-item）
 
 shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベース搬送」に変更する。
@@ -62,6 +82,10 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
+- [ ] 命名を shapez に揃えるリネーム検討（piece → building 等）
+  - 背景: 本プロジェクトは六角形版 shapez を軸としており、アイコン・音素材も shapez 語彙（belt, balancer, place_building 等）のため、コードとアセットで用語がずれている
+  - 影響範囲: gd ファイル25個・約630箇所（Piece/PieceData/PiecePlacer/piece_registry/get_piece_at_hex 等）+ ディレクトリ名・シーンパス・テスト名
+  - 留意点: パズル要素（piece_shape, PiecePlacer）は piece の方が自然な箇所もあるため、一括置換ではなく対訳表を作ってから実施する
 - [x] Conveyor extends Piece 継承に切り出す（feature/conveyor-single-item で実施済み）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
