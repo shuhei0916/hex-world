@@ -7,6 +7,7 @@ extends Node
 @onready var _place_building: AudioStreamPlayer = $PlaceBuilding
 @onready var _place_belt: AudioStreamPlayer = $PlaceBelt
 @onready var _destroy_building: AudioStreamPlayer = $DestroyBuilding
+@onready var _ui_click: AudioStreamPlayer = $UiClick
 
 
 func on_piece_placed(piece: Piece):
@@ -18,3 +19,8 @@ func on_piece_placed(piece: Piece):
 
 func on_piece_removed():
 	_destroy_building.play()
+
+
+func on_slot_selected(scene: PackedScene):
+	if scene:
+		_ui_click.play()

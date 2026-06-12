@@ -34,3 +34,8 @@ func test_コンベア設置ではplace_beltが再生される():
 func test_ピース削除でdestroy_buildingが再生される():
 	sfx.on_piece_removed()
 	assert_true(sfx.get_node("DestroyBuilding").playing)
+
+
+func test_ツールバーでピースを選択するとui_clickが再生される():
+	sfx.on_slot_selected(CONVEYOR_SCENE)
+	assert_true(sfx.get_node("UiClick").playing)
