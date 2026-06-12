@@ -16,15 +16,15 @@ const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
 
 var _scenes: Array[PackedScene] = [
+	CONVEYOR_SCENE,
+	SPLITTER_SCENE,
 	MINER_SCENE,
 	SMELTER_SCENE,
 	ASSEMBLER_SCENE,
 	CUTTER_SCENE,
-	CONVEYOR_SCENE,
 	MIXER_SCENE,
 	PAINTER_SCENE,
 	CHEST_SCENE,
-	SPLITTER_SCENE,
 ]
 
 @onready var toolbar: HBoxContainer = $ToolBar
