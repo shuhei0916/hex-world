@@ -15,10 +15,10 @@ class TestConveyorShape:
 		add_child_autofree(piece)
 		assert_eq(piece.piece_shape.size(), 1)
 
-	func test_conveyorのルートはConveyor型である():
+	func test_conveyorのルートは汎用Pieceである():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_true(piece is Conveyor)
+		assert_eq(piece.get_script().resource_path, "res://scenes/components/piece/piece.gd")
 
 	func test_conveyorはInputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()

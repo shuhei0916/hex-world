@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://splitter0001"]
 
-[ext_resource type="Script" path="res://scenes/components/piece/conveyor.gd" id="1_piece"]
+[ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
 [ext_resource type="Script" path="res://scenes/components/piece/conveyor_visuals.gd" id="7_conveyor_visuals"]
 

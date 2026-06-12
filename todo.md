@@ -106,8 +106,8 @@ shapez の Entity+Component、Godot の composition 哲学の両方に揃える�
   - [x] 受け入れ口を持たないピース（MINER）の get_acceptor は null を返す
   - [x] Piece の can_accept_item / add_item / get_item_count を acceptor 経由のファサードに置き換える（挙動維持・既存テストで担保）
 - [x] ステップ2: Output / ConveyorLogic の搬出先解決は Piece ファサード(can_accept_item/add_item→acceptor委譲)経由で実現（ステップ1で同時達成）
-- [ ] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
-- [ ] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
+- [x] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
+- [x] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
 - 効果: 新ピース追加が「シーンに子ノードを足すだけ」になる。命名リネーム（piece→building）を実施するならこの直後が最小コスト
 
 ### テストの棚卸し（動作するドキュメント化）
