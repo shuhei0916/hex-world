@@ -16,6 +16,7 @@ func _ready():
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
+	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 
 
 func _on_hud_slot_selected(scene: PackedScene):

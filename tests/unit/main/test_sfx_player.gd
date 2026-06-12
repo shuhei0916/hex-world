@@ -25,10 +25,15 @@ func test_ピース設置でplace_buildingが再生される():
 	assert_true(sfx.get_node("PlaceBuilding").playing)
 
 
-func test_コンベア設置ではplace_beltが再生される():
+func test_ドラッグパスへのコンベア追加でplace_beltが再生される():
+	sfx.on_conveyor_path_extended()
+	assert_true(sfx.get_node("PlaceBelt").playing)
+
+
+func test_コンベアの一括設置イベントでは音を重ねて鳴らさない():
 	piece = CONVEYOR_SCENE.instantiate()
 	sfx.on_piece_placed(piece)
-	assert_true(sfx.get_node("PlaceBelt").playing)
+	assert_false(sfx.get_node("PlaceBelt").playing or sfx.get_node("PlaceBuilding").playing)
 
 
 func test_ピース削除でdestroy_buildingが再生される():

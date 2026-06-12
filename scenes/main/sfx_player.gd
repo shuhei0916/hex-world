@@ -11,10 +11,15 @@ extends Node
 
 
 func on_piece_placed(piece: Piece):
+	# コンベアはドラッグパス追加時(conveyor_path_extended)に1本ずつ鳴らすため、
+	# リリース時の一括設置では重ねて鳴らさない
 	if piece.piece_type == PieceData.Type.CONVEYOR:
-		_place_belt.play()
-	else:
-		_place_building.play()
+		return
+	_place_building.play()
+
+
+func on_conveyor_path_extended():
+	_place_belt.play()
 
 
 func on_piece_removed():
