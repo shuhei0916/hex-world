@@ -188,6 +188,14 @@ func _refresh_output_arrow():
 		add_child(_output_arrow2)
 
 
+func get_acceptor() -> Node:
+	# アイテム受け入れ口となるコンポーネント（shapez の ItemAcceptor 相当）を返す
+	for child in get_children():
+		if child.has_method("can_accept_item") and child.has_method("add_item"):
+			return child
+	return null
+
+
 func can_accept_item(_item_name: String) -> bool:
 	if not input_storage:
 		return false
