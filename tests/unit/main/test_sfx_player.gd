@@ -19,6 +19,14 @@ func after_each():
 		piece.free()
 
 
+func test_全プレイヤーの音量が減衰されている():
+	var all_attenuated = true
+	for player in sfx.get_children():
+		if player is AudioStreamPlayer and player.volume_db > -6.0:
+			all_attenuated = false
+	assert_true(all_attenuated, "各AudioStreamPlayerはvolume_db -6.0以下であるべき")
+
+
 func test_ピース設置でplace_buildingが再生される():
 	piece = SMELTER_SCENE.instantiate()
 	sfx.on_piece_placed(piece)
