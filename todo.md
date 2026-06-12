@@ -62,10 +62,7 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
-- [ ] Conveyor extends Piece 継承に切り出す（splitter/merger 実装前に実施）
-  - conveyor.gd を新規作成、_conveyor_line / _input_direction / _refresh_conveyor_line / set_input_direction を移管
-  - piece.gd からコンベア専用コードを削除、piece_type 判定も撤廃
-  - NeighborManager の piece.piece_type == CONVEYOR を piece is Conveyor に変更
+- [x] Conveyor extends Piece 継承に切り出す（feature/conveyor-single-item で実施済み）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
