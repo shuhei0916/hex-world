@@ -22,6 +22,8 @@ func _process(delta: float):
 func tick(delta: float):
 	if not _input or not _output:
 		return
+	if not _output.is_empty():
+		_output.try_push()
 	if _input.get_total_item_count() == 0:
 		_progress = 0.0
 		return

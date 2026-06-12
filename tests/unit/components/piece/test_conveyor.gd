@@ -103,6 +103,19 @@ class TestConveyorConnection:
 		conv_a.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conv_a.get_item_count("iron_plate"), 1)
 
+	func test_接続先が受け入れ可能になったらその後のtickで転送される():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
+		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		conv_b.add_item("iron_plate", 1)
+		conv_a.add_item("iron_plate", 1)
+		conv_a.get_node("ConveyorLogic").tick(0.5)  # B が保持中なので渡せない
+		conv_b.get_node("ConveyorLogic").tick(0.5)  # B が chest へ搬出し空になる
+		conv_a.get_node("ConveyorLogic").tick(0.5)  # A から B へ渡れるはず
+		assert_eq(conv_b.get_item_count("iron_plate"), 1)
+
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン
 		# (1,0)のコンベアは West(3) 側から入力を受け取るべき
