@@ -105,8 +105,9 @@ func set_output_multiplier(n: int):
 
 
 func add_item(item_name: String, amount: int):
-	if input_storage:
-		input_storage.add_item(item_name, amount)
+	var acceptor = get_acceptor()
+	if acceptor:
+		acceptor.add_item(item_name, amount)
 
 
 func add_to_output(item_name: String, amount: int):
@@ -116,10 +117,9 @@ func add_to_output(item_name: String, amount: int):
 
 func get_item_count(item_name: String) -> int:
 	var count = 0
-	if input_storage:
-		count += input_storage.get_item_count(item_name)
-	if output:
-		count += output.get_item_count(item_name)
+	for child in get_children():
+		if child.has_method("get_item_count"):
+			count += child.get_item_count(item_name)
 	return count
 
 
@@ -196,10 +196,9 @@ func get_acceptor() -> Node:
 	return null
 
 
-func can_accept_item(_item_name: String) -> bool:
-	if not input_storage:
-		return false
-	return not input_storage.is_full()
+func can_accept_item(item_name: String) -> bool:
+	var acceptor = get_acceptor()
+	return acceptor != null and acceptor.can_accept_item(item_name)
 
 
 func set_connected_pieces(pieces: Array) -> void:

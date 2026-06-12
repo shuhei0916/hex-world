@@ -82,18 +82,6 @@ func _item_position_on_line() -> Vector2:
 	return center.lerp(out_edge, (t - 0.5) * 2.0)
 
 
-func can_accept_item(item_name: String) -> bool:
-	return _logic.can_accept_item(item_name)
-
-
-func add_item(item_name: String, _amount: int):
-	_logic.receive_item(item_name)
-
-
-func get_item_count(item_name: String) -> int:
-	return 1 if _logic.held_item == item_name else 0
-
-
 func set_connected_pieces(pieces: Array) -> void:
 	_logic.connected_pieces = pieces
 

@@ -26,6 +26,10 @@ func add_item(item_name: String, _amount: int):
 	receive_item(item_name)
 
 
+func get_item_count(item_name: String) -> int:
+	return 1 if held_item == item_name else 0
+
+
 func receive_item(item_name: String):
 	if held_item != "":
 		return
