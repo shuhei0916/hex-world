@@ -18,8 +18,24 @@ func _process(delta: float):
 	tick(delta)
 
 
-func can_accept() -> bool:
+func set_connected_pieces(pieces: Array) -> void:
+	connected_pieces = pieces
+
+
+func get_connected_pieces() -> Array:
+	return connected_pieces
+
+
+func can_accept_item(_item_name: String) -> bool:
 	return held_item == ""
+
+
+func add_item(item_name: String, _amount: int):
+	receive_item(item_name)
+
+
+func get_item_count(item_name: String) -> int:
+	return 1 if held_item == item_name else 0
 
 
 func receive_item(item_name: String):

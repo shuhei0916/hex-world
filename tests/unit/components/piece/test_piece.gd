@@ -98,6 +98,27 @@ class TestPieceTransformation:
 		assert_eq(s.input_storage.position, expected)
 
 
+class TestPieceAcceptor:
+	extends GutTest
+
+	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+
+	func test_機械ピースのget_acceptorはInputコンポーネントを返す():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_eq(p.get_acceptor(), p.get_node("Input"))
+
+	func test_コンベアのget_acceptorはConveyorLogicを返す():
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_eq(p.get_acceptor(), p.get_node("ConveyorLogic"))
+
+	func test_受け入れ口を持たないピースのget_acceptorはnullを返す():
+		var p = MINER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_null(p.get_acceptor())
+
+
 class TestPieceRoles:
 	extends GutTest
 

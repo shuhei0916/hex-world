@@ -15,10 +15,10 @@ class TestConveyorShape:
 		add_child_autofree(piece)
 		assert_eq(piece.piece_shape.size(), 1)
 
-	func test_conveyorのルートはConveyor型である():
+	func test_conveyorのルートは汎用Pieceである():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_true(piece is Conveyor)
+		assert_eq(piece.get_script().resource_path, "res://scenes/components/piece/piece.gd")
 
 	func test_conveyorはInputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
@@ -45,6 +45,11 @@ class TestConveyorLogic:
 		conveyor.add_item("iron_plate", 1)
 		assert_false(conveyor.can_accept_item("iron_plate"))
 
+	func test_ConveyorLogicはadd_itemで受け入れcan_accept_itemで容量を答える():
+		var logic = conveyor.get_node("ConveyorLogic")
+		logic.add_item("iron_plate", 1)
+		assert_false(logic.can_accept_item("iron_plate"))
+
 	func test_add_itemしたアイテムはget_item_countで数えられる():
 		conveyor.add_item("iron_plate", 1)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
@@ -70,35 +75,42 @@ class TestConveyorVisuals:
 		add_child_autofree(conveyor)
 		conveyor.setup()
 
+	func test_ライン描画はConveyorVisualsコンポーネントが担う():
+		assert_not_null(conveyor.get_node("ConveyorVisuals")._line)
+
 	func test_アイテム保持中はアイコンが表示される():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.tick(0.0)
-		var icon: Sprite2D = conveyor.get_node_or_null("ItemIcon")
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var icon: Sprite2D = conveyor.get_node_or_null("ConveyorVisuals/ItemIcon")
 		assert_true(icon != null and icon.visible)
 
 	func test_アイテム非保持時はアイコンが非表示():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.tick(0.0)
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		conveyor.get_node("ConveyorLogic").held_item = ""  # 搬出済み相当
-		conveyor.tick(0.0)
-		assert_false(conveyor.get_node("ItemIcon").visible)
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		assert_false(conveyor.get_node("ConveyorVisuals/ItemIcon").visible)
 
 	func test_進行度0でアイコンは入力エッジ位置にある():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.tick(0.0)
-		var in_edge = conveyor._conveyor_line.get_point_position(0)
-		assert_almost_eq(conveyor.get_node("ItemIcon").position, in_edge, Vector2(0.1, 0.1))
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var in_edge = conveyor.get_node("ConveyorVisuals")._line.get_point_position(0)
+		assert_almost_eq(
+			conveyor.get_node("ConveyorVisuals/ItemIcon").position, in_edge, Vector2(0.1, 0.1)
+		)
 
 	func test_アイテムアイコンはコンベアラインより手前に描画される():
-		var icon: Sprite2D = conveyor.get_node("ItemIcon")
-		assert_gt(icon.z_index, conveyor._conveyor_line.z_index)
+		var icon: Sprite2D = conveyor.get_node("ConveyorVisuals/ItemIcon")
+		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._line.z_index)
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.25)
-		conveyor.tick(0.0)
-		var center = conveyor._conveyor_line.get_point_position(1)
-		assert_almost_eq(conveyor.get_node("ItemIcon").position, center, Vector2(0.1, 0.1))
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var center = conveyor.get_node("ConveyorVisuals")._line.get_point_position(1)
+		assert_almost_eq(
+			conveyor.get_node("ConveyorVisuals/ItemIcon").position, center, Vector2(0.1, 0.1)
+		)
 
 
 class TestConveyorConnection:
@@ -201,6 +213,6 @@ class TestConveyorConnection:
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 0)  # East 方向（接続先）
 		var bend = gm.get_piece_at_hex(Hex.new(1, 0))
 		var layout = Layout.make_default()
-		var in_edge = bend._conveyor_line.get_point_position(0)
+		var in_edge = bend.get_node("ConveyorVisuals")._line.get_point_position(0)
 		var expected = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
 		assert_almost_eq(in_edge.x, expected.x, 0.1)

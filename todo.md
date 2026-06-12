@@ -1,5 +1,10 @@
 # todo
 
+- [ ] selected: CONVEYOR等のプリントデバッグを削除し、代わりにコンベアあるいはピースが選択された際、画面右上にその名前と、簡単な説明文をUIとして表示する。
+- [ ] コンベアが詰まっているわけではないのに、施設からアイテムが搬出されていない問題を調査する
+- [ ] コンベア状にあるアイテム同士の間隔を調整する（いまだとちょっと疎すぎるかなという印象）
+- [ ] shapezに合わせ、コンベア以外の建築物もコンテナ（アイテムバッファ）を持たないようにするべきか検討する。
+
 ## ドラッグUX修正（fix/drag-ux）
 
 ### 不具合: コンベアドラッグのリリース時に中央ヘックスが一瞬白くハイライトされる
@@ -97,12 +102,17 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 conveyor.gd extends Piece の継承を解消し、Piece を「配置・形状・ポート」の薄い殻にする。
 shapez の Entity+Component、Godot の composition 哲学の両方に揃える。
 
-- [ ] ステップ1: アイテム受け入れ口をピース本体からコンポーネントへ移す
-  - Input / ConveyorLogic が can_accept_item / add_item を直接実装（shapez の ItemAcceptor 相当）
-  - Piece は get_acceptor() で受け入れコンポーネントを返すだけ（なければ null = 受け入れ不可）
-- [ ] ステップ2: Output / ConveyorLogic の搬出先解決を「隣のピース」から「隣のピースの acceptor」に変更
-- [ ] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
-- [ ] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
+- [x] ステップ1: アイテム受け入れ口をピース本体からコンポーネントへ移す
+  - [x] PieceInput は can_accept_item を実装する（満杯でなければ true）
+  - [x] 満杯の PieceInput は can_accept_item が false を返す
+  - [x] ConveyorLogic は can_accept_item / add_item を実装する（保持中は false）
+  - [x] 機械ピースの get_acceptor は Input コンポーネントを返す
+  - [x] コンベアの get_acceptor は ConveyorLogic を返す
+  - [x] 受け入れ口を持たないピース（MINER）の get_acceptor は null を返す
+  - [x] Piece の can_accept_item / add_item / get_item_count を acceptor 経由のファサードに置き換える（挙動維持・既存テストで担保）
+- [x] ステップ2: Output / ConveyorLogic の搬出先解決は Piece ファサード(can_accept_item/add_item→acceptor委譲)経由で実現（ステップ1で同時達成）
+- [x] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
+- [x] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
 - 効果: 新ピース追加が「シーンに子ノードを足すだけ」になる。命名リネーム（piece→building）を実施するならこの直後が最小コスト
 
 ### テストの棚卸し（動作するドキュメント化）

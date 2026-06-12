@@ -3,6 +3,7 @@ class_name Piece
 extends Node2D
 
 signal recipe_changed(recipe: Recipe)
+signal shape_changed
 
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
@@ -88,6 +89,7 @@ func setup(rotation: int = 0):
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
+	shape_changed.emit()
 
 
 func set_recipe(recipe: Recipe):
@@ -105,8 +107,9 @@ func set_output_multiplier(n: int):
 
 
 func add_item(item_name: String, amount: int):
-	if input_storage:
-		input_storage.add_item(item_name, amount)
+	var acceptor = get_acceptor()
+	if acceptor:
+		acceptor.add_item(item_name, amount)
 
 
 func add_to_output(item_name: String, amount: int):
@@ -116,10 +119,9 @@ func add_to_output(item_name: String, amount: int):
 
 func get_item_count(item_name: String) -> int:
 	var count = 0
-	if input_storage:
-		count += input_storage.get_item_count(item_name)
-	if output:
-		count += output.get_item_count(item_name)
+	for child in get_children():
+		if child.has_method("get_item_count"):
+			count += child.get_item_count(item_name)
 	return count
 
 
@@ -143,6 +145,7 @@ func rotate_cw():
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
+	shape_changed.emit()
 
 
 func _update_component_positions():
@@ -188,21 +191,30 @@ func _refresh_output_arrow():
 		add_child(_output_arrow2)
 
 
-func can_accept_item(_item_name: String) -> bool:
-	if not input_storage:
-		return false
-	return not input_storage.is_full()
+func get_acceptor() -> Node:
+	# アイテム受け入れ口となるコンポーネント（shapez の ItemAcceptor 相当）を返す
+	for child in get_children():
+		if child.has_method("can_accept_item") and child.has_method("add_item"):
+			return child
+	return null
+
+
+func can_accept_item(item_name: String) -> bool:
+	var acceptor = get_acceptor()
+	return acceptor != null and acceptor.can_accept_item(item_name)
 
 
 func set_connected_pieces(pieces: Array) -> void:
-	if output:
-		output.connected_pieces = pieces
-		output.try_push()
+	for child in get_children():
+		if child.has_method("set_connected_pieces"):
+			child.set_connected_pieces(pieces)
+			return
 
 
 func get_connected_pieces() -> Array:
-	if output:
-		return output.connected_pieces
+	for child in get_children():
+		if child.has_method("get_connected_pieces"):
+			return child.get_connected_pieces()
 	return []
 
 
