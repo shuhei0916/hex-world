@@ -29,7 +29,9 @@
       "Bash(tar -tzf shapez.tar.gz)",
       "Bash(grep -E \"src/game/\\(systems|components\\)/.*\\\\.js$\")",
       "Bash(tar -tzf /tmp/shapez.tar.gz)",
-      "Bash(grep -iE \"\\(sound|sprite|asset|\\\\.png$|\\\\.mp3$|\\\\.ogg$|\\\\.wav$|res/\\)\")"
+      "Bash(grep -iE \"\\(sound|sprite|asset|\\\\.png$|\\\\.mp3$|\\\\.ogg$|\\\\.wav$|res/\\)\")",
+      "Read(//mnt/c/Users/Ito/projects/shapez.io/**)",
+      "Read(//mnt/c/Users/Ito/projects/shapez.io/src/js/**)"
     ],
     "deny": [],
     "ask": []

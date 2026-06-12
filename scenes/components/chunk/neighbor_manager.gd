@@ -45,15 +45,13 @@ func _update_piece_neighbors(piece: Piece) -> void:
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
 
-	if piece.output:
-		piece.output.connected_pieces = current_connections
-		piece.output.try_push()
+	piece.set_connected_pieces(current_connections)
 
 	_update_conveyor_input_direction(piece)
 
 
 func _update_conveyor_input_direction(piece: Piece) -> void:
-	if piece.piece_type != PieceData.Type.CONVEYOR:
+	if not piece is Conveyor:
 		return
 	var base_hex = _registry.get_base_hex(piece)
 	if base_hex == null:

@@ -40,7 +40,7 @@ class TestSplitterConnection:
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
-		assert_eq(splitter.output.connected_pieces.size(), 2)
+		assert_eq(splitter.get_connected_pieces().size(), 2)
 
 	func test_アイテムがラウンドロビンで2方向に分配される():
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
@@ -67,7 +67,7 @@ class TestSplitterConnection:
 		var conv_e = gm.get_piece_at_hex(Hex.new(1, 0))
 		var conv_se = gm.get_piece_at_hex(Hex.new(0, 1))
 		# 各コンベアが正しいchestに繋がっているか確認
-		assert_eq(splitter.output.connected_pieces.size(), 2, "Splitterは2方向に接続されるべき")
+		assert_eq(splitter.get_connected_pieces().size(), 2, "Splitterは2方向に接続されるべき")
 		splitter.add_item("iron_ore", 1)
 		splitter.get_node("ConveyorLogic").tick(0.5)
 		splitter.add_item("iron_ore", 1)

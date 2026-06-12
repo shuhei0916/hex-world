@@ -3,6 +3,7 @@ extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 
@@ -14,15 +15,20 @@ class TestConveyorShape:
 		add_child_autofree(piece)
 		assert_eq(piece.piece_shape.size(), 1)
 
-	func test_conveyorはInputノードを持つ():
+	func test_conveyorのルートはConveyor型である():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_not_null(piece.get_node_or_null("Input"))
+		assert_true(piece is Conveyor)
 
-	func test_conveyorはOutputノードを持つ():
+	func test_conveyorはInputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_not_null(piece.get_node_or_null("Output"))
+		assert_null(piece.get_node_or_null("Input"))
+
+	func test_conveyorはOutputノードを持たない():
+		var piece = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(piece)
+		assert_null(piece.get_node_or_null("Output"))
 
 
 class TestConveyorLogic:
@@ -35,27 +41,64 @@ class TestConveyorLogic:
 		add_child_autofree(conveyor)
 		conveyor.setup()
 
-	func test_add_itemするとInputインベントリに格納される():
+	func test_アイテム保持中はcan_accept_itemがfalseを返す():
 		conveyor.add_item("iron_plate", 1)
-		assert_eq(conveyor.input_storage.get_item_count("iron_plate"), 1)
+		assert_false(conveyor.can_accept_item("iron_plate"))
 
-	func test_tick_0_4秒ではアイテムはOutputに転送されない():
+	func test_add_itemしたアイテムはget_item_countで数えられる():
 		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.4)
-		assert_eq(conveyor.output.get_item_count("iron_plate"), 0)
+		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
-	func test_tick_0_5秒でアイテムがOutputに転送される():
+	func test_接続先がない場合tick0_5でもアイテムは保持されたまま():
 		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.5)
-		assert_eq(conveyor.output.get_item_count("iron_plate"), 1)
+		conveyor.get_node("ConveyorLogic").tick(0.5)
+		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
-	func test_転送後はInputインベントリが空になる():
+	func test_接続先がない場合tick0_4でもアイテムは保持されたまま():
 		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.5)
-		assert_eq(conveyor.input_storage.get_item_count("iron_plate"), 0)
+		conveyor.get_node("ConveyorLogic").tick(0.4)
+		assert_eq(conveyor.get_item_count("iron_plate"), 1)
+
+
+class TestConveyorVisuals:
+	extends GutTest
+
+	var conveyor
+
+	func before_each():
+		conveyor = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(conveyor)
+		conveyor.setup()
+
+	func test_アイテム保持中はアイコンが表示される():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		var icon: Sprite2D = conveyor.get_node_or_null("ItemIcon")
+		assert_true(icon != null and icon.visible)
+
+	func test_アイテム非保持時はアイコンが非表示():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		conveyor.get_node("ConveyorLogic").held_item = ""  # 搬出済み相当
+		conveyor.tick(0.0)
+		assert_false(conveyor.get_node("ItemIcon").visible)
+
+	func test_進行度0でアイコンは入力エッジ位置にある():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		var in_edge = conveyor._conveyor_line.get_point_position(0)
+		assert_almost_eq(conveyor.get_node("ItemIcon").position, in_edge, Vector2(0.1, 0.1))
+
+	func test_アイテムアイコンはコンベアラインより手前に描画される():
+		var icon: Sprite2D = conveyor.get_node("ItemIcon")
+		assert_gt(icon.z_index, conveyor._conveyor_line.z_index)
+
+	func test_進行度半分でアイコンはライン中央にある():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)
+		conveyor.tick(0.0)
+		var center = conveyor._conveyor_line.get_point_position(1)
+		assert_almost_eq(conveyor.get_node("ItemIcon").position, center, Vector2(0.1, 0.1))
 
 
 class TestConveyorConnection:
@@ -73,9 +116,9 @@ class TestConveyorConnection:
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
-		assert_true(chest in conveyor.output.connected_pieces)
+		assert_true(chest in conveyor.get_connected_pieces())
 
-	func test_Outputから接続先ピースへアイテムが搬出される():
+	func test_tick0_5で接続先ピースへアイテムが搬出される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
@@ -83,6 +126,72 @@ class TestConveyorConnection:
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(chest.get_item_count("iron_plate"), 1)
+
+	func test_tick0_4では接続先にアイテムが渡らない():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
+		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.4)
+		assert_eq(chest.get_item_count("iron_plate"), 0)
+
+	func test_転送後コンベアは空になる():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.5)
+		assert_eq(conveyor.get_item_count("iron_plate"), 0)
+
+	func test_転送後コンベアは再び受け入れ可能になる():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.5)
+		assert_true(conveyor.can_accept_item("iron_plate"))
+
+	func test_機械のOutputからコンベアへアイテムがpushされる():
+		gm.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
+		var smelter = gm.get_piece_at_hex(Hex.new(-1, 2))
+		var conveyor = gm.get_piece_at_hex(Hex.new(0, 2))
+		smelter.add_to_output("iron_ingot", 1)
+		assert_eq(conveyor.get_item_count("iron_ingot"), 1)
+
+	func test_コンベアチェーンでアイテムが1個ずつ流れる():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
+		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		conv_a.add_item("iron_plate", 1)
+		conv_a.get_node("ConveyorLogic").tick(0.5)
+		assert_eq(conv_b.get_item_count("iron_plate"), 1)
+
+	func test_接続先が受け入れ不可の間アイテムは保持されたまま消えない():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
+		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		conv_b.add_item("iron_plate", 1)
+		conv_a.add_item("iron_plate", 1)
+		conv_a.get_node("ConveyorLogic").tick(0.5)
+		assert_eq(conv_a.get_item_count("iron_plate"), 1)
+
+	func test_接続先が受け入れ可能になったらその後のtickで転送される():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
+		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		conv_b.add_item("iron_plate", 1)
+		conv_a.add_item("iron_plate", 1)
+		conv_a.get_node("ConveyorLogic").tick(0.5)  # B が保持中なので渡せない
+		conv_b.get_node("ConveyorLogic").tick(0.5)  # B が chest へ搬出し空になる
+		conv_a.get_node("ConveyorLogic").tick(0.5)  # A から B へ渡れるはず
+		assert_eq(conv_b.get_item_count("iron_plate"), 1)
 
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン

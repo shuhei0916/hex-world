@@ -102,7 +102,7 @@ func test_CONVEYORのLine2Dは3点を持つ():
 
 func test_SMELTERをsetupしてもLine2Dは追加されない():
 	piece.setup(0)
-	assert_null(piece._conveyor_line)
+	assert_null(piece.get("_conveyor_line"))
 
 
 func test_CONVEYORをsetupすると出力方向矢印が追加される():
