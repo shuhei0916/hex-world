@@ -49,9 +49,12 @@ func _handle_mouse_click(event):
 				piece_placer.place_current_piece()
 			else:
 				piece_placer.stop_drag()
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			if hud.get_active_index() != -1:  # ツールバーで何かを選択中なら
-				hud.deselect()  # まず選択を解除する
-			elif piece_placer.current_hovered_hex != null:
-				# 何も選択していないなら、グリッド上のピースを削除する
-				chunk.remove_piece_at(piece_placer.current_hovered_hex)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				if hud.get_active_index() != -1:  # ツールバーで何かを選択中なら
+					hud.deselect()  # まず選択を解除する
+				else:
+					# 何も選択していないなら削除ドラッグ開始（ホバー中のピースも即削除）
+					piece_placer.start_delete_drag()
+			else:
+				piece_placer.stop_delete_drag()

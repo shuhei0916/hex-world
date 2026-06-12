@@ -8,9 +8,9 @@ Vector2.ZERO にされたままの snap_preview にゴーストを描くため�
 - [x] コンベアドラッグの stop_drag 後、snap_preview はホバー中のヘックス位置にある（中央 ZERO に残らない）
 
 ### 機能: 右ドラッグで複数ピースを削除できるようにする
-- [ ] start_delete_drag 中に新しいヘックスへ hover すると、そのヘックスのピースが削除される
-- [ ] stop_delete_drag 後は hover してもピースが削除されない
-- [ ] 削除ドラッグはピース未選択時のみ発動する（main の右クリック既存挙動と整合）
+- [x] start_delete_drag 中に新しいヘックスへ hover すると、そのヘックスのピースが削除される
+- [x] stop_delete_drag 後は hover してもピースが削除されない
+- [x] 削除ドラッグはピース未選択時のみ発動する（main の右クリック既存挙動と整合）
 
 ## 効果音の導入（feature/sfx）
 
