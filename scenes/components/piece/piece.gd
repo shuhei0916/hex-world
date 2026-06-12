@@ -226,6 +226,18 @@ func can_accept_item(_item_name: String) -> bool:
 	return not input_storage.is_full()
 
 
+func set_connected_pieces(pieces: Array) -> void:
+	if output:
+		output.connected_pieces = pieces
+		output.try_push()
+
+
+func get_connected_pieces() -> Array:
+	if output:
+		return output.connected_pieces
+	return []
+
+
 static func make_output_arrow(port: Dictionary) -> Sprite2D:
 	var layout = Layout.make_default()
 	var center_pos = Layout.hex_to_pixel(layout, port["hex"])

@@ -20,15 +20,15 @@ class TestConveyorShape:
 		add_child_autofree(piece)
 		assert_true(piece is Conveyor)
 
-	func test_conveyorはInputノードを持つ():
+	func test_conveyorはInputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_not_null(piece.get_node_or_null("Input"))
+		assert_null(piece.get_node_or_null("Input"))
 
-	func test_conveyorはOutputノードを持つ():
+	func test_conveyorはOutputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_not_null(piece.get_node_or_null("Output"))
+		assert_null(piece.get_node_or_null("Output"))
 
 
 class TestConveyorLogic:
@@ -40,10 +40,6 @@ class TestConveyorLogic:
 		conveyor = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(conveyor)
 		conveyor.setup()
-
-	func test_add_itemするとInputインベントリに格納される():
-		conveyor.add_item("iron_plate", 1)
-		assert_eq(conveyor.input_storage.get_item_count("iron_plate"), 1)
 
 	func test_アイテム保持中はcan_accept_itemがfalseを返す():
 		conveyor.add_item("iron_plate", 1)
@@ -58,23 +54,10 @@ class TestConveyorLogic:
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
-	func test_tick_0_4秒ではアイテムはOutputに転送されない():
+	func test_接続先がない場合tick0_4でもアイテムは保持されたまま():
 		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.4)
-		assert_eq(conveyor.output.get_item_count("iron_plate"), 0)
-
-	func test_tick_0_5秒でアイテムがOutputに転送される():
-		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.5)
-		assert_eq(conveyor.output.get_item_count("iron_plate"), 1)
-
-	func test_転送後はInputインベントリが空になる():
-		conveyor.add_item("iron_plate", 1)
-		var logic = conveyor.get_node("ConveyorLogic")
-		logic.tick(0.5)
-		assert_eq(conveyor.input_storage.get_item_count("iron_plate"), 0)
+		conveyor.get_node("ConveyorLogic").tick(0.4)
+		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
 
 class TestConveyorConnection:
@@ -92,9 +75,9 @@ class TestConveyorConnection:
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
-		assert_true(chest in conveyor.output.connected_pieces)
+		assert_true(chest in conveyor.get_connected_pieces())
 
-	func test_Outputから接続先ピースへアイテムが搬出される():
+	func test_tick0_5で接続先ピースへアイテムが搬出される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))

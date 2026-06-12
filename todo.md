@@ -26,9 +26,9 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 - [x] コンベア→コンベアのチェーンでアイテムが1個ずつ流れる
 
 ### シーン構造
-- [ ] conveyor は Input ノードを持たない
-- [ ] conveyor は Output ノードを持たない
-- [ ] splitter も同モデルに移行する（splitter.tscn は ConveyorLogic を共有しているため。2出力のラウンドロビン分配は維持）
+- [x] conveyor は Input ノードを持たない
+- [x] conveyor は Output ノードを持たない
+- [x] splitter も同モデルに移行する（splitter.tscn は ConveyorLogic を共有しているため。2出力のラウンドロビン分配は維持）
 
 ### 表示
 - [ ] アイテム保持中はアイコンが表示される

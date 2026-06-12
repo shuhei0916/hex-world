@@ -5,6 +5,7 @@ const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 
 
 class TestGridLogic:
@@ -97,21 +98,21 @@ class TestNeighbors:
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		var target = gm.get_piece_at_hex(Hex.new(1, 0))
-		assert_true(target in source.output.connected_pieces)
+		assert_true(target in source.get_connected_pieces())
 
 	func test_ポートが向いていない隣接ピースは搬送先に登録されない():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(0, -1))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		var target = gm.get_piece_at_hex(Hex.new(0, -1))
-		assert_false(target in source.output.connected_pieces)
+		assert_false(target in source.get_connected_pieces())
 
 	func test_ピース削除時に周囲の搬送先リストが自動更新される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		gm.remove_piece_at(Hex.new(1, 0))
-		assert_eq(source.output.connected_pieces.size(), 0, "削除後は接続が切れているべき")
+		assert_eq(source.get_connected_pieces().size(), 0, "削除後は接続が切れているべき")
 
 
 class TestItemTransfer:
@@ -125,16 +126,29 @@ class TestItemTransfer:
 		gm.create_hex_grid(3)
 
 	func test_出力インベントリが満杯の状態で接続するとアイテムが転送される():
-		# コンベアを設置し、出力を満杯にしてから受け取り先を接続する
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		var source = gm.get_piece_at_hex(Hex.new(0, 0))
+		# 機械を設置し、出力を満杯にしてから受け取り先を接続する
+		# SMELTER at (-1,2): port at (0,0) → absolute (-1,2), direction E → neighbor (0,2)
+		gm.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
+		var source = gm.get_piece_at_hex(Hex.new(-1, 2))
 		source.add_to_output("iron_plate", 20)  # 満杯（capacity=20）
 
 		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
-		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(0, 2))
+		var chest = gm.get_piece_at_hex(Hex.new(0, 2))
 
 		assert_gt(chest.get_item_count("iron_plate"), 0, "満杯状態で接続してもアイテムが転送されるべき")
+
+	func test_搬送完了済みのコンベアに後から接続先を置くと次のtickで転送される():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		var source = gm.get_piece_at_hex(Hex.new(0, 0))
+		source.add_item("iron_plate", 1)
+		source.get_node("ConveyorLogic").tick(0.5)  # 接続先がないので保持したまま
+
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		source.get_node("ConveyorLogic").tick(0.1)  # 搬送済みなので追加の待ち時間は不要
+
+		assert_eq(chest.get_item_count("iron_plate"), 1)
 
 
 class TestOuterHexes:

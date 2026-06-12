@@ -45,9 +45,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
 
-	if piece.output:
-		piece.output.connected_pieces = current_connections
-		piece.output.try_push()
+	piece.set_connected_pieces(current_connections)
 
 	_update_conveyor_input_direction(piece)
 
