@@ -51,11 +51,12 @@ func _update_piece_neighbors(piece: Piece) -> void:
 
 
 func _update_conveyor_input_direction(piece: Piece) -> void:
-	if not piece is Conveyor:
+	var visuals = piece.get_node_or_null("ConveyorVisuals")
+	if visuals == null:
 		return
 	var base_hex = _registry.get_base_hex(piece)
 	if base_hex == null:
-		piece.set_input_direction(-1)
+		visuals.set_input_direction(-1)
 		return
 	for direction in range(6):
 		var input_hex = Hex.neighbor(base_hex, direction)
@@ -69,9 +70,9 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 			var abs_port_hex = Hex.add(neighbor_base, port.hex)
 			var port_target = Hex.neighbor(abs_port_hex, port.direction)
 			if Hex.equals(port_target, base_hex):
-				piece.set_input_direction(direction)
+				visuals.set_input_direction(direction)
 				return
-	piece.set_input_direction(-1)
+	visuals.set_input_direction(-1)
 
 
 func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:

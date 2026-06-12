@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/components/piece/conveyor.gd" id="1_piece"]
 [ext_resource type="Script" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
+[ext_resource type="Script" path="res://scenes/components/piece/conveyor_visuals.gd" id="7_conveyor_visuals"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
@@ -16,7 +17,11 @@ piece_color = Color(1, 0.702, 0.278, 1)
 [node name="ConveyorLogic" type="Node" parent="."]
 script = ExtResource("6_conveyor_logic")
 
-[node name="ItemIcon" type="Sprite2D" parent="."]
+[node name="ConveyorVisuals" type="Node2D" parent="."]
+script = ExtResource("7_conveyor_visuals")
+show_line = false
+
+[node name="ItemIcon" type="Sprite2D" parent="ConveyorVisuals"]
 visible = false
 z_index = 1
 scale = Vector2(0.5, 0.5)

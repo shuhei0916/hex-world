@@ -3,6 +3,7 @@ class_name Piece
 extends Node2D
 
 signal recipe_changed(recipe: Recipe)
+signal shape_changed
 
 const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
@@ -88,6 +89,7 @@ func setup(rotation: int = 0):
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
+	shape_changed.emit()
 
 
 func set_recipe(recipe: Recipe):
@@ -143,6 +145,7 @@ func rotate_cw():
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	_update_component_positions()
+	shape_changed.emit()
 
 
 func _update_component_positions():
