@@ -7,6 +7,7 @@ extends Node2D
 
 signal grid_updated(hexes: Array[Hex])
 signal piece_placed(piece: Piece)
+signal piece_removed
 
 const RESOURCE_COLORS = {
 	"iron_ore": Color("#8B6914"),
@@ -107,6 +108,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	_neighbor_manager.update_connections_around(piece, hexes_to_remove)
 
 	piece.queue_free()
+	piece_removed.emit()
 	return true
 
 

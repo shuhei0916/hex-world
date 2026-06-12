@@ -47,6 +47,17 @@ class TestPiecePlacement:
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		assert_signal_emitted(gm, "piece_placed")
 
+	func test_remove_piece_atが成功するとpiece_removedシグナルが発火する():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		watch_signals(gm)
+		gm.remove_piece_at(Hex.new(0, 0))
+		assert_signal_emitted(gm, "piece_removed")
+
+	func test_remove_piece_atが失敗したときはpiece_removedは発火しない():
+		watch_signals(gm)
+		gm.remove_piece_at(Hex.new(0, 0))  # 何も置かれていない
+		assert_signal_not_emitted(gm, "piece_removed")
+
 	func test_MINERシーンを使うとInputノードがない():
 		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
