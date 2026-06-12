@@ -6,6 +6,26 @@ extends Piece
 ## インベントリを持たず、保持アイテムの管理は $ConveyorLogic に委譲する。
 
 @onready var _logic: ConveyorLogic = get_node_or_null("ConveyorLogic")
+@onready var _item_icon: Sprite2D = get_node_or_null("ItemIcon")
+
+
+func tick(delta: float):
+	super.tick(delta)
+	_update_item_icon()
+
+
+func _update_item_icon():
+	if not _item_icon:
+		return
+	if _logic.held_item == "":
+		_item_icon.visible = false
+		return
+	var item_def = ItemDB.get_item(_logic.held_item)
+	if not item_def:
+		_item_icon.visible = false
+		return
+	_item_icon.texture = item_def.icon
+	_item_icon.visible = true
 
 
 func can_accept_item(_item_name: String) -> bool:

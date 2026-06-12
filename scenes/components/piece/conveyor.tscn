@@ -13,3 +13,7 @@ piece_color = Color(0.831373, 0.603922, 0.411765, 1)
 
 [node name="ConveyorLogic" type="Node" parent="."]
 script = ExtResource("6_conveyor_logic")
+
+[node name="ItemIcon" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(0.5, 0.5)

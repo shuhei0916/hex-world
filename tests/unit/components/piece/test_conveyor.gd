@@ -60,6 +60,23 @@ class TestConveyorLogic:
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
 
+class TestConveyorVisuals:
+	extends GutTest
+
+	var conveyor
+
+	func before_each():
+		conveyor = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(conveyor)
+		conveyor.setup()
+
+	func test_アイテム保持中はアイコンが表示される():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		var icon: Sprite2D = conveyor.get_node_or_null("ItemIcon")
+		assert_true(icon != null and icon.visible)
+
+
 class TestConveyorConnection:
 	extends GutTest
 
