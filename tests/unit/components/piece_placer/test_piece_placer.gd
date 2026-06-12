@@ -133,6 +133,13 @@ class TestDragBehavior:
 	func after_each():
 		await get_tree().process_frame
 
+	func test_ドラッグパスにコンベアが追加されるとシグナルが発火する():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		watch_signals(piece_placer)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		assert_signal_emitted(piece_placer, "conveyor_path_extended")
+
 	func test_start_dragを呼ぶとis_draggingがtrueになる():
 		piece_placer.start_drag()
 		assert_true(piece_placer.is_dragging)

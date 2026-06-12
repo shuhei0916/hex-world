@@ -3,6 +3,8 @@ extends Node2D
 
 # ユーザーがいま何を、どの向きで、どこに置こうとしているか」というUI操作のステートマシン
 
+signal conveyor_path_extended
+
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 # 依存関係（Mainから注入される）
@@ -156,6 +158,7 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 	if not chunk.can_place(current_piece_shape, hex):
 		return false
 	_conveyor_drag_path.append(hex)
+	conveyor_path_extended.emit()
 	return true
 
 
