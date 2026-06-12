@@ -22,11 +22,33 @@ func test_アクティブスロット変更でUIハイライトが更新され�
 	assert_eq(hud.get_active_index(), 3)
 
 
-func test_スロットにピースのアイコンが表示される():
-	# ToolBarの子要素としてスロットが存在する
-	var slot0 = hud.toolbar.get_child(0)
-	assert_not_null(slot0)
-	assert_gt(slot0.get_child_count(), 0, "Slot should contain icon nodes")
+func _get_slot_piece_type(index: int) -> PieceData.Type:
+	var scene = hud.get_scene_for_slot(index)
+	var piece = scene.instantiate()
+	var piece_type = piece.piece_type
+	piece.free()
+	return piece_type
+
+
+func test_スロット1はコンベアである():
+	assert_eq(_get_slot_piece_type(0), PieceData.Type.CONVEYOR)
+
+
+func test_スロット2はスプリッターである():
+	assert_eq(_get_slot_piece_type(1), PieceData.Type.SPLITTER)
+
+
+func test_スロット3はマイナーである():
+	assert_eq(_get_slot_piece_type(2), PieceData.Type.MINER)
+
+
+func test_スロット4はスメルターである():
+	assert_eq(_get_slot_piece_type(3), PieceData.Type.SMELTER)
+
+
+func test_スロットにアイコンテクスチャが設定されている():
+	var slot0 = hud.toolbar.get_child(0) as Button
+	assert_not_null(slot0.icon)
 
 
 func test_スロットをクリックすると選択が更新される():
