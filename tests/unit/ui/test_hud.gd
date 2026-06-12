@@ -46,11 +46,9 @@ func test_スロット4はスメルターである():
 	assert_eq(_get_slot_piece_type(3), PieceData.Type.SMELTER)
 
 
-func test_スロットにピースのアイコンが表示される():
-	# ToolBarの子要素としてスロットが存在する
-	var slot0 = hud.toolbar.get_child(0)
-	assert_not_null(slot0)
-	assert_gt(slot0.get_child_count(), 0, "Slot should contain icon nodes")
+func test_スロットにアイコンテクスチャが設定されている():
+	var slot0 = hud.toolbar.get_child(0) as Button
+	assert_not_null(slot0.icon)
 
 
 func test_スロットをクリックすると選択が更新される():

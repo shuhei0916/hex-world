@@ -3,8 +3,6 @@ extends CanvasLayer
 
 signal slot_selected(scene: PackedScene)
 
-const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
-
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
@@ -34,18 +32,6 @@ var _scenes: Array[PackedScene] = [
 )
 
 
-func _ready():
-	_initialize_toolbar()
-
-
-func _initialize_toolbar():
-	for i in slot_buttons.size():
-		var btn = slot_buttons[i] as Button
-		var scene = get_scene_for_slot(i)
-		if scene:
-			_create_piece_icon(btn, scene)
-
-
 func on_slot_pressed(index: int):
 	if index < 0 or index >= slot_buttons.size():
 		_deselect_all_buttons()
@@ -73,33 +59,6 @@ func get_scene_for_slot(index: int) -> PackedScene:
 	if index < 0 or index >= _scenes.size():
 		return null
 	return _scenes[index]
-
-
-func _create_piece_icon(parent: Control, scene: PackedScene):
-	# 既存のアイコンがあれば削除
-	for child in parent.get_children():
-		if child.name == "IconRoot":
-			child.queue_free()
-
-	var piece = scene.instantiate()
-	var shape = piece.get_hex_shape()
-	var color = piece.piece_color
-	piece.free()
-
-	var icon_root = Node2D.new()
-	icon_root.name = "IconRoot"
-	icon_root.position = parent.custom_minimum_size / 2.0
-	icon_root.scale = Vector2(0.15, 0.15)
-	parent.add_child(icon_root)
-
-	var layout = Layout.make_default()
-
-	for hex in shape:
-		var tile = HexTileScene.instantiate()
-		icon_root.add_child(tile)
-		tile.position = Layout.hex_to_pixel(layout, hex)
-		tile.setup_hex(hex)
-		tile.set_color(color)
 
 
 func deselect():

@@ -1,7 +1,14 @@
-[gd_scene load_steps=21 format=3 uid="uid://qqa8dhve6xp8"]
+[gd_scene load_steps=28 format=3 uid="uid://qqa8dhve6xp8"]
 
 [ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
 [ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/belt.png" id="3_belt"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/balancer.png" id="4_balancer"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/miner.png" id="5_miner"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/smelter.png" id="6_smelter"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/block.png" id="7_block"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/cutter.png" id="8_cutter"]
+[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/storage.png" id="9_storage"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_bngdn"]
 device = -1
@@ -97,6 +104,9 @@ alignment = 1
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("3_belt")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_qao66")
 
@@ -104,6 +114,9 @@ shortcut = SubResource("Shortcut_qao66")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("4_balancer")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_as3gr")
 
@@ -111,6 +124,9 @@ shortcut = SubResource("Shortcut_as3gr")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("5_miner")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_ax4tw")
 
@@ -118,6 +134,9 @@ shortcut = SubResource("Shortcut_ax4tw")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("6_smelter")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_2wu1p")
 
@@ -125,6 +144,9 @@ shortcut = SubResource("Shortcut_2wu1p")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("7_block")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_todbw")
 
@@ -132,6 +154,9 @@ shortcut = SubResource("Shortcut_todbw")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("8_cutter")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_swth0")
 
@@ -139,6 +164,9 @@ shortcut = SubResource("Shortcut_swth0")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("7_block")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_m7evv")
 
@@ -146,6 +174,9 @@ shortcut = SubResource("Shortcut_m7evv")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("7_block")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_o6s6k")
 
@@ -153,6 +184,9 @@ shortcut = SubResource("Shortcut_o6s6k")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
+icon = ExtResource("9_storage")
+icon_alignment = 1
+expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_devq0")
 
