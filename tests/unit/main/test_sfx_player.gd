@@ -29,3 +29,8 @@ func test_コンベア設置ではplace_beltが再生される():
 	piece = CONVEYOR_SCENE.instantiate()
 	sfx.on_piece_placed(piece)
 	assert_true(sfx.get_node("PlaceBelt").playing)
+
+
+func test_ピース削除でdestroy_buildingが再生される():
+	sfx.on_piece_removed()
+	assert_true(sfx.get_node("DestroyBuilding").playing)

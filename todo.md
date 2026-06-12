@@ -12,7 +12,7 @@ assets/sounds/sfx の素材（shapez由来）を使用する。
 ### SfxPlayer
 - [x] ピース設置で place_building.wav が再生される
 - [x] コンベア設置では place_belt.wav が再生される
-- [ ] ピース削除で destroy_building.wav が再生される
+- [x] ピース削除で destroy_building.wav が再生される
 - [ ] ツールバーでピースを選択すると ui_click.wav が再生される
 - [ ] ツールバー選択解除（null）では音が鳴らない
 

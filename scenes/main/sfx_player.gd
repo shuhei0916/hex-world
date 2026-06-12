@@ -6,6 +6,7 @@ extends Node
 
 @onready var _place_building: AudioStreamPlayer = $PlaceBuilding
 @onready var _place_belt: AudioStreamPlayer = $PlaceBelt
+@onready var _destroy_building: AudioStreamPlayer = $DestroyBuilding
 
 
 func on_piece_placed(piece: Piece):
@@ -13,3 +14,7 @@ func on_piece_placed(piece: Piece):
 		_place_belt.play()
 	else:
 		_place_building.play()
+
+
+func on_piece_removed():
+	_destroy_building.play()
