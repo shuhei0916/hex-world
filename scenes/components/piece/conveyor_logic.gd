@@ -18,6 +18,14 @@ func _process(delta: float):
 	tick(delta)
 
 
+func set_connected_pieces(pieces: Array) -> void:
+	connected_pieces = pieces
+
+
+func get_connected_pieces() -> Array:
+	return connected_pieces
+
+
 func can_accept_item(_item_name: String) -> bool:
 	return held_item == ""
 

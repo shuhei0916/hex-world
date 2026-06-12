@@ -202,14 +202,16 @@ func can_accept_item(item_name: String) -> bool:
 
 
 func set_connected_pieces(pieces: Array) -> void:
-	if output:
-		output.connected_pieces = pieces
-		output.try_push()
+	for child in get_children():
+		if child.has_method("set_connected_pieces"):
+			child.set_connected_pieces(pieces)
+			return
 
 
 func get_connected_pieces() -> Array:
-	if output:
-		return output.connected_pieces
+	for child in get_children():
+		if child.has_method("get_connected_pieces"):
+			return child.get_connected_pieces()
 	return []
 
 

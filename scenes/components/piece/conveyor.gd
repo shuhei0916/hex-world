@@ -80,11 +80,3 @@ func _item_position_on_line() -> Vector2:
 	if t < 0.5:
 		return in_edge.lerp(center, t * 2.0)
 	return center.lerp(out_edge, (t - 0.5) * 2.0)
-
-
-func set_connected_pieces(pieces: Array) -> void:
-	_logic.connected_pieces = pieces
-
-
-func get_connected_pieces() -> Array:
-	return _logic.connected_pieces
