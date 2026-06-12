@@ -82,8 +82,8 @@ func _item_position_on_line() -> Vector2:
 	return center.lerp(out_edge, (t - 0.5) * 2.0)
 
 
-func can_accept_item(_item_name: String) -> bool:
-	return _logic.can_accept()
+func can_accept_item(item_name: String) -> bool:
+	return _logic.can_accept_item(item_name)
 
 
 func add_item(item_name: String, _amount: int):

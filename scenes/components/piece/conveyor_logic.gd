@@ -18,8 +18,12 @@ func _process(delta: float):
 	tick(delta)
 
 
-func can_accept() -> bool:
+func can_accept_item(_item_name: String) -> bool:
 	return held_item == ""
+
+
+func add_item(item_name: String, _amount: int):
+	receive_item(item_name)
 
 
 func receive_item(item_name: String):

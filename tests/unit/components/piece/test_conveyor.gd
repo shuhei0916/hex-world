@@ -45,6 +45,11 @@ class TestConveyorLogic:
 		conveyor.add_item("iron_plate", 1)
 		assert_false(conveyor.can_accept_item("iron_plate"))
 
+	func test_ConveyorLogicはadd_itemで受け入れcan_accept_itemで容量を答える():
+		var logic = conveyor.get_node("ConveyorLogic")
+		logic.add_item("iron_plate", 1)
+		assert_false(logic.can_accept_item("iron_plate"))
+
 	func test_add_itemしたアイテムはget_item_countで数えられる():
 		conveyor.add_item("iron_plate", 1)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
