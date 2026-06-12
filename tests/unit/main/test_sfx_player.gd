@@ -39,3 +39,8 @@ func test_ピース削除でdestroy_buildingが再生される():
 func test_ツールバーでピースを選択するとui_clickが再生される():
 	sfx.on_slot_selected(CONVEYOR_SCENE)
 	assert_true(sfx.get_node("UiClick").playing)
+
+
+func test_ツールバー選択解除では音が鳴らない():
+	sfx.on_slot_selected(null)
+	assert_false(sfx.get_node("UiClick").playing)
