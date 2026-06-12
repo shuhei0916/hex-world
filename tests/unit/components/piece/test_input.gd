@@ -14,3 +14,8 @@ func before_each():
 
 func test_満杯でないInputはcan_accept_itemがtrueを返す():
 	assert_true(input.can_accept_item("iron_ore"))
+
+
+func test_満杯のInputはcan_accept_itemがfalseを返す():
+	input.add_item("iron_ore", input.inventory.capacity)
+	assert_false(input.can_accept_item("iron_ore"))
