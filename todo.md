@@ -1,5 +1,17 @@
 # todo
 
+## ドラッグUX修正（fix/drag-ux）
+
+### 不具合: コンベアドラッグのリリース時に中央ヘックスが一瞬白くハイライトされる
+原因仮説: stop_drag 時の _draw_preview が、_update_conveyor_path_preview で
+Vector2.ZERO にされたままの snap_preview にゴーストを描くため、中央に白タイルが出る。
+- [x] コンベアドラッグの stop_drag 後、snap_preview はホバー中のヘックス位置にある（中央 ZERO に残らない）
+
+### 機能: 右ドラッグで複数ピースを削除できるようにする
+- [x] start_delete_drag 中に新しいヘックスへ hover すると、そのヘックスのピースが削除される
+- [x] stop_delete_drag 後は hover してもピースが削除されない
+- [x] 削除ドラッグはピース未選択時のみ発動する（main の右クリック既存挙動と整合）
+
 ## 効果音の導入（feature/sfx）
 
 assets/sounds/sfx の素材（shapez由来）を使用する。
@@ -80,6 +92,24 @@ shapez1 のベルト設計を参考に、コンベアを「容量1・位置ベ�
 - [ ] グリッドの上をキャラクターが移動したり（chessのような感じ）、敵と戦ったりできる要素（gloomhavenなど）
 
 ## リファクタリング
+
+### 次期大型タスク候補: 継承から合成へ（shapez ECS 風）
+conveyor.gd extends Piece の継承を解消し、Piece を「配置・形状・ポート」の薄い殻にする。
+shapez の Entity+Component、Godot の composition 哲学の両方に揃える。
+
+- [ ] ステップ1: アイテム受け入れ口をピース本体からコンポーネントへ移す
+  - Input / ConveyorLogic が can_accept_item / add_item を直接実装（shapez の ItemAcceptor 相当）
+  - Piece は get_acceptor() で受け入れコンポーネントを返すだけ（なければ null = 受け入れ不可）
+- [ ] ステップ2: Output / ConveyorLogic の搬出先解決を「隣のピース」から「隣のピースの acceptor」に変更
+- [ ] ステップ3: conveyor.gd のアダプタメソッド群を削除し、ライン描画・アイテムアイコンは ConveyorVisuals 子ノードへ移す
+- [ ] ステップ4（最終形）: conveyor.tscn のルートを piece.gd に戻しサブクラス廃止。ピース種の違いは子ノード構成のみで表現する
+- 効果: 新ピース追加が「シーンに子ノードを足すだけ」になる。命名リネーム（piece→building）を実施するならこの直後が最小コスト
+
+### テストの棚卸し（動作するドキュメント化）
+- [ ] 振る舞いテストに包含された足場テスト（型チェック・存在確認のみのテスト）を削除する
+  - 基準: 「このテストが落ちたとき、どの仕様違反を教えてくれるか」に答えられないものは削除候補
+  - 注意: .tscn の配線はコンパイル時チェックがないため、存在確認に見えても配線スモークテストとして価値が残るものがある。代替テストの有無を確認してから消す
+  - 例: test_MainのHUDはHUD型である → スロット選択の振る舞いテストが main.hud を経由しており包含済み → 削除可
 
 ### piece, test_piece関連
 - [ ] いまはoutputとinputを同じへクスに表示しているが、これを別々のへクスに表示したい。

@@ -140,6 +140,30 @@ class TestDragBehavior:
 		piece_placer.place_piece_at_hex(Hex.new(0, 0))
 		assert_signal_emitted(piece_placer, "conveyor_path_extended")
 
+	func test_コンベアドラッグのstop_drag後snap_previewはホバー位置にある():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.start_drag()
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(2, 0)))
+		piece_placer.stop_drag()
+		var expected = Layout.hex_to_pixel(chunk.layout, Hex.new(2, 0))
+		assert_eq(piece_placer.snap_preview.position, expected)
+
+	func test_削除ドラッグ中にhoverしたヘックスのピースが削除される():
+		chunk.place_piece(CHEST_SCENE, Hex.new(0, 0))
+		chunk.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		piece_placer.start_delete_drag()
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
+		assert_false(chunk.is_occupied(Hex.new(0, 0)) or chunk.is_occupied(Hex.new(1, 0)))
+
+	func test_stop_delete_drag後はhoverしてもピースが削除されない():
+		chunk.place_piece(CHEST_SCENE, Hex.new(0, 0))
+		piece_placer.start_delete_drag()
+		piece_placer.stop_delete_drag()
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
+		assert_true(chunk.is_occupied(Hex.new(0, 0)))
+
 	func test_重複ヘックスへのパス追加ではシグナルが発火しない():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()

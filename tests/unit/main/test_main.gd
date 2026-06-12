@@ -63,3 +63,28 @@ func test_コンベアをドラッグパスに追加すると設置音が鳴る(
 
 func test_起動時の初期配置では音が鳴らない():
 	assert_false(main.get_node("SfxPlayer/PlaceBuilding").playing)
+
+
+func _make_right_button_event(pressed: bool) -> InputEventMouseButton:
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_RIGHT
+	event.pressed = pressed
+	return event
+
+
+func test_ピース未選択で右ボタンを押すと削除ドラッグが開始される():
+	main._handle_mouse_click(_make_right_button_event(true))
+	assert_true(main.piece_placer.is_delete_dragging)
+
+
+func test_右ボタンを離すと削除ドラッグが終了する():
+	main._handle_mouse_click(_make_right_button_event(true))
+	main._handle_mouse_click(_make_right_button_event(false))
+	assert_false(main.piece_placer.is_delete_dragging)
+
+
+func test_ツールバー選択中の右クリックでは削除ドラッグが開始されない():
+	var btn = main.hud.toolbar.get_child(0) as Button
+	btn.button_pressed = true
+	main._handle_mouse_click(_make_right_button_event(true))
+	assert_false(main.piece_placer.is_delete_dragging)
