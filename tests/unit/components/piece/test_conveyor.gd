@@ -76,6 +76,13 @@ class TestConveyorVisuals:
 		var icon: Sprite2D = conveyor.get_node_or_null("ItemIcon")
 		assert_true(icon != null and icon.visible)
 
+	func test_アイテム非保持時はアイコンが非表示():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.tick(0.0)
+		conveyor.get_node("ConveyorLogic").held_item = ""  # 搬出済み相当
+		conveyor.tick(0.0)
+		assert_false(conveyor.get_node("ItemIcon").visible)
+
 
 class TestConveyorConnection:
 	extends GutTest
