@@ -4,6 +4,7 @@ extends Node2D
 @onready var hud: HUD = $HUD
 @onready var chunk: Chunk = $Chunk
 @onready var piece_placer: PiecePlacer = $PiecePlacer
+@onready var sfx_player: SfxPlayer = $SfxPlayer
 
 
 func _ready():
@@ -11,6 +12,10 @@ func _ready():
 	piece_placer.setup(chunk)
 	chunk.generate_ore_deposits(5)
 	chunk.place_delivery_zone("iron_plate", 10)
+	# 効果音の接続は初期配置の後に行う（起動時に設置音が鳴るのを防ぐ）
+	chunk.piece_placed.connect(sfx_player.on_piece_placed)
+	chunk.piece_removed.connect(sfx_player.on_piece_removed)
+	hud.slot_selected.connect(sfx_player.on_slot_selected)
 
 
 func _on_hud_slot_selected(scene: PackedScene):

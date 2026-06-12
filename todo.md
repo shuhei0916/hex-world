@@ -17,8 +17,8 @@ assets/sounds/sfx の素材（shapez由来）を使用する。
 - [x] ツールバー選択解除（null）では音が鳴らない
 
 ### 統合
-- [ ] main シーンでピースを設置すると音が鳴る（配線確認）
-- [ ] 起動時の DELIVERY ZONE 自動配置では音が鳴らない（接続順で担保）
+- [x] main シーンでピースを設置すると音が鳴る（配線確認）
+- [x] 起動時の DELIVERY ZONE 自動配置では音が鳴らない（接続順で担保）
 
 ## コンベア専用化・1アイテム保持モデル（feature/conveyor-single-item）
 
