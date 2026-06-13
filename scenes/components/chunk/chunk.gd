@@ -60,10 +60,6 @@ func occupy(hex: Hex):
 	_hex_grid.occupy(hex)
 
 
-func occupy_many(hexes: Array[Hex]):
-	_hex_grid.occupy_many(hexes)
-
-
 func can_place(shape: Array, base_hex: Hex) -> bool:
 	return _hex_grid.can_place(shape, base_hex)
 
@@ -98,7 +94,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 		_registry.unregister(piece, [target_hex])
 		return false
 
-	var hexes_to_remove = get_piece_occupied_hexes(piece)
+	var hexes_to_remove = _registry.get_occupied_hexes(piece)
 
 	for hex in hexes_to_remove:
 		_hex_grid.unoccupy(hex)
@@ -123,20 +119,6 @@ func get_piece_at_hex(hex: Hex) -> Piece:
 
 func get_piece_count() -> int:
 	return _registry.get_all_pieces().size()
-
-
-func get_piece_occupied_hexes(piece: Piece) -> Array[Hex]:
-	var result: Array[Hex] = []
-	var base_hex = _registry.get_base_hex(piece)
-	if base_hex == null:
-		return result
-	for offset in piece.get_hex_shape():
-		result.append(Hex.add(base_hex, offset))
-	return result
-
-
-func update_connections_around(piece: Piece) -> void:
-	_neighbor_manager.update_connections_around(piece)
 
 
 func get_base_hex(piece: Piece) -> Hex:
