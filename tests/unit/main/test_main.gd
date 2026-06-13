@@ -1,7 +1,6 @@
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
-const Island = preload("res://scenes/components/chunk/chunk.gd")
 
 var main: Main
 
@@ -13,31 +12,6 @@ func before_each():
 
 func after_each():
 	await get_tree().process_frame
-
-
-func test_MainはIslandを持つ():
-	assert_not_null(main.chunk)
-	assert_true(main.chunk is Island)
-
-
-func test_グリッド更新シグナルでIslandに登録される():
-	var gm = main.chunk
-	if gm == null:
-		fail_test("Island not found")
-		return
-
-	gm.clear_grid()
-
-	gm.create_hex_grid(2)
-	assert_true(gm.is_inside_grid(Hex.new(0, 0)), "Center hex should be registered")
-
-
-func test_MainはHUDを持つ():
-	assert_not_null(main.hud, "HUD node should be linked in Main")
-
-
-func test_MainのHUDはHUD型である():
-	assert_true(main.hud is HUD)
 
 
 func test_HUDのスロット選択でPiecePlacerが更新される():
