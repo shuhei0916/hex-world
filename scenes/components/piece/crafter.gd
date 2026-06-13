@@ -61,13 +61,18 @@ func tick(delta: float):
 	# 加工中なら進捗を進める
 	if processing_progress > 0.0:
 		processing_progress += delta
-		if processing_progress >= current_recipe.craft_time:
+		if processing_progress >= _effective_craft_time():
 			_complete_crafting()
 
 	if _progress_bar:
 		_progress_bar.visible = processing_progress > 0
-		_progress_bar.max_value = current_recipe.craft_time
+		_progress_bar.max_value = _effective_craft_time()
 		_progress_bar.value = processing_progress
+
+
+# output_multiplier は生産個数ではなく速度に作用する（鉱床が濃いほど速く加工）。
+func _effective_craft_time() -> float:
+	return current_recipe.craft_time / output_multiplier
 
 
 func _can_start_crafting() -> bool:
@@ -105,7 +110,5 @@ func _complete_crafting():
 		output_container.set_expected_output("")
 	if output_container:
 		for item_name in current_recipe.outputs:
-			output_container.add_item(
-				item_name, current_recipe.outputs[item_name] * output_multiplier
-			)
+			output_container.add_item(item_name, current_recipe.outputs[item_name])
 	processing_progress = 0.0

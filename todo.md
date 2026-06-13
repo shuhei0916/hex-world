@@ -15,10 +15,10 @@ shapez 同様、カウント式バッファを持つのは Chest/Delivery だけ
 - [x] Chest はバッファ容量を維持する（縮小されない）
 
 ### 採掘機の倍率を速度アップに変更
-- [ ] output_multiplier は完成までの実時間を割る（craft_time / multiplier）
-- [ ] 完成時の生産個数はレシピ通り（倍率で増えない）
-- [ ] 倍率3のとき craft_time の1/3 経過で完成する
-- [ ] ProgressBar の max_value は実効加工時間に追従する
+- [x] output_multiplier は完成までの実時間を割る（craft_time / multiplier）
+- [x] 完成時の生産個数はレシピ通り（倍率で増えない）
+- [x] 倍率3のとき craft_time の1/3 経過で完成する
+- [x] ProgressBar の max_value は実効加工時間に追従する
 
 ### 既存テストの追従
 - [ ] 容量20前提のテストを新仕様（容量1）に合わせて更新する
