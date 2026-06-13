@@ -1,47 +1,17 @@
 # todo
 
-## 機械のバッファレス化（refactor/bufferless-machines）
-
-shapez 同様、カウント式バッファを持つのは Chest/Delivery だけにする。
-レシピを持つ機械の Input/Output は「1クラフト分」のスロットサイズに絞り、
-出力が埋まると加工が止まる（バックプレッシャが見える）ようにする。
-
-### 容量のレシピ駆動化
-- [x] Inventory/Input/Output に set_capacity を追加する
-- [x] Crafter は set_recipe 時に入力容量をレシピ入力量の合計に設定する
-- [x] Crafter は set_recipe 時に出力容量をレシピ出力量の合計に設定する
-- [x] 機械(smelter)の出力容量は1になる
-- [x] 機械(smelter)の入力容量は1になる
-- [x] Chest はバッファ容量を維持する（縮小されない）
-
-### 採掘機の倍率を速度アップに変更
-- [x] output_multiplier は完成までの実時間を割る（craft_time / multiplier）
-- [x] 完成時の生産個数はレシピ通り（倍率で増えない）
-- [x] 倍率3のとき craft_time の1/3 経過で完成する
-- [x] ProgressBar の max_value は実効加工時間に追従する
-
-### 既存テストの追従
-- [x] 容量20前提のテストを新仕様（容量1）に合わせて更新する
-
 ## 直近タスク
 - [ ] WASDでカメラを動かせるようにする。
 - [ ] chunk自体がinput, output等を持ち、他のchunkと接続できるようにする。
 
-### 不具合: 施設からアイテムが搬出されないことがある（修正済み）
-- [x] コンベアが詰まっているわけではないのに、施設からアイテムが搬出されない問題を修正
-  - 原因: Output は inventory_changed と接続更新時しか push せず、押した瞬間に下流が
-	一時的に埋まっていると1回の push に失敗し、下流が空いても再送トリガーが無く詰まる。
-  - 修正: Output に tick（_process 駆動）を追加し、毎フレーム搬出を再試行（ConveyorLogic と同様）
-
 ### UI: 選択中ピースの情報表示
-- [x] hud.gd の `print("selected: ...")` デバッグ出力を削除する（テスト棚卸しブランチで対応済み）
 - [ ] ピース選択時、画面右上にピース名と簡単な説明文を UI として表示する
 
 ### コンベア上のアイテム間隔の調整
 - [ ] アイテム同士の間隔が疎すぎる印象があるため調整する
   - 現仕様は 1ヘックス=最大1アイテム。参考: shapez は itemSpacingOnBelts = 0.63 タイル
   - 1コンベアに複数アイテムを載せるなら「コンベアアイテム搬送アニメーション（TransportLine方式）」
-	（将来検討の項）と合わせて設計する
+    （将来検討の項）と合わせて設計する
 
 ## ゲームプレイ・コンテンツ
 ### 自動化要素の強化
@@ -57,11 +27,16 @@ shapez 同様、カウント式バッファを持つのは Chest/Delivery だけ
 
 ## リファクタリング
 
+### chunk.gd の責務分離（Tier2・最有力）
+- [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
+  WorldGenerator 等へ切り出し、Chunk をグリッド＋ピース管理のファサードに絞る
+  - shapez が MapGenerator を分けているのと同じ方向。chunk.gd は現状 ~255 行で責務過多
+
 ### テストの棚卸し（動作するドキュメント化）
-- [ ] 振る舞いテストに包含された足場テスト（型チェック・存在確認のみのテスト）を削除する
+- [ ] 振る舞いテストに包含された足場テスト（型チェック・存在確認のみ）を削除する
   - 基準: 「このテストが落ちたとき、どの仕様違反を教えてくれるか」に答えられないものは削除候補
-  - 注意: .tscn の配線はコンパイル時チェックがないため、存在確認に見えても配線スモークテストとして価値が残るものがある。代替テストの有無を確認してから消す
-  - 例: test_MainのHUDはHUD型である → スロット選択の振る舞いテストが main.hud を経由しており包含済み → 削除可
+  - 注意: .tscn の配線はコンパイル時チェックが効かないため、存在確認に見えても配線スモークとして価値が残る場合あり。代替テストの有無を確認してから消す
+  - 候補: test_piece_data の `PieceDataをインスタンス化できる`・否定存在テスト（低価値）。enum値テストは .tscn が int に依存するため残す
 
 ### piece, test_piece関連
 - [ ] いまはoutputとinputを同じへクスに表示しているが、これを別々のへクスに表示したい。
@@ -71,14 +46,10 @@ shapez 同様、カウント式バッファを持つのは Chest/Delivery だけ
   - [ ] 1ヘックスピース（conveyor, chest）は現状のまま（変更不要か確認）
 
 #### 将来検討
-- [ ] shapez に合わせ、コンベア以外の建築物もコンテナ（アイテムバッファ）を持たない設計にするか検討する
-  - shapez は機械も「1スロット1アイテム」でカウント式バッファは Storage 専用建物のみ
-  - 全廃しない場合も、capacity 20 を「レシピ必要数の2倍」程度に縮小すれば詰まりの可視性が上がる
-- [ ] 命名を shapez に揃えるリネーム検討（piece → building 等）
-  - 背景: 本プロジェクトは六角形版 shapez を軸としており、アイコン・音素材も shapez 語彙（belt, balancer, place_building 等）のため、コードとアセットで用語がずれている
-  - 影響範囲: gd ファイル25個・約630箇所（Piece/PieceData/PiecePlacer/piece_registry/get_piece_at_hex 等）+ ディレクトリ名・シーンパス・テスト名
-  - 留意点: パズル要素（piece_shape, PiecePlacer）は piece の方が自然な箇所もあるため、一括置換ではなく対訳表を作ってから実施する
-  - 合成リファクタリング（実施済み）の直後である今が比較的低コスト
+- [ ] 命名を shapez に揃えるリネーム検討（Output→ItemEjector / PieceInput→ItemAcceptor、ヘルパー改名。piece→building はスコープ外）
+  - 背景: 六角形版 shapez を軸としており、構造・命名を shapez 語彙へ寄せたい（合成リファクタ済みの今が低コスト）
+  - 影響範囲: クラス名＋ノード名＋get_node文字列＋テスト。Crafter は据え置き推奨
+- [ ] `_key` / `hex_to_key` の薄いラッパー（PieceRegistry/HexGrid/GridRenderer ×3）を Hex.to_key 直呼びに統一（軽微）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] output.gd の _push_items() をキューベースに最適化
