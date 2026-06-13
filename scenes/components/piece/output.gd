@@ -39,6 +39,10 @@ func get_total_item_count() -> int:
 	return inventory.get_total_item_count()
 
 
+func set_capacity(n: int):
+	inventory.set_capacity(n)
+
+
 func is_full() -> bool:
 	return inventory.is_full()
 

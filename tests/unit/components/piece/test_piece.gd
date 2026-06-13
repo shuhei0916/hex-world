@@ -4,6 +4,29 @@ extends GutTest
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
+const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+
+
+class TestMachineCapacity:
+	extends GutTest
+
+	func test_機械の出力容量はレシピ1回分1になる():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		assert_eq(p.output.inventory.capacity, 1)
+
+	func test_機械の入力容量はレシピ1回分1になる():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		assert_eq(p.input_storage.inventory.capacity, 1)
+
+	func test_Chestはバッファ容量を維持する():
+		var p = CHEST_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		assert_eq(p.input_storage.inventory.capacity, 20)
 
 
 class TestPieceBasics:
@@ -24,7 +47,8 @@ class TestPieceBasics:
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
-		piece.add_item("iron", 20)
+		piece.setup()  # レシピ適用で入力容量が1クラフト分(1)に絞られる
+		piece.add_item("iron", 1)
 		assert_false(piece.can_accept_item("copper"))
 
 

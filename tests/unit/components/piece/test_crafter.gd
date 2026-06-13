@@ -33,6 +33,16 @@ class TestCrafterLogic:
 		crafter.set_recipe(recipe)
 		assert_eq(crafter.processing_progress, 0.0)
 
+	func test_set_recipeで出力容量がレシピ出力量の合計になる():
+		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		assert_eq(output_container.capacity, 1)
+
+	func test_set_recipeで入力容量がレシピ入力量の合計になる():
+		var recipe = Recipe.new("test", {"ore": 2}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		assert_eq(input_container.capacity, 2)
+
 	func test_材料が足りていれば開始可能と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
@@ -84,26 +94,34 @@ class TestCrafterLogic:
 		crafter.tick(1.0)
 		assert_eq(crafter.processing_progress, 0.0)
 
-	func test_output_multiplier_3のとき完成時に3個生産される():
+	func test_output_multiplier_3でも完成個数はレシピ通り1個():
 		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		crafter.output_multiplier = 3
-		crafter.processing_progress = 0.9
-		crafter.tick(0.2)
-		assert_eq(output_container.get_item_count("ingot"), 3)
+		crafter.start_crafting()
+		crafter.tick(0.4)  # 実効加工時間 1.0/3≈0.33 を超える
+		assert_eq(output_container.get_item_count("ingot"), 1)
+
+	func test_output_multiplier_3のとき実効加工時間3分の1で完成する():
+		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		crafter.output_multiplier = 3
+		crafter.start_crafting()
+		crafter.tick(0.34)  # 通常の1.0未満だが 1.0/3≈0.333 は超えるので完成するはず
+		assert_eq(crafter.processing_progress, 0.0, "実効時間を超えたら完成し進捗がリセットされる")
 
 	func test_アウトプットが満杯の場合は開始不可と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		input_container.add_item("ore", 1)
-		output_container.add_item("junk", 20)
+		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		assert_false(crafter._can_start_crafting(), "アウトプットが満杯なら開始できないべき")
 
 	func test_アウトプットが満杯の場合は加工が開始されない():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		input_container.add_item("ore", 1)
-		output_container.add_item("junk", 20)
+		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		crafter.tick(0.1)
 		assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")
 

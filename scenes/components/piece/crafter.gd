@@ -22,6 +22,24 @@ func setup(in_container: Node, out_container: Node):
 func set_recipe(recipe: Recipe):
 	current_recipe = recipe
 	processing_progress = 0.0
+	_apply_io_capacities()
+
+
+# 機械の入出力容量を「1クラフト分」に絞る（shapez 同様、機械はバッファを持たない）。
+func _apply_io_capacities():
+	if not current_recipe:
+		return
+	if input_container and input_container.has_method("set_capacity"):
+		input_container.set_capacity(maxi(_sum_quantities(current_recipe.inputs), 1))
+	if output_container and output_container.has_method("set_capacity"):
+		output_container.set_capacity(maxi(_sum_quantities(current_recipe.outputs), 1))
+
+
+func _sum_quantities(items: Dictionary) -> int:
+	var total = 0
+	for quantity in items.values():
+		total += quantity
+	return total
 
 
 func start_crafting():
@@ -43,13 +61,18 @@ func tick(delta: float):
 	# 加工中なら進捗を進める
 	if processing_progress > 0.0:
 		processing_progress += delta
-		if processing_progress >= current_recipe.craft_time:
+		if processing_progress >= _effective_craft_time():
 			_complete_crafting()
 
 	if _progress_bar:
 		_progress_bar.visible = processing_progress > 0
-		_progress_bar.max_value = current_recipe.craft_time
+		_progress_bar.max_value = _effective_craft_time()
 		_progress_bar.value = processing_progress
+
+
+# output_multiplier は生産個数ではなく速度に作用する（鉱床が濃いほど速く加工）。
+func _effective_craft_time() -> float:
+	return current_recipe.craft_time / output_multiplier
 
 
 func _can_start_crafting() -> bool:
@@ -87,7 +110,5 @@ func _complete_crafting():
 		output_container.set_expected_output("")
 	if output_container:
 		for item_name in current_recipe.outputs:
-			output_container.add_item(
-				item_name, current_recipe.outputs[item_name] * output_multiplier
-			)
+			output_container.add_item(item_name, current_recipe.outputs[item_name])
 	processing_progress = 0.0
