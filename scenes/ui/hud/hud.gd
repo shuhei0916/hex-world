@@ -40,12 +40,7 @@ func on_slot_pressed(index: int):
 
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
-		var scene = get_scene_for_slot(index)
-		if scene:
-			var piece = scene.instantiate()
-			print("selected: ", PieceData.Type.keys()[piece.piece_type])
-			piece.free()
-		slot_selected.emit(scene)
+		slot_selected.emit(get_scene_for_slot(index))
 	else:
 		slot_selected.emit(null)
 
