@@ -1,13 +1,12 @@
-class_name ConveyorLogic
+class_name SplitterLogic
 extends Node
 
-## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
-## 唯一の接続先へ渡す（単一出力。分岐は SplitterLogic が担う）。
-## 保持＋タイマーは TransferBuffer に委譲する。
-
-var connected_pieces: Array = []
+## スプリッターの分配ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
+## 複数の接続先へラウンドロビンで渡す（shapez の balancer 相当）。
+## 保持＋タイマーは TransferBuffer に、巡回搬出は ItemEjector に委譲する。
 
 var _buffer := TransferBuffer.new()
+var _ejector := ItemEjector.new()
 
 
 func _process(delta: float):
@@ -17,11 +16,11 @@ func _process(delta: float):
 
 
 func set_connected_pieces(pieces: Array) -> void:
-	connected_pieces = pieces
+	_ejector.connected_pieces = pieces
 
 
 func get_connected_pieces() -> Array:
-	return connected_pieces
+	return _ejector.connected_pieces
 
 
 func can_accept_item(_item_name: String) -> bool:
@@ -46,13 +45,5 @@ func get_progress_ratio() -> float:
 
 func tick(delta: float):
 	if _buffer.advance(delta):
-		_try_deliver()
-
-
-func _try_deliver():
-	for target in connected_pieces:
-		if target.has_method("can_accept_item") and target.has_method("add_item"):
-			if target.can_accept_item(_buffer.held_item):
-				target.add_item(_buffer.held_item, 1)
-				_buffer.clear()
-				return
+		if _ejector.try_eject(_buffer.held_item):
+			_buffer.clear()

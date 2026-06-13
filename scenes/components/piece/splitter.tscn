@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://splitter0001"]
 
 [ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
+[ext_resource type="Script" path="res://scenes/components/piece/splitter_logic.gd" id="6_splitter_logic"]
 [ext_resource type="Script" path="res://scenes/components/piece/conveyor_visuals.gd" id="7_conveyor_visuals"]
 
 [node name="Piece" type="Node2D"]
@@ -14,8 +14,8 @@ port_direction = 0
 port_direction2 = 5
 piece_color = Color(1, 0.702, 0.278, 1)
 
-[node name="ConveyorLogic" type="Node" parent="."]
-script = ExtResource("6_conveyor_logic")
+[node name="SplitterLogic" type="Node" parent="."]
+script = ExtResource("6_splitter_logic")
 
 [node name="ConveyorVisuals" type="Node2D" parent="."]
 script = ExtResource("7_conveyor_visuals")

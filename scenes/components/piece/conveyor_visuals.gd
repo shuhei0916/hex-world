@@ -1,8 +1,8 @@
 class_name ConveyorVisuals
 extends Node2D
 
-## コンベアのライン描画と保持アイテムのアイコン表示を担当するコンポーネント。
-## 搬送状態は兄弟ノードの ConveyorLogic から読み取る。
+## コンベア/スプリッターのライン描画と保持アイテムのアイコン表示を担当する。
+## 搬送状態は兄弟の mover（get_held_item を持つ ConveyorLogic / SplitterLogic）から読む。
 
 @export var show_line: bool = true
 
@@ -10,13 +10,20 @@ var _line: Line2D = null
 var _input_direction: int = -1
 
 @onready var _piece: Piece = get_parent()
-@onready var _logic: ConveyorLogic = get_parent().get_node_or_null("ConveyorLogic")
+@onready var _mover: Node = _find_mover()
 @onready var _item_icon: Sprite2D = $ItemIcon
 
 
 func _ready():
 	_piece.shape_changed.connect(refresh_line)
 	refresh_line()
+
+
+func _find_mover() -> Node:
+	for sibling in get_parent().get_children():
+		if sibling.has_method("get_held_item"):
+			return sibling
+	return null
 
 
 func _process(_delta: float):
@@ -52,12 +59,13 @@ func refresh_line():
 
 
 func update_item_icon():
-	if not _logic or not _item_icon:
+	if not _mover or not _item_icon:
 		return
-	if _logic.held_item == "":
+	var held_item = _mover.get_held_item()
+	if held_item == "":
 		_item_icon.visible = false
 		return
-	var item_def = ItemDB.get_item(_logic.held_item)
+	var item_def = ItemDB.get_item(held_item)
 	if not item_def:
 		_item_icon.visible = false
 		return
@@ -69,7 +77,7 @@ func update_item_icon():
 func _item_position_on_line() -> Vector2:
 	if not _line or _line.get_point_count() < 3:
 		return Vector2.ZERO
-	var t = _logic.progress / ConveyorLogic.TRANSFER_TIME
+	var t = _mover.get_progress_ratio()
 	var in_edge = _line.get_point_position(0)
 	var center = _line.get_point_position(1)
 	var out_edge = _line.get_point_position(2)

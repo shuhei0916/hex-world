@@ -50,9 +50,9 @@ class TestSplitterConnection:
 		var chest_e = gm.get_piece_at_hex(Hex.new(1, 0))
 		var chest_se = gm.get_piece_at_hex(Hex.new(0, 1))
 		splitter.add_item("iron_ore", 1)
-		splitter.get_node("ConveyorLogic").tick(0.5)
+		splitter.get_node("SplitterLogic").tick(0.5)
 		splitter.add_item("iron_ore", 1)
-		splitter.get_node("ConveyorLogic").tick(0.5)
+		splitter.get_node("SplitterLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
 
 	func test_2アイテム送ると両方の接続先に1個ずつ届く():
@@ -69,9 +69,9 @@ class TestSplitterConnection:
 		# 各コンベアが正しいchestに繋がっているか確認
 		assert_eq(splitter.get_connected_pieces().size(), 2, "Splitterは2方向に接続されるべき")
 		splitter.add_item("iron_ore", 1)
-		splitter.get_node("ConveyorLogic").tick(0.5)
+		splitter.get_node("SplitterLogic").tick(0.5)
 		splitter.add_item("iron_ore", 1)
-		splitter.get_node("ConveyorLogic").tick(0.5)
+		splitter.get_node("SplitterLogic").tick(0.5)
 		var total_in_conveyors = (
 			conv_e.get_item_count("iron_ore") + conv_se.get_item_count("iron_ore")
 		)
