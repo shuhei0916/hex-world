@@ -60,6 +60,15 @@ class TestOutputTransport:
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
 
+	func test_接続先が後から空いたらtickで再送される():
+		# バグ: 押せずに滞留したアイテムは、下流が空いても再送トリガーが無く詰まる
+		source.output.set_connected_pieces([target])
+		target.add_item("junk", 1)  # 接続先を満杯にする
+		source.output.add_item("iron", 1)  # 押せずに滞留
+		target.input_storage.consume_item("junk", 1)  # 接続先が空く（再送イベントは発生しない）
+		source.output.tick(0.1)  # tick で再送を試みるべき
+		assert_eq(source.output.get_item_count("iron"), 0)
+
 
 class TestOutputRoundRobin:
 	extends GutTest
