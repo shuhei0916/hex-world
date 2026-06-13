@@ -47,7 +47,8 @@ class TestPieceBasics:
 		assert_eq(piece.get_item_count("iron"), 10)
 
 	func test_インベントリが満杯の場合はアイテムを受け入れない():
-		piece.add_item("iron", 20)
+		piece.setup()  # レシピ適用で入力容量が1クラフト分(1)に絞られる
+		piece.add_item("iron", 1)
 		assert_false(piece.can_accept_item("copper"))
 
 

@@ -146,7 +146,7 @@ class TestItemTransfer:
 		# SMELTER at (-1,2): port at (0,0) → absolute (-1,2), direction E → neighbor (0,2)
 		gm.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
 		var source = gm.get_piece_at_hex(Hex.new(-1, 2))
-		source.add_to_output("iron_plate", 20)  # 満杯（capacity=20）
+		source.add_to_output("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 
 		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
 		gm.place_piece(CHEST_SCENE, Hex.new(0, 2))

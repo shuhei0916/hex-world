@@ -56,7 +56,7 @@ class TestOutputTransport:
 
 	func test_接続先が満杯の場合は移動しない():
 		source.output.set_connected_pieces([target])
-		target.add_item("junk", 20)
+		target.add_item("junk", 1)  # 入力容量はレシピ1回分(1)なので1個で満杯
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
 

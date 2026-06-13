@@ -114,14 +114,14 @@ class TestCrafterLogic:
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		input_container.add_item("ore", 1)
-		output_container.add_item("junk", 20)
+		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		assert_false(crafter._can_start_crafting(), "アウトプットが満杯なら開始できないべき")
 
 	func test_アウトプットが満杯の場合は加工が開始されない():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		input_container.add_item("ore", 1)
-		output_container.add_item("junk", 20)
+		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		crafter.tick(0.1)
 		assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")
 
