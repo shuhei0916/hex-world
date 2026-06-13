@@ -40,22 +40,22 @@ class TestOutputTransport:
 		target.setup()
 
 	func test_接続先のピースにアイテムが搬出される():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 0)
 
 	func test_搬出後に接続先ピースのインベントリにアイテムが追加される():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		source.output.add_item("iron", 1)
 		assert_eq(target.get_item_count("iron"), 1)
 
 	func test_接続先がない場合はアイテムが搬出されない():
-		source.output.connected_pieces = []
+		source.output.set_connected_pieces([])
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
 
 	func test_接続先が満杯の場合は移動しない():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		target.add_item("junk", 20)
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
@@ -79,7 +79,7 @@ class TestOutputRoundRobin:
 		target_b = PIECE_SCENE.instantiate()
 		add_child(target_b)
 		autofree(target_b)
-		source.output.connected_pieces = [target_a, target_b]
+		source.output.set_connected_pieces([target_a, target_b])
 
 	func test_1回目はtarget_aへ送られる():
 		source.output.add_item("iron", 1)

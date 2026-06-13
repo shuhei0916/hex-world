@@ -8,8 +8,8 @@ const TRANSFER_TIME = 0.5
 
 var held_item: String = ""
 var progress: float = 0.0
-var connected_pieces: Array = []
-var _rr_index: int = 0
+
+var _ejector := ItemEjector.new()
 
 
 func _process(delta: float):
@@ -19,11 +19,11 @@ func _process(delta: float):
 
 
 func set_connected_pieces(pieces: Array) -> void:
-	connected_pieces = pieces
+	_ejector.connected_pieces = pieces
 
 
 func get_connected_pieces() -> Array:
-	return connected_pieces
+	return _ejector.connected_pieces
 
 
 func can_accept_item(_item_name: String) -> bool:
@@ -55,15 +55,6 @@ func tick(delta: float):
 
 
 func _try_deliver():
-	var n = connected_pieces.size()
-	if n == 0:
-		return
-	for i in range(n):
-		var target = connected_pieces[(_rr_index + i) % n]
-		if target.has_method("can_accept_item") and target.has_method("add_item"):
-			if target.can_accept_item(held_item):
-				target.add_item(held_item, 1)
-				_rr_index = (_rr_index + 1) % n
-				held_item = ""
-				progress = 0.0
-				return
+	if _ejector.try_eject(held_item):
+		held_item = ""
+		progress = 0.0
