@@ -15,7 +15,6 @@ const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 @export var piece_shape: Array[Vector2i] = []
 @export var port_hex: Vector2i = Vector2i.ZERO
 @export var port_hex2: Vector2i = Vector2i.ZERO
-@export var input_hex: Vector2i = Vector2i.ZERO
 @export var port_direction: int = -1  # -1 = 出力ポートなし
 @export var port_direction2: int = -1  # -1 = 第2出力なし
 @export var piece_color: Color
@@ -137,10 +136,17 @@ func rotate_cw():
 
 
 func _update_component_positions():
+	# 出力アイテムをポート端に「はみ出し」表示する（shapez の抽出器ルック）
+	if not output:
+		return
+	var ports = get_output_ports()
+	if ports.is_empty():
+		return
 	var layout = Layout.make_default()
-	if input_storage:
-		var hex = Hex.from_offset_rotated(input_hex, rotation_state)
-		input_storage.position = Layout.hex_to_pixel(layout, hex)
+	var port = ports[0]
+	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
+	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
+	output.position = hex_pos + edge
 
 
 func get_output_ports() -> Array:
