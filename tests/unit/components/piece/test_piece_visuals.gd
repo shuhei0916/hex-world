@@ -12,30 +12,25 @@ func before_each():
 	add_child_autofree(piece)
 
 
-func test_アイテムを追加するとIconが表示される():
+func test_アイテムを追加するとInputのIconが表示される():
 	piece.add_item("iron_ore", 1)
-
-	var input_node = piece.get_node_or_null("Input")
-	if input_node:
-		var icon = input_node.get_node_or_null("Inventory/Icon")
-		if icon:
-			assert_true(icon.visible, "InputIcon should be visible when item added")
+	assert_true(piece.get_node("Input/Inventory/Icon").visible)
 
 
 func test_レシピをセットするとSpeedLabelが表示される():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.set_recipe(recipe)
+	assert_true(piece.get_node("SpeedLabel").visible)
 
-	var speed_label = piece.get_node_or_null("SpeedLabel")
-	if speed_label:
-		assert_true(speed_label.visible, "SpeedLabel should be visible when recipe is set")
-		assert_true(speed_label.text.contains("/m"), "Speed text should contain /m")
+
+func test_レシピをセットするとSpeedLabelに生産速度が表示される():
+	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
+	piece.set_recipe(recipe)
+	assert_true(piece.get_node("SpeedLabel").text.contains("/m"))
 
 
 func test_レシピなしはSpeedLabelが非表示():
-	var speed_label = piece.get_node_or_null("SpeedLabel")
-	if speed_label:
-		assert_false(speed_label.visible, "SpeedLabel should be hidden with no recipe")
+	assert_false(piece.get_node("SpeedLabel").visible)
 
 
 func test_make_output_arrowがSprite2Dを返す():
@@ -126,6 +121,4 @@ func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.setup()
 	piece.set_recipe(recipe)
-	var icon = piece.get_node_or_null("Output/Inventory/Icon")
-	if icon:
-		assert_false(icon.visible, "出力アイコンは入力がない限り非表示")
+	assert_false(piece.get_node("Output/Inventory/Icon").visible, "出力アイコンは入力がない限り非表示")
