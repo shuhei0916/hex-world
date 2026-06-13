@@ -14,6 +14,18 @@ func _ready():
 	inventory.inventory_changed.connect(_push_items)
 
 
+func _process(delta: float):
+	if Engine.is_editor_hint():
+		return
+	tick(delta)
+
+
+# 毎 tick 搬出を再試行する。接続先が後から空いた場合に滞留アイテムを再送するため
+# （inventory_changed は自分の在庫変化時しか発火しないので、これが無いと詰まる）。
+func tick(_delta: float):
+	try_push()
+
+
 func set_connected_pieces(pieces: Array) -> void:
 	_ejector.connected_pieces = pieces
 	try_push()
