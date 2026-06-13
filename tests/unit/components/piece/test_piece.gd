@@ -132,15 +132,7 @@ class TestPieceRoles:
 		assert_gt(p.get_output_ports().size(), 0, "製錬所は出力ポートを持つべき")
 
 	func test_採掘機は時間経過でアイテムを自動生産する():
-		var p = MINER_SCENE.instantiate()
-		add_child(p)
-		autofree(p)
-		p.setup()
-
-		p.tick(1.1)
-		assert_eq(p.get_item_count("iron_ore"), 1)
-
-	func test_Inputノードなしのピースでもcrafterがアイテムを生産できる():
+		# 採掘機は Input ノードを持たないが、crafter が Output へ直接生産する
 		var p = MINER_SCENE.instantiate()
 		add_child(p)
 		autofree(p)

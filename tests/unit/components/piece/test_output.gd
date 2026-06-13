@@ -15,33 +15,11 @@ class TestOutputInventory:
 		autofree(piece)
 		output = piece.get_node("Output")
 
-	func test_初期状態のインベントリは空である():
-		assert_eq(output.get_item_count("iron"), 0)
-
-	func test_アイテムを追加すると数が加算される():
+	# Output は $Inventory への委譲のみ。インベントリのロジック自体は
+	# test_inventory.gd で網羅済みのため、ここでは委譲の配線だけを確認する。
+	func test_add_itemは内部インベントリに委譲される():
 		output.add_item("iron", 5)
 		assert_eq(output.get_item_count("iron"), 5)
-
-	func test_アイテムを消費できる():
-		output.add_item("iron", 5)
-		output.consume_item("iron", 2)
-		assert_eq(output.get_item_count("iron"), 3)
-
-	func test_合計アイテム数を取得できる():
-		output.add_item("iron", 5)
-		output.add_item("copper", 3)
-		assert_eq(output.get_total_item_count(), 8)
-
-	func test_満杯状態を正しく判定できる():
-		output.add_item("junk", 20)
-		assert_true(output.is_full())
-
-	func test_空状態を正しく判定できる():
-		assert_true(output.is_empty())
-
-	func test_アイテム追加後は空でない():
-		output.add_item("iron", 1)
-		assert_false(output.is_empty())
 
 
 class TestOutputTransport:
@@ -62,22 +40,22 @@ class TestOutputTransport:
 		target.setup()
 
 	func test_接続先のピースにアイテムが搬出される():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 0)
 
 	func test_搬出後に接続先ピースのインベントリにアイテムが追加される():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		source.output.add_item("iron", 1)
 		assert_eq(target.get_item_count("iron"), 1)
 
 	func test_接続先がない場合はアイテムが搬出されない():
-		source.output.connected_pieces = []
+		source.output.set_connected_pieces([])
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
 
 	func test_接続先が満杯の場合は移動しない():
-		source.output.connected_pieces = [target]
+		source.output.set_connected_pieces([target])
 		target.add_item("junk", 20)
 		source.output.add_item("iron", 1)
 		assert_eq(source.output.get_item_count("iron"), 1)
@@ -101,7 +79,7 @@ class TestOutputRoundRobin:
 		target_b = PIECE_SCENE.instantiate()
 		add_child(target_b)
 		autofree(target_b)
-		source.output.connected_pieces = [target_a, target_b]
+		source.output.set_connected_pieces([target_a, target_b])
 
 	func test_1回目はtarget_aへ送られる():
 		source.output.add_item("iron", 1)
