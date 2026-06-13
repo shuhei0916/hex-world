@@ -15,33 +15,11 @@ class TestOutputInventory:
 		autofree(piece)
 		output = piece.get_node("Output")
 
-	func test_初期状態のインベントリは空である():
-		assert_eq(output.get_item_count("iron"), 0)
-
-	func test_アイテムを追加すると数が加算される():
+	# Output は $Inventory への委譲のみ。インベントリのロジック自体は
+	# test_inventory.gd で網羅済みのため、ここでは委譲の配線だけを確認する。
+	func test_add_itemは内部インベントリに委譲される():
 		output.add_item("iron", 5)
 		assert_eq(output.get_item_count("iron"), 5)
-
-	func test_アイテムを消費できる():
-		output.add_item("iron", 5)
-		output.consume_item("iron", 2)
-		assert_eq(output.get_item_count("iron"), 3)
-
-	func test_合計アイテム数を取得できる():
-		output.add_item("iron", 5)
-		output.add_item("copper", 3)
-		assert_eq(output.get_total_item_count(), 8)
-
-	func test_満杯状態を正しく判定できる():
-		output.add_item("junk", 20)
-		assert_true(output.is_full())
-
-	func test_空状態を正しく判定できる():
-		assert_true(output.is_empty())
-
-	func test_アイテム追加後は空でない():
-		output.add_item("iron", 1)
-		assert_false(output.is_empty())
 
 
 class TestOutputTransport:
