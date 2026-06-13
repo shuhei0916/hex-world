@@ -31,11 +31,13 @@ position = Vector2(-20, 15)
 script = ExtResource("2_input")
 
 [node name="Inventory" parent="Input" instance=ExtResource("8_inventory")]
+show_icon = false
 
 [node name="Output" type="Node2D" parent="."]
 script = ExtResource("4_output")
 
 [node name="Inventory" parent="Output" instance=ExtResource("8_inventory")]
+show_count = false
 
 [node name="Crafter" type="Node2D" parent="."]
 script = ExtResource("3_crafter")

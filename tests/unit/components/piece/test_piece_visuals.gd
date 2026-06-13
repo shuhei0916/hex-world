@@ -12,11 +12,6 @@ func before_each():
 	add_child_autofree(piece)
 
 
-func test_アイテムを追加するとInputのIconが表示される():
-	piece.add_item("iron_ore", 1)
-	assert_true(piece.get_node("Input/Inventory/Icon").visible)
-
-
 func test_レシピをセットするとSpeedLabelが表示される():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.set_recipe(recipe)

@@ -28,6 +28,27 @@ class TestMachineCapacity:
 		p.setup()
 		assert_eq(p.input_storage.inventory.capacity, 20)
 
+	func test_加工機の入力バッジは表示されない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_item("iron_ore", 1)
+		assert_false(p.get_node("Input/Inventory/Icon").visible)
+
+	func test_機械の出力は数量ラベルを表示しない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_to_output("iron_ingot", 1)
+		assert_false(p.get_node("Output/Inventory/CountLabel").visible)
+
+	func test_Chestの入力バッジは表示される():
+		var p = CHEST_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_item("iron_ingot", 1)
+		assert_true(p.get_node("Input/Inventory/Icon").visible)
+
 
 class TestPieceBasics:
 	extends GutTest
