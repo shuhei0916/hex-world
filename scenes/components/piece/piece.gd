@@ -28,13 +28,6 @@ var current_recipe: Recipe:
 	get:
 		return crafter.current_recipe if crafter else null
 
-var processing_progress: float:
-	get:
-		return crafter.processing_progress if crafter else 0.0
-	set(value):
-		if crafter:
-			crafter.processing_progress = value
-
 var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
 
@@ -42,8 +35,6 @@ var _output_arrow2: Sprite2D = null
 @onready var input_storage: PieceInput = get_node_or_null("Input")
 @onready var output: Output = get_node_or_null("Output")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
-@onready var _speed_label: Label = get_node_or_null("SpeedLabel")
-@onready var _progress_bar: ProgressBar = get_node_or_null("Crafter/ProgressBar")
 
 
 func _ready():

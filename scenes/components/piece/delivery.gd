@@ -14,8 +14,6 @@ func setup(item_name: String, count: int):
 func add_received(amount: int):
 	received_count += amount
 	_update_label()
-	if is_completed():
-		print("Clear!")
 
 
 func is_completed() -> bool:

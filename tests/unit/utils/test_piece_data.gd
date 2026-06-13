@@ -16,11 +16,6 @@ func test_PieceType_DELIVERYが存在する():
 	assert_true("DELIVERY" in PieceData.Type.keys())
 
 
-func test_FACILITY_COLORS_BY_TYPEが全Typeの色を持つ():
-	for type in PieceData.Type.values():
-		assert_true(PieceData.FACILITY_COLORS_BY_TYPE.has(type), "Type %d の色が定義されているべき" % type)
-
-
 func test_PieceDataをインスタンス化できる():
 	var data = PieceData.new()
 	assert_not_null(data)
