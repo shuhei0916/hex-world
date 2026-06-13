@@ -33,6 +33,16 @@ class TestCrafterLogic:
 		crafter.set_recipe(recipe)
 		assert_eq(crafter.processing_progress, 0.0)
 
+	func test_set_recipeで出力容量がレシピ出力量の合計になる():
+		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		assert_eq(output_container.capacity, 1)
+
+	func test_set_recipeで入力容量がレシピ入力量の合計になる():
+		var recipe = Recipe.new("test", {"ore": 2}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		assert_eq(input_container.capacity, 2)
+
 	func test_材料が足りていれば開始可能と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)

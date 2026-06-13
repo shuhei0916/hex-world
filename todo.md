@@ -1,5 +1,28 @@
 # todo
 
+## 機械のバッファレス化（refactor/bufferless-machines）
+
+shapez 同様、カウント式バッファを持つのは Chest/Delivery だけにする。
+レシピを持つ機械の Input/Output は「1クラフト分」のスロットサイズに絞り、
+出力が埋まると加工が止まる（バックプレッシャが見える）ようにする。
+
+### 容量のレシピ駆動化
+- [x] Inventory/Input/Output に set_capacity を追加する
+- [x] Crafter は set_recipe 時に入力容量をレシピ入力量の合計に設定する
+- [x] Crafter は set_recipe 時に出力容量をレシピ出力量の合計に設定する
+- [x] 機械(smelter)の出力容量は1になる
+- [x] 機械(smelter)の入力容量は1になる
+- [x] Chest はバッファ容量を維持する（縮小されない）
+
+### 採掘機の倍率を速度アップに変更
+- [ ] output_multiplier は完成までの実時間を割る（craft_time / multiplier）
+- [ ] 完成時の生産個数はレシピ通り（倍率で増えない）
+- [ ] 倍率3のとき craft_time の1/3 経過で完成する
+- [ ] ProgressBar の max_value は実効加工時間に追従する
+
+### 既存テストの追従
+- [ ] 容量20前提のテストを新仕様（容量1）に合わせて更新する
+
 ## 直近タスク
 - [ ] WASDでカメラを動かせるようにする。
 - [ ] chunk自体がinput, output等を持ち、他のchunkと接続できるようにする。

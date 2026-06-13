@@ -22,6 +22,24 @@ func setup(in_container: Node, out_container: Node):
 func set_recipe(recipe: Recipe):
 	current_recipe = recipe
 	processing_progress = 0.0
+	_apply_io_capacities()
+
+
+# 機械の入出力容量を「1クラフト分」に絞る（shapez 同様、機械はバッファを持たない）。
+func _apply_io_capacities():
+	if not current_recipe:
+		return
+	if input_container and input_container.has_method("set_capacity"):
+		input_container.set_capacity(maxi(_sum_quantities(current_recipe.inputs), 1))
+	if output_container and output_container.has_method("set_capacity"):
+		output_container.set_capacity(maxi(_sum_quantities(current_recipe.outputs), 1))
+
+
+func _sum_quantities(items: Dictionary) -> int:
+	var total = 0
+	for quantity in items.values():
+		total += quantity
+	return total
 
 
 func start_crafting():

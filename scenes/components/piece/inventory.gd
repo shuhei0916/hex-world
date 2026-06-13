@@ -81,6 +81,10 @@ func get_total_item_count() -> int:
 	return total
 
 
+func set_capacity(n: int):
+	capacity = n
+
+
 func is_full() -> bool:
 	return get_total_item_count() >= capacity
 
