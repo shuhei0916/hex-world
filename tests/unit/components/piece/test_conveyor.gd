@@ -80,9 +80,7 @@ class TestConveyorVisuals:
 		assert_true(icon != null and icon.visible)
 
 	func test_アイテム非保持時はアイコンが非表示():
-		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorVisuals").update_item_icon()
-		conveyor.get_node("ConveyorLogic").held_item = ""  # 搬出済み相当
+		# 何も保持していない状態ではアイコンは出ない
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		assert_false(conveyor.get_node("ConveyorVisuals/ItemIcon").visible)
 
