@@ -133,10 +133,7 @@ func tick(delta: float):
 func get_hex_shape() -> Array[Hex]:
 	var hexes: Array[Hex] = []
 	for v in piece_shape:
-		var hex = Hex.new(v.x, v.y, -v.x - v.y)
-		for i in range(rotation_state):
-			hex = Hex.rotate_right(hex)
-		hexes.append(hex)
+		hexes.append(Hex.from_offset_rotated(v, rotation_state))
 	return hexes
 
 
@@ -151,27 +148,23 @@ func rotate_cw():
 func _update_component_positions():
 	var layout = Layout.make_default()
 	if input_storage:
-		var hex = Hex.new(input_hex.x, input_hex.y, -input_hex.x - input_hex.y)
-		for i in range(rotation_state):
-			hex = Hex.rotate_right(hex)
+		var hex = Hex.from_offset_rotated(input_hex, rotation_state)
 		input_storage.position = Layout.hex_to_pixel(layout, hex)
 
 
 func get_output_ports() -> Array:
 	var ports = []
 	if port_direction >= 0:
-		var hex = Hex.new(port_hex.x, port_hex.y, -port_hex.x - port_hex.y)
-		for i in range(rotation_state):
-			hex = Hex.rotate_right(hex)
-		var direction = (port_direction - rotation_state + 6) % 6
-		ports.append({"hex": hex, "direction": direction})
+		ports.append(_make_port(port_hex, port_direction))
 	if port_direction2 >= 0:
-		var hex2 = Hex.new(port_hex2.x, port_hex2.y, -port_hex2.x - port_hex2.y)
-		for i in range(rotation_state):
-			hex2 = Hex.rotate_right(hex2)
-		var direction2 = (port_direction2 - rotation_state + 6) % 6
-		ports.append({"hex": hex2, "direction": direction2})
+		ports.append(_make_port(port_hex2, port_direction2))
 	return ports
+
+
+func _make_port(offset: Vector2i, direction: int) -> Dictionary:
+	var hex = Hex.from_offset_rotated(offset, rotation_state)
+	var rotated_direction = (direction - rotation_state + 6) % 6
+	return {"hex": hex, "direction": rotated_direction}
 
 
 func _refresh_output_arrow():

@@ -68,6 +68,15 @@ static func rotate_right(a: Hex) -> Hex:
 	return Hex.new(-a.r, -a.s, -a.q)
 
 
+# Vector2i オフセットから Hex を生成し、右回りに rotation 回だけ回転させて返す。
+# ピース定義（Vector2i 保存）を rotation_state に追従させる際の定型処理。
+static func from_offset_rotated(offset: Vector2i, rotation: int) -> Hex:
+	var hex = Hex.new(offset.x, offset.y, -offset.x - offset.y)
+	for _i in range(rotation):
+		hex = rotate_right(hex)
+	return hex
+
+
 static func direction(direction_index: int) -> Hex:
 	return hex_directions[direction_index]
 

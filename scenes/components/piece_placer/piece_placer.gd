@@ -108,11 +108,7 @@ func _draw_preview():
 func _get_current_output_ports() -> Array:
 	if _selected_port_direction < 0:
 		return []
-	var hex = Hex.new(
-		_selected_port_hex.x, _selected_port_hex.y, -_selected_port_hex.x - _selected_port_hex.y
-	)
-	for i in range(current_rotation):
-		hex = Hex.rotate_right(hex)
+	var hex = Hex.from_offset_rotated(_selected_port_hex, current_rotation)
 	var direction = (_selected_port_direction - current_rotation + 6) % 6
 	return [{"hex": hex, "direction": direction}]
 
