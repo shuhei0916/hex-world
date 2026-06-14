@@ -7,6 +7,15 @@
 ### UI: 選択中ピースの情報表示
 - [ ] ピース選択時、画面右上にピース名と簡単な説明文を UI として表示する
 
+#### テストリスト
+- [x] PieceInfoPanel.show_info() で NameLabel にピース名が入る
+- [ ] PieceInfoPanel.show_info() で DescriptionLabel に説明文が入る
+- [ ] PieceInfoPanel.show_info() でパネルが visible = true になる
+- [ ] PieceInfoPanel.clear() でパネルが visible = false になる
+- [ ] HUD でスロット選択時に該当ピースの名前がパネルに表示される
+- [ ] HUD で選択解除（null）時にパネルが非表示になる
+- [ ] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
+
 ### コンベア上のアイテム間隔の調整
 - [ ] アイテム同士の間隔が疎すぎる印象があるため調整する
   - 現仕様は 1ヘックス=最大1アイテム。参考: shapez は itemSpacingOnBelts = 0.63 タイル
@@ -15,7 +24,7 @@
 
 ## リファクタリング
 
-### chunk.gd の責務分離（Tier2・最有力）
+### chunk.gd の責務分離
 - [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
   WorldGenerator 等へ切り出し、Chunk をグリッド＋ピース管理のファサードに絞る
   - shapez が MapGenerator を分けているのと同じ方向。chunk.gd は現状 ~255 行で責務過多
