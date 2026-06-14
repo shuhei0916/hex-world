@@ -147,6 +147,8 @@ func _update_component_positions():
 	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
 	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
 	output.position = hex_pos + edge
+	# ヘックスタイル（z_index=0）より奥に描画し、タイルを手前に見せる
+	output.z_index = -1
 
 
 func get_output_ports() -> Array:

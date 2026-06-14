@@ -154,6 +154,17 @@ class TestPieceTransformation:
 		s.rotate_cw()
 		assert_ne(s.output.position, before)
 
+	func test_出力アイテムはヘックスタイルより奥に描画される():
+		var s = SMELTER_SCENE.instantiate()
+		add_child_autofree(s)
+		s.setup(0)
+		var tile = null
+		for child in s.get_children():
+			if child is HexTile:
+				tile = child
+				break
+		assert_lt(s.output.z_index, tile.z_index)
+
 
 class TestPieceAcceptor:
 	extends GutTest
