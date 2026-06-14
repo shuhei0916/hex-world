@@ -6,6 +6,8 @@
 
 [node name="Piece" type="Node2D" unique_id=640872268]
 script = ExtResource("1_piece")
+piece_name = "Conveyor"
+piece_description = "アイテムを隣のヘックスへ運ぶ。"
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
 port_direction = 0
 piece_color = Color(0.831373, 0.603922, 0.411765, 1)

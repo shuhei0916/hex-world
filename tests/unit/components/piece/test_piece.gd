@@ -208,3 +208,12 @@ class TestPieceRoles:
 
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
+
+
+class TestPieceMetadata:
+	extends GutTest
+
+	func test_ピースは名前を持つ():
+		var p = MINER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_eq(p.piece_name, "Miner")
