@@ -11,7 +11,7 @@ var _is_pushing: bool = false
 
 
 func _ready():
-	# 描画レイヤー: 出力アイテムはコンベア(5)より手前・施設タイル(10)より奥（7）。
+	# 描画レイヤー: 機械の出力はみ出しアイテムは施設タイル(10)より奥（7）。
 	z_index = 7
 	z_as_relative = false
 	inventory.inventory_changed.connect(_push_items)

@@ -134,3 +134,18 @@ func test_レシピをセットしても出力Iconは表示されない():
 	piece.setup()
 	piece.set_recipe(recipe)
 	assert_false(piece.get_node("Output/Inventory/Icon").visible, "出力アイコンは入力がない限り非表示")
+
+
+func test_コンベアの土台タイルは機械の施設タイルより奥に描画される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	piece.setup(0)
+	assert_lt(_first_hextile(conveyor).z_index, _first_hextile(piece).z_index)
+
+
+func _first_hextile(p) -> HexTile:
+	for child in p.get_children():
+		if child is HexTile:
+			return child
+	return null
