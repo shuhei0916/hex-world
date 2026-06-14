@@ -1,7 +1,7 @@
 [gd_scene load_steps=29 format=3 uid="uid://qqa8dhve6xp8"]
 
 [ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
-[ext_resource type="PackedScene" uid="uid://c8pinfopanel01" path="res://scenes/ui/hud/piece_info_panel.tscn" id="20_infopanel"]
+[ext_resource type="PackedScene" uid="uid://7v027spx4ub5" path="res://scenes/ui/hud/piece_info_panel.tscn" id="20_infopanel"]
 [ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/belt.png" id="3_belt"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/balancer.png" id="4_balancer"]
