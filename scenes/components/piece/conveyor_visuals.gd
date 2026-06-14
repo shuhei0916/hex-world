@@ -15,9 +15,6 @@ var _input_direction: int = -1
 
 
 func _ready():
-	# 描画レイヤー: コンベアのライン・アイテムはベルト(施設=10)の上（15）。
-	z_index = 15
-	z_as_relative = false
 	_piece.shape_changed.connect(refresh_line)
 	refresh_line()
 
@@ -53,6 +50,9 @@ func refresh_line():
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	_line = Line2D.new()
+	# 描画レイヤー: コンベアのラインは地面(0)と施設タイル(10)の間（5）。
+	_line.z_index = 5
+	_line.z_as_relative = false
 	_line.add_point(in_edge)
 	_line.add_point(Vector2.ZERO)
 	_line.add_point(out_edge)

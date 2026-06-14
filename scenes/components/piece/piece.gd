@@ -150,9 +150,6 @@ func _update_component_positions():
 	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
 	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
 	output.position = hex_pos + edge
-	# 描画レイヤー: 出力アイテムは地面(0)より手前・施設タイル(10)より奥（5）。
-	output.z_index = 5
-	output.z_as_relative = false
 
 
 func get_output_ports() -> Array:
