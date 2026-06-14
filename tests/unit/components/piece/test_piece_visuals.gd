@@ -112,6 +112,23 @@ func test_CHESTをsetupしても矢印の子ノードは追加されない():
 	assert_eq(arrows.size(), 0)
 
 
+func test_コンベア上のアイテムはコンベアのラインより手前に描画される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	var item_icon = visuals.get_node("ItemIcon")
+	assert_lt(visuals._line.z_index, item_icon.z_index)
+
+
+func test_コンベア上のアイテムは絶対zで描画され施設タイルに依存しない():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var item_icon = conveyor.get_node("ConveyorVisuals/ItemIcon")
+	assert_false(item_icon.z_as_relative)
+
+
 func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.setup()

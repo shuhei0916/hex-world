@@ -15,6 +15,10 @@ var _input_direction: int = -1
 
 
 func _ready():
+	# 描画レイヤー: コンベア上のアイテムはライン(5)より手前・施設タイル(10)より奥（7）。
+	# ライン(_line)と対でここに集約し、シーン側設定への分散を避ける。
+	_item_icon.z_index = 7
+	_item_icon.z_as_relative = false
 	_piece.shape_changed.connect(refresh_line)
 	refresh_line()
 
