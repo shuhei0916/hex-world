@@ -15,6 +15,10 @@ var _input_direction: int = -1
 
 
 func _ready():
+	# 描画レイヤー: コンベア上のアイテムは土台(5)・ライン(6)より手前（7）。
+	# ライン(_line)と対でここに集約し、シーン側設定への分散を避ける。
+	_item_icon.z_index = 7
+	_item_icon.z_as_relative = false
 	_piece.shape_changed.connect(refresh_line)
 	refresh_line()
 
@@ -50,6 +54,9 @@ func refresh_line():
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	_line = Line2D.new()
+	# 描画レイヤー: ベルトの接続を示すUI線は土台(5)とアイテム(7)の間（6）。
+	_line.z_index = 6
+	_line.z_as_relative = false
 	_line.add_point(in_edge)
 	_line.add_point(Vector2.ZERO)
 	_line.add_point(out_edge)

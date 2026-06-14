@@ -90,6 +90,19 @@ class TestPiecePlacement:
 				return
 		fail_test("ピースにHexTileが存在しない")
 
+	func test_機械の出力アイテムは地面タイルより手前に描画される():
+		gm.place_piece(SMELTER_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var ground = gm.find_hex_tile(Hex.new(0, 0))
+		assert_lt(ground.z_index, piece.output.z_index)
+
+	func test_コンベアのラインは地面タイルより手前に描画される():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var line = piece.get_node("ConveyorVisuals")._line
+		var ground = gm.find_hex_tile(Hex.new(0, 0))
+		assert_lt(ground.z_index, line.z_index)
+
 
 class TestNeighbors:
 	extends GutTest

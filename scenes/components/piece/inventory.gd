@@ -4,6 +4,8 @@ extends Node2D
 signal inventory_changed
 
 @export var capacity: int = 20
+@export var show_icon: bool = true  ## false で一切表示しない（加工機の入力など）
+@export var show_count: bool = true  ## false で数量ラベルを隠す（容量1の出力など）
 
 var expected_item: String = ""
 var _items: Dictionary = {}
@@ -18,6 +20,12 @@ func _ready():
 
 func update_visuals():
 	if not _icon:
+		return
+
+	if not show_icon:
+		_icon.visible = false
+		if _label:
+			_label.visible = false
 		return
 
 	var item_id = ""
@@ -35,7 +43,7 @@ func update_visuals():
 			_icon.visible = true
 			if _label:
 				_label.text = str(max_count)
-				_label.visible = true
+				_label.visible = show_count
 		else:
 			_icon.visible = false
 			if _label:

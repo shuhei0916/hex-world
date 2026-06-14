@@ -1,24 +1,21 @@
 [gd_scene format=3 uid="uid://conveyor0001"]
 
-[ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
-[ext_resource type="Script" path="res://scenes/components/piece/conveyor_visuals.gd" id="7_conveyor_visuals"]
+[ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" uid="uid://baqgmm3qmt7b8" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
+[ext_resource type="Script" uid="uid://douj5jsl2eboy" path="res://scenes/components/piece/conveyor_visuals.gd" id="7_conveyor_visuals"]
 
-[node name="Piece" type="Node2D"]
+[node name="Piece" type="Node2D" unique_id=640872268]
 script = ExtResource("1_piece")
-piece_type = 0
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
-port_hex = Vector2i(0, 0)
 port_direction = 0
 piece_color = Color(0.831373, 0.603922, 0.411765, 1)
 
-[node name="ConveyorLogic" type="Node" parent="."]
+[node name="ConveyorLogic" type="Node" parent="." unique_id=718352150]
 script = ExtResource("6_conveyor_logic")
 
-[node name="ConveyorVisuals" type="Node2D" parent="."]
+[node name="ConveyorVisuals" type="Node2D" parent="." unique_id=164755029]
 script = ExtResource("7_conveyor_visuals")
 
-[node name="ItemIcon" type="Sprite2D" parent="ConveyorVisuals"]
+[node name="ItemIcon" type="Sprite2D" parent="ConveyorVisuals" unique_id=436012]
 visible = false
-z_index = 1
 scale = Vector2(0.5, 0.5)

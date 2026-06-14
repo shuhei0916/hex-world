@@ -28,6 +28,27 @@ class TestMachineCapacity:
 		p.setup()
 		assert_eq(p.input_storage.inventory.capacity, 20)
 
+	func test_加工機の入力バッジは表示されない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_item("iron_ore", 1)
+		assert_false(p.get_node("Input/Inventory/Icon").visible)
+
+	func test_機械の出力は数量ラベルを表示しない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_to_output("iron_ingot", 1)
+		assert_false(p.get_node("Output/Inventory/CountLabel").visible)
+
+	func test_Chestの入力バッジは表示される():
+		var p = CHEST_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_item("iron_ingot", 1)
+		assert_true(p.get_node("Input/Inventory/Icon").visible)
+
 
 class TestPieceBasics:
 	extends GutTest
@@ -113,13 +134,36 @@ class TestPieceTransformation:
 		var result = p.get_hex_shape()
 		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
 
-	func test_回転後にInputノードの位置が更新される():
+	func test_Outputノードは出力ポート端に配置される():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
+		var port = s.get_output_ports()[0]
+		var layout = Layout.make_default()
+		var expected = (
+			Layout.hex_to_pixel(layout, port.hex)
+			+ Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
+		)
+		assert_eq(s.output.position, expected)
+
+	func test_Outputノードの位置はピース回転に追従する():
+		var s = SMELTER_SCENE.instantiate()
+		add_child_autofree(s)
+		s.setup(0)
+		var before = s.output.position
 		s.rotate_cw()
-		var expected = Layout.hex_to_pixel(Layout.make_default(), Hex.new(0, -1, 1))
-		assert_eq(s.input_storage.position, expected)
+		assert_ne(s.output.position, before)
+
+	func test_出力アイテムはヘックスタイルより奥に描画される():
+		var s = SMELTER_SCENE.instantiate()
+		add_child_autofree(s)
+		s.setup(0)
+		var tile = null
+		for child in s.get_children():
+			if child is HexTile:
+				tile = child
+				break
+		assert_lt(s.output.z_index, tile.z_index)
 
 
 class TestPieceAcceptor:
