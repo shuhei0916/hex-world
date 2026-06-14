@@ -21,6 +21,9 @@ func draw_grid(hexes: Array[Hex]):
 	for hex in hexes:
 		var tile = hex_tile_scene.instantiate()
 		tile.position = Layout.hex_to_pixel(_layout, hex)
+		# 描画レイヤー: 地面タイルは最背面（0）。階層に依存させないため絶対指定。
+		tile.z_index = 0
+		tile.z_as_relative = false
 		add_child(tile)
 		tile.setup_hex(hex)
 		_hex_to_tile[_key(hex)] = tile

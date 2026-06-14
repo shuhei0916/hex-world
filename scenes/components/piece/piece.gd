@@ -62,6 +62,9 @@ func _create_hex_tiles():
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
+		# 描画レイヤー: 施設タイルは最前面（10）。地面(0)・出力アイテム(5)より手前。
+		tile.z_index = 10
+		tile.z_as_relative = false
 		add_child(tile)
 		move_child(tile, tile_index)
 		tile_index += 1
@@ -147,8 +150,9 @@ func _update_component_positions():
 	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
 	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
 	output.position = hex_pos + edge
-	# ヘックスタイル（z_index=0）より奥に描画し、タイルを手前に見せる
-	output.z_index = -1
+	# 描画レイヤー: 出力アイテムは地面(0)より手前・施設タイル(10)より奥（5）。
+	output.z_index = 5
+	output.z_as_relative = false
 
 
 func get_output_ports() -> Array:

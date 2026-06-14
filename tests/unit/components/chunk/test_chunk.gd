@@ -90,6 +90,12 @@ class TestPiecePlacement:
 				return
 		fail_test("ピースにHexTileが存在しない")
 
+	func test_機械の出力アイテムは地面タイルより手前に描画される():
+		gm.place_piece(SMELTER_SCENE, Hex.new(0, 0))
+		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		var ground = gm.find_hex_tile(Hex.new(0, 0))
+		assert_lt(ground.z_index, piece.output.z_index)
+
 
 class TestNeighbors:
 	extends GutTest

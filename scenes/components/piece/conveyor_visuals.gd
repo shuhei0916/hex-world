@@ -15,6 +15,9 @@ var _input_direction: int = -1
 
 
 func _ready():
+	# 描画レイヤー: コンベアのライン・アイテムはベルト(施設=10)の上（15）。
+	z_index = 15
+	z_as_relative = false
 	_piece.shape_changed.connect(refresh_line)
 	refresh_line()
 
