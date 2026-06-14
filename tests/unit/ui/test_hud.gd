@@ -81,3 +81,10 @@ func test_deselect呼び出しでslot_selectedがnullを持って発火される
 	watch_signals(hud)
 	hud.deselect()
 	assert_signal_emitted_with_parameters(hud, "slot_selected", [null])
+
+
+func test_スロット選択で情報パネルにピース名が表示される():
+	var btn = hud.toolbar.get_child(2) as Button
+	btn.button_pressed = true
+	hud.on_slot_pressed(2)
+	assert_eq(hud.info_panel.name_label.text, "Miner")

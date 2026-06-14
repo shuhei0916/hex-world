@@ -27,9 +27,24 @@ var _scenes: Array[PackedScene] = [
 
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
+@onready var info_panel: PieceInfoPanel = $PieceInfoPanel
 @onready var _button_group: ButtonGroup = (
 	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
 )
+
+
+func _ready():
+	info_panel.clear()
+	slot_selected.connect(_on_slot_selected_for_info)
+
+
+func _on_slot_selected_for_info(scene: PackedScene):
+	if scene == null:
+		info_panel.clear()
+		return
+	var piece = scene.instantiate()
+	info_panel.show_info(piece.piece_name, piece.piece_description)
+	piece.free()
 
 
 func on_slot_pressed(index: int):
