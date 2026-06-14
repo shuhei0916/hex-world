@@ -88,3 +88,9 @@ func test_スロット選択で情報パネルにピース名が表示される(
 	btn.button_pressed = true
 	hud.on_slot_pressed(2)
 	assert_eq(hud.info_panel.name_label.text, "Miner")
+
+
+func test_選択解除で情報パネルが非表示になる():
+	hud.info_panel.visible = true
+	hud.deselect()
+	assert_false(hud.info_panel.visible)

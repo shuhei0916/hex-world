@@ -5,7 +5,7 @@
 - [ ] chunk自体がinput, output等を持ち、他のchunkと接続できるようにする。
 
 ### UI: 選択中ピースの情報表示
-- [ ] ピース選択時、画面右上にピース名と簡単な説明文を UI として表示する
+- [x] ピース選択時、画面右上にピース名と簡単な説明文を UI として表示する
 
 #### テストリスト
 - [x] PieceInfoPanel.show_info() で NameLabel にピース名が入る
@@ -13,7 +13,7 @@
 - [x] PieceInfoPanel.show_info() でパネルが visible = true になる
 - [x] PieceInfoPanel.clear() でパネルが visible = false になる
 - [x] HUD でスロット選択時に該当ピースの名前がパネルに表示される
-- [ ] HUD で選択解除（null）時にパネルが非表示になる
+- [x] HUD で選択解除（null）時にパネルが非表示になる
 - [x] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
 
 ### コンベア上のアイテム間隔の調整
