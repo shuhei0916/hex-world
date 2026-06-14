@@ -14,7 +14,7 @@
 - [x] PieceInfoPanel.clear() でパネルが visible = false になる
 - [ ] HUD でスロット選択時に該当ピースの名前がパネルに表示される
 - [ ] HUD で選択解除（null）時にパネルが非表示になる
-- [ ] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
+- [x] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
 
 ### コンベア上のアイテム間隔の調整
 - [ ] アイテム同士の間隔が疎すぎる印象があるため調整する

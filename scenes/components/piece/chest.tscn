@@ -7,6 +7,8 @@
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
+piece_name = "Chest"
+piece_description = "アイテムを保管する。"
 piece_type = 7
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
 port_direction = -1

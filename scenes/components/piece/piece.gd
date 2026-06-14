@@ -11,6 +11,8 @@ const PORT_OFFSET = 35.0
 const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
+@export var piece_name: String = ""
+@export_multiline var piece_description: String = ""
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 @export var piece_shape: Array[Vector2i] = []
 @export var port_hex: Vector2i = Vector2i.ZERO
