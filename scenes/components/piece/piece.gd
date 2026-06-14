@@ -61,15 +61,12 @@ func _create_hex_tiles():
 	# 描画レイヤー: 搬送系(ConveyorVisuals保持)の土台は低層(5)にし、
 	# その上のライン(6)・アイテム(7)を見せる。それ以外の施設は最前面(10)。
 	var tile_z := 5 if get_node_or_null("ConveyorVisuals") else 10
-	var tile_index := 0
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
 		tile.z_index = tile_z
 		tile.z_as_relative = false
 		add_child(tile)
-		move_child(tile, tile_index)
-		tile_index += 1
 		tile.setup_hex(hex)
 		tile.set_color(piece_color)
 
