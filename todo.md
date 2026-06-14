@@ -9,9 +9,9 @@
 
 #### テストリスト
 - [x] PieceInfoPanel.show_info() で NameLabel にピース名が入る
-- [ ] PieceInfoPanel.show_info() で DescriptionLabel に説明文が入る
-- [ ] PieceInfoPanel.show_info() でパネルが visible = true になる
-- [ ] PieceInfoPanel.clear() でパネルが visible = false になる
+- [x] PieceInfoPanel.show_info() で DescriptionLabel に説明文が入る
+- [x] PieceInfoPanel.show_info() でパネルが visible = true になる
+- [x] PieceInfoPanel.clear() でパネルが visible = false になる
 - [ ] HUD でスロット選択時に該当ピースの名前がパネルに表示される
 - [ ] HUD で選択解除（null）時にパネルが非表示になる
 - [ ] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
