@@ -51,7 +51,7 @@ func test_forwardベルトフレームは14枚ある():
 	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
 
 
-func test_CONVEYORをsetupするとベルトの四角形が2枚追加される():
+func test_CONVEYORをsetupするとベルトのセグメントが2枚追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
