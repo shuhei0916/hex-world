@@ -22,8 +22,8 @@
 
 #### テストリスト
 - [x] Recipe.items_per_minute() が 60/craft_time を返す
-- [ ] PieceInfoPanel.show_info() で速度テキストが RateLabel に入る
-- [ ] PieceInfoPanel.show_info() で速度が空文字なら RateLabel が非表示
+- [x] PieceInfoPanel.show_info() で速度テキストが RateLabel に入る
+- [x] PieceInfoPanel.show_info() で速度が空文字なら RateLabel が非表示
 - [ ] HUD でスロット選択（機械）時に情報パネルに生産速度が表示される
 - [ ] HUD でスロット選択（レシピ無ピース）時に RateLabel が非表示
 - [ ] 各 .tscn から SpeedLabel ノードと speed_label.gd を削除（旧 visuals テスト削除）
