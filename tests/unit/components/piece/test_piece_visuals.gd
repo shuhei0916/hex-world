@@ -130,16 +130,13 @@ func test_レシピをセットしても出力Iconは表示されない():
 	assert_false(piece.get_node("Output/Inventory/Icon").visible, "出力アイコンは入力がない限り非表示")
 
 
-func test_コンベアの土台タイルは機械の施設タイルより奥に描画される():
+func test_コンベアは基礎タイルを持たない():
+	# ベルト画像自体が見た目を担うため、コンベアは色付き基礎タイルを描かない。
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	piece.setup(0)
-	assert_lt(_first_hextile(conveyor).z_index, _first_hextile(piece).z_index)
-
-
-func _first_hextile(p) -> HexTile:
-	for child in p.get_children():
+	var tile_count = 0
+	for child in conveyor.get_children():
 		if child is HexTile:
-			return child
-	return null
+			tile_count += 1
+	assert_eq(tile_count, 0)

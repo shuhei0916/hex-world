@@ -59,10 +59,13 @@ func _create_hex_tiles():
 			child.queue_free()
 	if piece_shape.is_empty():
 		return
+	var visuals = get_node_or_null("ConveyorVisuals")
+	# ベルトを描くコンベア(show_line=true)は画像自体が見た目を担うので基礎タイルは描かない。
+	# スプリッター(ConveyorVisuals だが show_line=false)は基礎タイルを土台(z=5)として残す。
+	if visuals and visuals.show_line:
+		return
 	var layout = Layout.make_default()
-	# 描画レイヤー: 搬送系(ConveyorVisuals保持)の土台は低層(5)にし、
-	# その上のライン(6)・アイテム(7)を見せる。それ以外の施設は最前面(10)。
-	var tile_z := 5 if get_node_or_null("ConveyorVisuals") else 10
+	var tile_z := 5 if visuals else 10
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
 		tile.position = Layout.hex_to_pixel(layout, hex)
