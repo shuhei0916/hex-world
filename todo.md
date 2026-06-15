@@ -1,6 +1,7 @@
 # todo
 
 ## 直近タスク
+- [ ] コンベアの見た目を調整する：
 - [ ] WASDでカメラを動かせるようにする。
 - [ ] chunk自体がinput, output等を持ち、他のchunkと接続できるようにする。
 
@@ -15,6 +16,17 @@
 - [x] HUD でスロット選択時に該当ピースの名前がパネルに表示される
 - [x] HUD で選択解除（null）時にパネルが非表示になる
 - [x] piece.gd に piece_name / piece_description の export がある（各 .tscn に設定）
+
+### UI: 生産速度を SpeedLabel から情報パネルへ移設（shapez準拠・基準速度/毎分）
+- [ ] ピース上の SpeedLabel を廃止し、右上の情報パネルに基準生産速度を表示する
+
+#### テストリスト
+- [x] Recipe.items_per_minute() が 60/craft_time を返す
+- [ ] PieceInfoPanel.show_info() で速度テキストが RateLabel に入る
+- [ ] PieceInfoPanel.show_info() で速度が空文字なら RateLabel が非表示
+- [ ] HUD でスロット選択（機械）時に情報パネルに生産速度が表示される
+- [ ] HUD でスロット選択（レシピ無ピース）時に RateLabel が非表示
+- [ ] 各 .tscn から SpeedLabel ノードと speed_label.gd を削除（旧 visuals テスト削除）
 
 ### コンベア上のアイテム間隔の調整
 - [ ] アイテム同士の間隔が疎すぎる印象があるため調整する
