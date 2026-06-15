@@ -96,12 +96,12 @@ class TestPiecePlacement:
 		var ground = gm.find_hex_tile(Hex.new(0, 0))
 		assert_lt(ground.z_index, piece.output.z_index)
 
-	func test_コンベアのラインは地面タイルより手前に描画される():
+	func test_コンベアのベルトは地面タイルより手前に描画される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		var line = piece.get_node("ConveyorVisuals")._line
+		var belt = piece.get_node("ConveyorVisuals")._belts[0]
 		var ground = gm.find_hex_tile(Hex.new(0, 0))
-		assert_lt(ground.z_index, line.z_index)
+		assert_lt(ground.z_index, belt.z_index)
 
 
 class TestNeighbors:

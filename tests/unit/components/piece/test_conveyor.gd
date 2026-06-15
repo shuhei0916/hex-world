@@ -70,8 +70,8 @@ class TestConveyorVisuals:
 		add_child_autofree(conveyor)
 		conveyor.setup()
 
-	func test_ライン描画はConveyorVisualsコンポーネントが担う():
-		assert_not_null(conveyor.get_node("ConveyorVisuals")._line)
+	func test_ベルト描画はConveyorVisualsコンポーネントが担う():
+		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
 
 	func test_アイテム保持中はアイコンが表示される():
 		conveyor.add_item("iron_plate", 1)
@@ -87,20 +87,20 @@ class TestConveyorVisuals:
 	func test_進行度0でアイコンは入力エッジ位置にある():
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
-		var in_edge = conveyor.get_node("ConveyorVisuals")._line.get_point_position(0)
+		var in_edge = conveyor.get_node("ConveyorVisuals")._path[0]
 		assert_almost_eq(
 			conveyor.get_node("ConveyorVisuals/ItemIcon").position, in_edge, Vector2(0.1, 0.1)
 		)
 
-	func test_アイテムアイコンはコンベアラインより手前に描画される():
+	func test_アイテムアイコンはコンベアベルトより手前に描画される():
 		var icon: Sprite2D = conveyor.get_node("ConveyorVisuals/ItemIcon")
-		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._line.z_index)
+		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._belts[0].z_index)
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.25)
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
-		var center = conveyor.get_node("ConveyorVisuals")._line.get_point_position(1)
+		var center = conveyor.get_node("ConveyorVisuals")._path[1]
 		assert_almost_eq(
 			conveyor.get_node("ConveyorVisuals/ItemIcon").position, center, Vector2(0.1, 0.1)
 		)
@@ -206,6 +206,6 @@ class TestConveyorConnection:
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 0)  # East 方向（接続先）
 		var bend = gm.get_piece_at_hex(Hex.new(1, 0))
 		var layout = Layout.make_default()
-		var in_edge = bend.get_node("ConveyorVisuals")._line.get_point_position(0)
+		var in_edge = bend.get_node("ConveyorVisuals")._path[0]
 		var expected = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
 		assert_almost_eq(in_edge.x, expected.x, 0.1)

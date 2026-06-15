@@ -50,37 +50,37 @@ func test_forwardベルトフレームは14枚ある():
 	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
 
 
-func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
+func test_CONVEYORをsetupするとベルトスプライトの子が追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_not_null(conveyor.get_node("ConveyorVisuals")._line)
+	assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
 
 
-func test_rotate_cw後にLine2Dの出力エッジ点が更新される():
+func test_rotate_cw後に出力エッジ点が更新される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var out_before = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_before = conveyor.get_node("ConveyorVisuals")._path[2]
 	conveyor.rotate_cw()
-	var out_after = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_after = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_ne(out_after, out_before)
 
 
-func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
+func test_CONVEYORの出力エッジ点が出力方向にある():
 	# direction=0 (East): 出力エッジ点は正のX方向にあるはず
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var out_edge = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_edge = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_gt(out_edge.x, 0.0)
 
 
-func test_CONVEYORのLine2Dは3点を持つ():
+func test_CONVEYORのベルトパスは3点を持つ():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_eq(conveyor.get_node("ConveyorVisuals")._line.get_point_count(), 3)
+	assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
 
 func test_SMELTERをsetupしてもLine2Dは追加されない():
@@ -111,7 +111,7 @@ func test_コンベア上のアイテムはコンベアのラインより手前�
 	conveyor.setup(0)
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	var item_icon = visuals.get_node("ItemIcon")
-	assert_lt(visuals._line.z_index, item_icon.z_index)
+	assert_lt(visuals._belts[0].z_index, item_icon.z_index)
 
 
 func test_コンベア上のアイテムは絶対zで描画され施設タイルに依存しない():
