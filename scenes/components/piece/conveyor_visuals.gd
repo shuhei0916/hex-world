@@ -7,6 +7,22 @@ extends Node2D
 ## shapez 流のベルトアニメ: forward フレームを時刻で順送りして「流れ」を表現する。
 const BELT_ANIM_COUNT = 14
 const BELT_FPS = 20.0
+const BELT_FRAMES: Array[Texture2D] = [
+	preload("res://scenes/components/piece/belt/forward_0.png"),
+	preload("res://scenes/components/piece/belt/forward_1.png"),
+	preload("res://scenes/components/piece/belt/forward_2.png"),
+	preload("res://scenes/components/piece/belt/forward_3.png"),
+	preload("res://scenes/components/piece/belt/forward_4.png"),
+	preload("res://scenes/components/piece/belt/forward_5.png"),
+	preload("res://scenes/components/piece/belt/forward_6.png"),
+	preload("res://scenes/components/piece/belt/forward_7.png"),
+	preload("res://scenes/components/piece/belt/forward_8.png"),
+	preload("res://scenes/components/piece/belt/forward_9.png"),
+	preload("res://scenes/components/piece/belt/forward_10.png"),
+	preload("res://scenes/components/piece/belt/forward_11.png"),
+	preload("res://scenes/components/piece/belt/forward_12.png"),
+	preload("res://scenes/components/piece/belt/forward_13.png"),
+]
 
 @export var show_line: bool = true
 

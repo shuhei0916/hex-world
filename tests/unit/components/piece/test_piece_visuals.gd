@@ -46,6 +46,10 @@ func test_ベルトのフレームindexは経過時間で進み14コマで循環
 	assert_eq(ConveyorVisuals.frame_for_time(0.76), ConveyorVisuals.frame_for_time(0.06))
 
 
+func test_forwardベルトフレームは14枚ある():
+	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
+
+
 func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
