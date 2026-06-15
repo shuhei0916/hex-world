@@ -26,16 +26,14 @@ const BELT_FRAMES: Array[Texture2D] = [
 ]
 
 const BELT_WIDTH = 56.0  # ベルトの見た目の幅(px)
-
-# forward フレームを90°回転したテクスチャのキャッシュ。
-# Line2D はテクスチャ横軸を線方向に貼るため、矢印が縦の素材を回して進行方向に合わせる。
-static var _rotated_frames: Array[Texture2D] = []
+const BELT_TEXTURE_SIZE = 192.0  # forward フレームの一辺(px)
 
 @export var show_line: bool = true
 
 # パス幾何 [in_edge, center, out_edge]。ベルト描画とアイテム補間の両方で参照する。
 var _path: PackedVector2Array = PackedVector2Array()
-var _belt: Line2D = null
+var _belts: Array[Polygon2D] = []
+var _corner_fills: Array[Polygon2D] = []
 var _input_direction: int = -1
 var _elapsed: float = 0.0
 
@@ -47,16 +45,6 @@ var _elapsed: float = 0.0
 # 経過時間から表示すべきフレーム index（0..BELT_ANIM_COUNT-1）を返す。
 static func frame_for_time(elapsed: float) -> int:
 	return int(elapsed * BELT_FPS) % BELT_ANIM_COUNT
-
-
-# Line2D 用に90°回転したフレーム配列（初回のみ生成してキャッシュ）。
-static func belt_frames() -> Array[Texture2D]:
-	if _rotated_frames.is_empty():
-		for tex in BELT_FRAMES:
-			var img := tex.get_image()
-			img.rotate_90(CLOCKWISE)
-			_rotated_frames.append(ImageTexture.create_from_image(img))
-	return _rotated_frames
 
 
 func _ready():
@@ -84,12 +72,16 @@ func set_input_direction(direction: int):
 	refresh_belt()
 
 
-# 入力辺→中心→出力辺を1本の Line2D リボンで描く。
-# joint_mode=ROUND で角を丸めて繋ぐので、ヘックスの60°/120°曲がりでも継ぎ目なく連続して見える。
+# 入力辺→中心→出力辺を、中心で垂直カットした2枚のテクスチャ付き四角形(Polygon2D)で描く。
+# 曲がり時は中心に生じる隙間/重なりをコーナー三角形で埋めて連続させる（ベベル接合）。
+# 鋭角でも破綻しないよう、スパイクするマイターは使わない。
 func refresh_belt():
-	if _belt:
-		_belt.queue_free()
-		_belt = null
+	for belt in _belts:
+		belt.queue_free()
+	_belts.clear()
+	for fill in _corner_fills:
+		fill.queue_free()
+	_corner_fills.clear()
 	_path = PackedVector2Array()
 	if not show_line:
 		return
@@ -102,24 +94,59 @@ func refresh_belt():
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	_path = PackedVector2Array([in_edge, Vector2.ZERO, out_edge])
-	_belt = Line2D.new()
+
+	var d_in = (Vector2.ZERO - in_edge).normalized()  # 入力半分の搬送方向
+	var d_out = (out_edge - Vector2.ZERO).normalized()  # 出力半分の搬送方向
+	var half = BELT_WIDTH / 2.0
+	var n_in = Vector2(-d_in.y, d_in.x) * half
+	var n_out = Vector2(-d_out.y, d_out.x) * half
+
+	# 入力半分: in_edge(根本) → 中心(先端、垂直カット)。矢印は搬送方向(先端=テクスチャ上端Y=0)。
+	_belts.append(_make_belt_quad([in_edge + n_in, n_in, -n_in, in_edge - n_in]))
+	# 出力半分: 中心(根本) → out_edge(先端)。
+	_belts.append(_make_belt_quad([n_out, out_edge + n_out, out_edge - n_out, -n_out]))
+
+	# 曲がりなら中心の左右ウェッジを三角形で埋める（片側は隙間埋め、片側は重なりで無害）。
+	if not d_in.is_equal_approx(d_out):
+		_corner_fills.append(_make_corner_fill(n_in, n_out))
+		_corner_fills.append(_make_corner_fill(-n_in, -n_out))
+
+
+# 4頂点 [根本左, 先端左, 先端右, 根本右] の順で、テクスチャを長手方向に貼った四角形を作る。
+func _make_belt_quad(verts: Array) -> Polygon2D:
+	var s = BELT_TEXTURE_SIZE
+	var poly = Polygon2D.new()
+	poly.polygon = PackedVector2Array(verts)
+	# UV: 左辺X=0 / 右辺X=s、先端(搬送方向)Y=0 / 根本Y=s（矢印が先端を向く）
+	poly.uv = PackedVector2Array([Vector2(0, s), Vector2(0, 0), Vector2(s, 0), Vector2(s, s)])
+	poly.texture = BELT_FRAMES[0]
 	# 描画レイヤー: ベルトは土台(5)とアイテム(7)の間（6）。
-	_belt.z_index = 6
-	_belt.z_as_relative = false
-	_belt.width = BELT_WIDTH
-	_belt.texture_mode = Line2D.LINE_TEXTURE_TILE
-	_belt.joint_mode = Line2D.LINE_JOINT_ROUND
-	_belt.round_precision = 16
-	_belt.texture = belt_frames()[0]
-	_belt.points = _path
-	add_child(_belt)
+	poly.z_index = 6
+	poly.z_as_relative = false
+	add_child(poly)
+	return poly
+
+
+# 中心の角を埋める三角形 [a, 中心, b]。ベルトの無地部分(端の灰色)をUVで拾って色を合わせる。
+func _make_corner_fill(a: Vector2, b: Vector2) -> Polygon2D:
+	var g = BELT_TEXTURE_SIZE * 0.06  # テクスチャ端＝チェブロンの無い灰色帯
+	var poly = Polygon2D.new()
+	poly.polygon = PackedVector2Array([a, Vector2.ZERO, b])
+	poly.uv = PackedVector2Array([Vector2(g, g), Vector2(g, g), Vector2(g, g)])
+	poly.texture = BELT_FRAMES[0]
+	poly.z_index = 6
+	poly.z_as_relative = false
+	add_child(poly)
+	return poly
 
 
 func _animate_belt(delta: float):
-	if not _belt:
+	if _belts.is_empty():
 		return
 	_elapsed += delta
-	_belt.texture = belt_frames()[frame_for_time(_elapsed)]
+	var frame = frame_for_time(_elapsed)
+	for belt in _belts:
+		belt.texture = BELT_FRAMES[frame]
 
 
 func update_item_icon():

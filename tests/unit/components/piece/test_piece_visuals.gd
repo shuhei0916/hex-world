@@ -51,11 +51,11 @@ func test_forwardベルトフレームは14枚ある():
 	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
 
 
-func test_CONVEYORをsetupするとベルトのLine2Dが追加される():
+func test_CONVEYORをsetupするとベルトの四角形が2枚追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_not_null(conveyor.get_node("ConveyorVisuals")._belt)
+	assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
 
 
 func test_rotate_cw後に出力エッジ点が更新される():
@@ -112,7 +112,7 @@ func test_コンベア上のアイテムはコンベアのラインより手前�
 	conveyor.setup(0)
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	var item_icon = visuals.get_node("ItemIcon")
-	assert_lt(visuals._belt.z_index, item_icon.z_index)
+	assert_lt(visuals._belts[0].z_index, item_icon.z_index)
 
 
 func test_コンベア上のアイテムは絶対zで描画され施設タイルに依存しない():
