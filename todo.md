@@ -28,6 +28,14 @@
 - [x] HUD でスロット選択（レシピ無ピース）時に RateLabel が非表示
 - [x] 各 .tscn から SpeedLabel ノードと speed_label.gd を削除（旧 visuals テスト削除）
 
+### 修正: minerの出力アイテムが生産前からはみ出ている
+- [x] 出力アイコンは実際に生産されてから表示する（加工中プレビュー expected_item を廃止）
+
+#### テストリスト
+- [x] 加工開始直後（完了前）は出力Iconが表示されない
+- [x] 加工完了後は出力Iconが表示される
+- [x] expected_item 機構（inventory/output/crafter）を削除（旧テスト削除）
+
 ### コンベア上のアイテム間隔の調整
 - [ ] アイテム同士の間隔が疎すぎる印象があるため調整する
   - 現仕様は 1ヘックス=最大1アイテム。参考: shapez は itemSpacingOnBelts = 0.63 タイル

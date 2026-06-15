@@ -66,11 +66,6 @@ func is_empty() -> bool:
 	return inventory.is_empty()
 
 
-func set_expected_output(item_id: String):
-	inventory.expected_item = item_id
-	inventory.update_visuals()
-
-
 func try_push():
 	_push_items()
 
