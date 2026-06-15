@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
 [ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/output.gd" id="2_output"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
-[ext_resource type="Script" uid="uid://dypi1nf4ql5kk" path="res://scenes/components/piece/speed_label.gd" id="5_speed_label"]
 [ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="7_inventory"]
 
 [node name="Piece" type="Node2D" unique_id=1612071350]
@@ -17,17 +16,6 @@ port_hex2 = null
 port_direction = 4
 port_direction2 = null
 piece_color = Color(0.952941, 0.823529, 0.513726, 1)
-
-[node name="SpeedLabel" type="Label" parent="." unique_id=1569829145]
-offset_left = -30.0
-offset_top = -50.0
-offset_right = 30.0
-offset_bottom = -30.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-horizontal_alignment = 1
-vertical_alignment = 1
-script = ExtResource("5_speed_label")
 
 [node name="Output" type="Node2D" parent="." unique_id=1542040156]
 script = ExtResource("2_output")
@@ -47,4 +35,3 @@ offset_bottom = -26.0
 value = 50.0
 show_percentage = false
 
-[connection signal="recipe_changed" from="." to="SpeedLabel" method="on_recipe_changed"]

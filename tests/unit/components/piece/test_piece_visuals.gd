@@ -12,22 +12,6 @@ func before_each():
 	add_child_autofree(piece)
 
 
-func test_レシピをセットするとSpeedLabelが表示される():
-	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
-	piece.set_recipe(recipe)
-	assert_true(piece.get_node("SpeedLabel").visible)
-
-
-func test_レシピをセットするとSpeedLabelに生産速度が表示される():
-	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
-	piece.set_recipe(recipe)
-	assert_true(piece.get_node("SpeedLabel").text.contains("/m"))
-
-
-func test_レシピなしはSpeedLabelが非表示():
-	assert_false(piece.get_node("SpeedLabel").visible)
-
-
 func test_make_output_arrowがSprite2Dを返す():
 	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
 	var arrow = Piece.make_output_arrow(port)
