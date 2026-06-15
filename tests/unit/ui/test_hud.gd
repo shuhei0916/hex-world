@@ -100,7 +100,7 @@ func test_機械スロット選択で情報パネルに生産速度が表示さ�
 	var btn = hud.toolbar.get_child(2) as Button
 	btn.button_pressed = true
 	hud.on_slot_pressed(2)
-	assert_eq(hud.info_panel.rate_label.text, "60.0/m")
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 60/分")
 
 
 func test_レシピ無ピース選択で情報パネルのRateLabelが非表示():

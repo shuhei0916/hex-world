@@ -57,7 +57,7 @@ func _rate_text_for_type(piece_type: PieceData.Type) -> String:
 	var rate = recipes[0].items_per_minute()
 	if rate <= 0.0:
 		return ""
-	return "%.1f/m" % rate
+	return "スピード: %d/分" % roundi(rate)
 
 
 func on_slot_pressed(index: int):
