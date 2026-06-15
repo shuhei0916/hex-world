@@ -6,7 +6,8 @@ extends Node2D
 
 ## shapez 流のベルトアニメ: forward フレームを時刻で順送りして「流れ」を表現する。
 const BELT_ANIM_COUNT = 14
-const BELT_FPS = 20.0
+# アイテムの搬送速度と同期させる: 1ヘックス渡る間(TRANSFER_TIME)にベルト柄が1周する。
+const BELT_FPS = BELT_ANIM_COUNT / TransferBuffer.TRANSFER_TIME
 const BELT_FRAMES: Array[Texture2D] = [
 	preload("res://scenes/components/piece/belt/forward_0.png"),
 	preload("res://scenes/components/piece/belt/forward_1.png"),
