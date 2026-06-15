@@ -41,6 +41,11 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
+func test_ベルトのフレームindexは経過時間で進み14コマで循環する():
+	# 14コマ分(0.70s)離れた時刻は同じフレームを指すべき（循環）
+	assert_eq(ConveyorVisuals.frame_for_time(0.76), ConveyorVisuals.frame_for_time(0.06))
+
+
 func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)

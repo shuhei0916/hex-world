@@ -4,6 +4,10 @@ extends Node2D
 ## コンベア/スプリッターのライン描画と保持アイテムのアイコン表示を担当する。
 ## 搬送状態は兄弟の mover（get_held_item を持つ ConveyorLogic / SplitterLogic）から読む。
 
+## shapez 流のベルトアニメ: forward フレームを時刻で順送りして「流れ」を表現する。
+const BELT_ANIM_COUNT = 14
+const BELT_FPS = 20.0
+
 @export var show_line: bool = true
 
 var _line: Line2D = null
@@ -12,6 +16,11 @@ var _input_direction: int = -1
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
 @onready var _item_icon: Sprite2D = $ItemIcon
+
+
+# 経過時間から表示すべきフレーム index（0..BELT_ANIM_COUNT-1）を返す。
+static func frame_for_time(elapsed: float) -> int:
+	return int(elapsed * BELT_FPS) % BELT_ANIM_COUNT
 
 
 func _ready():
