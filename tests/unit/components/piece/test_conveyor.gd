@@ -71,7 +71,7 @@ class TestConveyorVisuals:
 		conveyor.setup()
 
 	func test_ベルト描画はConveyorVisualsコンポーネントが担う():
-		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
+		assert_not_null(conveyor.get_node("ConveyorVisuals")._belt)
 
 	func test_アイテム保持中はアイコンが表示される():
 		conveyor.add_item("iron_plate", 1)
@@ -94,7 +94,7 @@ class TestConveyorVisuals:
 
 	func test_アイテムアイコンはコンベアベルトより手前に描画される():
 		var icon: Sprite2D = conveyor.get_node("ConveyorVisuals/ItemIcon")
-		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._belts[0].z_index)
+		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._belt.z_index)
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)

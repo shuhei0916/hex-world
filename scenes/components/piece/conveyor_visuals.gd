@@ -24,14 +24,17 @@ const BELT_FRAMES: Array[Texture2D] = [
 	preload("res://scenes/components/piece/belt/forward_13.png"),
 ]
 
-const BELT_TEXTURE_SIZE = 192.0
 const BELT_WIDTH = 56.0  # ベルトの見た目の幅(px)
+
+# forward フレームを90°回転したテクスチャのキャッシュ。
+# Line2D はテクスチャ横軸を線方向に貼るため、矢印が縦の素材を回して進行方向に合わせる。
+static var _rotated_frames: Array[Texture2D] = []
 
 @export var show_line: bool = true
 
-# パス幾何 [in_edge, center, out_edge]。ベルト配置とアイテム補間の両方で参照する。
+# パス幾何 [in_edge, center, out_edge]。ベルト描画とアイテム補間の両方で参照する。
 var _path: PackedVector2Array = PackedVector2Array()
-var _belts: Array[Sprite2D] = []
+var _belt: Line2D = null
 var _input_direction: int = -1
 var _elapsed: float = 0.0
 
@@ -43,6 +46,16 @@ var _elapsed: float = 0.0
 # 経過時間から表示すべきフレーム index（0..BELT_ANIM_COUNT-1）を返す。
 static func frame_for_time(elapsed: float) -> int:
 	return int(elapsed * BELT_FPS) % BELT_ANIM_COUNT
+
+
+# Line2D 用に90°回転したフレーム配列（初回のみ生成してキャッシュ）。
+static func belt_frames() -> Array[Texture2D]:
+	if _rotated_frames.is_empty():
+		for tex in BELT_FRAMES:
+			var img := tex.get_image()
+			img.rotate_90(CLOCKWISE)
+			_rotated_frames.append(ImageTexture.create_from_image(img))
+	return _rotated_frames
 
 
 func _ready():
@@ -61,7 +74,7 @@ func _find_mover() -> Node:
 
 
 func _process(delta: float):
-	_animate_belts(delta)
+	_animate_belt(delta)
 	update_item_icon()
 
 
@@ -70,12 +83,12 @@ func set_input_direction(direction: int):
 	refresh_belt()
 
 
-# 入力辺→中心→出力辺の2セグメントを forward ベルトスプライトで描く。
-# ヘックスの60°/120°曲がりにも、各半区間を直線ベルトで繋ぐことで対応する。
+# 入力辺→中心→出力辺を1本の Line2D リボンで描く。
+# joint_mode=ROUND で角を丸めて繋ぐので、ヘックスの60°/120°曲がりでも継ぎ目なく連続して見える。
 func refresh_belt():
-	for belt in _belts:
-		belt.queue_free()
-	_belts.clear()
+	if _belt:
+		_belt.queue_free()
+		_belt = null
 	_path = PackedVector2Array()
 	if not show_line:
 		return
@@ -88,33 +101,24 @@ func refresh_belt():
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	_path = PackedVector2Array([in_edge, Vector2.ZERO, out_edge])
-	# 入力半分(in_edge→中心)と出力半分(中心→out_edge)。矢印は搬送方向を向く。
-	_belts.append(_make_belt_segment(in_edge, Vector2.ZERO))
-	_belts.append(_make_belt_segment(Vector2.ZERO, out_edge))
-
-
-func _make_belt_segment(from: Vector2, to: Vector2) -> Sprite2D:
-	var vec = to - from
-	var sprite = Sprite2D.new()
-	sprite.texture = BELT_FRAMES[0]
+	_belt = Line2D.new()
 	# 描画レイヤー: ベルトは土台(5)とアイテム(7)の間（6）。
-	sprite.z_index = 6
-	sprite.z_as_relative = false
-	sprite.position = (from + to) * 0.5
-	# テクスチャの矢印は上(-Y)向き。-Y を vec 方向へ向ける。
-	sprite.rotation = vec.angle() + PI / 2.0
-	sprite.scale = Vector2(BELT_WIDTH / BELT_TEXTURE_SIZE, vec.length() / BELT_TEXTURE_SIZE)
-	add_child(sprite)
-	return sprite
+	_belt.z_index = 6
+	_belt.z_as_relative = false
+	_belt.width = BELT_WIDTH
+	_belt.texture_mode = Line2D.LINE_TEXTURE_TILE
+	_belt.joint_mode = Line2D.LINE_JOINT_ROUND
+	_belt.round_precision = 16
+	_belt.texture = belt_frames()[0]
+	_belt.points = _path
+	add_child(_belt)
 
 
-func _animate_belts(delta: float):
-	if _belts.is_empty():
+func _animate_belt(delta: float):
+	if not _belt:
 		return
 	_elapsed += delta
-	var frame = frame_for_time(_elapsed)
-	for belt in _belts:
-		belt.texture = BELT_FRAMES[frame]
+	_belt.texture = belt_frames()[frame_for_time(_elapsed)]
 
 
 func update_item_icon():
