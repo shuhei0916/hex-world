@@ -43,8 +43,21 @@ func _on_slot_selected_for_info(scene: PackedScene):
 		info_panel.clear()
 		return
 	var piece = scene.instantiate()
-	info_panel.show_info(piece.piece_name, piece.piece_description)
+	info_panel.show_info(
+		piece.piece_name, piece.piece_description, _rate_text_for_type(piece.piece_type)
+	)
 	piece.free()
+
+
+# ピース種別の基準生産速度（個/分）を表示用テキストにする。レシピ無しピースは空文字。
+func _rate_text_for_type(piece_type: PieceData.Type) -> String:
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
+	if recipes.is_empty():
+		return ""
+	var rate = recipes[0].items_per_minute()
+	if rate <= 0.0:
+		return ""
+	return "%.1f/m" % rate
 
 
 func on_slot_pressed(index: int):
