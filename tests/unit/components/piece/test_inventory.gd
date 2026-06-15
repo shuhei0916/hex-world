@@ -77,11 +77,6 @@ class TestInventoryVisuals:
 		inv.add_item("iron_ore", 1)
 		assert_true(inv.get_node("CountLabel").visible)
 
-	func test_expected_itemがセットされていると0個でもIconが表示される():
-		inv.expected_item = "iron_ore"
-		inv.update_visuals()
-		assert_true(inv.get_node("Icon").visible)
-
 	func test_show_iconがfalseならアイテムがあってもIconは非表示():
 		inv.show_icon = false
 		inv.add_item("iron_ore", 1)

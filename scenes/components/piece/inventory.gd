@@ -7,7 +7,6 @@ signal inventory_changed
 @export var show_icon: bool = true  ## false で一切表示しない（加工機の入力など）
 @export var show_count: bool = true  ## false で数量ラベルを隠す（容量1の出力など）
 
-var expected_item: String = ""
 var _items: Dictionary = {}
 
 @onready var _icon: Sprite2D = $Icon
@@ -48,15 +47,6 @@ func update_visuals():
 			_icon.visible = false
 			if _label:
 				_label.visible = false
-	elif expected_item != "":
-		var item_def = ItemDB.get_item(expected_item)
-		if item_def:
-			_icon.texture = item_def.icon
-			_icon.visible = true
-		else:
-			_icon.visible = false
-		if _label:
-			_label.visible = false
 	else:
 		_icon.visible = false
 		if _label:
