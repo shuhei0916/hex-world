@@ -115,6 +115,23 @@ class TestPreview:
 		var arrow_after = piece_placer.cursor_preview.get_child(shape_size)
 		assert_ne(arrow_after.rotation, rotation_before)
 
+	func test_コンベアのカーソルプレビューはHexTileを使わない():
+		# ベルト画像でプレビューするため、旧来の色付き HexTile は使わない。
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		var has_hextile = false
+		for c in piece_placer.cursor_preview.get_children():
+			if c is HexTile:
+				has_hextile = true
+		assert_false(has_hextile)
+
+	func test_コンベアのカーソルプレビューはベルトスプライトを使う():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		var has_belt = false
+		for c in piece_placer.cursor_preview.get_children():
+			if c is Sprite2D and c.texture == ConveyorVisuals.BELT_FRAMES[0]:
+				has_belt = true
+		assert_true(has_belt)
+
 
 class TestDragBehavior:
 	extends GutTest
