@@ -55,6 +55,22 @@ class TestSplitterConnection:
 		splitter.get_node("SplitterLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
 
+	func test_連続するアイテムは異なる出力側に飛び出る():
+		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
+		var visual = splitter.get_node("ItemEjectorVisual")
+		splitter.add_item("iron_ore", 1)
+		visual.update_item_icon()
+		var pos1 = visual.get_node("ItemIcon").position
+		splitter.get_node("SplitterLogic").tick(0.5)  # 1個目を排出 → buffer 空
+		visual.update_item_icon()  # 空を観測してリセット
+		splitter.add_item("iron_ore", 1)
+		visual.update_item_icon()
+		var pos2 = visual.get_node("ItemIcon").position
+		assert_ne(pos1, pos2)
+
 	func test_2アイテム送ると両方の接続先に1個ずつ届く():
 		# コンベアラインを通じたシナリオ
 		# Splitter(0,0) → conveyor_e(1,0) と conveyor_se(0,1) に分岐
