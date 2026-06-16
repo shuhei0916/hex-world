@@ -61,7 +61,7 @@ class TestPiecePlacement:
 	func test_MINERシーンを使うとInputノードがない():
 		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		assert_null(piece.get_node_or_null("Input"), "MINERはInputノードを持たないはず")
+		assert_null(piece.get_node_or_null("ItemAcceptor"), "MINERはInputノードを持たないはず")
 
 	func test_有効な場所にピースを配置できる():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
@@ -94,7 +94,7 @@ class TestPiecePlacement:
 		gm.place_piece(SMELTER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
 		var ground = gm.find_hex_tile(Hex.new(0, 0))
-		assert_lt(ground.z_index, piece.output.z_index)
+		assert_lt(ground.z_index, piece.ejector.z_index)
 
 	func test_コンベアのベルトは地面タイルより手前に描画される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))

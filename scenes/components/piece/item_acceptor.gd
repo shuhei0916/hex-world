@@ -1,7 +1,7 @@
-class_name PieceInput
+class_name ItemAcceptor
 extends Node2D
 
-## 外部からのアイテム受け入れコンポーネント。
+## 外部からのアイテム受け入れコンポーネント（shapez の ItemAcceptor 相当）。
 ## インベントリロジックは $Inventory に委譲する。
 
 @onready var inventory: Node2D = $Inventory

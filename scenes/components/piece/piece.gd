@@ -33,8 +33,8 @@ var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
 
 # コンポーネント
-@onready var input_storage: PieceInput = get_node_or_null("Input")
-@onready var output: Output = get_node_or_null("Output")
+@onready var acceptor: ItemAcceptor = get_node_or_null("ItemAcceptor")
+@onready var ejector: ItemEjector = get_node_or_null("ItemEjector")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 
 
@@ -43,8 +43,8 @@ func _ready():
 		_refresh_output_arrow()
 		_create_hex_tiles()
 		return
-	if crafter and output:
-		crafter.setup(input_storage, output)
+	if crafter and ejector:
+		crafter.setup(acceptor, ejector)
 
 
 func _process(delta: float):
@@ -99,14 +99,14 @@ func set_output_multiplier(n: int):
 
 
 func add_item(item_name: String, amount: int):
-	var acceptor = get_acceptor()
-	if acceptor:
-		acceptor.add_item(item_name, amount)
+	var acc = get_acceptor()
+	if acc:
+		acc.add_item(item_name, amount)
 
 
 func add_to_output(item_name: String, amount: int):
-	if output:
-		output.add_item(item_name, amount)
+	if ejector:
+		ejector.add_item(item_name, amount)
 
 
 func get_item_count(item_name: String) -> int:
@@ -139,7 +139,7 @@ func rotate_cw():
 
 func _update_component_positions():
 	# 出力アイテムをポート端に「はみ出し」表示する（shapez の抽出器ルック）
-	if not output:
+	if not ejector:
 		return
 	var ports = get_output_ports()
 	if ports.is_empty():
@@ -148,7 +148,7 @@ func _update_component_positions():
 	var port = ports[0]
 	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
 	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
-	output.position = hex_pos + edge
+	ejector.position = hex_pos + edge
 
 
 func get_output_ports() -> Array:
@@ -200,8 +200,8 @@ func get_acceptor() -> Node:
 
 
 func can_accept_item(item_name: String) -> bool:
-	var acceptor = get_acceptor()
-	return acceptor != null and acceptor.can_accept_item(item_name)
+	var acc = get_acceptor()
+	return acc != null and acc.can_accept_item(item_name)
 
 
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:

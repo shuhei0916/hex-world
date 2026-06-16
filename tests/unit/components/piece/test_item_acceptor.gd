@@ -9,7 +9,7 @@ var input
 func before_each():
 	var piece = SMELTER_SCENE.instantiate()
 	add_child_autofree(piece)
-	input = piece.get_node("Input")
+	input = piece.get_node("ItemAcceptor")
 
 
 func test_満杯でないInputはcan_accept_itemがtrueを返す():

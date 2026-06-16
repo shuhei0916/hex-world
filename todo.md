@@ -92,14 +92,10 @@
   - 方針: いきなり実装せず、まず単一 chunk のフル sim＋クリーンな I/O 契約を作る。圧縮はスケール問題に当たってから
 
 ## 将来検討
-- [ ] Output/PieceInput を shapez 語彙へ整理（リネームではなく「分解」）
-  - ItemEjector(部品) と ItemEjectorVisual(描画) は既に確立。**Output→ItemEjector リネームは名前衝突＋意味ずれのため不可**
-    （Output は「ejector を内包する複合コンテナ」であって ejector そのものではない）
-  - 方針: 中間管理職 Output を解雇し、Piece が **ItemEjector(＋必要なら Inventory) を直接合成**する形へ。
-    push の糊（_push_items 等）も Piece/ItemEjector 側へ移す
-  - PieceInput も同様に **ItemAcceptor(部品)＋Inventory へ分解**（ItemAcceptor 名は未使用で衝突なし）
-  - 背景: 六角形版 shapez を軸とし、building が ItemEjector/ItemAcceptor を直接持つ shapez 構造へ寄せる
-  - 影響範囲: 各.tscn のノード構成＋get_node文字列＋テスト。Crafter は据え置き推奨
+- [x] Output→ItemEjector / PieceInput→ItemAcceptor / 旧RefCounted ItemEjector→EjectorRouter に改名
+  （挙動維持。Node は従来どおり Inventory を子に持つ。Piece の member も ejector/acceptor へ）
+- [ ] （続き・別途）ItemEjector のスロット忠実化: 出力 Inventory を廃止しスロットが item を直接保持。
+  これに合わせ miner/機械の出力アイテム描画も ItemEjectorVisual に統一（shapez 完全準拠）
 - [ ] `_key` / `hex_to_key` の薄いラッパー（PieceRegistry/HexGrid/GridRenderer ×3）を Hex.to_key 直呼びに統一（軽微）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化

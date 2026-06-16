@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://painter0001"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/input.gd" id="2_input"]
+[ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/item_acceptor.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
-[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/output.gd" id="4_output"]
+[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/item_ejector.gd" id="4_output"]
 [ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="8_inventory"]
 
 [node name="Piece" type="Node2D" unique_id=1525703989]
@@ -16,17 +16,17 @@ port_hex = Vector2i(0, -1)
 port_direction = 2
 piece_color = Color(0.941176, 0.505882, 0.666667, 1)
 
-[node name="Input" type="Node2D" parent="." unique_id=1426926470]
+[node name="ItemAcceptor" type="Node2D" parent="." unique_id=1426926470]
 position = Vector2(-20, 15)
 script = ExtResource("2_input")
 
-[node name="Inventory" parent="Input" unique_id=862011165 instance=ExtResource("8_inventory")]
+[node name="Inventory" parent="ItemAcceptor" unique_id=862011165 instance=ExtResource("8_inventory")]
 show_icon = false
 
-[node name="Output" type="Node2D" parent="." unique_id=2065239767]
+[node name="ItemEjector" type="Node2D" parent="." unique_id=2065239767]
 script = ExtResource("4_output")
 
-[node name="Inventory" parent="Output" unique_id=2146396975 instance=ExtResource("8_inventory")]
+[node name="Inventory" parent="ItemEjector" unique_id=2146396975 instance=ExtResource("8_inventory")]
 show_count = false
 
 [node name="Crafter" type="Node2D" parent="." unique_id=1186543935]
