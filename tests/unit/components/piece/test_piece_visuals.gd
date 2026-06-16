@@ -128,7 +128,9 @@ func test_レシピをセットしても出力Iconは表示されない():
 	var recipe = Recipe.new("test", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0)
 	piece.setup()
 	piece.set_recipe(recipe)
-	assert_false(piece.get_node("ItemEjector/Inventory/Icon").visible, "出力アイコンは入力がない限り非表示")
+	var visual = piece.get_node("ItemEjectorVisual")
+	visual.update_item_icon()
+	assert_false(visual.get_node("ItemIcon").visible, "出力アイコンは入力がない限り非表示")
 
 
 func test_コンベアは基礎タイルを持たない():

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://smelter001"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" uid="uid://yew8p56p158" path="res://scenes/components/piece/item_ejector_visual.gd" id="99_ejvis"]
 [ext_resource type="Script" uid="uid://jta0l4wmwtlk" path="res://scenes/components/piece/item_acceptor.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
 [ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/item_ejector.gd" id="4_output"]
@@ -25,9 +26,6 @@ show_icon = false
 [node name="ItemEjector" type="Node2D" parent="." unique_id=1708152193]
 script = ExtResource("4_output")
 
-[node name="Inventory" parent="ItemEjector" unique_id=1565990341 instance=ExtResource("8_inventory")]
-show_count = false
-
 [node name="Crafter" type="Node2D" parent="." unique_id=554889115]
 script = ExtResource("3_crafter")
 
@@ -40,3 +38,10 @@ offset_bottom = -26.0
 value = 50.0
 show_percentage = false
 
+
+[node name="ItemEjectorVisual" type="Node2D" parent="."]
+script = ExtResource("99_ejvis")
+
+[node name="ItemIcon" type="Sprite2D" parent="ItemEjectorVisual"]
+visible = false
+scale = Vector2(0.5, 0.5)
