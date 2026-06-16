@@ -67,12 +67,17 @@
 ### アイテム描画を shapez の System 分担に合わせて再配置する
 - [x] splitter: ConveyorVisuals 流用をやめ ItemEjectorVisual に分離、出力ポートへ飛び出し表示、
   ItemEjector をスロット/方向対応にして「表示＝実排出」を一致（片側接続・詰まりでも食い違わない）
-- [ ] miner/機械の「はみ出し出力アイテム(現 Inventory アイコン)」も ItemEjector 駆動描画へ統一
-  （shapez: ItemEjectorSystem が全建物の出力を一括描画）。確立済みの ItemEjector/ItemEjectorVisual を流用
+- [x] miner/機械の出力はみ出しアイテムも ItemEjector 駆動描画(ItemEjectorVisual)へ統一・スライド化
 - [ ] 取り込まれるアイテムの描画を acceptor 駆動に（shapez: ItemAcceptorSystem）※現状機械入力は非表示
-  - ベルト上を流れるアイテム → ベルト固有描画（shapez: BeltPath）。ejector/acceptor とは別系統（現状維持）
-  - 確立済み: ItemEjector(部品=ItemEjectorComponent相当) / ItemEjectorVisual(描画=System相当)
-  - HeldItemVisual のような共通部品は shapez に無いため作らない。Crafter(≒ItemProcessor)は描画を持たない
+
+### ItemAcceptor を薄インターフェース化し、保持(Inventory/Storage)を分離する
+- [ ] 現状 ItemAcceptor が Inventory を子に持ち「受け入れ口」と「保持」を兼ねている。shapez は
+  ItemAcceptor(辺/フィルタの受け入れIF) と StorageComponent(保管) を分離している
+  - 懸念: ほとんどのピースは shapez 同様「生産→即出力」で**保持を持たない**設計になりそう。なのに
+    入力側が Inventory を抱える構造は直感的でない
+  - 方針案: ItemAcceptor は受け入れ判定のみの薄い層に。機械の入力保持は Crafter(=processor) 側へ、
+    chest など本当に保管するピースだけ Storage/Inventory を持つ。chest を出力可能にしたい時が着手好機
+  - shapez: storage 建物 = ItemAcceptor + StorageComponent + ItemEjector（受け入れ→保管→排出）
 
 ### chunk.gd の責務分離
 - [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
