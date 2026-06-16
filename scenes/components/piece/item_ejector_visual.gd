@@ -11,8 +11,9 @@ extends Node2D
 
 
 func _ready():
-	# 描画レイヤー: 基礎タイル(10)より手前に保持アイテムを出す。
-	_item_icon.z_index = 11
+	# 描画レイヤー: miner の出力アイテムと同じく基礎タイル(10)より奥(7)に置き、
+	# 施設の背後から出力ポート端に覗かせる。
+	_item_icon.z_index = 7
 	_item_icon.z_as_relative = false
 
 

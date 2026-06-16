@@ -111,3 +111,12 @@ class TestSplitterVisuals:
 		var visual = splitter.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		assert_gt(visual.get_node("ItemIcon").position.x, 0.0)
+
+	func test_Splitterの飛び出しアイテムは施設タイルより奥に描画される():
+		# miner 同様、はみ出しアイテムは基礎タイルの背後から覗く（z が低い）
+		var icon = splitter.get_node("ItemEjectorVisual/ItemIcon")
+		var base_z = 0
+		for child in splitter.get_children():
+			if child is HexTile:
+				base_z = child.z_index
+		assert_lt(icon.z_index, base_z)
