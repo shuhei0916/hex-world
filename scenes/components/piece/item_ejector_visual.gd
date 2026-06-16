@@ -43,8 +43,12 @@ func update_item_icon():
 		return
 	_item_icon.texture = item_def.icon
 	_item_icon.visible = true
-	# miner/balancer 同様、実際に向かう出力ポート端へ飛び出して表示する。
-	_item_icon.position = _edge_position_for_direction(_target_direction())
+	# 出力hexの中心(起点)→ポート端(終点)へ、進捗(progress)に応じてスライドさせる（shapez のスロット進行）。
+	var ends = _slide_endpoints(_target_direction())
+	var t = 1.0
+	if _mover.has_method("get_progress_ratio"):
+		t = _mover.get_progress_ratio()
+	_item_icon.position = ends[0].lerp(ends[1], t)
 
 
 # mover が示す排出方向(0-5)。取得できなければ主出力ポート方向にフォールバック。
@@ -61,14 +65,14 @@ func _target_direction() -> int:
 	return -1
 
 
-# 指定方向の出力ポートのエッジ位置（ピース原点基準）。該当が無ければ中心。
-func _edge_position_for_direction(direction: int) -> Vector2:
+# 指定方向の出力ポートについて [起点=出力hex中心, 終点=ポート端] を返す。該当無しは [ZERO, ZERO]。
+func _slide_endpoints(direction: int) -> Array:
 	if direction < 0 or not _piece:
-		return Vector2.ZERO
+		return [Vector2.ZERO, Vector2.ZERO]
 	var layout = Layout.make_default()
 	for port in _piece.get_output_ports():
 		if port.direction == direction:
-			var hex_pos = Layout.hex_to_pixel(layout, port.hex)
+			var hex_center = Layout.hex_to_pixel(layout, port.hex)
 			var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[direction]) * 0.5
-			return hex_pos + edge
-	return Vector2.ZERO
+			return [hex_center, hex_center + edge]
+	return [Vector2.ZERO, Vector2.ZERO]

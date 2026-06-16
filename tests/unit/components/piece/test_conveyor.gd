@@ -163,6 +163,7 @@ class TestConveyorConnection:
 		var smelter = gm.get_piece_at_hex(Hex.new(-1, 2))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 2))
 		smelter.add_to_output("iron_ingot", 1)
+		smelter.tick(1.0)  # スライド完了→コンベアへ排出
 		assert_eq(conveyor.get_item_count("iron_ingot"), 1)
 
 	func test_コンベアチェーンでアイテムが1個ずつ流れる():

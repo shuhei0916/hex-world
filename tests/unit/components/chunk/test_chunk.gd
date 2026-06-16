@@ -166,6 +166,7 @@ class TestItemTransfer:
 		gm.place_piece(CHEST_SCENE, Hex.new(0, 2))
 		var chest = gm.get_piece_at_hex(Hex.new(0, 2))
 
+		source.tick(1.0)  # スライド完了→排出
 		assert_gt(chest.get_item_count("iron_plate"), 0, "満杯状態で接続してもアイテムが転送されるべき")
 
 	func test_搬送完了済みのコンベアに後から接続先を置くと次のtickで転送される():

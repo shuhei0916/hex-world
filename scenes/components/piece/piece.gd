@@ -117,8 +117,13 @@ func get_item_count(item_name: String) -> int:
 
 
 func tick(delta: float):
+	# 全 tick を Piece に集約する。まず crafter(生産)→次に他のロジック(ejector/conveyor/splitter)。
+	# これにより同一フレーム内で「生産→排出」が流れ、子の自走 _process との二重 tick も避ける。
 	if crafter:
 		crafter.tick(delta)
+	for child in get_children():
+		if child != crafter and child.has_method("tick"):
+			child.tick(delta)
 
 
 func get_hex_shape() -> Array[Hex]:
