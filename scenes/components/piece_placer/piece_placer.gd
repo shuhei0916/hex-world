@@ -89,13 +89,17 @@ func _draw_preview():
 	var color = _selected_color
 
 	for hex_coord in current_piece_shape:
-		# カーソル用タイル (手持ち)
-		var cursor_tile = HexTileScene.instantiate()
-		cursor_preview.add_child(cursor_tile)
-		cursor_tile.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
-		cursor_tile.setup_hex(hex_coord)
-		cursor_tile.set_color(color)
-		cursor_tile.set_transparency(1.0)
+		# カーソル用 (手持ち)
+		if _is_conveyor:
+			# コンベアはベルト画像でプレビュー（色付きタイルは使わない）
+			_add_belt_preview(hex_coord)
+		else:
+			var cursor_tile = HexTileScene.instantiate()
+			cursor_preview.add_child(cursor_tile)
+			cursor_tile.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
+			cursor_tile.setup_hex(hex_coord)
+			cursor_tile.set_color(color)
+			cursor_tile.set_transparency(1.0)
 
 		# ゴースト用タイル (スナップ)
 		_add_ghost_tile(hex_coord)
@@ -103,6 +107,23 @@ func _draw_preview():
 	var ports = _get_current_output_ports()
 	if not ports.is_empty():
 		cursor_preview.add_child(Piece.make_output_arrow(ports[0]))
+
+
+# コンベアのカーソルプレビュー: forward ベルト画像を出力方向へ向けて配置する（半透明）。
+func _add_belt_preview(hex_coord: Hex):
+	var direction = _selected_port_direction
+	if _selected_port_direction >= 0:
+		direction = (_selected_port_direction - current_rotation + 6) % 6
+	var travel = Layout.hex_to_pixel(chunk.layout, Hex.hex_directions[direction])
+	var sprite = Sprite2D.new()
+	sprite.texture = ConveyorVisuals.BELT_FRAMES[0]
+	sprite.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
+	# テクスチャの矢印は上(-Y)向き。-Y を進行方向へ向ける。
+	sprite.rotation = travel.angle() + PI / 2.0
+	var tex_size = ConveyorVisuals.BELT_TEXTURE_SIZE
+	sprite.scale = Vector2(ConveyorVisuals.BELT_WIDTH / tex_size, travel.length() / tex_size)
+	sprite.modulate.a = 0.7
+	cursor_preview.add_child(sprite)
 
 
 func _get_current_output_ports() -> Array:
