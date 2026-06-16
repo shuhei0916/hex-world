@@ -43,8 +43,12 @@ func update_item_icon():
 		return
 	_item_icon.texture = item_def.icon
 	_item_icon.visible = true
-	# miner/balancer 同様、実際に向かう出力ポート端へ飛び出して表示する。
-	_item_icon.position = _edge_position_for_direction(_target_direction())
+	# 実際に向かう出力ポート端へ、進捗(progress)に応じて中心からスライドさせる（shapez のスロット進行）。
+	var edge = _edge_position_for_direction(_target_direction())
+	var t = 1.0
+	if _mover.has_method("get_progress_ratio"):
+		t = _mover.get_progress_ratio()
+	_item_icon.position = Vector2.ZERO.lerp(edge, t)
 
 
 # mover が示す排出方向(0-5)。取得できなければ主出力ポート方向にフォールバック。

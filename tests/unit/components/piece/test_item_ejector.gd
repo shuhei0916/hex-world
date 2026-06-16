@@ -42,11 +42,13 @@ class TestOutputTransport:
 	func test_接続先のピースにアイテムが搬出される():
 		source.ejector.set_connected_pieces([target])
 		source.ejector.add_item("iron", 1)
+		source.ejector.tick(1.0)  # スライド完了させて排出
 		assert_eq(source.ejector.get_item_count("iron"), 0)
 
 	func test_搬出後に接続先ピースのインベントリにアイテムが追加される():
 		source.ejector.set_connected_pieces([target])
 		source.ejector.add_item("iron", 1)
+		source.ejector.tick(1.0)
 		assert_eq(target.get_item_count("iron"), 1)
 
 	func test_接続先がない場合はアイテムが搬出されない():
@@ -66,7 +68,7 @@ class TestOutputTransport:
 		target.add_item("junk", 1)  # 接続先を満杯にする
 		source.ejector.add_item("iron", 1)  # 押せずに滞留
 		target.acceptor.consume_item("junk", 1)  # 接続先が空く（再送イベントは発生しない）
-		source.ejector.tick(0.1)  # tick で再送を試みるべき
+		source.ejector.tick(1.0)  # tick でスライド完了＋再送を試みるべき
 		assert_eq(source.ejector.get_item_count("iron"), 0)
 
 
@@ -90,22 +92,29 @@ class TestOutputRoundRobin:
 		autofree(target_b)
 		source.ejector.set_connected_pieces([target_a, target_b])
 
+	# 各アイテムは add_item 後に tick(1.0) でスライド完了→排出される。
+	func _eject_one(item_name: String):
+		source.ejector.add_item(item_name, 1)
+		source.ejector.tick(1.0)
+
 	func test_1回目はtarget_aへ送られる():
-		source.ejector.add_item("iron", 1)
+		_eject_one("iron")
 		assert_eq(target_a.get_item_count("iron"), 1)
 		assert_eq(target_b.get_item_count("iron"), 0)
 
 	func test_2回目はtarget_bへ送られる():
-		source.ejector.add_item("iron", 1)
-		source.ejector.add_item("iron", 1)
+		_eject_one("iron")
+		_eject_one("iron")
 		assert_eq(target_b.get_item_count("iron"), 1)
 
 	func test_3回目はtarget_aへ戻る():
-		source.ejector.add_item("iron", 1)
-		source.ejector.add_item("iron", 1)
-		source.ejector.add_item("iron", 1)
+		_eject_one("iron")
+		_eject_one("iron")
+		_eject_one("iron")
 		assert_eq(target_a.get_item_count("iron"), 2)
 
 	func test_2個まとめて追加すると両方の接続先に分配される():
 		source.ejector.add_item("iron", 2)
+		source.ejector.tick(1.0)  # 1個目スライド→排出(a)
+		source.ejector.tick(1.0)  # 2個目スライド→排出(b)
 		assert_eq(target_b.get_item_count("iron"), 1)

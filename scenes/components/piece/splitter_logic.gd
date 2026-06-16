@@ -9,12 +9,6 @@ var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()
 
 
-func _process(delta: float):
-	if Engine.is_editor_hint():
-		return
-	tick(delta)
-
-
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
 	_ejector.set_connections(pieces, directions)
 

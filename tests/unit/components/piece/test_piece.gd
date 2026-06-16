@@ -132,6 +132,7 @@ class TestPieceTransformation:
 		add_child_autofree(s)
 		s.setup(0)
 		s.add_to_output("iron_ingot", 1)
+		s.ejector.tick(1.0)  # スライド完了させてポート端へ
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var port = s.get_output_ports()[0]
@@ -147,6 +148,7 @@ class TestPieceTransformation:
 		add_child_autofree(s)
 		s.setup(0)
 		s.add_to_output("iron_ingot", 1)
+		s.ejector.tick(1.0)
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var before = visual.get_node("ItemIcon").position

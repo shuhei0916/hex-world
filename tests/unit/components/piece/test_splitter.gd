@@ -69,12 +69,15 @@ class TestSplitterConnection:
 		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		var visual = splitter.get_node("ItemEjectorVisual")
+		var logic = splitter.get_node("SplitterLogic")
 		splitter.add_item("iron_ore", 1)
+		logic.tick(0.25)  # スライド途中(まだ排出しない)
 		visual.update_item_icon()
 		var pos1 = visual.get_node("ItemIcon").position
-		splitter.get_node("SplitterLogic").tick(0.5)  # 1個目を排出 → buffer 空
-		visual.update_item_icon()  # 空を観測してリセット
+		logic.tick(0.25)  # progress=1 → 1個目を排出 → buffer 空
+		visual.update_item_icon()
 		splitter.add_item("iron_ore", 1)
+		logic.tick(0.25)  # 2個目スライド途中
 		visual.update_item_icon()
 		var pos2 = visual.get_node("ItemIcon").position
 		assert_ne(pos1, pos2)
@@ -130,8 +133,9 @@ class TestSplitterVisuals:
 		assert_false(visual.get_node("ItemIcon").visible)
 
 	func test_Splitterの保持アイテムは出力ポート側に飛び出る():
-		# デフォルト出力は East(0) なのでアイコンは中央ではなく +X 側に出る
+		# デフォルト出力は East(0)。スライドが進むとアイコンは中央ではなく +X 側に出る
 		splitter.add_item("iron_ore", 1)
+		splitter.get_node("SplitterLogic").tick(0.4)  # スライドを進める(まだ排出しない)
 		var visual = splitter.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		assert_gt(visual.get_node("ItemIcon").position.x, 0.0)

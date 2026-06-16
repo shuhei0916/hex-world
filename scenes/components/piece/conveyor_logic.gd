@@ -10,12 +10,6 @@ var connected_pieces: Array = []
 var _buffer := TransferBuffer.new()
 
 
-func _process(delta: float):
-	if Engine.is_editor_hint():
-		return
-	tick(delta)
-
-
 func set_connected_pieces(pieces: Array, _directions: Array = []) -> void:
 	# コンベアは単一出力なので方向情報は使わない（ベルト描画は set_input_direction が担当）。
 	connected_pieces = pieces
