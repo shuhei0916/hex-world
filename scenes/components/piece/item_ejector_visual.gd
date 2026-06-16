@@ -5,6 +5,7 @@ extends Node2D
 ## shapez の ItemEjectorSystem 相当の描画部。搬送状態は兄弟の mover
 ## （get_held_item を持つ SplitterLogic 等）から読む。ベルト描画やパス補間は持たない。
 
+@onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
 @onready var _item_icon: Sprite2D = $ItemIcon
 
@@ -39,5 +40,19 @@ func update_item_icon():
 		return
 	_item_icon.texture = item_def.icon
 	_item_icon.visible = true
-	# 保持アイテムはピース中心に表示する。
-	_item_icon.position = Vector2.ZERO
+	# miner/balancer 同様、出力ポート端へ飛び出して表示する。
+	_item_icon.position = _output_edge_position()
+
+
+# 主出力ポートのエッジ位置（ピース原点基準）。出力が無ければ中心。
+func _output_edge_position() -> Vector2:
+	if not _piece:
+		return Vector2.ZERO
+	var ports = _piece.get_output_ports()
+	if ports.is_empty():
+		return Vector2.ZERO
+	var layout = Layout.make_default()
+	var port = ports[0]
+	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
+	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
+	return hex_pos + edge

@@ -104,3 +104,10 @@ class TestSplitterVisuals:
 		var visual = splitter.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		assert_false(visual.get_node("ItemIcon").visible)
+
+	func test_Splitterの保持アイテムは出力ポート側に飛び出る():
+		# デフォルト出力は East(0) なのでアイコンは中央ではなく +X 側に出る
+		splitter.add_item("iron_ore", 1)
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_gt(visual.get_node("ItemIcon").position.x, 0.0)
