@@ -64,6 +64,14 @@
 
 ## リファクタリング
 
+### ConveyorVisuals の責務分離（ベルト描画 と 保持アイテム描画）
+- [ ] ConveyorVisuals が「ベルト画像描画」と「保持アイテムのアイコン描画」の2責務を持ち、
+  splitter が show_line=false で前者だけ無効化して流用している設計を解消する
+  - 案: 保持アイテム描画を独立コンポーネント(HeldItemVisual 等)へ抽出し conveyor/splitter で共有、
+    ベルト画像描画は conveyor 専用 BeltVisual に分離。show_line フラグを廃止
+  - 背景(shapez): belt は BeltComponent、balancer(=splitter/merger) は ItemAcceptor/Processor/
+    Ejector の汎用機械系で構成され、belt の描画/ロジックは流用しない。共有は低レベル部品のみ
+
 ### chunk.gd の責務分離
 - [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
   WorldGenerator 等へ切り出し、Chunk をグリッド＋ピース管理のファサードに絞る
@@ -99,6 +107,9 @@
 - [ ] ピースをグループ化し、パレットでカテゴリごとに表示する。
 - [ ] マウスオーバーで設置済みピースの詳細情報ラベルが表示される
 - [ ] item_dbをtresファイルを使ったリソースファイルへ移行する
+- [ ] 各ピース(miner/smelter等)に hex 用の画像スプライトを用意し、コンベア同様に
+  設置描画＋プレビューをスプライト化する（現状はフラットな色付き六角形のため）
+  - 要アセット準備（生成AI 等）。仕組み(設置スプライト＋半透明プレビュー)はコンベアで確立済み
 
 ### ゲームの別路線の開拓（戦闘要素）
 - [ ] 新しいシーンを作成し、グリッドを作成する
