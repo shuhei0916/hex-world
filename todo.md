@@ -64,13 +64,19 @@
 
 ## リファクタリング
 
-### ConveyorVisuals の責務分離（ベルト描画 と 保持アイテム描画）
-- [ ] ConveyorVisuals が「ベルト画像描画」と「保持アイテムのアイコン描画」の2責務を持ち、
-  splitter が show_line=false で前者だけ無効化して流用している設計を解消する
-  - 案: 保持アイテム描画を独立コンポーネント(HeldItemVisual 等)へ抽出し conveyor/splitter で共有、
-    ベルト画像描画は conveyor 専用 BeltVisual に分離。show_line フラグを廃止
-  - 背景(shapez): belt は BeltComponent、balancer(=splitter/merger) は ItemAcceptor/Processor/
-    Ejector の汎用機械系で構成され、belt の描画/ロジックは流用しない。共有は低レベル部品のみ
+### アイテム描画を shapez の System 分担に合わせて再配置する
+- [ ] アイテムの「描画」を、shapez 同様「アイテムが今どの部品にあるか」で分担し直す
+  - 出力から押し出される/はみ出すアイテム → ItemEjector 駆動の描画に統一（shapez: ItemEjectorSystem）。
+    現状バラバラな「miner のはみ出し(Inventory アイコン)」「splitter の保持(ConveyorVisuals 流用)」
+    「機械の出力」を1系統に集約
+  - 取り込まれるアイテム → acceptor 駆動（shapez: ItemAcceptorSystem）
+  - ベルト上を流れるアイテム → ベルト固有描画（shapez: BeltPath）。ejector/acceptor とは別系統
+  - 結果: splitter は ConveyorVisuals を流用しなくなり show_line を廃止。Crafter(≒ItemProcessor)は
+    描画を持たない（shapez 同様）
+  - 確認済み(shapez): ItemProcessorSystem は draw 無し。balancer のアイテム表示は
+    ItemAcceptorSystem(入) + ItemEjectorSystem(出) が担い、中央保持アイテムの専用描画は存在しない
+  - HeldItemVisual のような共通部品は shapez に無いため作らない
+  - 注意: 大きめの再配置。命名統一(Output→ItemEjector / PieceInput→ItemAcceptor)と同時が低コスト
 
 ### chunk.gd の責務分離
 - [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
