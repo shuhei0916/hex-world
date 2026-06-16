@@ -1,21 +1,29 @@
 class_name Crafter
 extends Node
 
+## 機械の加工ロジック（shapez の ItemProcessor 相当）。
+## 入力アイテムは Crafter 自身が入力スロット(_input_item/_input_count)で保持する
+## （汎用 Inventory は使わない）。レシピに入力があるピースは Crafter が受け入れ口になる
+## （get_acceptor が can_accept_item+add_item を持つ Crafter を返す。miner は入力容量0で受け付けない）。
+## 出力は ItemEjector のスロットへ。
+
 # 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
 const CRAFTING_START_PROGRESS = 0.001
 
 var current_recipe: Recipe
 var processing_progress: float = 0.0
 var output_multiplier: int = 1
+var input_capacity: int = 0
 
-var input_container: Node
 var output_container: Node
+
+var _input_item: String = ""
+var _input_count: int = 0
 
 @onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
 
 
-func setup(in_container: Node, out_container: Node):
-	input_container = in_container
+func setup(out_container: Node):
 	output_container = out_container
 
 
@@ -25,12 +33,11 @@ func set_recipe(recipe: Recipe):
 	_apply_io_capacities()
 
 
-# 機械の入出力容量を「1クラフト分」に絞る（shapez 同様、機械はバッファを持たない）。
+# 入出力容量を「1クラフト分」に絞る。入力が無いピース(miner)は input_capacity=0（受け付けない）。
 func _apply_io_capacities():
 	if not current_recipe:
 		return
-	if input_container and input_container.has_method("set_capacity"):
-		input_container.set_capacity(maxi(_sum_quantities(current_recipe.inputs), 1))
+	input_capacity = _sum_quantities(current_recipe.inputs)
 	if output_container and output_container.has_method("set_capacity"):
 		output_container.set_capacity(maxi(_sum_quantities(current_recipe.outputs), 1))
 
@@ -40,6 +47,35 @@ func _sum_quantities(items: Dictionary) -> int:
 	for quantity in items.values():
 		total += quantity
 	return total
+
+
+# --- 入力受け入れ口（shapez ItemAcceptor 相当をここに内包） ---
+func can_accept_item(_item_name: String) -> bool:
+	return not is_full()
+
+
+func add_item(item_name: String, amount: int):
+	if _input_item == "":
+		_input_item = item_name
+		_input_count = amount
+	elif _input_item == item_name:
+		_input_count += amount
+
+
+func consume_item(item_name: String, amount: int):
+	if _input_item == item_name:
+		_input_count -= amount
+		if _input_count <= 0:
+			_input_item = ""
+			_input_count = 0
+
+
+func get_item_count(item_name: String) -> int:
+	return _input_count if _input_item == item_name else 0
+
+
+func is_full() -> bool:
+	return _input_count >= input_capacity
 
 
 func start_crafting():
@@ -79,7 +115,7 @@ func _can_start_crafting() -> bool:
 	if not current_recipe:
 		return false
 
-	# アウトプットインベントリが満杯なら開始しない
+	# アウトプットが満杯なら開始しない
 	if output_container and output_container.is_full():
 		return false
 
@@ -87,19 +123,15 @@ func _can_start_crafting() -> bool:
 	if current_recipe.inputs.is_empty():
 		return true
 
-	if not input_container:
-		return false
-
 	for item_name in current_recipe.inputs:
-		if input_container.get_item_count(item_name) < current_recipe.inputs[item_name]:
+		if get_item_count(item_name) < current_recipe.inputs[item_name]:
 			return false
 	return true
 
 
 func _start_crafting():
-	if input_container:
-		for item_name in current_recipe.inputs:
-			input_container.consume_item(item_name, current_recipe.inputs[item_name])
+	for item_name in current_recipe.inputs:
+		consume_item(item_name, current_recipe.inputs[item_name])
 	processing_progress = CRAFTING_START_PROGRESS
 
 

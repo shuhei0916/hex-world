@@ -20,20 +20,13 @@ class TestMachineCapacity:
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
-		assert_eq(p.acceptor.inventory.capacity, 1)
+		assert_eq(p.get_node("Crafter").input_capacity, 1)
 
 	func test_Chestはバッファ容量を維持する():
 		var p = CHEST_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
 		assert_eq(p.acceptor.inventory.capacity, 20)
-
-	func test_加工機の入力バッジは表示されない():
-		var p = SMELTER_SCENE.instantiate()
-		add_child_autofree(p)
-		p.setup()
-		p.add_item("iron_ore", 1)
-		assert_false(p.get_node("ItemAcceptor/Inventory/Icon").visible)
 
 	func test_Chestの入力バッジは表示される():
 		var p = CHEST_SCENE.instantiate()
@@ -185,20 +178,22 @@ class TestPieceAcceptor:
 
 	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
-	func test_機械ピースのget_acceptorはInputコンポーネントを返す():
+	func test_機械ピースのget_acceptorはCrafterを返す():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
-		assert_eq(p.get_acceptor(), p.get_node("ItemAcceptor"))
+		assert_eq(p.get_acceptor(), p.get_node("Crafter"))
 
 	func test_コンベアのget_acceptorはConveyorLogicを返す():
 		var p = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(p)
 		assert_eq(p.get_acceptor(), p.get_node("ConveyorLogic"))
 
-	func test_受け入れ口を持たないピースのget_acceptorはnullを返す():
+	func test_minerは入力を受け付けない():
+		# miner はレシピ入力が無く入力容量0なので、何も受け入れない
 		var p = MINER_SCENE.instantiate()
 		add_child_autofree(p)
-		assert_null(p.get_acceptor())
+		p.setup()
+		assert_false(p.can_accept_item("iron_ore"))
 
 
 class TestPieceRoles:

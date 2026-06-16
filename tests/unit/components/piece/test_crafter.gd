@@ -9,18 +9,15 @@ class TestCrafterLogic:
 	extends GutTest
 
 	var crafter: Crafter
-	var input_container
 	var output_container
 
 	func before_each():
 		crafter = Crafter.new()
-		input_container = InventoryScript.new()
 		output_container = InventoryScript.new()
-		crafter.setup(input_container, output_container)
+		crafter.setup(output_container)
 
 	func after_each():
 		crafter.free()
-		input_container.free()
 		output_container.free()
 
 	func test_レシピを設定し初期化される():
@@ -41,31 +38,31 @@ class TestCrafterLogic:
 	func test_set_recipeで入力容量がレシピ入力量の合計になる():
 		var recipe = Recipe.new("test", {"ore": 2}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		assert_eq(input_container.capacity, 2)
+		assert_eq(crafter.input_capacity, 2)
 
 	func test_材料が足りていれば開始可能と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		assert_true(crafter._can_start_crafting(), "材料があれば開始できるべき")
 
 	func test_材料が不足していれば開始不可と判定される():
 		var recipe = Recipe.new("test", {"ore": 2}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		assert_false(crafter._can_start_crafting(), "材料が足りなければ開始できないべき")
 
 	func test_加工開始時に材料が消費される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		crafter._start_crafting()
-		assert_eq(input_container.get_item_count("ore"), 0, "開始時に材料が消費されるべき")
+		assert_eq(crafter.get_item_count("ore"), 0, "開始時に材料が消費されるべき")
 
 	func test_加工開始時に進捗が微増する():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		crafter._start_crafting()
 		assert_gt(crafter.processing_progress, 0.0, "開始時に進捗が微増するべき")
 
@@ -113,14 +110,14 @@ class TestCrafterLogic:
 	func test_アウトプットが満杯の場合は開始不可と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		assert_false(crafter._can_start_crafting(), "アウトプットが満杯なら開始できないべき")
 
 	func test_アウトプットが満杯の場合は加工が開始されない():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		input_container.add_item("ore", 1)
+		crafter.add_item("ore", 1)
 		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		crafter.tick(0.1)
 		assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")

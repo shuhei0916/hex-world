@@ -44,7 +44,7 @@ func _ready():
 		_create_hex_tiles()
 		return
 	if crafter and ejector:
-		crafter.setup(acceptor, ejector)
+		crafter.setup(ejector)
 
 
 func _process(delta: float):

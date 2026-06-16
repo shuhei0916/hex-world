@@ -4,6 +4,21 @@ extends GutTest
 const PIECE_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 
 
+# 容量無制限の受け入れスタブ（round-robin 分配ロジックを実ピースの容量から切り離して検証する）。
+class StubTarget:
+	extends Node
+	var _counts := {}
+
+	func can_accept_item(_item_name: String) -> bool:
+		return true
+
+	func add_item(item_name: String, amount: int) -> void:
+		_counts[item_name] = _counts.get(item_name, 0) + amount
+
+	func get_item_count(item_name: String) -> int:
+		return _counts.get(item_name, 0)
+
+
 class TestOutputInventory:
 	extends GutTest
 
@@ -67,7 +82,7 @@ class TestOutputTransport:
 		source.ejector.set_connected_pieces([target])
 		target.add_item("junk", 1)  # 接続先を満杯にする
 		source.ejector.add_item("iron", 1)  # 押せずに滞留
-		target.acceptor.consume_item("junk", 1)  # 接続先が空く（再送イベントは発生しない）
+		target.get_acceptor().consume_item("junk", 1)  # 接続先が空く（再送イベントは発生しない）
 		source.ejector.tick(1.0)  # tick でスライド完了＋再送を試みるべき
 		assert_eq(source.ejector.get_item_count("iron"), 0)
 
@@ -76,18 +91,18 @@ class TestOutputRoundRobin:
 	extends GutTest
 
 	var source: Piece
-	var target_a: Piece
-	var target_b: Piece
+	var target_a
+	var target_b
 
 	func before_each():
 		source = PIECE_SCENE.instantiate()
 		add_child(source)
 		autofree(source)
 		source.setup()
-		target_a = PIECE_SCENE.instantiate()
+		target_a = StubTarget.new()
 		add_child(target_a)
 		autofree(target_a)
-		target_b = PIECE_SCENE.instantiate()
+		target_b = StubTarget.new()
 		add_child(target_b)
 		autofree(target_b)
 		source.ejector.set_connected_pieces([target_a, target_b])
