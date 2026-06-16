@@ -15,12 +15,17 @@ func _process(delta: float):
 	tick(delta)
 
 
-func set_connected_pieces(pieces: Array) -> void:
-	_ejector.connected_pieces = pieces
+func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
+	_ejector.set_connections(pieces, directions)
 
 
 func get_connected_pieces() -> Array:
 	return _ejector.connected_pieces
+
+
+# 保持中アイテムが実際に向かう出力方向(0-5)。排出先が無ければ -1。
+func get_target_direction() -> int:
+	return _ejector.target_direction(_buffer.held_item)
 
 
 func can_accept_item(_item_name: String) -> bool:

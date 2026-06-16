@@ -65,18 +65,14 @@
 ## リファクタリング
 
 ### アイテム描画を shapez の System 分担に合わせて再配置する
-- [ ] アイテムの「描画」を、shapez 同様「アイテムが今どの部品にあるか」で分担し直す
-  - 出力から押し出される/はみ出すアイテム → ItemEjector 駆動の描画に統一（shapez: ItemEjectorSystem）。
-	現状バラバラな「miner のはみ出し(Inventory アイコン)」「splitter の保持(ConveyorVisuals 流用)」
-	「機械の出力」を1系統に集約
-  - 取り込まれるアイテム → acceptor 駆動（shapez: ItemAcceptorSystem）
-  - ベルト上を流れるアイテム → ベルト固有描画（shapez: BeltPath）。ejector/acceptor とは別系統
-  - 結果: splitter は ConveyorVisuals を流用しなくなり show_line を廃止。Crafter(≒ItemProcessor)は
-	描画を持たない（shapez 同様）
-  - 確認済み(shapez): ItemProcessorSystem は draw 無し。balancer のアイテム表示は
-	ItemAcceptorSystem(入) + ItemEjectorSystem(出) が担い、中央保持アイテムの専用描画は存在しない
-  - HeldItemVisual のような共通部品は shapez に無いため作らない
-  - 注意: 大きめの再配置。命名統一(Output→ItemEjector / PieceInput→ItemAcceptor)と同時が低コスト
+- [x] splitter: ConveyorVisuals 流用をやめ ItemEjectorVisual に分離、出力ポートへ飛び出し表示、
+  ItemEjector をスロット/方向対応にして「表示＝実排出」を一致（片側接続・詰まりでも食い違わない）
+- [ ] miner/機械の「はみ出し出力アイテム(現 Inventory アイコン)」も ItemEjector 駆動描画へ統一
+  （shapez: ItemEjectorSystem が全建物の出力を一括描画）。確立済みの ItemEjector/ItemEjectorVisual を流用
+- [ ] 取り込まれるアイテムの描画を acceptor 駆動に（shapez: ItemAcceptorSystem）※現状機械入力は非表示
+  - ベルト上を流れるアイテム → ベルト固有描画（shapez: BeltPath）。ejector/acceptor とは別系統（現状維持）
+  - 確立済み: ItemEjector(部品=ItemEjectorComponent相当) / ItemEjectorVisual(描画=System相当)
+  - HeldItemVisual のような共通部品は shapez に無いため作らない。Crafter(≒ItemProcessor)は描画を持たない
 
 ### chunk.gd の責務分離
 - [ ] 世界生成ロジック（generate_ore_deposits / place_delivery_zone / mark_resource_hex）を
@@ -96,15 +92,21 @@
   - 方針: いきなり実装せず、まず単一 chunk のフル sim＋クリーンな I/O 契約を作る。圧縮はスケール問題に当たってから
 
 ## 将来検討
-- [ ] 命名を shapez に揃えるリネーム検討（Output→ItemEjector / PieceInput→ItemAcceptor、ヘルパー改名。piece→building はスコープ外）
-  - 背景: 六角形版 shapez を軸としており、構造・命名を shapez 語彙へ寄せたい（合成リファクタ済みの今が低コスト）
-  - 影響範囲: クラス名＋ノード名＋get_node文字列＋テスト。Crafter は据え置き推奨
+- [ ] Output/PieceInput を shapez 語彙へ整理（リネームではなく「分解」）
+  - ItemEjector(部品) と ItemEjectorVisual(描画) は既に確立。**Output→ItemEjector リネームは名前衝突＋意味ずれのため不可**
+    （Output は「ejector を内包する複合コンテナ」であって ejector そのものではない）
+  - 方針: 中間管理職 Output を解雇し、Piece が **ItemEjector(＋必要なら Inventory) を直接合成**する形へ。
+    push の糊（_push_items 等）も Piece/ItemEjector 側へ移す
+  - PieceInput も同様に **ItemAcceptor(部品)＋Inventory へ分解**（ItemAcceptor 名は未使用で衝突なし）
+  - 背景: 六角形版 shapez を軸とし、building が ItemEjector/ItemAcceptor を直接持つ shapez 構造へ寄せる
+  - 影響範囲: 各.tscn のノード構成＋get_node文字列＋テスト。Crafter は据え置き推奨
 - [ ] `_key` / `hex_to_key` の薄いラッパー（PieceRegistry/HexGrid/GridRenderer ×3）を Hex.to_key 直呼びに統一（軽微）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
-- [ ] output.gd の _push_items() をキューベースに最適化
-- [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理
-- [ ] input.gd / output.gd の共通 InventoryContainer 基底クラスを抽出する
+- [ ] _push_items() をキューベースに最適化（Output 分解後は ItemEjector 側のロジックになる）
+- [ ] piece.gd / input.gd の `add_item` / `consume_item` インターフェースを整理（ItemAcceptor 分解と一緒に）
+- [ ] ~~input.gd / output.gd の共通 InventoryContainer 基底クラスを抽出する~~
+  → 廃案。Output/PieceInput は「共通基底で束ねる」のではなく「ItemEjector/ItemAcceptor＋Inventory へ分解」する方針に変更
 - [ ] OutputPort の複数ポート対応テストを追加する
 - [ ] コンベア設置UXの改善（Factorio: 直線制約、shapez2: パス収集＋自動向き、を参考に検討）
 - [ ] Splitter/Mergerを専用ピースではなく、既存コンベアラインからの分岐・合流操作で実現する（shapez2ではsplitter/merger自体が廃止されている）。UXとして親切だが大掛かりな変更になるため、専用ピース方式が立ち行かなくなった場合に再検討する

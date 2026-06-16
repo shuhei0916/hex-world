@@ -35,6 +35,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 		return
 
 	var current_connections: Array[Piece] = []
+	var current_directions: Array[int] = []  # 各接続への出力方向(0-5)
 	var occupied_hexes = _registry.get_occupied_hexes(piece)
 
 	for hex in occupied_hexes:
@@ -44,8 +45,9 @@ func _update_piece_neighbors(piece: Piece) -> void:
 				if _is_physically_connected(piece, hex, direction):
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
+						current_directions.append(direction)
 
-	piece.set_connected_pieces(current_connections)
+	piece.set_connected_pieces(current_connections, current_directions)
 
 	_update_conveyor_input_direction(piece)
 
