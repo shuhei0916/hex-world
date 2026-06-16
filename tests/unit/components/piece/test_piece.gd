@@ -156,6 +156,18 @@ class TestPieceTransformation:
 		visual.update_item_icon()
 		assert_ne(visual.get_node("ItemIcon").position, before)
 
+	func test_出力アイテムのスライド起点は出力hexの中心():
+		# 複数hexのminerでは出力ポートhexがベースとずれる。progress0で出力hex中心に居るべき
+		var m = MINER_SCENE.instantiate()
+		add_child_autofree(m)
+		m.setup(0)
+		m.add_to_output("iron_ore", 1)  # progress 0（スライド開始前）
+		var visual = m.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		var port = m.get_output_ports()[0]
+		var expected_center = Layout.hex_to_pixel(Layout.make_default(), port.hex)
+		assert_almost_eq(visual.get_node("ItemIcon").position, expected_center, Vector2(0.1, 0.1))
+
 	func test_出力アイテムはヘックスタイルより奥に描画される():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
