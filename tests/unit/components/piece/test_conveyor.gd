@@ -18,12 +18,12 @@ class TestConveyorShape:
 	func test_conveyorはInputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_null(piece.get_node_or_null("Input"))
+		assert_null(piece.get_node_or_null("ItemAcceptor"))
 
 	func test_conveyorはOutputノードを持たない():
 		var piece = CONVEYOR_SCENE.instantiate()
 		add_child_autofree(piece)
-		assert_null(piece.get_node_or_null("Output"))
+		assert_null(piece.get_node_or_null("ItemEjector"))
 
 
 class TestConveyorLogic:

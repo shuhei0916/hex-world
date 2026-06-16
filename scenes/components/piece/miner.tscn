@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://miner00001"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/output.gd" id="2_output"]
+[ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/item_ejector.gd" id="2_output"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
 [ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="7_inventory"]
 
@@ -17,10 +17,10 @@ port_direction = 4
 port_direction2 = null
 piece_color = Color(0.952941, 0.823529, 0.513726, 1)
 
-[node name="Output" type="Node2D" parent="." unique_id=1542040156]
+[node name="ItemEjector" type="Node2D" parent="." unique_id=1542040156]
 script = ExtResource("2_output")
 
-[node name="Inventory" parent="Output" unique_id=1930511894 instance=ExtResource("7_inventory")]
+[node name="Inventory" parent="ItemEjector" unique_id=1930511894 instance=ExtResource("7_inventory")]
 show_count = false
 
 [node name="Crafter" type="Node2D" parent="." unique_id=2100184756]

@@ -14,40 +14,40 @@ class TestMachineCapacity:
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
-		assert_eq(p.output.inventory.capacity, 1)
+		assert_eq(p.ejector.inventory.capacity, 1)
 
 	func test_機械の入力容量はレシピ1回分1になる():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
-		assert_eq(p.input_storage.inventory.capacity, 1)
+		assert_eq(p.acceptor.inventory.capacity, 1)
 
 	func test_Chestはバッファ容量を維持する():
 		var p = CHEST_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
-		assert_eq(p.input_storage.inventory.capacity, 20)
+		assert_eq(p.acceptor.inventory.capacity, 20)
 
 	func test_加工機の入力バッジは表示されない():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
 		p.add_item("iron_ore", 1)
-		assert_false(p.get_node("Input/Inventory/Icon").visible)
+		assert_false(p.get_node("ItemAcceptor/Inventory/Icon").visible)
 
 	func test_機械の出力は数量ラベルを表示しない():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
 		p.add_to_output("iron_ingot", 1)
-		assert_false(p.get_node("Output/Inventory/CountLabel").visible)
+		assert_false(p.get_node("ItemEjector/Inventory/CountLabel").visible)
 
 	func test_Chestの入力バッジは表示される():
 		var p = CHEST_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
 		p.add_item("iron_ingot", 1)
-		assert_true(p.get_node("Input/Inventory/Icon").visible)
+		assert_true(p.get_node("ItemAcceptor/Inventory/Icon").visible)
 
 
 class TestPieceBasics:
@@ -144,15 +144,15 @@ class TestPieceTransformation:
 			Layout.hex_to_pixel(layout, port.hex)
 			+ Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
 		)
-		assert_eq(s.output.position, expected)
+		assert_eq(s.ejector.position, expected)
 
 	func test_Outputノードの位置はピース回転に追従する():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		var before = s.output.position
+		var before = s.ejector.position
 		s.rotate_cw()
-		assert_ne(s.output.position, before)
+		assert_ne(s.ejector.position, before)
 
 	func test_出力アイテムはヘックスタイルより奥に描画される():
 		var s = SMELTER_SCENE.instantiate()
@@ -163,7 +163,7 @@ class TestPieceTransformation:
 			if child is HexTile:
 				tile = child
 				break
-		assert_lt(s.output.z_index, tile.z_index)
+		assert_lt(s.ejector.z_index, tile.z_index)
 
 
 class TestPieceAcceptor:
@@ -174,7 +174,7 @@ class TestPieceAcceptor:
 	func test_機械ピースのget_acceptorはInputコンポーネントを返す():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
-		assert_eq(p.get_acceptor(), p.get_node("Input"))
+		assert_eq(p.get_acceptor(), p.get_node("ItemAcceptor"))
 
 	func test_コンベアのget_acceptorはConveyorLogicを返す():
 		var p = CONVEYOR_SCENE.instantiate()

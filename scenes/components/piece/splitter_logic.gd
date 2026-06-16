@@ -6,7 +6,7 @@ extends Node
 ## 保持＋タイマーは TransferBuffer に、巡回搬出は ItemEjector に委譲する。
 
 var _buffer := TransferBuffer.new()
-var _ejector := ItemEjector.new()
+var _ejector := EjectorRouter.new()
 
 
 func _process(delta: float):

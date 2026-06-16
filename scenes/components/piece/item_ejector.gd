@@ -1,49 +1,89 @@
 class_name ItemEjector
-extends RefCounted
+extends Node2D
 
-## 接続先ピースへアイテムを1個ずつラウンドロビンで搬出するヘルパー。
-## Output / SplitterLogic が合成で利用する（shapez の ItemEjector 相当）。
-## 各接続は「出力方向(0-5)」を伴うスロットとして保持する。これにより描画側は
-## 「実際に排出される方向」を読めて、表示と実排出が食い違わない。
-## 受け入れ先の判定は can_accept_item / add_item のダックタイピングで行う。
+## アイテムをスタックし、接続先ピースへ搬出するコンポーネント（shapez の ItemEjector 相当）。
+## ストレージは $Inventory に、接続先への巡回搬出は EjectorRouter に委譲する。
 
-var connected_pieces: Array = []
-var connected_directions: Array = []  # connected_pieces と並行。各接続の出力方向(0-5)
-var _rr_index: int = 0
+var _ejector := EjectorRouter.new()
+var _is_pushing: bool = false
+
+@onready var inventory: Node2D = $Inventory
 
 
-func set_connections(pieces: Array, directions: Array = []) -> void:
-	connected_pieces = pieces
-	connected_directions = directions
+func _ready():
+	# 描画レイヤー: 機械の出力はみ出しアイテムは施設タイル(10)より奥（7）。
+	z_index = 7
+	z_as_relative = false
+	inventory.inventory_changed.connect(_push_items)
 
 
-# ラウンドロビン開始位置から最初に受け入れ可能な接続のインデックスを返す（無ければ -1）。
-func _next_acceptable_index(item_name: String) -> int:
-	var n = connected_pieces.size()
-	if n == 0:
-		return -1
-	for i in range(n):
-		var idx = (_rr_index + i) % n
-		var target = connected_pieces[idx]
-		if target.has_method("can_accept_item") and target.has_method("add_item"):
-			if target.can_accept_item(item_name):
-				return idx
-	return -1
+func _process(delta: float):
+	if Engine.is_editor_hint():
+		return
+	tick(delta)
 
 
-# 今 item_name を排出するなら向かう出力方向(0-5)。排出先が無ければ -1。
-func target_direction(item_name: String) -> int:
-	var idx = _next_acceptable_index(item_name)
-	if idx < 0 or idx >= connected_directions.size():
-		return -1
-	return connected_directions[idx]
+# 毎 tick 搬出を再試行する。接続先が後から空いた場合に滞留アイテムを再送するため
+# （inventory_changed は自分の在庫変化時しか発火しないので、これが無いと詰まる）。
+func tick(_delta: float):
+	try_push()
 
 
-# 最初に受け入れ可能な接続先へ item_name を1個渡す。渡せたら true。
-func try_eject(item_name: String) -> bool:
-	var idx = _next_acceptable_index(item_name)
-	if idx < 0:
-		return false
-	connected_pieces[idx].add_item(item_name, 1)
-	_rr_index = (idx + 1) % connected_pieces.size()
-	return true
+func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
+	_ejector.set_connections(pieces, directions)
+	try_push()
+
+
+func get_connected_pieces() -> Array:
+	return _ejector.connected_pieces
+
+
+func add_item(item_name: String, amount: int):
+	inventory.add_item(item_name, amount)
+
+
+func consume_item(item_name: String, amount: int):
+	inventory.consume_item(item_name, amount)
+
+
+func get_item_count(item_name: String) -> int:
+	return inventory.get_item_count(item_name)
+
+
+func get_total_item_count() -> int:
+	return inventory.get_total_item_count()
+
+
+func set_capacity(n: int):
+	inventory.set_capacity(n)
+
+
+func is_full() -> bool:
+	return inventory.is_full()
+
+
+func is_empty() -> bool:
+	return inventory.is_empty()
+
+
+func try_push():
+	_push_items()
+
+
+func _push_items():
+	if _is_pushing:
+		return
+	if inventory.is_empty() or _ejector.connected_pieces.is_empty():
+		return
+
+	_is_pushing = true
+	var still_pushing = true
+	while still_pushing and not inventory.is_empty():
+		still_pushing = false
+		for item_name in inventory.get_item_names().duplicate():
+			if _ejector.try_eject(item_name):
+				consume_item(item_name, 1)
+				still_pushing = true
+				break
+
+	_is_pushing = false

@@ -25,7 +25,7 @@ func _ready():
 
 
 func _connect_to_inventory():
-	var input = get_parent().get_node_or_null("Input")
+	var input = get_parent().get_node_or_null("ItemAcceptor")
 	if input:
 		input.get_node("Inventory").inventory_changed.connect(_on_inventory_changed)
 
@@ -37,7 +37,7 @@ func _update_label():
 
 
 func _on_inventory_changed():
-	var input = get_parent().get_node_or_null("Input")
+	var input = get_parent().get_node_or_null("ItemAcceptor")
 	if not input:
 		return
 	var count = input.get_item_count(goal_item)

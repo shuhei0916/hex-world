@@ -157,7 +157,7 @@ class TestCrafterProgressBar:
 		var recipe = Recipe.new("test", {}, {"iron_ore": 1}, 1.0)
 		piece.set_recipe(recipe)
 		piece.tick(0.01)  # craft_time=1.0 なのでまだ完了していない
-		var output_icon = piece.get_node_or_null("Output/Inventory/Icon")
+		var output_icon = piece.get_node_or_null("ItemEjector/Inventory/Icon")
 		if output_icon:
 			assert_false(output_icon.visible, "生産完了前は出力Iconを表示しないべき")
 
@@ -165,6 +165,6 @@ class TestCrafterProgressBar:
 		var recipe = Recipe.new("test", {}, {"iron_ore": 1}, 1.0)
 		piece.set_recipe(recipe)
 		piece.tick(1.1)  # 完了させる
-		var output_icon = piece.get_node_or_null("Output/Inventory/Icon")
+		var output_icon = piece.get_node_or_null("ItemEjector/Inventory/Icon")
 		if output_icon:
 			assert_true(output_icon.visible, "生産完了後は出力Iconが表示されるべき")
