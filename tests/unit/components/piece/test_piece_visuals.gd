@@ -41,37 +41,47 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
-func test_CONVEYORをsetupするとLine2Dの子ノードが追加される():
+func test_ベルトのフレームindexは経過時間で進み14コマで循環する():
+	# 1周期(BELT_ANIM_COUNT/BELT_FPS)離れた時刻は同じフレームを指すべき（循環）
+	var period = ConveyorVisuals.BELT_ANIM_COUNT / ConveyorVisuals.BELT_FPS
+	assert_eq(ConveyorVisuals.frame_for_time(0.06 + period), ConveyorVisuals.frame_for_time(0.06))
+
+
+func test_forwardベルトフレームは14枚ある():
+	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
+
+
+func test_CONVEYORをsetupするとベルトのセグメントが2枚追加される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_not_null(conveyor.get_node("ConveyorVisuals")._line)
+	assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
 
 
-func test_rotate_cw後にLine2Dの出力エッジ点が更新される():
+func test_rotate_cw後に出力エッジ点が更新される():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var out_before = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_before = conveyor.get_node("ConveyorVisuals")._path[2]
 	conveyor.rotate_cw()
-	var out_after = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_after = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_ne(out_after, out_before)
 
 
-func test_CONVEYORのLine2Dの出力エッジ点が出力方向にある():
+func test_CONVEYORの出力エッジ点が出力方向にある():
 	# direction=0 (East): 出力エッジ点は正のX方向にあるはず
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	var out_edge = conveyor.get_node("ConveyorVisuals")._line.get_point_position(2)
+	var out_edge = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_gt(out_edge.x, 0.0)
 
 
-func test_CONVEYORのLine2Dは3点を持つ():
+func test_CONVEYORのベルトパスは3点を持つ():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_eq(conveyor.get_node("ConveyorVisuals")._line.get_point_count(), 3)
+	assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
 
 func test_SMELTERをsetupしてもLine2Dは追加されない():
@@ -79,11 +89,12 @@ func test_SMELTERをsetupしてもLine2Dは追加されない():
 	assert_null(piece.get_node_or_null("ConveyorVisuals"))
 
 
-func test_CONVEYORをsetupすると出力方向矢印が追加される():
+func test_CONVEYORは出力方向矢印を表示しない():
+	# ベルト画像自体が方向を示すため、コンベアには矢印を出さない。
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_not_null(conveyor._output_arrow, "CONVEYORにも出力方向矢印が表示されるべき")
+	assert_null(conveyor._output_arrow, "コンベアは矢印を表示しないべき")
 
 
 func test_CHESTをsetupしても矢印の子ノードは追加されない():
@@ -102,7 +113,7 @@ func test_コンベア上のアイテムはコンベアのラインより手前�
 	conveyor.setup(0)
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	var item_icon = visuals.get_node("ItemIcon")
-	assert_lt(visuals._line.z_index, item_icon.z_index)
+	assert_lt(visuals._belts[0].z_index, item_icon.z_index)
 
 
 func test_コンベア上のアイテムは絶対zで描画され施設タイルに依存しない():
@@ -120,16 +131,13 @@ func test_レシピをセットしても出力Iconは表示されない():
 	assert_false(piece.get_node("Output/Inventory/Icon").visible, "出力アイコンは入力がない限り非表示")
 
 
-func test_コンベアの土台タイルは機械の施設タイルより奥に描画される():
+func test_コンベアは基礎タイルを持たない():
+	# ベルト画像自体が見た目を担うため、コンベアは色付き基礎タイルを描かない。
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	piece.setup(0)
-	assert_lt(_first_hextile(conveyor).z_index, _first_hextile(piece).z_index)
-
-
-func _first_hextile(p) -> HexTile:
-	for child in p.get_children():
+	var tile_count = 0
+	for child in conveyor.get_children():
 		if child is HexTile:
-			return child
-	return null
+			tile_count += 1
+	assert_eq(tile_count, 0)

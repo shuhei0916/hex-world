@@ -59,9 +59,11 @@ func _create_hex_tiles():
 			child.queue_free()
 	if piece_shape.is_empty():
 		return
+	# ベルトを描くコンベアは画像自体が見た目を担うので基礎タイルは描かない。
+	# スプリッター(ConveyorVisuals だが show_line=false)は基礎タイルを土台(z=5)として残す。
+	if _is_belt():
+		return
 	var layout = Layout.make_default()
-	# 描画レイヤー: 搬送系(ConveyorVisuals保持)の土台は低層(5)にし、
-	# その上のライン(6)・アイテム(7)を見せる。それ以外の施設は最前面(10)。
 	var tile_z := 5 if get_node_or_null("ConveyorVisuals") else 10
 	for hex in get_hex_shape():
 		var tile = HEX_TILE_SCENE.instantiate()
@@ -165,6 +167,12 @@ func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 	return {"hex": hex, "direction": rotated_direction}
 
 
+func _is_belt() -> bool:
+	# ベルトを描くコンベア（ConveyorVisuals かつ show_line=true）。スプリッターは false。
+	var visuals = get_node_or_null("ConveyorVisuals")
+	return visuals != null and visuals.show_line
+
+
 func _refresh_output_arrow():
 	if _output_arrow:
 		_output_arrow.queue_free()
@@ -172,6 +180,9 @@ func _refresh_output_arrow():
 	if _output_arrow2:
 		_output_arrow2.queue_free()
 		_output_arrow2 = null
+	# ベルト画像自体が方向を示すので、コンベアには矢印を出さない。
+	if _is_belt():
+		return
 	var ports = get_output_ports()
 	if ports.is_empty():
 		return
