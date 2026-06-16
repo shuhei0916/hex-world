@@ -94,8 +94,13 @@
 ## 将来検討
 - [x] Output→ItemEjector / PieceInput→ItemAcceptor / 旧RefCounted ItemEjector→EjectorRouter に改名
   （挙動維持。Node は従来どおり Inventory を子に持つ。Piece の member も ejector/acceptor へ）
-- [ ] （続き・別途）ItemEjector のスロット忠実化: 出力 Inventory を廃止しスロットが item を直接保持。
-  これに合わせ miner/機械の出力アイテム描画も ItemEjectorVisual に統一（shapez 完全準拠）
+- [x] ItemEjector のスロット忠実化: 出力 Inventory を廃止しスロットが item を直接保持。
+  miner/機械の出力アイテム描画も ItemEjectorVisual に統一（挙動維持）
+- [ ] （続き）ItemEjector スロットに progress を持たせ、出力アイテムを「中心→ポート端」へ
+  スライドさせる（shapez ルック）。搬送速度(スピード/分)表示との整合を再確認。機械の即時排出が
+  遅延に変わるためテスト更新あり
+- [ ] （続き）SplitterLogic を ItemEjector(多出力) に統合し SplitterLogic を削除
+  （splitter = 受取→保持→巡回排出 ＝ スロット付き ItemEjector そのもの）
 - [ ] `_key` / `hex_to_key` の薄いラッパー（PieceRegistry/HexGrid/GridRenderer ×3）を Hex.to_key 直呼びに統一（軽微）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化

@@ -14,7 +14,7 @@ class TestMachineCapacity:
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		p.setup()
-		assert_eq(p.ejector.inventory.capacity, 1)
+		assert_eq(p.ejector.capacity, 1)
 
 	func test_機械の入力容量はレシピ1回分1になる():
 		var p = SMELTER_SCENE.instantiate()
@@ -34,13 +34,6 @@ class TestMachineCapacity:
 		p.setup()
 		p.add_item("iron_ore", 1)
 		assert_false(p.get_node("ItemAcceptor/Inventory/Icon").visible)
-
-	func test_機械の出力は数量ラベルを表示しない():
-		var p = SMELTER_SCENE.instantiate()
-		add_child_autofree(p)
-		p.setup()
-		p.add_to_output("iron_ingot", 1)
-		assert_false(p.get_node("ItemEjector/Inventory/CountLabel").visible)
 
 	func test_Chestの入力バッジは表示される():
 		var p = CHEST_SCENE.instantiate()
@@ -134,25 +127,32 @@ class TestPieceTransformation:
 		var result = p.get_hex_shape()
 		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
 
-	func test_Outputノードは出力ポート端に配置される():
+	func test_機械の出力アイテムは出力ポート端に表示される():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
+		s.add_to_output("iron_ingot", 1)
+		var visual = s.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
 		var port = s.get_output_ports()[0]
 		var layout = Layout.make_default()
 		var expected = (
 			Layout.hex_to_pixel(layout, port.hex)
 			+ Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
 		)
-		assert_eq(s.ejector.position, expected)
+		assert_eq(visual.get_node("ItemIcon").position, expected)
 
-	func test_Outputノードの位置はピース回転に追従する():
+	func test_機械の出力アイテム位置はピース回転に追従する():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		var before = s.ejector.position
+		s.add_to_output("iron_ingot", 1)
+		var visual = s.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		var before = visual.get_node("ItemIcon").position
 		s.rotate_cw()
-		assert_ne(s.ejector.position, before)
+		visual.update_item_icon()
+		assert_ne(visual.get_node("ItemIcon").position, before)
 
 	func test_出力アイテムはヘックスタイルより奥に描画される():
 		var s = SMELTER_SCENE.instantiate()
@@ -163,7 +163,7 @@ class TestPieceTransformation:
 			if child is HexTile:
 				tile = child
 				break
-		assert_lt(s.ejector.z_index, tile.z_index)
+		assert_lt(s.get_node("ItemEjectorVisual/ItemIcon").z_index, tile.z_index)
 
 
 class TestPieceAcceptor:

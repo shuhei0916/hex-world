@@ -94,7 +94,8 @@ class TestPiecePlacement:
 		gm.place_piece(SMELTER_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
 		var ground = gm.find_hex_tile(Hex.new(0, 0))
-		assert_lt(ground.z_index, piece.ejector.z_index)
+		var icon = piece.get_node("ItemEjectorVisual/ItemIcon")
+		assert_lt(ground.z_index, icon.z_index)
 
 	func test_コンベアのベルトは地面タイルより手前に描画される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))

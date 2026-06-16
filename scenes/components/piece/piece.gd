@@ -83,7 +83,6 @@ func setup(rotation: int = 0):
 		set_recipe(recipes[0])
 	_refresh_output_arrow()
 	_create_hex_tiles()
-	_update_component_positions()
 	shape_changed.emit()
 
 
@@ -133,22 +132,7 @@ func rotate_cw():
 	rotation_state = (rotation_state + 1) % 6
 	_refresh_output_arrow()
 	_create_hex_tiles()
-	_update_component_positions()
 	shape_changed.emit()
-
-
-func _update_component_positions():
-	# 出力アイテムをポート端に「はみ出し」表示する（shapez の抽出器ルック）
-	if not ejector:
-		return
-	var ports = get_output_ports()
-	if ports.is_empty():
-		return
-	var layout = Layout.make_default()
-	var port = ports[0]
-	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
-	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
-	ejector.position = hex_pos + edge
 
 
 func get_output_ports() -> Array:

@@ -1,20 +1,17 @@
 class_name ItemEjector
 extends Node2D
 
-## アイテムをスタックし、接続先ピースへ搬出するコンポーネント（shapez の ItemEjector 相当）。
-## ストレージは $Inventory に、接続先への巡回搬出は EjectorRouter に委譲する。
+## アイテムを保持し接続先ピースへ搬出するコンポーネント（shapez の ItemEjector 相当）。
+## 出力アイテムは内部スロット(_item/_count)が直接保持する（汎用 Inventory は使わない）。
+## 接続先への巡回搬出は EjectorRouter に委譲。保持アイテムの描画は ItemEjectorVisual が
+## get_held_item/get_target_direction を読んで担う。
+
+var capacity: int = 1
 
 var _ejector := EjectorRouter.new()
+var _item: String = ""
+var _count: int = 0
 var _is_pushing: bool = false
-
-@onready var inventory: Node2D = $Inventory
-
-
-func _ready():
-	# 描画レイヤー: 機械の出力はみ出しアイテムは施設タイル(10)より奥（7）。
-	z_index = 7
-	z_as_relative = false
-	inventory.inventory_changed.connect(_push_items)
 
 
 func _process(delta: float):
@@ -23,8 +20,7 @@ func _process(delta: float):
 	tick(delta)
 
 
-# 毎 tick 搬出を再試行する。接続先が後から空いた場合に滞留アイテムを再送するため
-# （inventory_changed は自分の在庫変化時しか発火しないので、これが無いと詰まる）。
+# 毎 tick 搬出を再試行する（接続先が後から空いた場合の滞留アイテム再送のため）。
 func tick(_delta: float):
 	try_push()
 
@@ -39,51 +35,53 @@ func get_connected_pieces() -> Array:
 
 
 func add_item(item_name: String, amount: int):
-	inventory.add_item(item_name, amount)
+	if _item == "" or _item == item_name:
+		_item = item_name
+		_count += amount
+		try_push()
 
 
 func consume_item(item_name: String, amount: int):
-	inventory.consume_item(item_name, amount)
+	if _item == item_name:
+		_count -= amount
+		if _count <= 0:
+			_item = ""
+			_count = 0
 
 
 func get_item_count(item_name: String) -> int:
-	return inventory.get_item_count(item_name)
+	return _count if _item == item_name else 0
 
 
 func get_total_item_count() -> int:
-	return inventory.get_total_item_count()
+	return _count
 
 
 func set_capacity(n: int):
-	inventory.set_capacity(n)
+	capacity = n
 
 
 func is_full() -> bool:
-	return inventory.is_full()
+	return _count >= capacity
 
 
 func is_empty() -> bool:
-	return inventory.is_empty()
+	return _count <= 0
+
+
+# 描画用: 保持アイテムと、実際に向かう出力方向(0-5, 無ければ-1)。
+func get_held_item() -> String:
+	return _item
+
+
+func get_target_direction() -> int:
+	return _ejector.target_direction(_item)
 
 
 func try_push():
-	_push_items()
-
-
-func _push_items():
-	if _is_pushing:
+	if _is_pushing or _item == "" or _ejector.connected_pieces.is_empty():
 		return
-	if inventory.is_empty() or _ejector.connected_pieces.is_empty():
-		return
-
 	_is_pushing = true
-	var still_pushing = true
-	while still_pushing and not inventory.is_empty():
-		still_pushing = false
-		for item_name in inventory.get_item_names().duplicate():
-			if _ejector.try_eject(item_name):
-				consume_item(item_name, 1)
-				still_pushing = true
-				break
-
+	while _item != "" and _ejector.try_eject(_item):
+		consume_item(_item, 1)
 	_is_pushing = false
