@@ -204,10 +204,10 @@ func can_accept_item(item_name: String) -> bool:
 	return acceptor != null and acceptor.can_accept_item(item_name)
 
 
-func set_connected_pieces(pieces: Array) -> void:
+func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
 	for child in get_children():
 		if child.has_method("set_connected_pieces"):
-			child.set_connected_pieces(pieces)
+			child.set_connected_pieces(pieces, directions)
 			return
 
 

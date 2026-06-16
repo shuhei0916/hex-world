@@ -55,6 +55,14 @@ class TestSplitterConnection:
 		splitter.get_node("SplitterLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
 
+	func test_片側のみ接続時_保持アイテムは接続側の出力方向に向く():
+		# SE(0,1) のみ接続。表示・実排出ともに SE(方向5) を指すべき（食い違い解消）。
+		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
+		splitter.add_item("iron_ore", 1)
+		assert_eq(splitter.get_node("SplitterLogic").get_target_direction(), 5)
+
 	func test_連続するアイテムは異なる出力側に飛び出る():
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
 		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))

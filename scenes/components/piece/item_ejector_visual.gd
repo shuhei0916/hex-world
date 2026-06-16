@@ -4,10 +4,8 @@ extends Node2D
 ## 保持しているアイテムのアイコンを表示するビジュアル（splitter 等の搬出系で使用）。
 ## shapez の ItemEjectorSystem 相当の描画部。搬送状態は兄弟の mover
 ## （get_held_item を持つ SplitterLogic 等）から読む。ベルト描画やパス補間は持たない。
-
-var _next_port_index: int = 0  # 次に使う出力ポート（受け取るたびにラウンドロビン）
-var _current_port_index: int = 0  # 表示中アイテムが向かう出力ポート
-var _was_holding: bool = false
+## アイテムが向かう出力方向は mover.get_target_direction() から読むため、
+## 表示と実際の排出先が常に一致する（片側のみ接続・詰まり時も食い違わない）。
 
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
@@ -38,35 +36,39 @@ func update_item_icon():
 	var held_item = _mover.get_held_item()
 	if held_item == "":
 		_item_icon.visible = false
-		_was_holding = false
 		return
-	# 新しいアイテムを保持し始めたら、向かう出力ポートをラウンドロビンで1つ進める
-	# （balancer 同様、保持アイテムが出力を交互に切り替えて飛び出すようにする）。
-	if not _was_holding:
-		_current_port_index = _next_port_index
-		var port_count = _piece.get_output_ports().size() if _piece else 0
-		if port_count > 0:
-			_next_port_index = (_next_port_index + 1) % port_count
-		_was_holding = true
 	var item_def = ItemDB.get_item(held_item)
 	if not item_def:
 		_item_icon.visible = false
 		return
 	_item_icon.texture = item_def.icon
 	_item_icon.visible = true
-	# miner/balancer 同様、出力ポート端へ飛び出して表示する。
-	_item_icon.position = _output_edge_position(_current_port_index)
+	# miner/balancer 同様、実際に向かう出力ポート端へ飛び出して表示する。
+	_item_icon.position = _edge_position_for_direction(_target_direction())
 
 
-# 指定した出力ポートのエッジ位置（ピース原点基準）。出力が無ければ中心。
-func _output_edge_position(port_index: int) -> Vector2:
-	if not _piece:
+# mover が示す排出方向(0-5)。取得できなければ主出力ポート方向にフォールバック。
+func _target_direction() -> int:
+	if _mover and _mover.has_method("get_target_direction"):
+		var dir = _mover.get_target_direction()
+		if dir >= 0:
+			return dir
+	# 排出先が無い場合は主出力ポートの方向を使う（飛び出し先の目安）。
+	if _piece:
+		var ports = _piece.get_output_ports()
+		if not ports.is_empty():
+			return ports[0].direction
+	return -1
+
+
+# 指定方向の出力ポートのエッジ位置（ピース原点基準）。該当が無ければ中心。
+func _edge_position_for_direction(direction: int) -> Vector2:
+	if direction < 0 or not _piece:
 		return Vector2.ZERO
-	var ports = _piece.get_output_ports()
-	if ports.is_empty():
-		return Vector2.ZERO
-	var port = ports[port_index % ports.size()]
 	var layout = Layout.make_default()
-	var hex_pos = Layout.hex_to_pixel(layout, port.hex)
-	var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
-	return hex_pos + edge
+	for port in _piece.get_output_ports():
+		if port.direction == direction:
+			var hex_pos = Layout.hex_to_pixel(layout, port.hex)
+			var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[direction]) * 0.5
+			return hex_pos + edge
+	return Vector2.ZERO

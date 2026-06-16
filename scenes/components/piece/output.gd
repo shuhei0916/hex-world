@@ -29,8 +29,8 @@ func tick(_delta: float):
 	try_push()
 
 
-func set_connected_pieces(pieces: Array) -> void:
-	_ejector.connected_pieces = pieces
+func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
+	_ejector.set_connections(pieces, directions)
 	try_push()
 
 
