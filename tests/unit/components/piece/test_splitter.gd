@@ -55,6 +55,22 @@ class TestSplitterConnection:
 		splitter.get_node("SplitterLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
 
+	func test_連続するアイテムは異なる出力側に飛び出る():
+		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
+		var visual = splitter.get_node("ItemEjectorVisual")
+		splitter.add_item("iron_ore", 1)
+		visual.update_item_icon()
+		var pos1 = visual.get_node("ItemIcon").position
+		splitter.get_node("SplitterLogic").tick(0.5)  # 1個目を排出 → buffer 空
+		visual.update_item_icon()  # 空を観測してリセット
+		splitter.add_item("iron_ore", 1)
+		visual.update_item_icon()
+		var pos2 = visual.get_node("ItemIcon").position
+		assert_ne(pos1, pos2)
+
 	func test_2アイテム送ると両方の接続先に1個ずつ届く():
 		# コンベアラインを通じたシナリオ
 		# Splitter(0,0) → conveyor_e(1,0) と conveyor_se(0,1) に分岐
@@ -76,3 +92,47 @@ class TestSplitterConnection:
 			conv_e.get_item_count("iron_ore") + conv_se.get_item_count("iron_ore")
 		)
 		assert_eq(total_in_conveyors, 2, "2アイテムが両コンベアに1個ずつ届くべき")
+
+
+class TestSplitterVisuals:
+	extends GutTest
+
+	var splitter: Piece
+
+	func before_each():
+		splitter = SPLITTER_SCENE.instantiate()
+		add_child_autofree(splitter)
+		splitter.setup(0)
+
+	func test_SplitterはConveyorVisualsを持たない():
+		assert_null(splitter.get_node_or_null("ConveyorVisuals"))
+
+	func test_SplitterはItemEjectorVisualを持つ():
+		assert_not_null(splitter.get_node_or_null("ItemEjectorVisual"))
+
+	func test_Splitterは保持アイテムのアイコンを表示する():
+		splitter.add_item("iron_ore", 1)
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_true(visual.get_node("ItemIcon").visible)
+
+	func test_Splitterは保持なしならアイコン非表示():
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_false(visual.get_node("ItemIcon").visible)
+
+	func test_Splitterの保持アイテムは出力ポート側に飛び出る():
+		# デフォルト出力は East(0) なのでアイコンは中央ではなく +X 側に出る
+		splitter.add_item("iron_ore", 1)
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_gt(visual.get_node("ItemIcon").position.x, 0.0)
+
+	func test_Splitterの飛び出しアイテムは施設タイルより奥に描画される():
+		# miner 同様、はみ出しアイテムは基礎タイルの背後から覗く（z が低い）
+		var icon = splitter.get_node("ItemEjectorVisual/ItemIcon")
+		var base_z = 0
+		for child in splitter.get_children():
+			if child is HexTile:
+				base_z = child.z_index
+		assert_lt(icon.z_index, base_z)

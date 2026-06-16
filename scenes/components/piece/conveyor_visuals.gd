@@ -28,8 +28,6 @@ const BELT_FRAMES: Array[Texture2D] = [
 const BELT_TEXTURE_SIZE = 192.0
 const BELT_WIDTH = 56.0  # ベルトの見た目の幅(px)
 
-@export var show_line: bool = true
-
 # パス幾何 [in_edge, center, out_edge]。ベルト配置とアイテム補間の両方で参照する。
 var _path: PackedVector2Array = PackedVector2Array()
 var _belts: Array[Sprite2D] = []
@@ -78,8 +76,6 @@ func refresh_belt():
 		belt.queue_free()
 	_belts.clear()
 	_path = PackedVector2Array()
-	if not show_line:
-		return
 	var ports = _piece.get_output_ports()
 	if ports.is_empty():
 		return
