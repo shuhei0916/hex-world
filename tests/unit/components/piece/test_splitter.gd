@@ -76,3 +76,31 @@ class TestSplitterConnection:
 			conv_e.get_item_count("iron_ore") + conv_se.get_item_count("iron_ore")
 		)
 		assert_eq(total_in_conveyors, 2, "2アイテムが両コンベアに1個ずつ届くべき")
+
+
+class TestSplitterVisuals:
+	extends GutTest
+
+	var splitter: Piece
+
+	func before_each():
+		splitter = SPLITTER_SCENE.instantiate()
+		add_child_autofree(splitter)
+		splitter.setup(0)
+
+	func test_SplitterはConveyorVisualsを持たない():
+		assert_null(splitter.get_node_or_null("ConveyorVisuals"))
+
+	func test_SplitterはItemEjectorVisualを持つ():
+		assert_not_null(splitter.get_node_or_null("ItemEjectorVisual"))
+
+	func test_Splitterは保持アイテムのアイコンを表示する():
+		splitter.add_item("iron_ore", 1)
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_true(visual.get_node("ItemIcon").visible)
+
+	func test_Splitterは保持なしならアイコン非表示():
+		var visual = splitter.get_node("ItemEjectorVisual")
+		visual.update_item_icon()
+		assert_false(visual.get_node("ItemIcon").visible)
