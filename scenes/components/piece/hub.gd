@@ -1,4 +1,4 @@
-class_name Delivery
+class_name Hub
 extends Node
 
 ## 納品ゾーン（shapez の hub 相当）。接続元の ItemEjector から届いたアイテムを

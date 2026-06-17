@@ -87,7 +87,7 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	if piece == null:
 		return false
 
-	if piece.piece_type == PieceData.Type.DELIVERY:
+	if piece.piece_type == PieceData.Type.HUB:
 		return false
 
 	if not is_instance_valid(piece) or not piece is Node:
@@ -241,15 +241,8 @@ func _apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]):
 		piece.set_output_multiplier(ore_count)
 
 
-func place_delivery_zone(item_name: String, goal_count: int):
-	var outer = get_outer_hexes()
-	outer.shuffle()
-	var shape: Array[Hex] = [Hex.new(0, 0)]
-	for hex in outer:
-		if can_place(shape, hex):
-			var scene = load("res://scenes/components/piece/delivery.tscn")
-			place_piece(scene, hex)
-			var piece = get_piece_at_hex(hex)
-			piece.get_node("Delivery").setup(item_name, goal_count)
-			piece.get_node("GoalLabel").text = "%s: 0/%d" % [item_name, goal_count]
-			return
+func place_hub(item_name: String, goal_count: int):
+	var scene = load("res://scenes/components/piece/hub.tscn")
+	place_piece(scene, Hex.new(0, 0))
+	var piece = get_piece_at_hex(Hex.new(0, 0))
+	piece.get_node("Hub").setup(item_name, goal_count)

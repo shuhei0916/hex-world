@@ -31,7 +31,7 @@ func test_コンベアをドラッグパスに追加すると設置音が鳴る(
 	var conveyor_scene = main.hud.get_scene_for_slot(0)
 	main.piece_placer.select_piece(conveyor_scene)
 	main.piece_placer.start_drag()
-	main.piece_placer.place_piece_at_hex(Hex.new(0, 0))
+	main.piece_placer.place_piece_at_hex(Hex.new(1, 0))
 	assert_true(main.get_node("SfxPlayer/PlaceBelt").playing)
 
 

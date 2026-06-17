@@ -12,8 +12,8 @@ func test_PieceTypeエニュームが存在する():
 	assert_true(PieceData.Type.CHEST == 7)
 
 
-func test_PieceType_DELIVERYが存在する():
-	assert_true("DELIVERY" in PieceData.Type.keys())
+func test_PieceType_HUBが存在する():
+	assert_true("HUB" in PieceData.Type.keys())
 
 
 func test_PieceDataをインスタンス化できる():

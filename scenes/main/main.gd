@@ -11,7 +11,7 @@ func _ready():
 	chunk.create_hex_grid(chunk.grid_radius)
 	piece_placer.setup(chunk)
 	chunk.generate_ore_deposits(5)
-	chunk.place_delivery_zone("iron_plate", 10)
+	chunk.place_hub("iron_plate", 10)
 	# 効果音の接続は初期配置の後に行う（起動時に設置音が鳴るのを防ぐ）
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)

@@ -270,10 +270,10 @@ class TestMinerConstraint:
 		assert_eq(crafter.output_multiplier, 4)
 
 
-class TestDeliveryProtection:
+class TestHubProtection:
 	extends GutTest
 
-	const DELIVERY_SCENE = preload("res://scenes/components/piece/delivery.tscn")
+	const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 	var gm
 
@@ -282,7 +282,7 @@ class TestDeliveryProtection:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
-	func test_DELIVERYピースはremove_piece_atで削除できない():
-		gm.place_piece(DELIVERY_SCENE, Hex.new(0, 0))
+	func test_HUBピースはremove_piece_atで削除できない():
+		gm.place_piece(HUB_SCENE, Hex.new(0, 0))
 		var result = gm.remove_piece_at(Hex.new(0, 0))
 		assert_false(result)
