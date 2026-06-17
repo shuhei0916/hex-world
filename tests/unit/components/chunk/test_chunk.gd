@@ -23,6 +23,13 @@ class TestGridLogic:
 		assert_true(gm.is_inside_grid(Hex.new(0, 0)))
 		assert_false(gm.is_inside_grid(Hex.new(3, 0)), "範囲外は登録されていないべき")
 
+	func test_半径8のグリッドは217マスを持つ():
+		gm.create_hex_grid(8)
+		assert_eq(gm.get_grid_hex_count(), 217)
+
+	func test_デフォルトのgrid_radiusは8():
+		assert_eq(gm.grid_radius, 8)
+
 	func test_グリッド状態を完全にクリアできる():
 		gm.register_grid_hex(Hex.new(0, 0))
 		gm.occupy(Hex.new(0, 0))
@@ -270,10 +277,10 @@ class TestMinerConstraint:
 		assert_eq(crafter.output_multiplier, 4)
 
 
-class TestDeliveryProtection:
+class TestHubProtection:
 	extends GutTest
 
-	const DELIVERY_SCENE = preload("res://scenes/components/piece/delivery.tscn")
+	const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 	var gm
 
@@ -282,7 +289,27 @@ class TestDeliveryProtection:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
-	func test_DELIVERYピースはremove_piece_atで削除できない():
-		gm.place_piece(DELIVERY_SCENE, Hex.new(0, 0))
+	func test_HUBピースはremove_piece_atで削除できない():
+		gm.place_piece(HUB_SCENE, Hex.new(0, 0))
 		var result = gm.remove_piece_at(Hex.new(0, 0))
 		assert_false(result)
+
+
+class TestHubPlacement:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_place_hubはHex_0_0にハブを配置する():
+		gm.place_hub("iron_plate", 10)
+		assert_eq(gm.get_piece_at_hex(Hex.new(0, 0)).piece_type, PieceData.Type.HUB)
+
+	func test_generate_ore_depositsはhub設置済みヘックスを鉱床として登録しない():
+		gm.place_hub("iron_plate", 10)
+		gm.generate_ore_deposits(100)
+		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")

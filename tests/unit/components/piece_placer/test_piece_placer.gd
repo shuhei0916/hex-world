@@ -4,7 +4,7 @@ extends GutTest
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
-const DELIVERY_SCENE = preload("res://scenes/components/piece/delivery.tscn")
+const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 
 class TestPiecePlacement:
@@ -103,8 +103,8 @@ class TestPreview:
 		assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size + 1)
 
 	func test_出力ポートを持たないピースのプレビューには矢印が追加されない():
-		# delivery は出力ポートを持たない（矢印が出ない）ピース
-		piece_placer.select_piece(DELIVERY_SCENE)
+		# hub は出力ポートを持たない（矢印が出ない）ピース
+		piece_placer.select_piece(HUB_SCENE)
 		var shape_size = piece_placer.current_piece_shape.size()
 		assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size)
 

@@ -10,6 +10,6 @@ enum Type {
 	MINER,
 	ASSEMBLER,
 	CHEST,
-	DELIVERY,
+	HUB,
 	SPLITTER,
 }
