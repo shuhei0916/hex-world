@@ -1,33 +1,38 @@
 # todo
 
-## 直近タスク
-- [x] WASDでカメラを動かせるようにする。
+## 複数チャンク対応（ワールドマップ実装）
+
+### 事前推奨リファクタリング
+- [ ] **InputHandler 抽出（multi-chunk 前推奨）**: main.gd の `_unhandled_input` を InputHandler クラスへ委譲。
+  Phase 3（モード切り替え）で LocalInputHandler / WorldMapInputHandler を差し替えられる構造を作る。
+  main.gd は現状 61 行でクリーンだが、モード切り替えロジックが入ると肥大化しやすい。
+
+### 実装フェーズ
+- [ ] **Phase 1: World クラス（データ層）**: `chunk_hex → Chunk` の辞書を持つ World を作成。
+  main.gd の `$Chunk` を `$World.get_active_chunk()` に置き換え。
+  → ここで WorldGenerator 抽出が自然に発生する（World.create_chunk() が鉱床生成を担うため）
+- [ ] **Phase 2: WorldMapView（描画）**: 各 Chunk を1枚の ChunkTile（大きな hex）として描く Node2D。
+  アイテム移動は将来。タイルの存在・選択状態・鉱床有無程度を簡略表示。
+- [ ] **Phase 3: モード切り替え**: Space キーまたはスクロール閾値でローカルマップ ⇄ ワールドマップ切り替え。
+  表示ツリーの切り替え + カメラ位置・ズームのリセット。
+- [ ] **Phase 4: チャンク選択ナビゲーション**: ワールドマップ上の ChunkTile クリック → アクティブチャンク変更
+  → ローカルマップへ遷移。Space または UI 「戻る」でワールドマップに戻る。
+- [ ] **Phase 5（将来）: チャンク間アイテム移動**: Chunk の辺にポート（入出力）を定義。
+  ワールドマップ上でフロー（矢印・アニメーション）を表示。
+
+---
 
 ## リファクタリング
 
-### ★次セッション着手予定（クリーン化 + chunk/hub）
-推奨順: 1 → 4(+3) → 5 → 2。理由: これから触る chunk 周りを先に整理(1)、命名を固め(4,3)、
-サイズを入れ(5)、独立改善の配送統合(2)を最後に。
-
-- [ ] **1. WorldGenerator 抽出（最優先）**: chunk.gd(255行)が ①グリッドのファサード ②ピース管理
-  ③ワールド生成 の3責務を抱える。③(generate_ore_deposits / place_delivery_zone / mark_resource_hex /
-  _apply_mining_constraint / get_inner/outer_hexes / RESOURCE_COLORS)を WorldGenerator へ切り出し、
-  Chunk をグリッド＋ピース管理のファサードに絞る。shapez の MapGenerator 分離と同方向。
-  → chunk サイズ・hub 配置・鉱床をこれから触るので、先に着地点を綺麗にする
-- [x] **2. 配送ロジックの三重化を解消**: 「1個保持→受け入れ可能な接続先へ押し出す」が3実装ある
-  （ConveyorLogic._try_deliver の手書きループ / SplitterLogic→EjectorRouter / ItemEjector→EjectorRouter）。
-  ConveyorLogic._try_deliver は EjectorRouter の再発明なので、ConveyorLogic を EjectorRouter ベースに統一。
-  ※「将来 BeltPath 化で分岐」は投機的・長期。今は EjectorRouter 重複の解消にとどめ、BeltPath 実現時に分ける
-- [ ] **3. place_delivery_zone の死にコード除去**: chunk.gd の GoalLabel.text 設定は Stage3 で
-  Delivery.setup()→_update_label() が担うようになったため重複。除去（hub リネームのついでに）
-- [x] **4. delivery → hub リネーム + balancer 命名統一**: class Delivery→Hub / ファイル/ノード名 /
-  place_delivery_zone / PieceData.Type.DELIVERY / テスト。併せて splitter は shapez では balancer
-  （アイコンは balancer.png、HUDは「スプリッター」表記で混在）。どちらかに統一
-- [ ] **5. chunk サイズを shapez 16×16(256) 相当に**: 六角形なら半径9=271タイル（256に最も近い。
-	半径8=217も可）。現状 grid_radius=4(61)。定数化して world gen に反映
-  - 形状判断は保留可（単一チャンクの今は六角形で十分。chunk of chunks 実装時に菱形=256 を再検討）
-	- 菱形は axial を n×n 埋めた60°傾きの平行四辺形。平面を隙間なく敷き詰められchunk合成向き
-  - hub 移動可否も未定（shapez は固定。現状 delivery も削除不可で実質固定）
+### 済み・判断済み
+- [x] WASDでカメラを動かせるようにする。
+- [x] 配送ロジックの三重化を解消（ConveyorLogic を EjectorRouter ベースに統一）
+- [x] delivery → hub リネーム + balancer 命名統一
+- [x] place_delivery_zone の死にコード除去（hub リネーム時に完了）
+- [x] chunk サイズ: grid_radius=8（217タイル）に設定済み。菱形への変更は chunk of chunks 実装時に再検討。
+- [ ] **WorldGenerator 抽出**: shapez の MapChunk も「自チャンクを自己生成」する同じ設計であり、
+  今すぐ切り出す必然性は薄い。Phase 1（World クラス実装）時に World.create_chunk() の設計として
+  自然に行う。それまでは chunk.gd に残して問題なし。
 - [ ] **6.（長期）piece_type の enum int 依存を脱却**: PieceData.Type に削除済み CHEST=7 の穴が残る。
   .tscn が piece_type を生 int で持つため番号をずらせない脆さ。将来 StringName/リソース参照へ
 
@@ -49,11 +54,12 @@
 
 ### 命名・重複の整理（低優先）
 - [ ] `_key` / `hex_to_key` の薄いラッパー(PieceRegistry/HexGrid/GridRenderer ×3)を Hex.to_key 直呼びに統一（軽微）
-- [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
 - [ ] _push_items() をキューベースに最適化（ItemEjector 側のロジック）
 - [ ] OutputPort の複数ポート対応テストを追加する
 - [ ] ポート回転ロジック(get_rotate_ports 等)を hex クラス等に共通化できないか検討
+
+---
 
 ## コンベア（描画・搬送）
 
@@ -70,6 +76,8 @@
 ### コンベア設置UXの改善
 - [ ] Factorio(直線制約) / shapez2(パス収集＋自動向き) を参考に検討
 
+---
+
 ## ピース・UI（将来）
 - [ ] 各ピース(miner/smelter等)に hex 用画像スプライトを用意し、設置描画＋プレビューをスプライト化
   （要アセット準備。仕組みはコンベアで確立済み）
@@ -80,12 +88,11 @@
 - [ ] Splitter/Merger を専用ピースでなく既存ラインからの分岐・合流操作で実現（shapez2 流）。
   大掛かりなので専用ピース方式が行き詰まったら再検討
 
+---
+
 ## 将来構想（長期）
 
-### chunk の階層化と LOD 圧縮
-- [ ] chunk に6方向の input/output ポート（エッジ契約）を持たせ、隣接 chunk と接続できるようにする
-  - chunk = 製造ラインを内包した「合成可能な部品」。chunk of chunks の多重構造で大工場を構築する構想
-  - 設計の核はエッジ I/O 契約（各辺＝アイテム種別＋レート＋背圧 backpressure のストリーム）。これを先にきれいに作る
+### chunk の LOD 圧縮
 - [ ] 定常状態の chunk を「入力レート→出力レート＋遅延」の集約モデルに圧縮する（LOD / ブラックボックス化）
   - 圧縮トリガーは「定常 かつ 非観測（画面外/非編集）」。過渡状態はフル sim にフォールバック
   - 主効果は CPU とアイテム実体数の削減。注意: 背圧の chunk 境界越え伝播、パズル性との両立
