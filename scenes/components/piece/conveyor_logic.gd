@@ -3,20 +3,18 @@ extends Node
 
 ## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
 ## 唯一の接続先へ渡す（単一出力。分岐は BalancerLogic が担う）。
-## 保持＋タイマーは TransferBuffer に委譲する。
-
-var connected_pieces: Array = []
+## 保持＋タイマーは TransferBuffer に、搬出は EjectorRouter に委譲する。
 
 var _buffer := TransferBuffer.new()
+var _ejector := EjectorRouter.new()
 
 
-func set_connected_pieces(pieces: Array, _directions: Array = []) -> void:
-	# コンベアは単一出力なので方向情報は使わない（ベルト描画は set_input_direction が担当）。
-	connected_pieces = pieces
+func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
+	_ejector.set_connections(pieces, directions)
 
 
 func get_connected_pieces() -> Array:
-	return connected_pieces
+	return _ejector.connected_pieces
 
 
 func can_accept_item(_item_name: String) -> bool:
@@ -41,13 +39,5 @@ func get_progress_ratio() -> float:
 
 func tick(delta: float):
 	if _buffer.advance(delta):
-		_try_deliver()
-
-
-func _try_deliver():
-	for target in connected_pieces:
-		if target.has_method("can_accept_item") and target.has_method("add_item"):
-			if target.can_accept_item(_buffer.held_item):
-				target.add_item(_buffer.held_item, 1)
-				_buffer.clear()
-				return
+		if _ejector.try_eject(_buffer.held_item):
+			_buffer.clear()
