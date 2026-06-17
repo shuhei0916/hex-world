@@ -2,7 +2,7 @@ class_name ConveyorVisuals
 extends Node2D
 
 ## コンベア/スプリッターのライン描画と保持アイテムのアイコン表示を担当する。
-## 搬送状態は兄弟の mover（get_held_item を持つ ConveyorLogic / SplitterLogic）から読む。
+## 搬送状態は兄弟の mover（get_held_item を持つ ConveyorLogic / BalancerLogic）から読む。
 
 ## shapez 流のベルトアニメ: forward フレームを時刻で順送りして「流れ」を表現する。
 const BELT_ANIM_COUNT = 14

@@ -1,9 +1,9 @@
 class_name ItemEjectorVisual
 extends Node2D
 
-## 保持しているアイテムのアイコンを表示するビジュアル（splitter 等の搬出系で使用）。
+## 保持しているアイテムのアイコンを表示するビジュアル（balancer 等の搬出系で使用）。
 ## shapez の ItemEjectorSystem 相当の描画部。搬送状態は兄弟の mover
-## （get_held_item を持つ SplitterLogic 等）から読む。ベルト描画やパス補間は持たない。
+## （get_held_item を持つ BalancerLogic 等）から読む。ベルト描画やパス補間は持たない。
 ## アイテムが向かう出力方向は mover.get_target_direction() から読むため、
 ## 表示と実際の排出先が常に一致する（片側のみ接続・詰まり時も食い違わない）。
 

@@ -34,8 +34,8 @@ func test_スロット1はコンベアである():
 	assert_eq(_get_slot_piece_type(0), PieceData.Type.CONVEYOR)
 
 
-func test_スロット2はスプリッターである():
-	assert_eq(_get_slot_piece_type(1), PieceData.Type.SPLITTER)
+func test_スロット2はバランサーである():
+	assert_eq(_get_slot_piece_type(1), PieceData.Type.BALANCER)
 
 
 func test_スロット3はマイナーである():
