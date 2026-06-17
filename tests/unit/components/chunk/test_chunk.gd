@@ -286,3 +286,23 @@ class TestHubProtection:
 		gm.place_piece(HUB_SCENE, Hex.new(0, 0))
 		var result = gm.remove_piece_at(Hex.new(0, 0))
 		assert_false(result)
+
+
+class TestHubPlacement:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_place_hubはHex_0_0にハブを配置する():
+		gm.place_hub("iron_plate", 10)
+		assert_eq(gm.get_piece_at_hex(Hex.new(0, 0)).piece_type, PieceData.Type.HUB)
+
+	func test_generate_ore_depositsはhub設置済みヘックスを鉱床として登録しない():
+		gm.place_hub("iron_plate", 10)
+		gm.generate_ore_deposits(100)
+		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")

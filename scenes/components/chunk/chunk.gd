@@ -204,8 +204,12 @@ func generate_ore_deposits(count: int):
 		return
 	var inner_set: Dictionary = {}
 	for hex in inner:
-		inner_set[Hex.to_key(hex)] = hex
+		if not _hex_grid.is_occupied(hex):
+			inner_set[Hex.to_key(hex)] = hex
 
+	inner = inner.filter(func(h): return Hex.to_key(h) in inner_set)
+	if inner.is_empty():
+		return
 	inner.shuffle()
 	var cluster: Array[Hex] = [inner[0]]
 	var cluster_set: Dictionary = {Hex.to_key(inner[0]): true}
