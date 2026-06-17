@@ -10,7 +10,7 @@ var _map_layout: Layout
 
 
 func _init() -> void:
-	_map_layout = Layout.new(Layout.layout_pointy, Vector2(TILE_SIZE, TILE_SIZE), Vector2.ZERO)
+	_map_layout = Layout.new(Layout.layout_flat, Vector2(TILE_SIZE, TILE_SIZE), Vector2.ZERO)
 
 
 func setup(world: World) -> void:

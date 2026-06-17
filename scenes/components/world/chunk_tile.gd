@@ -29,7 +29,6 @@ func _draw() -> void:
 func _hex_corners() -> PackedVector2Array:
 	var pts := PackedVector2Array()
 	for i in 6:
-		var angle_deg = 60.0 * i - 30.0  # pointy-top
-		var angle_rad = deg_to_rad(angle_deg)
+		var angle_rad = deg_to_rad(60.0 * i)  # flat-top（pointy-top hex グリッドの外形は flat-top）
 		pts.append(Vector2(TILE_SIZE * cos(angle_rad), TILE_SIZE * sin(angle_rad)))
 	return pts
