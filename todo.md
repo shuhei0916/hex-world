@@ -24,9 +24,9 @@
   place_delivery_zone / PieceData.Type.DELIVERY / テスト。併せて splitter は shapez では balancer
   （アイコンは balancer.png、HUDは「スプリッター」表記で混在）。どちらかに統一
 - [ ] **5. chunk サイズを shapez 16×16(256) 相当に**: 六角形なら半径9=271タイル（256に最も近い。
-    半径8=217も可）。現状 grid_radius=4(61)。定数化して world gen に反映
+	半径8=217も可）。現状 grid_radius=4(61)。定数化して world gen に反映
   - 形状判断は保留可（単一チャンクの今は六角形で十分。chunk of chunks 実装時に菱形=256 を再検討）
-    - 菱形は axial を n×n 埋めた60°傾きの平行四辺形。平面を隙間なく敷き詰められchunk合成向き
+	- 菱形は axial を n×n 埋めた60°傾きの平行四辺形。平面を隙間なく敷き詰められchunk合成向き
   - hub 移動可否も未定（shapez は固定。現状 delivery も削除不可で実質固定）
 - [ ] **6.（長期）piece_type の enum int 依存を脱却**: PieceData.Type に削除済み CHEST=7 の穴が残る。
   .tscn が piece_type を生 int で持つため番号をずらせない脆さ。将来 StringName/リソース参照へ

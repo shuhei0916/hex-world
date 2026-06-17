@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://dj6ojwvgxce6"]
+[gd_scene format=3 uid="uid://ssembler1"]
 
 [ext_resource type="Script" uid="uid://bixabnotkec6n" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" uid="uid://yew8p56p158" path="res://scenes/components/piece/item_ejector_visual.gd" id="99_ejvis"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
 [ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/item_ejector.gd" id="4_output"]
+[ext_resource type="Script" uid="uid://yew8p56p158" path="res://scenes/components/piece/item_ejector_visual.gd" id="99_ejvis"]
 
 [node name="Piece" type="Node2D" unique_id=1994118768]
 script = ExtResource("1_piece")
@@ -11,7 +11,6 @@ piece_name = "Assembler"
 piece_description = "部品を組み立ててプレートを作る。"
 piece_type = 6
 piece_shape = Array[Vector2i]([Vector2i(-1, 0), Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1)])
-port_hex = Vector2i(0, 0)
 port_direction = 2
 piece_color = Color(0.52157, 0.969, 0.949, 1)
 
@@ -30,10 +29,9 @@ offset_bottom = -26.0
 value = 50.0
 show_percentage = false
 
-
-[node name="ItemEjectorVisual" type="Node2D" parent="."]
+[node name="ItemEjectorVisual" type="Node2D" parent="." unique_id=256447163]
 script = ExtResource("99_ejvis")
 
-[node name="ItemIcon" type="Sprite2D" parent="ItemEjectorVisual"]
+[node name="ItemIcon" type="Sprite2D" parent="ItemEjectorVisual" unique_id=1789583099]
 visible = false
 scale = Vector2(0.5, 0.5)
