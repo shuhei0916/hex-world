@@ -59,3 +59,8 @@ Hexグリッドの自動化ゲーム×パズルゲームをGodotで実装しま�
 - CLI実行例:  
   ```bash
   godot --headless --script addons/gut/gut_cmdln.gd -gdir=res://tests/ -gexit
+ ```
+
+## 画面確認（TDDの補助）
+- 描画・レイアウト・アニメーションなど「見た目の正しさ」は TDD で検証できない。
+- これらに限り、Godot を起動してスクリーンショットで確認してよい。
