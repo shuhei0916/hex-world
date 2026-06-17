@@ -7,8 +7,9 @@
 
 ### ItemAcceptor を本来の意味で再導入する（方向/アイテムフィルタ）← 将来
 - 経緯: 旧 ItemAcceptor は「満杯でなければ受ける＋汎用 Inventory に保持」だけの空の転送層だったため解体済み。
-  機械の入力保持は Crafter(=ItemProcessor) へ、保管ピース(chest)は削除。汎用 Inventory も廃止。
-  現状の受け入れ口は get_acceptor() のダックタイピング（Crafter / ConveyorLogic）で、**全方向・全アイテムを受け入れる**。
+  保持は用途別に分散: Crafter(機械入力=ItemProcessor相当) / ItemEjector(出力) / Delivery(納品計数=hub相当)。
+  保管ピース(chest)は削除、汎用 Inventory / ItemAcceptor クラスも廃止済み。
+  現状の受け入れ口は get_acceptor() のダックタイピング（Crafter / ConveyorLogic / Delivery）で、**全方向・全アイテムを受け入れる**。
 - [ ] 将来「特定の方向からのみ受け入れる」「特定のアイテムのみ受け入れる」設計に変更する際、
   shapez の ItemAcceptorComponent を本来の意味で導入する
   - shapez の ItemAcceptor が持つ4要素: 辺ごとのスロット(pos+direction) / 方向フィルタ / アイテムフィルタ / 流入アニメ
