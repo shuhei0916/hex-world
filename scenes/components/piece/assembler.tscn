@@ -17,13 +17,6 @@ port_hex = Vector2i(0, 0)
 port_direction = 2
 piece_color = Color(0.52157, 0.969, 0.949, 1)
 
-[node name="ItemAcceptor" type="Node2D" parent="." unique_id=674134011]
-position = Vector2(-20, 15)
-script = ExtResource("2_input")
-
-[node name="Inventory" parent="ItemAcceptor" unique_id=1564647182 instance=ExtResource("8_inventory")]
-show_icon = false
-
 [node name="ItemEjector" type="Node2D" parent="." unique_id=900702169]
 script = ExtResource("4_output")
 

@@ -9,9 +9,9 @@
 - [ ] 現状 ItemAcceptor が Inventory を子に持ち「受け入れ口」と「保持」を兼ねている。
   shapez は ItemAcceptor(受け入れIF) と StorageComponent(保管) を分離している
   - 懸念: ほとんどのピースは「生産→即出力」で保持を持たない設計になりそう。入力側が Inventory を
-    抱える構造は直感的でない
+	抱える構造は直感的でない
   - 方針案: ItemAcceptor は受け入れ判定のみの薄い層に。機械の入力保持は Crafter(=processor) 側へ、
-    chest など本当に保管するピースだけ Storage/Inventory を持つ
+	chest など本当に保管するピースだけ Storage/Inventory を持つ
   - shapez: storage 建物 = ItemAcceptor + StorageComponent + ItemEjector（受け入れ→保管→排出）
 - [ ] 併せて piece.gd / item_acceptor.gd の add_item / consume_item インターフェースを整理
 - [ ] （関連・低優先）取り込まれるアイテムの描画を acceptor 駆動に（shapez: ItemAcceptorSystem）。現状機械入力は非表示
