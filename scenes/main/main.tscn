@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://qqa8dhve6xp8" path="res://scenes/ui/hud/hud.tscn" id="3_ow5a4"]
 [ext_resource type="Script" uid="uid://world00000001" path="res://scenes/components/world/world.gd" id="4_hujxm"]
 [ext_resource type="PackedScene" uid="uid://4pii2eovb0nu" path="res://scenes/components/piece_placer/piece_placer.tscn" id="5_piece_placer"]
+[ext_resource type="Script" uid="uid://worldmapview01" path="res://scenes/components/world/world_map_view.gd" id="7_wmv"]
 [ext_resource type="PackedScene" uid="uid://sfxplayer001" path="res://scenes/main/sfx_player.tscn" id="6_sfx"]
 
 [node name="Main" type="Node2D" unique_id=1442817315]
@@ -17,6 +18,10 @@ script = ExtResource("2_6q06x")
 
 [node name="World" type="Node2D" parent="." unique_id=176488843]
 script = ExtResource("4_hujxm")
+
+[node name="WorldMapView" type="Node2D" parent="." unique_id=288811001]
+script = ExtResource("7_wmv")
+visible = false
 
 [node name="PiecePlacer" parent="." unique_id=154715246 instance=ExtResource("5_piece_placer")]
 
