@@ -33,7 +33,7 @@ var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
 
 # コンポーネント
-@onready var acceptor: ItemAcceptor = get_node_or_null("ItemAcceptor")
+# 受け入れ口は get_acceptor()（can_accept_item+add_item を持つ子をダックタイピング）で解決する。
 @onready var ejector: ItemEjector = get_node_or_null("ItemEjector")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
 

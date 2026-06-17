@@ -19,7 +19,7 @@ class StubTarget:
 		return _counts.get(item_name, 0)
 
 
-class TestOutputInventory:
+class TestEjectorSlot:
 	extends GutTest
 
 	var output
@@ -30,9 +30,8 @@ class TestOutputInventory:
 		autofree(piece)
 		output = piece.get_node("ItemEjector")
 
-	# Output は $Inventory への委譲のみ。インベントリのロジック自体は
-	# test_inventory.gd で網羅済みのため、ここでは委譲の配線だけを確認する。
-	func test_add_itemは内部インベントリに委譲される():
+	# ItemEjector は内部スロット(_item/_count)でアイテムを保持する。
+	func test_add_itemで内部スロットにアイテムが保持される():
 		output.add_item("iron", 5)
 		assert_eq(output.get_item_count("iron"), 5)
 

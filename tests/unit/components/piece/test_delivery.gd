@@ -37,3 +37,28 @@ class TestDeliverySetup:
 		delivery.setup("iron_plate", 10)
 		delivery.add_received(10)
 		assert_true(delivery.is_completed())
+
+
+class TestDeliveryAcceptor:
+	extends GutTest
+
+	## Delivery は hub 相当。自身が受け入れ口となり、何でも受け入れて
+	## 目標アイテムの累計納品数を数える。
+
+	var delivery: Node
+
+	func before_each():
+		delivery = DELIVERY_SCRIPT.new()
+		add_child_autofree(delivery)
+		delivery.setup("iron_plate", 10)
+
+	func test_can_accept_itemは常にtrueを返す():
+		assert_true(delivery.can_accept_item("anything"))
+
+	func test_目標アイテムをadd_itemするとreceived_countが増える():
+		delivery.add_item("iron_plate", 3)
+		assert_eq(delivery.received_count, 3)
+
+	func test_目標外アイテムをadd_itemしてもreceived_countは増えない():
+		delivery.add_item("copper", 3)
+		assert_eq(delivery.received_count, 0)
