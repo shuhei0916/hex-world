@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://yew8p56p158" path="res://scenes/components/piece/item_ejector_visual.gd" id="99_ejvis"]
 [ext_resource type="Script" uid="uid://c56d5ckwuobyb" path="res://scenes/components/piece/item_ejector.gd" id="2_output"]
 [ext_resource type="Script" uid="uid://wrjjijit7rdf" path="res://scenes/components/piece/crafter.gd" id="3_crafter"]
-[ext_resource type="PackedScene" uid="uid://4rqfx1tjtvqk" path="res://scenes/components/piece/inventory.tscn" id="7_inventory"]
 
 [node name="Piece" type="Node2D" unique_id=1612071350]
 script = ExtResource("1_piece")

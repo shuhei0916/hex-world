@@ -2,7 +2,6 @@
 extends GutTest
 
 const PIECE_SCENE = preload("res://scenes/components/piece/smelter.tscn")
-const InventoryScript = preload("res://scenes/components/piece/inventory.gd")
 
 
 class TestCrafterLogic:
@@ -13,7 +12,8 @@ class TestCrafterLogic:
 
 	func before_each():
 		crafter = Crafter.new()
-		output_container = InventoryScript.new()
+		# 本番と同じく出力先は ItemEjector（容量・満杯判定・add_item を備える）
+		output_container = ItemEjector.new()
 		crafter.setup(output_container)
 
 	func after_each():
