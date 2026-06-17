@@ -2,6 +2,7 @@ class_name World
 extends Node2D
 
 var _chunks: Dictionary = {}
+var _chunk_hexes: Array[Hex] = []
 var _active_hex = null
 
 
@@ -13,7 +14,12 @@ func create_chunk(chunk_hex: Hex) -> Chunk:
 	chunk.visible = false
 	add_child(chunk)
 	_chunks[key] = chunk
+	_chunk_hexes.append(chunk_hex)
 	return chunk
+
+
+func get_chunk_hexes() -> Array[Hex]:
+	return _chunk_hexes.duplicate()
 
 
 func get_chunk(chunk_hex: Hex):
