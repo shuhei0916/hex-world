@@ -23,7 +23,7 @@ func test_HUDのスロット選択でPiecePlacerが更新される():
 
 func test_ピースを設置すると設置音が鳴る():
 	var smelter_scene = main.hud.get_scene_for_slot(3)
-	main.chunk.place_piece(smelter_scene, Hex.new(0, 0))
+	main.world.get_active_chunk().place_piece(smelter_scene, Hex.new(0, 0))
 	assert_true(main.get_node("SfxPlayer/PlaceBuilding").playing)
 
 
