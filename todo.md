@@ -20,7 +20,7 @@
   ※「将来 BeltPath 化で分岐」は投機的・長期。今は EjectorRouter 重複の解消にとどめ、BeltPath 実現時に分ける
 - [ ] **3. place_delivery_zone の死にコード除去**: chunk.gd の GoalLabel.text 設定は Stage3 で
   Delivery.setup()→_update_label() が担うようになったため重複。除去（hub リネームのついでに）
-- [ ] **4. delivery → hub リネーム + balancer 命名統一**: class Delivery→Hub / ファイル/ノード名 /
+- [x] **4. delivery → hub リネーム + balancer 命名統一**: class Delivery→Hub / ファイル/ノード名 /
   place_delivery_zone / PieceData.Type.DELIVERY / テスト。併せて splitter は shapez では balancer
   （アイコンは balancer.png、HUDは「スプリッター」表記で混在）。どちらかに統一
 - [ ] **5. chunk サイズを shapez 16×16(256) 相当に**: 六角形なら半径9=271タイル（256に最も近い。
