@@ -14,7 +14,7 @@
   _apply_mining_constraint / get_inner/outer_hexes / RESOURCE_COLORS)を WorldGenerator へ切り出し、
   Chunk をグリッド＋ピース管理のファサードに絞る。shapez の MapGenerator 分離と同方向。
   → chunk サイズ・hub 配置・鉱床をこれから触るので、先に着地点を綺麗にする
-- [ ] **2. 配送ロジックの三重化を解消**: 「1個保持→受け入れ可能な接続先へ押し出す」が3実装ある
+- [x] **2. 配送ロジックの三重化を解消**: 「1個保持→受け入れ可能な接続先へ押し出す」が3実装ある
   （ConveyorLogic._try_deliver の手書きループ / SplitterLogic→EjectorRouter / ItemEjector→EjectorRouter）。
   ConveyorLogic._try_deliver は EjectorRouter の再発明なので、ConveyorLogic を EjectorRouter ベースに統一。
   ※「将来 BeltPath 化で分岐」は投機的・長期。今は EjectorRouter 重複の解消にとどめ、BeltPath 実現時に分ける
