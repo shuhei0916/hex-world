@@ -1,12 +1,12 @@
-[gd_scene format=3 uid="uid://splitter0001"]
+[gd_scene format=3 uid="uid://balancer001"]
 
 [ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" path="res://scenes/components/piece/splitter_logic.gd" id="6_splitter_logic"]
+[ext_resource type="Script" path="res://scenes/components/piece/balancer_logic.gd" id="6_balancer_logic"]
 [ext_resource type="Script" path="res://scenes/components/piece/item_ejector_visual.gd" id="7_item_ejector_visual"]
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
-piece_name = "Splitter"
+piece_name = "Balancer"
 piece_description = "アイテムを複数の出力へ振り分ける。"
 piece_type = 9
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
@@ -16,8 +16,8 @@ port_direction = 0
 port_direction2 = 5
 piece_color = Color(1, 0.702, 0.278, 1)
 
-[node name="SplitterLogic" type="Node" parent="."]
-script = ExtResource("6_splitter_logic")
+[node name="BalancerLogic" type="Node" parent="."]
+script = ExtResource("6_balancer_logic")
 
 [node name="ItemEjectorVisual" type="Node2D" parent="."]
 script = ExtResource("7_item_ejector_visual")

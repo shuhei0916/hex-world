@@ -1,9 +1,9 @@
-class_name SplitterLogic
+class_name BalancerLogic
 extends Node
 
-## スプリッターの分配ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
+## バランサーの分配ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
 ## 複数の接続先へラウンドロビンで渡す（shapez の balancer 相当）。
-## 保持＋タイマーは TransferBuffer に、巡回搬出は ItemEjector に委譲する。
+## 保持＋タイマーは TransferBuffer に、巡回搬出は EjectorRouter に委譲する。
 
 var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()

@@ -11,5 +11,5 @@ enum Type {
 	ASSEMBLER,
 	CHEST,
 	HUB,
-	SPLITTER,
+	BALANCER,
 }

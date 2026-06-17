@@ -2,7 +2,7 @@ class_name ConveyorLogic
 extends Node
 
 ## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
-## 唯一の接続先へ渡す（単一出力。分岐は SplitterLogic が担う）。
+## 唯一の接続先へ渡す（単一出力。分岐は BalancerLogic が担う）。
 ## 保持＋タイマーは TransferBuffer に委譲する。
 
 var connected_pieces: Array = []

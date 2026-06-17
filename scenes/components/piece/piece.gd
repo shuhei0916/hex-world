@@ -117,7 +117,7 @@ func get_item_count(item_name: String) -> int:
 
 
 func tick(delta: float):
-	# 全 tick を Piece に集約する。まず crafter(生産)→次に他のロジック(ejector/conveyor/splitter)。
+	# 全 tick を Piece に集約する。まず crafter(生産)→次に他のロジック(ejector/conveyor/balancer)。
 	# これにより同一フレーム内で「生産→排出」が流れ、子の自走 _process との二重 tick も避ける。
 	if crafter:
 		crafter.tick(delta)
@@ -156,7 +156,7 @@ func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 
 
 func _is_belt() -> bool:
-	# ConveyorVisuals を持つのはベルトを描くコンベアのみ（splitter は ItemEjectorVisual）。
+	# ConveyorVisuals を持つのはベルトを描くコンベアのみ（balancer は ItemEjectorVisual）。
 	return get_node_or_null("ConveyorVisuals") != null
 
 

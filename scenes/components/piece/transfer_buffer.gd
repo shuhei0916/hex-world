@@ -2,7 +2,7 @@ class_name TransferBuffer
 extends RefCounted
 
 ## アイテムを1個だけ保持し、TRANSFER_TIME 経過で搬出可能になるバッファ。
-## ConveyorLogic / SplitterLogic が合成で持つ（保持＋タイマーの共通部）。
+## ConveyorLogic / BalancerLogic が合成で持つ（保持＋タイマーの共通部）。
 
 const TRANSFER_TIME = 0.5
 
