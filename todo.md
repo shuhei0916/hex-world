@@ -5,6 +5,32 @@
 
 ## リファクタリング
 
+### ★次セッション着手予定（クリーン化 + chunk/hub）
+推奨順: 1 → 4(+3) → 5 → 2。理由: これから触る chunk 周りを先に整理(1)、命名を固め(4,3)、
+サイズを入れ(5)、独立改善の配送統合(2)を最後に。
+
+- [ ] **1. WorldGenerator 抽出（最優先）**: chunk.gd(255行)が ①グリッドのファサード ②ピース管理
+  ③ワールド生成 の3責務を抱える。③(generate_ore_deposits / place_delivery_zone / mark_resource_hex /
+  _apply_mining_constraint / get_inner/outer_hexes / RESOURCE_COLORS)を WorldGenerator へ切り出し、
+  Chunk をグリッド＋ピース管理のファサードに絞る。shapez の MapGenerator 分離と同方向。
+  → chunk サイズ・hub 配置・鉱床をこれから触るので、先に着地点を綺麗にする
+- [ ] **2. 配送ロジックの三重化を解消**: 「1個保持→受け入れ可能な接続先へ押し出す」が3実装ある
+  （ConveyorLogic._try_deliver の手書きループ / SplitterLogic→EjectorRouter / ItemEjector→EjectorRouter）。
+  ConveyorLogic._try_deliver は EjectorRouter の再発明なので、ConveyorLogic を EjectorRouter ベースに統一。
+  ※「将来 BeltPath 化で分岐」は投機的・長期。今は EjectorRouter 重複の解消にとどめ、BeltPath 実現時に分ける
+- [ ] **3. place_delivery_zone の死にコード除去**: chunk.gd の GoalLabel.text 設定は Stage3 で
+  Delivery.setup()→_update_label() が担うようになったため重複。除去（hub リネームのついでに）
+- [ ] **4. delivery → hub リネーム + balancer 命名統一**: class Delivery→Hub / ファイル/ノード名 /
+  place_delivery_zone / PieceData.Type.DELIVERY / テスト。併せて splitter は shapez では balancer
+  （アイコンは balancer.png、HUDは「スプリッター」表記で混在）。どちらかに統一
+- [ ] **5. chunk サイズを shapez 16×16(256) 相当に**: 六角形なら半径9=271タイル（256に最も近い。
+    半径8=217も可）。現状 grid_radius=4(61)。定数化して world gen に反映
+  - 形状判断は保留可（単一チャンクの今は六角形で十分。chunk of chunks 実装時に菱形=256 を再検討）
+    - 菱形は axial を n×n 埋めた60°傾きの平行四辺形。平面を隙間なく敷き詰められchunk合成向き
+  - hub 移動可否も未定（shapez は固定。現状 delivery も削除不可で実質固定）
+- [ ] **6.（長期）piece_type の enum int 依存を脱却**: PieceData.Type に削除済み CHEST=7 の穴が残る。
+  .tscn が piece_type を生 int で持つため番号をずらせない脆さ。将来 StringName/リソース参照へ
+
 ### ItemAcceptor を本来の意味で再導入する（方向/アイテムフィルタ）← 将来
 - 経緯: 旧 ItemAcceptor は「満杯でなければ受ける＋汎用 Inventory に保持」だけの空の転送層だったため解体済み。
   保持は用途別に分散: Crafter(機械入力=ItemProcessor相当) / ItemEjector(出力) / Delivery(納品計数=hub相当)。
@@ -16,21 +42,12 @@
   - 例: ミキサーの色入力スロットは色アイテムのみ、裏面からは入れない 等
   - 現状は NeighborManager が隣接から物理的に入力方向を解決しているだけ。ルールを持たせる時が導入の好機
 
-### chunk.gd の責務分離
-- [ ] 世界生成ロジック(generate_ore_deposits / place_delivery_zone / mark_resource_hex)を
-  WorldGenerator 等へ切り出し、Chunk をグリッド＋ピース管理のファサードに絞る（現状 ~255 行）
-  - shapez が MapGenerator を分けているのと同じ方向
-
 ### piece.gd の描画分離（低優先）
 - [ ] 基礎ヘックスタイル生成(_create_hex_tiles)と出力矢印(_refresh_output_arrow / make_output_arrow)を
   PieceBaseVisual 等へ切り出し、piece.gd(221行)をファサード/ロジックに絞る
   （ConveyorVisuals / ItemEjectorVisual と同じ「描画はビジュアル部品」方針の徹底）
 
 ### 命名・重複の整理（低優先）
-- [ ] ConveyorLogic と SplitterLogic は ~80% 重複(TransferBuffer+委譲+tick)。ただし統合は非推奨
-  （コンベアは将来 BeltPath 化で分岐見込み）。気になれば委譲ボイラープレートのみ基底化
-- [ ] 語彙の混在整理: shapez系(ItemEjector/ItemAcceptor/EjectorRouter) と自前(ConveyorLogic/SplitterLogic/
-  Crafter/ConveyorVisuals)。shapez 厳密には belt/balancer/ItemProcessor。Crafter は据え置き推奨
 - [ ] `_key` / `hex_to_key` の薄いラッパー(PieceRegistry/HexGrid/GridRenderer ×3)を Hex.to_key 直呼びに統一（軽微）
 - [ ] InputHandler クラスを抽出し main.gd の入力処理を委譲
 - [ ] crafter.gd に enum CraftingState を導入し状態遷移を明示化
