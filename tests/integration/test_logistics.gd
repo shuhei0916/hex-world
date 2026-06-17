@@ -8,7 +8,7 @@ class TestPieceLogistics:
 
 	const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 	const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
-	const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
 	var chunk: Chunk
 
@@ -22,11 +22,11 @@ class TestPieceLogistics:
 		#   port at offset (0,1) → absolute (0,1), direction SW → neighbor (-1,2)
 		# SMELTER at (-1,2): occupies (-3,2),(-2,2),(-1,2),(-1,3)
 		#   port at offset (0,0) → absolute (-1,2), direction E → neighbor (0,2)
-		# CHEST at (0,2): occupies (0,2)
+		# CONVEYOR at (0,2): シンクとして受領
 		chunk.mark_resource_hex(Hex.new(0, 0), "iron_ore")
 		chunk.place_piece(MINER_SCENE, Hex.new(0, 0))
 		chunk.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
-		chunk.place_piece(CHEST_SCENE, Hex.new(0, 2))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
 
 		var miner = chunk.get_piece_at_hex(Hex.new(0, 0))
 		var smelter = chunk.get_piece_at_hex(Hex.new(-1, 2))

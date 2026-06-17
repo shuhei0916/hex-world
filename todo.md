@@ -5,16 +5,15 @@
 
 ## リファクタリング
 
-### ItemAcceptor を薄インターフェース化し、保持(Inventory/Storage)を分離する ← 次の着手候補
-- [ ] 現状 ItemAcceptor が Inventory を子に持ち「受け入れ口」と「保持」を兼ねている。
-  shapez は ItemAcceptor(受け入れIF) と StorageComponent(保管) を分離している
-  - 懸念: ほとんどのピースは「生産→即出力」で保持を持たない設計になりそう。入力側が Inventory を
-	抱える構造は直感的でない
-  - 方針案: ItemAcceptor は受け入れ判定のみの薄い層に。機械の入力保持は Crafter(=processor) 側へ、
-	chest など本当に保管するピースだけ Storage/Inventory を持つ
-  - shapez: storage 建物 = ItemAcceptor + StorageComponent + ItemEjector（受け入れ→保管→排出）
-- [ ] 併せて piece.gd / item_acceptor.gd の add_item / consume_item インターフェースを整理
-- [ ] （関連・低優先）取り込まれるアイテムの描画を acceptor 駆動に（shapez: ItemAcceptorSystem）。現状機械入力は非表示
+### ItemAcceptor を本来の意味で再導入する（方向/アイテムフィルタ）← 将来
+- 経緯: 旧 ItemAcceptor は「満杯でなければ受ける＋汎用 Inventory に保持」だけの空の転送層だったため解体済み。
+  機械の入力保持は Crafter(=ItemProcessor) へ、保管ピース(chest)は削除。汎用 Inventory も廃止。
+  現状の受け入れ口は get_acceptor() のダックタイピング（Crafter / ConveyorLogic）で、**全方向・全アイテムを受け入れる**。
+- [ ] 将来「特定の方向からのみ受け入れる」「特定のアイテムのみ受け入れる」設計に変更する際、
+  shapez の ItemAcceptorComponent を本来の意味で導入する
+  - shapez の ItemAcceptor が持つ4要素: 辺ごとのスロット(pos+direction) / 方向フィルタ / アイテムフィルタ / 流入アニメ
+  - 例: ミキサーの色入力スロットは色アイテムのみ、裏面からは入れない 等
+  - 現状は NeighborManager が隣接から物理的に入力方向を解決しているだけ。ルールを持たせる時が導入の好機
 
 ### chunk.gd の責務分離
 - [ ] 世界生成ロジック(generate_ore_deposits / place_delivery_zone / mark_resource_hex)を

@@ -2,7 +2,6 @@
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
@@ -118,14 +117,14 @@ class TestConveyorConnection:
 
 	func test_出力ポートの先のピースに接続される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
 		assert_true(chest in conveyor.get_connected_pieces())
 
 	func test_tick0_5で接続先ピースへアイテムが搬出される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
 		conveyor.add_item("iron_plate", 1)
@@ -134,7 +133,7 @@ class TestConveyorConnection:
 
 	func test_tick0_4では接続先にアイテムが渡らない():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
 		conveyor.add_item("iron_plate", 1)
@@ -143,7 +142,7 @@ class TestConveyorConnection:
 
 	func test_転送後コンベアは空になる():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
@@ -151,7 +150,7 @@ class TestConveyorConnection:
 
 	func test_転送後コンベアは再び受け入れ可能になる():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
@@ -169,7 +168,7 @@ class TestConveyorConnection:
 	func test_コンベアチェーンでアイテムが1個ずつ流れる():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
-		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))
 		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
 		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
 		conv_a.add_item("iron_plate", 1)
@@ -189,7 +188,7 @@ class TestConveyorConnection:
 	func test_接続先が受け入れ可能になったらその後のtickで転送される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
-		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))
 		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
 		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
 		conv_b.add_item("iron_plate", 1)
