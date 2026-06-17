@@ -3,7 +3,8 @@ extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
+const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
+const DELIVERY_SCENE = preload("res://scenes/components/piece/delivery.tscn")
 
 
 class TestPiecePlacement:
@@ -52,7 +53,7 @@ class TestPiecePlacement:
 			)
 
 	func test_select_pieceでシーンを外部からセットして配置できる():
-		piece_placer.select_piece(CHEST_SCENE)
+		piece_placer.select_piece(SPLITTER_SCENE)
 		var target_hex = Hex.new(1, 1)
 		var result = piece_placer.place_piece_at_hex(target_hex)
 		assert_true(result, "シーンをセットすれば配置できるべき")
@@ -102,7 +103,8 @@ class TestPreview:
 		assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size + 1)
 
 	func test_出力ポートを持たないピースのプレビューには矢印が追加されない():
-		piece_placer.select_piece(CHEST_SCENE)
+		# delivery は出力ポートを持たない（矢印が出ない）ピース
+		piece_placer.select_piece(DELIVERY_SCENE)
 		var shape_size = piece_placer.current_piece_shape.size()
 		assert_eq(piece_placer.cursor_preview.get_child_count(), shape_size)
 
@@ -167,15 +169,15 @@ class TestDragBehavior:
 		assert_eq(piece_placer.snap_preview.position, expected)
 
 	func test_削除ドラッグ中にhoverしたヘックスのピースが削除される():
-		chunk.place_piece(CHEST_SCENE, Hex.new(0, 0))
-		chunk.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		chunk.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
+		chunk.place_piece(SPLITTER_SCENE, Hex.new(1, 0))
 		piece_placer.start_delete_drag()
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
 		assert_false(chunk.is_occupied(Hex.new(0, 0)) or chunk.is_occupied(Hex.new(1, 0)))
 
 	func test_stop_delete_drag後はhoverしてもピースが削除されない():
-		chunk.place_piece(CHEST_SCENE, Hex.new(0, 0))
+		chunk.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
 		piece_placer.start_delete_drag()
 		piece_placer.stop_delete_drag()
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
@@ -199,7 +201,7 @@ class TestDragBehavior:
 		assert_false(piece_placer.is_dragging)
 
 	func test_ドラッグ中にupdate_hoverで新しいヘックスに移動するとピースが設置される():
-		piece_placer.select_piece(CHEST_SCENE)
+		piece_placer.select_piece(SPLITTER_SCENE)
 		piece_placer.start_drag()
 		var target_hex = Hex.new(0, 0)
 		var target_pos = chunk.hex_to_pixel(target_hex)

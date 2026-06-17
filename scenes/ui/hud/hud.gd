@@ -10,7 +10,6 @@ const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
 
 var _scenes: Array[PackedScene] = [
@@ -22,7 +21,6 @@ var _scenes: Array[PackedScene] = [
 	CUTTER_SCENE,
 	MIXER_SCENE,
 	PAINTER_SCENE,
-	CHEST_SCENE,
 ]
 
 @onready var toolbar: HBoxContainer = $ToolBar

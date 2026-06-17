@@ -2,7 +2,6 @@
 extends GutTest
 
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
@@ -69,13 +68,13 @@ class TestPiecePlacement:
 		assert_not_null(gm.get_piece_at_hex(Hex.new(0, 0)))
 
 	func test_占有済みまたは範囲外には配置できない():
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		var shape: Array[Hex] = [Hex.new(0, 0)]
 		assert_false(gm.can_place(shape, Hex.new(0, 0)), "占有済み")
 		assert_false(gm.can_place(shape, Hex.new(5, 5)), "範囲外")
 
 	func test_ピースを削除すると占有が解除されノードも解放される():
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
 		gm.remove_piece_at(Hex.new(0, 0))
 		assert_false(gm.is_occupied(Hex.new(0, 0)))
@@ -116,8 +115,8 @@ class TestNeighbors:
 		gm.create_hex_grid(2)
 
 	func test_指定した方向の隣接ピースを取得できる():
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, -1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1))
 		var piece_b = gm.get_piece_at_hex(Hex.new(1, -1))
 		assert_eq(gm.get_neighbor_piece(Hex.new(0, 0), 1), piece_b)
 		assert_null(gm.get_neighbor_piece(Hex.new(0, 0), 3), "存在しない方向はnull")
@@ -125,21 +124,21 @@ class TestNeighbors:
 	func test_出力ポートの先にピースがある場合は搬送先として登録される():
 		# CONVEYOR at (0,0): 1ヘックス、port_direction=0(East) → neighbor (1,0)
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		var target = gm.get_piece_at_hex(Hex.new(1, 0))
 		assert_true(target in source.get_connected_pieces())
 
 	func test_ポートが向いていない隣接ピースは搬送先に登録されない():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(0, -1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, -1))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		var target = gm.get_piece_at_hex(Hex.new(0, -1))
 		assert_false(target in source.get_connected_pieces())
 
 	func test_ピース削除時に周囲の搬送先リストが自動更新される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var source = gm.get_piece_at_hex(Hex.new(0, 0))
 		gm.remove_piece_at(Hex.new(1, 0))
 		assert_eq(source.get_connected_pieces().size(), 0, "削除後は接続が切れているべき")
@@ -163,7 +162,7 @@ class TestItemTransfer:
 		source.add_to_output("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 
 		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 2))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
 		var chest = gm.get_piece_at_hex(Hex.new(0, 2))
 
 		source.tick(1.0)  # スライド完了→排出
@@ -175,7 +174,7 @@ class TestItemTransfer:
 		source.add_item("iron_plate", 1)
 		source.get_node("ConveyorLogic").tick(0.5)  # 接続先がないので保持したまま
 
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
 		source.get_node("ConveyorLogic").tick(0.1)  # 搬送済みなので追加の待ち時間は不要
 

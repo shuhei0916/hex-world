@@ -4,7 +4,6 @@ extends GutTest
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 
 
 class TestMachineCapacity:
@@ -21,19 +20,6 @@ class TestMachineCapacity:
 		add_child_autofree(p)
 		p.setup()
 		assert_eq(p.get_node("Crafter").input_capacity, 1)
-
-	func test_Chestはバッファ容量を維持する():
-		var p = CHEST_SCENE.instantiate()
-		add_child_autofree(p)
-		p.setup()
-		assert_eq(p.acceptor.inventory.capacity, 20)
-
-	func test_Chestの入力バッジは表示される():
-		var p = CHEST_SCENE.instantiate()
-		add_child_autofree(p)
-		p.setup()
-		p.add_item("iron_ingot", 1)
-		assert_true(p.get_node("ItemAcceptor/Inventory/Icon").visible)
 
 
 class TestPieceBasics:

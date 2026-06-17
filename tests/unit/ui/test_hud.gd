@@ -111,8 +111,8 @@ func test_コンベアスロット選択で情報パネルに搬送速度が表�
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():
-	# Chest（レシピも搬送も無い）は速度行を出さない
-	var btn = hud.toolbar.get_child(8) as Button
+	# Painter（レシピ未定義＝生産速度なし）は速度行を出さない（slot index 7）
+	var btn = hud.toolbar.get_child(7) as Button
 	btn.button_pressed = true
-	hud.on_slot_pressed(8)
+	hud.on_slot_pressed(7)
 	assert_false(hud.info_panel.rate_label.visible)

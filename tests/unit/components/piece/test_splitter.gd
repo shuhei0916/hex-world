@@ -2,7 +2,6 @@
 extends GutTest
 
 const SPLITTER_SCENE = preload("res://scenes/components/piece/splitter.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
@@ -37,15 +36,15 @@ class TestSplitterConnection:
 
 	func test_Splitter配置後にconnected_piecesに2ピースが接続される():
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		assert_eq(splitter.get_connected_pieces().size(), 2)
 
 	func test_アイテムがラウンドロビンで2方向に分配される():
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		var chest_e = gm.get_piece_at_hex(Hex.new(1, 0))
 		var chest_se = gm.get_piece_at_hex(Hex.new(0, 1))
@@ -58,15 +57,15 @@ class TestSplitterConnection:
 	func test_片側のみ接続時_保持アイテムは接続側の出力方向に向く():
 		# SE(0,1) のみ接続。表示・実排出ともに SE(方向5) を指すべき（食い違い解消）。
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		splitter.add_item("iron_ore", 1)
 		assert_eq(splitter.get_node("SplitterLogic").get_target_direction(), 5)
 
 	func test_連続するアイテムは異なる出力側に飛び出る():
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(0, 1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		var visual = splitter.get_node("ItemEjectorVisual")
 		var logic = splitter.get_node("SplitterLogic")
@@ -88,8 +87,8 @@ class TestSplitterConnection:
 		gm.place_piece(SPLITTER_SCENE, Hex.new(0, 0))
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East出力
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1), 1)  # SE→NE... rotation確認
-		gm.place_piece(CHEST_SCENE, Hex.new(2, 0))
-		gm.place_piece(CHEST_SCENE, Hex.new(1, 1))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 1))
 		var splitter = gm.get_piece_at_hex(Hex.new(0, 0))
 		var conv_e = gm.get_piece_at_hex(Hex.new(1, 0))
 		var conv_se = gm.get_piece_at_hex(Hex.new(0, 1))

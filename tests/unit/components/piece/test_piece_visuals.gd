@@ -1,7 +1,6 @@
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const CHEST_SCENE = preload("res://scenes/components/piece/chest.tscn")
 
 var piece_scene = load("res://scenes/components/piece/smelter.tscn")
 var piece: Piece
@@ -95,16 +94,6 @@ func test_CONVEYORは出力方向矢印を表示しない():
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
 	assert_null(conveyor._output_arrow, "コンベアは矢印を表示しないべき")
-
-
-func test_CHESTをsetupしても矢印の子ノードは追加されない():
-	var chest = CHEST_SCENE.instantiate()
-	add_child_autofree(chest)
-	chest.setup(0)
-	var arrows = chest.get_children().filter(
-		func(c): return c is Sprite2D and c.texture == Piece.FORWARD_TEXTURE
-	)
-	assert_eq(arrows.size(), 0)
 
 
 func test_コンベア上のアイテムはコンベアのラインより手前に描画される():
