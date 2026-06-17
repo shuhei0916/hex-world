@@ -2,13 +2,15 @@ class_name Main
 extends Node2D
 
 @onready var hud: HUD = $HUD
-@onready var chunk: Chunk = $Chunk
+@onready var world: World = $World
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var sfx_player: SfxPlayer = $SfxPlayer
 
 
 func _ready():
-	chunk.create_hex_grid(chunk.grid_radius)
+	world.create_chunk(Hex.new(0, 0))
+	world.set_active_chunk(Hex.new(0, 0))
+	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
 	chunk.place_hub("iron_plate", 10)
 	chunk.generate_ore_deposits(5)
