@@ -38,3 +38,12 @@ class TestWorldMapView:
 		view.set_active_chunk(Hex.new(0, 0))
 		view.set_active_chunk(Hex.new(1, 0))
 		assert_false(view.get_tile_active(Hex.new(0, 0)))
+
+	func test_タイル中心位置を渡すと対応するhexを返す():
+		view.setup(world)
+		var center = view.get_tile_position(Hex.new(0, 0))
+		assert_true(Hex.equals(view.chunk_at_local_pos(center), Hex.new(0, 0)))
+
+	func test_タイルが存在しない位置ではnullを返す():
+		view.setup(world)
+		assert_null(view.chunk_at_local_pos(Vector2(9999, 9999)))

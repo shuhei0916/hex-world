@@ -50,3 +50,11 @@ func get_tile_position(chunk_hex: Hex) -> Vector2:
 func get_tile_active(chunk_hex: Hex) -> bool:
 	var tile = _tiles.get(Hex.to_key(chunk_hex))
 	return tile.is_active if tile else false
+
+
+func chunk_at_local_pos(local_pos: Vector2):
+	var hex = Layout.pixel_to_hex_rounded(_map_layout, local_pos)
+	var key = Hex.to_key(hex)
+	if key in _tiles:
+		return hex
+	return null
