@@ -1,14 +1,22 @@
 class_name Main
 extends Node2D
 
+enum Mode { LOCAL, WORLD_MAP }
+
+var _mode: Mode = Mode.LOCAL
+
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
+@onready var world_map_view: WorldMapView = $WorldMapView
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var sfx_player: SfxPlayer = $SfxPlayer
 
 
 func _ready():
 	world.create_chunk(Hex.new(0, 0))
+	world.create_chunk(Hex.new(1, 0))
+	world.create_chunk(Hex.new(-1, 0))
+	world.create_chunk(Hex.new(0, 1))
 	world.set_active_chunk(Hex.new(0, 0))
 	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
@@ -19,6 +27,10 @@ func _ready():
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
+
+
+func is_local_mode() -> bool:
+	return _mode == Mode.LOCAL
 
 
 func _on_hud_slot_selected(scene: PackedScene):
@@ -33,12 +45,35 @@ func _unhandled_input(event):
 
 func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
-		if event.is_action_pressed("rotate_piece"):
+		if event.keycode == KEY_SPACE:
+			_toggle_mode()
+		elif event.is_action_pressed("rotate_piece") and is_local_mode():
 			piece_placer.rotate_current_piece()
 
 
+func _toggle_mode():
+	if _mode == Mode.LOCAL:
+		_enter_world_map_mode()
+	else:
+		_enter_local_mode()
+
+
+func _enter_world_map_mode():
+	_mode = Mode.WORLD_MAP
+	world.visible = false
+	world_map_view.visible = true
+	world_map_view.setup(world)
+	world_map_view.set_active_chunk(world.get_chunk_hexes()[0])
+
+
+func _enter_local_mode():
+	_mode = Mode.LOCAL
+	world.visible = true
+	world_map_view.visible = false
+
+
 func _handle_mouse_motion(event):
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and is_local_mode():
 		var local_mouse_pos = make_input_local(event).position
 		piece_placer.update_hover(local_mouse_pos)
 

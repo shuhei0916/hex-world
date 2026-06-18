@@ -32,6 +32,12 @@ class TestWorldChunkManagement:
 		var chunk = world.create_chunk(Hex.new(0, 0))
 		assert_false(chunk.visible)
 
+	func test_create_chunkしたhexはget_chunk_hexesで取得できる():
+		world.create_chunk(Hex.new(0, 0))
+		world.create_chunk(Hex.new(1, 0))
+		var hexes = world.get_chunk_hexes()
+		assert_eq(hexes.size(), 2)
+
 
 class TestWorldActiveChunk:
 	extends GutTest
