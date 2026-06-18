@@ -104,6 +104,21 @@ class TestConveyorVisuals:
 			conveyor.get_node("ConveyorVisuals/ItemIcon").position, center, Vector2(0.1, 0.1)
 		)
 
+	func test_sample_bezierはsegments_plus_1点を返す():
+		var pts = ConveyorVisuals.sample_bezier(Vector2(-1, 0), Vector2.ZERO, Vector2(1, 0), 4)
+		assert_eq(pts.size(), 5)
+
+	func test_sample_bezierの始点と終点はp0とp2():
+		var p0 = Vector2(-10, 5)
+		var p2 = Vector2(10, -5)
+		var pts = ConveyorVisuals.sample_bezier(p0, Vector2.ZERO, p2, 6)
+		assert_almost_eq(pts[0], p0, Vector2(0.001, 0.001))
+		assert_almost_eq(pts[pts.size() - 1], p2, Vector2(0.001, 0.001))
+
+	func test_直線ベルトはスプライト2本を使う():
+		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
+		assert_false(conveyor.get_node("ConveyorVisuals")._is_curved)
+
 
 class TestConveyorConnection:
 	extends GutTest

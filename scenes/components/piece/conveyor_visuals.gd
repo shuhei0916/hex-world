@@ -26,13 +26,22 @@ const BELT_FRAMES: Array[Texture2D] = [
 ]
 
 const BELT_TEXTURE_SIZE = 192.0
-const BELT_WIDTH = 56.0  # ベルトの見た目の幅(px)
+const BELT_WIDTH = 56.0
+const CURVE_SEGMENTS = 12
 
-# パス幾何 [in_edge, center, out_edge]。ベルト配置とアイテム補間の両方で参照する。
+# 曲線ベルトのプロシージャル描画色（forward テクスチャのトーンに合わせる）
+const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
+const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
+const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
+const _ARROW_SPACING := 18.0
+const _ARROW_SIZE := 8.0
+
+# パス幾何。直線は3点、曲線は CURVE_SEGMENTS+1 点。ベルト配置とアイテム補間の両方で参照する。
 var _path: PackedVector2Array = PackedVector2Array()
 var _belts: Array[Sprite2D] = []
 var _input_direction: int = -1
 var _elapsed: float = 0.0
+var _is_curved: bool = false
 
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
@@ -44,8 +53,20 @@ static func frame_for_time(elapsed: float) -> int:
 	return int(elapsed * BELT_FPS) % BELT_ANIM_COUNT
 
 
+static func sample_bezier(
+	p0: Vector2, ctrl: Vector2, p2: Vector2, segments: int
+) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in range(segments + 1):
+		var t = float(i) / segments
+		var mt = 1.0 - t
+		pts.append(mt * mt * p0 + 2.0 * mt * t * ctrl + t * t * p2)
+	return pts
+
+
 func _ready():
-	# 描画レイヤー: コンベア上のアイテムは土台(5)・ベルト(6)より手前（7）。
+	z_index = 6
+	z_as_relative = false
 	_item_icon.z_index = 7
 	_item_icon.z_as_relative = false
 	_piece.shape_changed.connect(refresh_belt)
@@ -60,7 +81,11 @@ func _find_mover() -> Node:
 
 
 func _process(delta: float):
-	_animate_belts(delta)
+	_elapsed += delta
+	if _is_curved:
+		queue_redraw()
+	else:
+		_animate_belts()
 	update_item_icon()
 
 
@@ -69,13 +94,13 @@ func set_input_direction(direction: int):
 	refresh_belt()
 
 
-# 入力辺→中心→出力辺の2セグメントを forward ベルトスプライトで描く。
-# ヘックスの60°/120°曲がりにも、各半区間を直線ベルトで繋ぐことで対応する。
+# 直線: forward スプライト2本。曲線: 二次ベジェを CURVE_SEGMENTS 分割してプロシージャル描画。
 func refresh_belt():
 	for belt in _belts:
 		belt.queue_free()
 	_belts.clear()
 	_path = PackedVector2Array()
+	_is_curved = false
 	var ports = _piece.get_output_ports()
 	if ports.is_empty():
 		return
@@ -84,10 +109,15 @@ func refresh_belt():
 	var input_dir = _input_direction if _input_direction >= 0 else (output_dir + 3) % 6
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
-	_path = PackedVector2Array([in_edge, Vector2.ZERO, out_edge])
-	# 入力半分(in_edge→中心)と出力半分(中心→out_edge)。矢印は搬送方向を向く。
-	_belts.append(_make_belt_segment(in_edge, Vector2.ZERO))
-	_belts.append(_make_belt_segment(Vector2.ZERO, out_edge))
+	var is_straight = (input_dir + 3) % 6 == output_dir
+	if is_straight:
+		_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, 2)
+		_belts.append(_make_belt_segment(_path[0], _path[1]))
+		_belts.append(_make_belt_segment(_path[1], _path[2]))
+	else:
+		_is_curved = true
+		_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, CURVE_SEGMENTS)
+		queue_redraw()
 
 
 func _make_belt_segment(from: Vector2, to: Vector2) -> Sprite2D:
@@ -105,13 +135,88 @@ func _make_belt_segment(from: Vector2, to: Vector2) -> Sprite2D:
 	return sprite
 
 
-func _animate_belts(delta: float):
+func _animate_belts():
 	if _belts.is_empty():
 		return
-	_elapsed += delta
 	var frame = frame_for_time(_elapsed)
 	for belt in _belts:
 		belt.texture = BELT_FRAMES[frame]
+
+
+# ---- 曲線ベルトのプロシージャル描画 ----------------------------------------
+
+
+func _draw():
+	if not _is_curved or _path.size() < 2:
+		return
+	_draw_belt_ribbon()
+	_draw_belt_arrows()
+
+
+func _draw_belt_ribbon():
+	var n = _path.size()
+	var left_pts := PackedVector2Array()
+	var right_pts := PackedVector2Array()
+	for i in range(n):
+		var tangent := _path_tangent_at(i)
+		var half_w := tangent.rotated(PI * 0.5) * (BELT_WIDTH * 0.5)
+		left_pts.append(_path[i] + half_w)
+		right_pts.append(_path[i] - half_w)
+	var poly := PackedVector2Array(left_pts)
+	for i in range(right_pts.size() - 1, -1, -1):
+		poly.append(right_pts[i])
+	draw_colored_polygon(poly, _BELT_FILL)
+	draw_polyline(left_pts, _BELT_EDGE, 3.0)
+	draw_polyline(right_pts, _BELT_EDGE, 3.0)
+
+
+func _draw_belt_arrows():
+	var total_len := _path_arc_length()
+	if total_len < 1.0:
+		return
+	var anim_offset: float = fmod(
+		_elapsed * total_len / TransferBuffer.TRANSFER_TIME, _ARROW_SPACING
+	)
+	var dist: float = 0.0
+	var next_arrow: float = anim_offset
+	for i in range(_path.size() - 1):
+		var seg_len = (_path[i + 1] - _path[i]).length()
+		while next_arrow <= dist + seg_len:
+			var local_t = (next_arrow - dist) / seg_len
+			var pos = _path[i].lerp(_path[i + 1], local_t)
+			var tangent = (_path[i + 1] - _path[i]).normalized()
+			_draw_chevron(pos, tangent)
+			next_arrow += _ARROW_SPACING
+		dist += seg_len
+
+
+func _draw_chevron(pos: Vector2, tangent: Vector2):
+	var perp = tangent.rotated(PI * 0.5)
+	var tip = pos + tangent * _ARROW_SIZE
+	var left = pos - tangent * (_ARROW_SIZE * 0.4) + perp * (_ARROW_SIZE * 0.7)
+	var right = pos - tangent * (_ARROW_SIZE * 0.4) - perp * (_ARROW_SIZE * 0.7)
+	draw_colored_polygon(PackedVector2Array([tip, left, right]), _BELT_ARROW)
+
+
+func _path_tangent_at(i: int) -> Vector2:
+	var n = _path.size()
+	if n < 2:
+		return Vector2.UP
+	if i == 0:
+		return (_path[1] - _path[0]).normalized()
+	if i == n - 1:
+		return (_path[n - 1] - _path[n - 2]).normalized()
+	return (_path[i + 1] - _path[i - 1]).normalized()
+
+
+func _path_arc_length() -> float:
+	var total := 0.0
+	for i in range(_path.size() - 1):
+		total += (_path[i + 1] - _path[i]).length()
+	return total
+
+
+# ---- アイテムアイコン --------------------------------------------------------
 
 
 func update_item_icon():
@@ -131,9 +236,10 @@ func update_item_icon():
 
 
 func _item_position_on_path() -> Vector2:
-	if _path.size() < 3:
+	if _path.size() < 2:
 		return Vector2.ZERO
 	var t = _mover.get_progress_ratio()
-	if t < 0.5:
-		return _path[0].lerp(_path[1], t * 2.0)
-	return _path[1].lerp(_path[2], (t - 0.5) * 2.0)
+	var n = _path.size() - 1
+	var fi = t * n
+	var i = clampi(int(fi), 0, n - 1)
+	return _path[i].lerp(_path[i + 1], fi - i)
