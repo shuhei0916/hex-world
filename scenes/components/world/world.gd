@@ -26,6 +26,10 @@ func get_chunk(chunk_hex: Hex):
 	return _chunks.get(Hex.to_key(chunk_hex), null)
 
 
+func get_active_hex():
+	return _active_hex
+
+
 func get_active_chunk() -> Chunk:
 	if _active_hex == null:
 		return null

@@ -17,14 +17,10 @@ func _ready():
 	world.create_chunk(Hex.new(1, 0))
 	world.create_chunk(Hex.new(-1, 0))
 	world.create_chunk(Hex.new(0, 1))
-	world.set_active_chunk(Hex.new(0, 0))
-	var chunk = world.get_active_chunk()
-	piece_placer.setup(chunk)
-	chunk.place_hub("iron_plate", 10)
-	chunk.generate_ore_deposits(5)
-	# 効果音の接続は初期配置の後に行う（起動時に設置音が鳴るのを防ぐ）
-	chunk.piece_placed.connect(sfx_player.on_piece_placed)
-	chunk.piece_removed.connect(sfx_player.on_piece_removed)
+	var initial_chunk = world.get_chunk(Hex.new(0, 0))
+	initial_chunk.place_hub("iron_plate", 10)
+	initial_chunk.generate_ore_deposits(5)
+	_activate_chunk(Hex.new(0, 0))
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 
@@ -58,12 +54,27 @@ func _toggle_mode():
 		_enter_local_mode()
 
 
+func _activate_chunk(chunk_hex: Hex) -> void:
+	var prev = world.get_active_chunk()
+	if prev:
+		if prev.piece_placed.is_connected(sfx_player.on_piece_placed):
+			prev.piece_placed.disconnect(sfx_player.on_piece_placed)
+		if prev.piece_removed.is_connected(sfx_player.on_piece_removed):
+			prev.piece_removed.disconnect(sfx_player.on_piece_removed)
+	world.set_active_chunk(chunk_hex)
+	var chunk = world.get_active_chunk()
+	piece_placer.setup(chunk)
+	chunk.piece_placed.connect(sfx_player.on_piece_placed)
+	chunk.piece_removed.connect(sfx_player.on_piece_removed)
+
+
 func _enter_world_map_mode():
 	_mode = Mode.WORLD_MAP
 	world.visible = false
 	world_map_view.visible = true
 	world_map_view.setup(world)
-	world_map_view.set_active_chunk(world.get_chunk_hexes()[0])
+	if world.get_active_hex() != null:
+		world_map_view.set_active_chunk(world.get_active_hex())
 
 
 func _enter_local_mode():
@@ -79,19 +90,37 @@ func _handle_mouse_motion(event):
 
 
 func _handle_mouse_click(event):
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				piece_placer.start_drag()
-				piece_placer.place_current_piece()
+	if not event is InputEventMouseButton:
+		return
+	if _mode == Mode.WORLD_MAP:
+		_handle_world_map_click(event)
+	else:
+		_handle_local_click(event)
+
+
+func _handle_world_map_click(event: InputEventMouseButton) -> void:
+	if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var local_pos = make_input_local(event).position
+		var view_pos = world_map_view.to_local(to_global(local_pos))
+		var hex = world_map_view.chunk_at_local_pos(view_pos)
+		if hex != null:
+			_activate_chunk(hex)
+			world_map_view.set_active_chunk(hex)
+			_enter_local_mode()
+
+
+func _handle_local_click(event: InputEventMouseButton) -> void:
+	if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			piece_placer.start_drag()
+			piece_placer.place_current_piece()
+		else:
+			piece_placer.stop_drag()
+	elif event.button_index == MOUSE_BUTTON_RIGHT:
+		if event.pressed:
+			if hud.get_active_index() != -1:
+				hud.deselect()
 			else:
-				piece_placer.stop_drag()
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if event.pressed:
-				if hud.get_active_index() != -1:  # ツールバーで何かを選択中なら
-					hud.deselect()  # まず選択を解除する
-				else:
-					# 何も選択していないなら削除ドラッグ開始（ホバー中のピースも即削除）
-					piece_placer.start_delete_drag()
-			else:
-				piece_placer.stop_delete_drag()
+				piece_placer.start_delete_drag()
+		else:
+			piece_placer.stop_delete_drag()
