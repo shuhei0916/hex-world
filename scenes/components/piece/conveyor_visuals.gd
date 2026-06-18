@@ -1,56 +1,22 @@
 class_name ConveyorVisuals
 extends Node2D
 
-## コンベア/スプリッターのライン描画と保持アイテムのアイコン表示を担当する。
-## 搬送状態は兄弟の mover（get_held_item を持つ ConveyorLogic / BalancerLogic）から読む。
-
-## shapez 流のベルトアニメ: forward フレームを時刻で順送りして「流れ」を表現する。
-const BELT_ANIM_COUNT = 14
-# アイテムの搬送速度と同期させる: 1ヘックス渡る間(TRANSFER_TIME)にベルト柄が1周する。
-const BELT_FPS = BELT_ANIM_COUNT / TransferBuffer.TRANSFER_TIME
-const BELT_FRAMES: Array[Texture2D] = [
-	preload("res://scenes/components/piece/belt/forward_0.png"),
-	preload("res://scenes/components/piece/belt/forward_1.png"),
-	preload("res://scenes/components/piece/belt/forward_2.png"),
-	preload("res://scenes/components/piece/belt/forward_3.png"),
-	preload("res://scenes/components/piece/belt/forward_4.png"),
-	preload("res://scenes/components/piece/belt/forward_5.png"),
-	preload("res://scenes/components/piece/belt/forward_6.png"),
-	preload("res://scenes/components/piece/belt/forward_7.png"),
-	preload("res://scenes/components/piece/belt/forward_8.png"),
-	preload("res://scenes/components/piece/belt/forward_9.png"),
-	preload("res://scenes/components/piece/belt/forward_10.png"),
-	preload("res://scenes/components/piece/belt/forward_11.png"),
-	preload("res://scenes/components/piece/belt/forward_12.png"),
-	preload("res://scenes/components/piece/belt/forward_13.png"),
-]
-
-const BELT_TEXTURE_SIZE = 192.0
 const BELT_WIDTH = 56.0
 const CURVE_SEGMENTS = 12
 
-# 曲線ベルトのプロシージャル描画色（forward テクスチャのトーンに合わせる）
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
 const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
 const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
 const _ARROW_SPACING := 18.0
 const _ARROW_SIZE := 8.0
 
-# パス幾何。直線は3点、曲線は CURVE_SEGMENTS+1 点。ベルト配置とアイテム補間の両方で参照する。
 var _path: PackedVector2Array = PackedVector2Array()
-var _belts: Array[Sprite2D] = []
 var _input_direction: int = -1
 var _elapsed: float = 0.0
-var _is_curved: bool = false
 
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
 @onready var _item_icon: Sprite2D = $ItemIcon
-
-
-# 経過時間から表示すべきフレーム index（0..BELT_ANIM_COUNT-1）を返す。
-static func frame_for_time(elapsed: float) -> int:
-	return int(elapsed * BELT_FPS) % BELT_ANIM_COUNT
 
 
 static func sample_bezier(
@@ -82,10 +48,7 @@ func _find_mover() -> Node:
 
 func _process(delta: float):
 	_elapsed += delta
-	if _is_curved:
-		queue_redraw()
-	else:
-		_animate_belts()
+	queue_redraw()
 	update_item_icon()
 
 
@@ -94,13 +57,8 @@ func set_input_direction(direction: int):
 	refresh_belt()
 
 
-# 直線: forward スプライト2本。曲線: 二次ベジェを CURVE_SEGMENTS 分割してプロシージャル描画。
 func refresh_belt():
-	for belt in _belts:
-		belt.queue_free()
-	_belts.clear()
 	_path = PackedVector2Array()
-	_is_curved = false
 	var ports = _piece.get_output_ports()
 	if ports.is_empty():
 		return
@@ -110,44 +68,13 @@ func refresh_belt():
 	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	var is_straight = (input_dir + 3) % 6 == output_dir
-	if is_straight:
-		_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, 2)
-		_belts.append(_make_belt_segment(_path[0], _path[1]))
-		_belts.append(_make_belt_segment(_path[1], _path[2]))
-	else:
-		_is_curved = true
-		_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, CURVE_SEGMENTS)
-		queue_redraw()
-
-
-func _make_belt_segment(from: Vector2, to: Vector2) -> Sprite2D:
-	var vec = to - from
-	var sprite = Sprite2D.new()
-	sprite.texture = BELT_FRAMES[0]
-	# 描画レイヤー: ベルトは土台(5)とアイテム(7)の間（6）。
-	sprite.z_index = 6
-	sprite.z_as_relative = false
-	sprite.position = (from + to) * 0.5
-	# テクスチャの矢印は上(-Y)向き。-Y を vec 方向へ向ける。
-	sprite.rotation = vec.angle() + PI / 2.0
-	sprite.scale = Vector2(BELT_WIDTH / BELT_TEXTURE_SIZE, vec.length() / BELT_TEXTURE_SIZE)
-	add_child(sprite)
-	return sprite
-
-
-func _animate_belts():
-	if _belts.is_empty():
-		return
-	var frame = frame_for_time(_elapsed)
-	for belt in _belts:
-		belt.texture = BELT_FRAMES[frame]
-
-
-# ---- 曲線ベルトのプロシージャル描画 ----------------------------------------
+	var segs = 2 if is_straight else CURVE_SEGMENTS
+	_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, segs)
+	queue_redraw()
 
 
 func _draw():
-	if not _is_curved or _path.size() < 2:
+	if _path.size() < 2:
 		return
 	_draw_belt_ribbon()
 	_draw_belt_arrows()

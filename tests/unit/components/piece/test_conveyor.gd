@@ -70,7 +70,7 @@ class TestConveyorVisuals:
 		conveyor.setup()
 
 	func test_ベルト描画はConveyorVisualsコンポーネントが担う():
-		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
+		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
 	func test_アイテム保持中はアイコンが表示される():
 		conveyor.add_item("iron_plate", 1)
@@ -93,7 +93,7 @@ class TestConveyorVisuals:
 
 	func test_アイテムアイコンはコンベアベルトより手前に描画される():
 		var icon: Sprite2D = conveyor.get_node("ConveyorVisuals/ItemIcon")
-		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._belts[0].z_index)
+		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals").z_index)
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
@@ -115,9 +115,11 @@ class TestConveyorVisuals:
 		assert_almost_eq(pts[0], p0, Vector2(0.001, 0.001))
 		assert_almost_eq(pts[pts.size() - 1], p2, Vector2(0.001, 0.001))
 
-	func test_直線ベルトはスプライト2本を使う():
-		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
-		assert_false(conveyor.get_node("ConveyorVisuals")._is_curved)
+	func test_直線ベルトのパスは3点():
+		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
+
+	func test_直線ベルトもプロシージャル描画を使い子ノードはItemIconのみ():
+		assert_eq(conveyor.get_node("ConveyorVisuals").get_child_count(), 1)
 
 
 class TestConveyorConnection:

@@ -6,6 +6,8 @@ extends Node2D
 signal conveyor_path_extended
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+const BELT_PREVIEW_TEXTURE = preload("res://scenes/components/piece/belt/forward_0.png")
+const _BELT_TEXTURE_SIZE = 192.0
 
 # 依存関係（Mainから注入される）
 var chunk: Chunk
@@ -116,12 +118,13 @@ func _add_belt_preview(hex_coord: Hex):
 		direction = (_selected_port_direction - current_rotation + 6) % 6
 	var travel = Layout.hex_to_pixel(chunk.layout, Hex.hex_directions[direction])
 	var sprite = Sprite2D.new()
-	sprite.texture = ConveyorVisuals.BELT_FRAMES[0]
+	sprite.texture = BELT_PREVIEW_TEXTURE
 	sprite.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
 	# テクスチャの矢印は上(-Y)向き。-Y を進行方向へ向ける。
 	sprite.rotation = travel.angle() + PI / 2.0
-	var tex_size = ConveyorVisuals.BELT_TEXTURE_SIZE
-	sprite.scale = Vector2(ConveyorVisuals.BELT_WIDTH / tex_size, travel.length() / tex_size)
+	sprite.scale = Vector2(
+		ConveyorVisuals.BELT_WIDTH / _BELT_TEXTURE_SIZE, travel.length() / _BELT_TEXTURE_SIZE
+	)
 	sprite.modulate.a = 0.7
 	cursor_preview.add_child(sprite)
 

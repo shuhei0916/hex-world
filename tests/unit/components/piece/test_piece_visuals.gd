@@ -40,21 +40,18 @@ func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
 	arrow.free()
 
 
-func test_ベルトのフレームindexは経過時間で進み14コマで循環する():
-	# 1周期(BELT_ANIM_COUNT/BELT_FPS)離れた時刻は同じフレームを指すべき（循環）
-	var period = ConveyorVisuals.BELT_ANIM_COUNT / ConveyorVisuals.BELT_FPS
-	assert_eq(ConveyorVisuals.frame_for_time(0.06 + period), ConveyorVisuals.frame_for_time(0.06))
-
-
-func test_forwardベルトフレームは14枚ある():
-	assert_eq(ConveyorVisuals.BELT_FRAMES.size(), 14)
-
-
-func test_CONVEYORをsetupするとベルトのセグメントが2枚追加される():
+func test_ベルトのパスは非空():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
+	assert_gt(conveyor.get_node("ConveyorVisuals")._path.size(), 0)
+
+
+func test_CONVEYORをsetupするとパスが構築される():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	assert_gt(conveyor.get_node("ConveyorVisuals")._path.size(), 0)
 
 
 func test_rotate_cw後に出力エッジ点が更新される():
@@ -102,7 +99,7 @@ func test_コンベア上のアイテムはコンベアのラインより手前�
 	conveyor.setup(0)
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	var item_icon = visuals.get_node("ItemIcon")
-	assert_lt(visuals._belts[0].z_index, item_icon.z_index)
+	assert_lt(visuals.z_index, item_icon.z_index)
 
 
 func test_コンベア上のアイテムは絶対zで描画され施設タイルに依存しない():
