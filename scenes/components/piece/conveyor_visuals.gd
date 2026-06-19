@@ -1,13 +1,13 @@
 class_name ConveyorVisuals
 extends Node2D
 
-const BELT_WIDTH = 56.0
+const BELT_WIDTH = 40.0
 const CURVE_SEGMENTS = 12
 
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
 const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
 const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
-const _ARROW_SPACING := 18.0
+const _ARROW_SPACING := 30.0
 const _ARROW_SIZE := 8.0
 
 var _path: PackedVector2Array = PackedVector2Array()
@@ -76,25 +76,9 @@ func refresh_belt():
 func _draw():
 	if _path.size() < 2:
 		return
-	_draw_belt_ribbon()
+	draw_polyline(_path, _BELT_EDGE, BELT_WIDTH, true)
+	draw_polyline(_path, _BELT_FILL, BELT_WIDTH - 6.0, true)
 	_draw_belt_arrows()
-
-
-func _draw_belt_ribbon():
-	var n = _path.size()
-	var left_pts := PackedVector2Array()
-	var right_pts := PackedVector2Array()
-	for i in range(n):
-		var tangent := _path_tangent_at(i)
-		var half_w := tangent.rotated(PI * 0.5) * (BELT_WIDTH * 0.5)
-		left_pts.append(_path[i] + half_w)
-		right_pts.append(_path[i] - half_w)
-	var poly := PackedVector2Array(left_pts)
-	for i in range(right_pts.size() - 1, -1, -1):
-		poly.append(right_pts[i])
-	draw_colored_polygon(poly, _BELT_FILL)
-	draw_polyline(left_pts, _BELT_EDGE, 3.0)
-	draw_polyline(right_pts, _BELT_EDGE, 3.0)
 
 
 func _draw_belt_arrows():
@@ -123,17 +107,6 @@ func _draw_chevron(pos: Vector2, tangent: Vector2):
 	var left = pos - tangent * (_ARROW_SIZE * 0.4) + perp * (_ARROW_SIZE * 0.7)
 	var right = pos - tangent * (_ARROW_SIZE * 0.4) - perp * (_ARROW_SIZE * 0.7)
 	draw_colored_polygon(PackedVector2Array([tip, left, right]), _BELT_ARROW)
-
-
-func _path_tangent_at(i: int) -> Vector2:
-	var n = _path.size()
-	if n < 2:
-		return Vector2.UP
-	if i == 0:
-		return (_path[1] - _path[0]).normalized()
-	if i == n - 1:
-		return (_path[n - 1] - _path[n - 2]).normalized()
-	return (_path[i + 1] - _path[i - 1]).normalized()
 
 
 func _path_arc_length() -> float:
