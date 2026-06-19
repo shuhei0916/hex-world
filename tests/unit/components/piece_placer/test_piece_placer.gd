@@ -130,7 +130,7 @@ class TestPreview:
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		var has_belt = false
 		for c in piece_placer.cursor_preview.get_children():
-			if c is Sprite2D and c.texture == ConveyorVisuals.BELT_FRAMES[0]:
+			if c is Sprite2D and c.texture == PiecePlacer.BELT_PREVIEW_TEXTURE:
 				has_belt = true
 		assert_true(has_belt)
 

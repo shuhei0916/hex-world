@@ -70,7 +70,7 @@ class TestConveyorVisuals:
 		conveyor.setup()
 
 	func test_ベルト描画はConveyorVisualsコンポーネントが担う():
-		assert_eq(conveyor.get_node("ConveyorVisuals")._belts.size(), 2)
+		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
 	func test_アイテム保持中はアイコンが表示される():
 		conveyor.add_item("iron_plate", 1)
@@ -93,7 +93,7 @@ class TestConveyorVisuals:
 
 	func test_アイテムアイコンはコンベアベルトより手前に描画される():
 		var icon: Sprite2D = conveyor.get_node("ConveyorVisuals/ItemIcon")
-		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals")._belts[0].z_index)
+		assert_gt(icon.z_index, conveyor.get_node("ConveyorVisuals").z_index)
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
@@ -103,6 +103,23 @@ class TestConveyorVisuals:
 		assert_almost_eq(
 			conveyor.get_node("ConveyorVisuals/ItemIcon").position, center, Vector2(0.1, 0.1)
 		)
+
+	func test_sample_bezierはsegments_plus_1点を返す():
+		var pts = ConveyorVisuals.sample_bezier(Vector2(-1, 0), Vector2.ZERO, Vector2(1, 0), 4)
+		assert_eq(pts.size(), 5)
+
+	func test_sample_bezierの始点と終点はp0とp2():
+		var p0 = Vector2(-10, 5)
+		var p2 = Vector2(10, -5)
+		var pts = ConveyorVisuals.sample_bezier(p0, Vector2.ZERO, p2, 6)
+		assert_almost_eq(pts[0], p0, Vector2(0.001, 0.001))
+		assert_almost_eq(pts[pts.size() - 1], p2, Vector2(0.001, 0.001))
+
+	func test_直線ベルトのパスは3点():
+		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
+
+	func test_直線ベルトもプロシージャル描画を使い子ノードはItemIconのみ():
+		assert_eq(conveyor.get_node("ConveyorVisuals").get_child_count(), 1)
 
 
 class TestConveyorConnection:
