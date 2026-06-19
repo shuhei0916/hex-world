@@ -13,7 +13,7 @@ const RESOURCE_COLORS = {
 	"iron_ore": Color("#8B6914"),
 }
 
-@export var grid_radius: int = 8:
+@export var grid_radius: int = 5:
 	set(value):
 		if value == grid_radius:
 			return
