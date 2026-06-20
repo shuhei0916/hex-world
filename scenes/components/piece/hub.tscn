@@ -11,6 +11,8 @@ port_direction = -1
 piece_color = Color(1, 0.419608, 0.419608, 1)
 
 [node name="GoalIcon" type="TextureRect" parent="."]
+z_index = 11
+z_as_relative = false
 offset_left = -20.0
 offset_top = -52.0
 offset_right = 20.0
@@ -19,6 +21,8 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="CountLabel" type="Label" parent="."]
+z_index = 11
+z_as_relative = false
 offset_left = -40.0
 offset_top = -14.0
 offset_right = 40.0
