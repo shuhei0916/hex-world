@@ -11,10 +11,10 @@
 - [ ] **ピースパレットのカテゴリ化**: ピースをグループ化し、カテゴリごとに表示
 - [ ] **Hub のビジュアル調整**: Hub ピースの見た目を改善
   - [ ] GoalLabel をアイコン＋カウント表示（received/goal）に置換
-    - [x] setup() 後、GoalIcon のテクスチャが目標アイテムのアイコンに設定される
-    - [x] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
-    - [x] add_received() 後、CountLabel が "received/goal_count" に更新される
-    - [x] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
+	- [x] setup() 後、GoalIcon のテクスチャが目標アイテムのアイコンに設定される
+	- [x] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
+	- [x] add_received() 後、CountLabel が "received/goal_count" に更新される
+	- [x] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
 - [ ] **マウスオーバー情報**: 設置済みピースにホバーで詳細ラベルを表示
 
 ---
@@ -27,10 +27,15 @@
 
 ---
 
-## チャンク間連携（将来）
-- [ ] **Phase 5: チャンク間アイテム移動**: Chunk の辺にポート（入出力）を定義。ワールドマップ上でフロー表示
+## リファクタリング
+- [ ] z_indexの値を調整する：previewと配置済みピースの順番など、特に。
 
 ---
+
+## チャンク間連携（将来）
+- [ ] **Phase 5: チャンク間アイテム移動**: Chunk の辺にポート（入出力）を定義。ワールドマップ上でフロー表示
+---
+
 
 ## 設計（将来）
 - [ ] **ItemAcceptor 再導入**: 「特定方向のみ受け入れる」「特定アイテムのみ」のフィルタ設計への移行
