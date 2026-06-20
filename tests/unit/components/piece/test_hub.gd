@@ -39,6 +39,27 @@ class TestHubSetup:
 		assert_true(hub.is_completed())
 
 
+class TestHubVisuals:
+	extends GutTest
+
+	var hub: Node
+	var goal_icon: TextureRect
+
+	func before_each():
+		var parent = Node2D.new()
+		add_child_autofree(parent)
+		goal_icon = TextureRect.new()
+		goal_icon.name = "GoalIcon"
+		parent.add_child(goal_icon)
+		hub = HUB_SCRIPT.new()
+		parent.add_child(hub)
+
+	func test_setup後にGoalIconのテクスチャが目標アイテムのアイコンに設定される():
+		hub.setup("iron_ore", 10)
+		var expected = ItemDB.get_item("iron_ore").icon
+		assert_eq(goal_icon.texture, expected)
+
+
 class TestHubAcceptor:
 	extends GutTest
 

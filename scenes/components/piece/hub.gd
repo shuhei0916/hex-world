@@ -13,7 +13,7 @@ var received_count: int = 0
 func setup(item_name: String, count: int):
 	goal_item = item_name
 	goal_count = count
-	_update_label()
+	_update_display()
 
 
 # --- 受け入れ口（acceptor インターフェース） ---
@@ -28,14 +28,21 @@ func add_item(item_name: String, amount: int):
 
 func add_received(amount: int):
 	received_count += amount
-	_update_label()
+	_update_display()
 
 
 func is_completed() -> bool:
 	return received_count >= goal_count
 
 
-func _update_label():
-	var label = get_parent().get_node_or_null("GoalLabel")
+func _update_display():
+	var parent = get_parent()
+	if not parent:
+		return
+	var icon = parent.get_node_or_null("GoalIcon")
+	if icon:
+		var item_def = ItemDB.get_item(goal_item)
+		icon.texture = item_def.icon if item_def else null
+	var label = parent.get_node_or_null("CountLabel")
 	if label:
-		label.text = "%s: %d/%d" % [goal_item, received_count, goal_count]
+		label.text = "%d/%d" % [received_count, goal_count]
