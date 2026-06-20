@@ -14,7 +14,7 @@
     - [x] setup() 後、GoalIcon のテクスチャが目標アイテムのアイコンに設定される
     - [x] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
     - [x] add_received() 後、CountLabel が "received/goal_count" に更新される
-    - [ ] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
+    - [x] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
 - [ ] **マウスオーバー情報**: 設置済みピースにホバーで詳細ラベルを表示
 
 ---
