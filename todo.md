@@ -12,7 +12,7 @@
 - [ ] **Hub のビジュアル調整**: Hub ピースの見た目を改善
   - [ ] GoalLabel をアイコン＋カウント表示（received/goal）に置換
     - [x] setup() 後、GoalIcon のテクスチャが目標アイテムのアイコンに設定される
-    - [ ] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
+    - [x] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
     - [ ] add_received() 後、CountLabel が "received/goal_count" に更新される
     - [ ] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
 - [ ] **マウスオーバー情報**: 設置済みピースにホバーで詳細ラベルを表示

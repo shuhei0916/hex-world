@@ -59,6 +59,13 @@ class TestHubVisuals:
 		var expected = ItemDB.get_item("iron_ore").icon
 		assert_eq(goal_icon.texture, expected)
 
+	func test_setup後にCountLabelが0_goal形式で表示される():
+		var count_label := Label.new()
+		count_label.name = "CountLabel"
+		hub.get_parent().add_child(count_label)
+		hub.setup("iron_ore", 10)
+		assert_eq(count_label.text, "0/10")
+
 
 class TestHubAcceptor:
 	extends GutTest
