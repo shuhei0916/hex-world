@@ -67,6 +67,27 @@ class TestHubVisuals:
 		assert_eq(count_label.text, "0/10")
 
 
+class TestHubCountUpdate:
+	extends GutTest
+
+	var hub: Node
+	var count_label: Label
+
+	func before_each():
+		var parent = Node2D.new()
+		add_child_autofree(parent)
+		count_label = Label.new()
+		count_label.name = "CountLabel"
+		parent.add_child(count_label)
+		hub = HUB_SCRIPT.new()
+		parent.add_child(hub)
+		hub.setup("iron_ore", 10)
+
+	func test_add_received後にCountLabelが更新される():
+		hub.add_received(7)
+		assert_eq(count_label.text, "7/10")
+
+
 class TestHubAcceptor:
 	extends GutTest
 
