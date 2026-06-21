@@ -21,3 +21,34 @@ class TestHubGoalsLevelDefinition:
 
 	func test_レベル1の報酬はunlock_smelter():
 		assert_eq(hub_goals.get_current_goal()["reward"], "unlock_smelter")
+
+
+class TestHubGoalsRewards:
+	extends GutTest
+
+	var hub_goals: Node
+
+	func before_each():
+		hub_goals = HUB_GOALS_SCRIPT.new()
+		add_child_autofree(hub_goals)
+
+	func test_未取得の報酬はfalseを返す():
+		assert_false(hub_goals.is_reward_unlocked("unlock_smelter"))
+
+	func test_advance_level後に報酬がtrueになる():
+		hub_goals.advance_level()
+		assert_true(hub_goals.is_reward_unlocked("unlock_smelter"))
+
+	func test_advance_level後にlevelが増える():
+		hub_goals.advance_level()
+		assert_eq(hub_goals.level, 2)
+
+	func test_advance_levelでlevel_upシグナルが発火する():
+		watch_signals(hub_goals)
+		hub_goals.advance_level()
+		assert_signal_emitted(hub_goals, "level_up")
+
+	func test_最終レベル超えてadvance_levelしてもクラッシュしない():
+		for i in range(10):
+			hub_goals.advance_level()
+		assert_eq(hub_goals.level, 11)

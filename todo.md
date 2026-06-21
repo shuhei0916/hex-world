@@ -5,12 +5,12 @@
 - [ ] **段階的アンロック**: Hub への納品でレベルアップし、新ピースが解放される仕組み
   ### HubGoals（オートロード）
   - [x] レベル1の目標は iron_ore × 10 で、報酬は "unlock_smelter"
-  - [ ] is_reward_unlocked() は未取得の報酬に false を返す
-  - [ ] is_reward_unlocked() は取得済みの報酬に true を返す
-  - [ ] advance_level() で gained_rewards に報酬が記録される
-  - [ ] advance_level() で level が1増える
-  - [ ] advance_level() で level_up シグナルが発火する
-  - [ ] advance_level() を最終レベル超えて呼んでもクラッシュしない（freeplay）
+  - [x] is_reward_unlocked() は未取得の報酬に false を返す
+  - [x] is_reward_unlocked() は取得済みの報酬に true を返す
+  - [x] advance_level() で gained_rewards に報酬が記録される
+  - [x] advance_level() で level が1増える
+  - [x] advance_level() で level_up シグナルが発火する
+  - [x] advance_level() を最終レベル超えて呼んでもクラッシュしない（freeplay）
   ### Hub との連携
   - [ ] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
   ### PieceData アンロック判定
