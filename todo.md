@@ -2,19 +2,27 @@
 
 ## 製造チェーン・ゲームループ
 - [ ] **CUTTER・MIXER・PAINTER のシーン作成**: 製造チェーン（iron_rod / screw）を完成させる
-- [ ] **段階的アンロック**: 特定条件（アイテム生産量など）を満たすと新ピースが解放される仕組み
+- [ ] **段階的アンロック**: Hub への納品でレベルアップし、新ピースが解放される仕組み
+  ### HubGoals（オートロード）
+  - [x] レベル1の目標は iron_ore × 10 で、報酬は "unlock_smelter"
+  - [ ] is_reward_unlocked() は未取得の報酬に false を返す
+  - [ ] is_reward_unlocked() は取得済みの報酬に true を返す
+  - [ ] advance_level() で gained_rewards に報酬が記録される
+  - [ ] advance_level() で level が1増える
+  - [ ] advance_level() で level_up シグナルが発火する
+  - [ ] advance_level() を最終レベル超えて呼んでもクラッシュしない（freeplay）
+  ### Hub との連携
+  - [ ] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
+  ### PieceData アンロック判定
+  - [ ] MINER / CONVEYOR / BALANCER は常にアンロック済み
+  - [ ] SMELTER は unlock_smelter 未取得のときロックされる
+  - [ ] SMELTER は unlock_smelter 取得済みのときアンロックされる
 
 ---
 
 ## UI・ビジュアル
 - [ ] **Toolbar の Hex 化**: 現在の四角形ボタンを hex 形状に移行
 - [ ] **ピースパレットのカテゴリ化**: ピースをグループ化し、カテゴリごとに表示
-- [ ] **Hub のビジュアル調整**: Hub ピースの見た目を改善
-  - [ ] GoalLabel をアイコン＋カウント表示（received/goal）に置換
-	- [x] setup() 後、GoalIcon のテクスチャが目標アイテムのアイコンに設定される
-	- [x] setup() 後、CountLabel のテキストが "0/goal_count" 形式になる
-	- [x] add_received() 後、CountLabel が "received/goal_count" に更新される
-	- [x] 目標アイテムが ItemDB に存在しない場合、GoalIcon テクスチャは null のまま
 - [ ] **マウスオーバー情報**: 設置済みピースにホバーで詳細ラベルを表示
 
 ---
@@ -28,7 +36,7 @@
 ---
 
 ## リファクタリング
-- [ ] z_indexの値を調整する：previewと配置済みピースの順番など、特に。
+- [ ] z_indexではなく、ツリー順で順番を制御したほうがクリーンかも。
 
 ---
 
