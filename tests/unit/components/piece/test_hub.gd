@@ -92,6 +92,27 @@ class TestHubCountUpdate:
 		assert_eq(count_label.text, "7/10")
 
 
+class TestHubGoalCompletion:
+	extends GutTest
+
+	var hub: Node
+
+	func before_each():
+		HubGoals.level = 1
+		HubGoals.gained_rewards = {}
+		hub = HUB_SCRIPT.new()
+		add_child_autofree(hub)
+		hub.setup("iron_ore", 3)
+
+	func test_目標達成時にHubGoalsのlevelが増える():
+		hub.add_received(3)
+		assert_eq(HubGoals.level, 2)
+
+	func test_未達成ではHubGoalsのlevelは増えない():
+		hub.add_received(2)
+		assert_eq(HubGoals.level, 1)
+
+
 class TestHubAcceptor:
 	extends GutTest
 

@@ -29,6 +29,8 @@ func add_item(item_name: String, amount: int):
 func add_received(amount: int):
 	received_count += amount
 	_update_display()
+	if is_completed():
+		HubGoals.advance_level()
 
 
 func is_completed() -> bool:

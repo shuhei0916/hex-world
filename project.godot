@@ -22,6 +22,7 @@ config/icon="uid://dnwggm1rx186i"
 [autoload]
 
 ItemDB="*res://scenes/utils/item_db.gd"
+HubGoals="*res://scenes/utils/hub_goals.gd"
 
 [editor_plugins]
 

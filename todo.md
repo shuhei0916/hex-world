@@ -12,7 +12,7 @@
   - [x] advance_level() で level_up シグナルが発火する
   - [x] advance_level() を最終レベル超えて呼んでもクラッシュしない（freeplay）
   ### Hub との連携
-  - [ ] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
+  - [x] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
   ### PieceData アンロック判定
   - [ ] MINER / CONVEYOR / BALANCER は常にアンロック済み
   - [ ] SMELTER は unlock_smelter 未取得のときロックされる
