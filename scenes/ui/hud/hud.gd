@@ -23,6 +23,17 @@ var _scenes: Array[PackedScene] = [
 	PAINTER_SCENE,
 ]
 
+var _scene_types: Array[PieceData.Type] = [
+	PieceData.Type.CONVEYOR,
+	PieceData.Type.BALANCER,
+	PieceData.Type.MINER,
+	PieceData.Type.SMELTER,
+	PieceData.Type.ASSEMBLER,
+	PieceData.Type.CUTTER,
+	PieceData.Type.MIXER,
+	PieceData.Type.PAINTER,
+]
+
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
 @onready var info_panel: PieceInfoPanel = $PieceInfoPanel
@@ -34,6 +45,22 @@ var _scenes: Array[PackedScene] = [
 func _ready():
 	info_panel.clear()
 	slot_selected.connect(_on_slot_selected_for_info)
+	HubGoals.level_up.connect(_on_level_up)
+	_refresh_unlock_states()
+
+
+func _on_level_up(_new_level: int, _reward: String):
+	_refresh_unlock_states()
+
+
+func _refresh_unlock_states():
+	for i in slot_buttons.size():
+		var btn := slot_buttons[i] as Button
+		if btn == null:
+			continue
+		var unlocked := PieceData.is_unlocked(_scene_types[i])
+		btn.disabled = not unlocked
+		btn.modulate = Color(1, 1, 1, 1) if unlocked else Color(0.4, 0.4, 0.4, 1)
 
 
 func _on_slot_selected_for_info(scene: PackedScene):
