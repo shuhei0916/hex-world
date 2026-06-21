@@ -25,18 +25,14 @@ class TestHubSetup:
 		assert_eq(hub.received_count, 0)
 
 	func test_add_received後にreceived_countが増える():
+		hub.setup("iron_plate", 100)
 		hub.add_received(1)
 		assert_eq(hub.received_count, 1)
 
-	func test_received_countがgoal_count未満のときis_completedはfalse():
+	func test_未達成ではis_completedはfalse():
 		hub.setup("iron_plate", 10)
 		hub.add_received(5)
 		assert_false(hub.is_completed())
-
-	func test_received_countがgoal_count以上のときis_completedはtrue():
-		hub.setup("iron_plate", 10)
-		hub.add_received(10)
-		assert_true(hub.is_completed())
 
 
 class TestHubVisuals:
@@ -111,6 +107,16 @@ class TestHubGoalCompletion:
 	func test_未達成ではHubGoalsのlevelは増えない():
 		hub.add_received(2)
 		assert_eq(HubGoals.level, 1)
+
+	func test_達成後にさらにadd_receivedしてもlevelは増えない():
+		hub.add_received(3)
+		hub.add_received(1)
+		assert_eq(HubGoals.level, 2)
+
+	func test_レベルアップ後にHubの目標アイテムが新しいレベルのものに変わる():
+		hub.add_received(3)
+		var new_goal = HubGoals.get_current_goal()
+		assert_eq(hub.goal_item, new_goal["goal_item"])
 
 
 class TestHubAcceptor:
