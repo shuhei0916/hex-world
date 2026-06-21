@@ -1,3 +1,4 @@
+# gdlint:disable=constant-name
 extends GutTest
 
 
@@ -28,3 +29,27 @@ func test_PieceDataにはshapeフィールドが存在しない():
 
 func test_PieceDataにはget_dataメソッドが存在しない():
 	assert_false(PieceData.new().has_method("get_data"), "get_data は削除済み")
+
+
+class TestPieceDataUnlock:
+	extends GutTest
+
+	func before_each():
+		HubGoals.level = 1
+		HubGoals.gained_rewards = {}
+
+	func test_CONVEYORは常にアンロック済み():
+		assert_true(PieceData.is_unlocked(PieceData.Type.CONVEYOR))
+
+	func test_MINERは常にアンロック済み():
+		assert_true(PieceData.is_unlocked(PieceData.Type.MINER))
+
+	func test_BALANCERは常にアンロック済み():
+		assert_true(PieceData.is_unlocked(PieceData.Type.BALANCER))
+
+	func test_SMELTERはunlock_smelter未取得のときロックされる():
+		assert_false(PieceData.is_unlocked(PieceData.Type.SMELTER))
+
+	func test_SMELTERはunlock_smelter取得済みのときアンロックされる():
+		HubGoals.gained_rewards["unlock_smelter"] = true
+		assert_true(PieceData.is_unlocked(PieceData.Type.SMELTER))

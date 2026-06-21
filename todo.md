@@ -14,9 +14,9 @@
   ### Hub との連携
   - [x] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
   ### PieceData アンロック判定
-  - [ ] MINER / CONVEYOR / BALANCER は常にアンロック済み
-  - [ ] SMELTER は unlock_smelter 未取得のときロックされる
-  - [ ] SMELTER は unlock_smelter 取得済みのときアンロックされる
+  - [x] MINER / CONVEYOR / BALANCER は常にアンロック済み
+  - [x] SMELTER は unlock_smelter 未取得のときロックされる
+  - [x] SMELTER は unlock_smelter 取得済みのときアンロックされる
 
 ---
 
