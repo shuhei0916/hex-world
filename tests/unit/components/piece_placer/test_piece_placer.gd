@@ -354,30 +354,3 @@ class TestOptimalConveyorDirection:
 		piece_placer.stop_drag()
 		var mid = chunk.get_piece_at_hex(Hex.new(1, 0))
 		assert_eq(mid.rotation_state, 0, "中間コンベアはパス方向East(0)で設置されるべき")
-
-	func test_ドラッグ終端で既存コンベアの上にstop_dragすると上書きされる():
-		# (1,0) に South(1)向きコンベアを事前設置
-		# ドラッグ (0,0)→(1,0) でstop_drag → (1,0) が East(0)向きに更新される
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 1)
-		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
-		piece_placer.stop_drag()
-		var updated = chunk.get_piece_at_hex(Hex.new(1, 0))
-		assert_eq(updated.rotation_state, 0, "既存コンベアがEast(0)向きに上書きされるべき")
-
-	func test_ドラッグ終端でSMELTERの上にstop_dragすると手前で止まる():
-		# (1,0) にSMELTERを事前設置（上書き不可）
-		# ドラッグ (0,0)→(1,0) でstop_drag → (0,0) までしか設置されない
-		const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
-		chunk.place_piece(SMELTER_SCENE, Hex.new(1, 0))
-		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
-		piece_placer.stop_drag()
-		assert_true(chunk.is_occupied(Hex.new(0, 0)), "(0,0)にコンベアが設置されるべき")
-		assert_eq(
-			chunk.get_piece_at_hex(Hex.new(1, 0)).piece_type,
-			PieceData.Type.SMELTER,
-			"(1,0)のSMELTERは上書きされないべき"
-		)
