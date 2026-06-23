@@ -281,3 +281,76 @@ class TestDragBehavior:
 		piece_placer.stop_drag()
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(-1, 0)))
 		assert_eq(piece_placer.snap_preview.get_child_count(), 1)
+
+
+class TestOptimalConveyorDirection:
+	extends GutTest
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(3)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+
+	func after_each():
+		await get_tree().process_frame
+
+	func test_隣接ピースが出力を向けているとき直進方向を返す():
+		# (1,0) に方向3(West)向きのコンベアを置くと (0,0) に向かって出力する
+		# → (0,0) での最適出力方向は (0+3)%6=3 (West、直進)
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)
+		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 0)
+		assert_eq(result, 3, "Westからの入力に対し直進(West=3)を返すべき")
+
+	func test_隣接ピースが出力を向けていないときfallbackを返す():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East向き＝(0,0)には向いていない
+		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 2)
+		assert_eq(result, 2, "出力が向いていないとき fallback_direction を返すべき")
+
+	func test_複数の隣接ピースが出力を向けているときfallbackを返す():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)  # (0,0)へ向けて出力
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)  # (0,0)へ向けて出力
+		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 1)
+		assert_eq(result, 1, "複数入力が競合するとき fallback_direction を返すべき")
+
+	func test_単一クリック配置で隣接ピースの出力に合わせた向きになる():
+		# (1,0) にWest(3)向きコンベアを設置 → (0,0)へ向けて出力
+		# (0,0) をクリック配置するとき、最適方向3(West)で設置されるべき
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(placed.rotation_state, 3, "隣接出力に合わせてWest(3)向きで設置されるべき")
+
+	func test_単一クリック配置で隣接ピースがなければcurrent_rotationで設置される():
+		piece_placer.current_rotation = 2
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(placed.rotation_state, 2, "隣接出力がないとき current_rotation で設置されるべき")
+
+	func test_ドラッグパス先頭で隣接ピースの出力に合わせた向きになる():
+		# (-1,0) にEast(0)向きコンベアを設置 → (0,0)へ向けて出力
+		# ドラッグ: (0,0)→(1,0) のとき先頭(0,0)は隣接入力に関係なくパス方向(East=0)で設置される
+		# (shapez同様、パス方向が優先される)
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(first.rotation_state, 0, "パス方向East(0)で設置されるべき")
+
+	func test_ドラッグパス中間はパス前後の方向が優先される():
+		# (0,0)→(1,0)→(2,0): 全てEast向きになる
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(2, 0)))
+		piece_placer.stop_drag()
+		var mid = chunk.get_piece_at_hex(Hex.new(1, 0))
+		assert_eq(mid.rotation_state, 0, "中間コンベアはパス方向East(0)で設置されるべき")

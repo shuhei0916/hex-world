@@ -184,7 +184,12 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
 	if chunk.can_place(current_piece_shape, target_hex):
-		chunk.place_piece(selected_scene, target_hex, current_rotation)
+		var rotation := current_rotation
+		if _is_conveyor:
+			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6
+			var optimal_dir := _compute_optimal_conveyor_direction(target_hex, fallback_dir)
+			rotation = (_selected_port_direction - optimal_dir + 6) % 6
+		chunk.place_piece(selected_scene, target_hex, rotation)
 		return true
 	return false
 
@@ -232,6 +237,25 @@ func _place_conveyor_chain():
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
 		var rotation = (_selected_port_direction - direction + 6) % 6
 		chunk.place_piece(selected_scene, hex, rotation)
+
+
+func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> int:
+	var feeding_direction := -1
+	for direction in range(6):
+		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
+		if neighbor == null:
+			continue
+		var base = chunk.get_base_hex(neighbor)
+		for port in neighbor.get_output_ports():
+			var abs_port = Hex.add(base, port.hex)
+			var target = Hex.neighbor(abs_port, port.direction)
+			if Hex.equals(target, hex):
+				if feeding_direction != -1:
+					return fallback_direction  # 複数の入力が競合 → fallback
+				feeding_direction = direction
+	if feeding_direction == -1:
+		return fallback_direction
+	return (feeding_direction + 3) % 6
 
 
 func rotate_current_piece():
