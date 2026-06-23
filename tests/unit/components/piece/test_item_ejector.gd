@@ -55,35 +55,35 @@ class TestOutputTransport:
 
 	func test_接続先のピースにアイテムが搬出される():
 		source.ejector.set_connected_pieces([target])
-		source.ejector.add_item("iron", 1)
+		source.ejector.add_item("iron_ore", 1)
 		source.ejector.tick(1.0)  # スライド完了させて排出
-		assert_eq(source.ejector.get_item_count("iron"), 0)
+		assert_eq(source.ejector.get_item_count("iron_ore"), 0)
 
 	func test_搬出後に接続先ピースのインベントリにアイテムが追加される():
 		source.ejector.set_connected_pieces([target])
-		source.ejector.add_item("iron", 1)
+		source.ejector.add_item("iron_ore", 1)
 		source.ejector.tick(1.0)
-		assert_eq(target.get_item_count("iron"), 1)
+		assert_eq(target.get_item_count("iron_ore"), 1)
 
 	func test_接続先がない場合はアイテムが搬出されない():
 		source.ejector.set_connected_pieces([])
-		source.ejector.add_item("iron", 1)
-		assert_eq(source.ejector.get_item_count("iron"), 1)
+		source.ejector.add_item("iron_ore", 1)
+		assert_eq(source.ejector.get_item_count("iron_ore"), 1)
 
 	func test_接続先が満杯の場合は移動しない():
 		source.ejector.set_connected_pieces([target])
-		target.add_item("junk", 1)  # 入力容量はレシピ1回分(1)なので1個で満杯
-		source.ejector.add_item("iron", 1)
-		assert_eq(source.ejector.get_item_count("iron"), 1)
+		target.add_item("iron_ore", 1)  # 入力容量はレシピ1回分(1)なので1個で満杯
+		source.ejector.add_item("iron_ore", 1)
+		assert_eq(source.ejector.get_item_count("iron_ore"), 1)
 
 	func test_接続先が後から空いたらtickで再送される():
 		# バグ: 押せずに滞留したアイテムは、下流が空いても再送トリガーが無く詰まる
 		source.ejector.set_connected_pieces([target])
-		target.add_item("junk", 1)  # 接続先を満杯にする
-		source.ejector.add_item("iron", 1)  # 押せずに滞留
-		target.get_acceptor().consume_item("junk", 1)  # 接続先が空く（再送イベントは発生しない）
+		target.add_item("iron_ore", 1)  # 接続先を満杯にする
+		source.ejector.add_item("iron_ore", 1)  # 押せずに滞留
+		target.get_acceptor().consume_item("iron_ore", 1)  # 接続先が空く（再送イベントは発生しない）
 		source.ejector.tick(1.0)  # tick でスライド完了＋再送を試みるべき
-		assert_eq(source.ejector.get_item_count("iron"), 0)
+		assert_eq(source.ejector.get_item_count("iron_ore"), 0)
 
 
 class TestOutputRoundRobin:
