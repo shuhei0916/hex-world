@@ -234,6 +234,25 @@ func _place_conveyor_chain():
 		chunk.place_piece(selected_scene, hex, rotation)
 
 
+func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> int:
+	var feeding_direction := -1
+	for direction in range(6):
+		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
+		if neighbor == null:
+			continue
+		var base = chunk.get_base_hex(neighbor)
+		for port in neighbor.get_output_ports():
+			var abs_port = Hex.add(base, port.hex)
+			var target = Hex.neighbor(abs_port, port.direction)
+			if Hex.equals(target, hex):
+				if feeding_direction != -1:
+					return fallback_direction  # 複数の入力が競合 → fallback
+				feeding_direction = direction
+	if feeding_direction == -1:
+		return fallback_direction
+	return (feeding_direction + 3) % 6
+
+
 func rotate_current_piece():
 	if current_piece_shape.is_empty():
 		return
