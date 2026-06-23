@@ -184,7 +184,12 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
 	if chunk.can_place(current_piece_shape, target_hex):
-		chunk.place_piece(selected_scene, target_hex, current_rotation)
+		var rotation := current_rotation
+		if _is_conveyor:
+			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6
+			var optimal_dir := _compute_optimal_conveyor_direction(target_hex, fallback_dir)
+			rotation = (_selected_port_direction - optimal_dir + 6) % 6
+		chunk.place_piece(selected_scene, target_hex, rotation)
 		return true
 	return false
 

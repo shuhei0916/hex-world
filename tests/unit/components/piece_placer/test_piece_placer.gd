@@ -318,3 +318,39 @@ class TestOptimalConveyorDirection:
 		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)  # (0,0)へ向けて出力
 		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 1)
 		assert_eq(result, 1, "複数入力が競合するとき fallback_direction を返すべき")
+
+	func test_単一クリック配置で隣接ピースの出力に合わせた向きになる():
+		# (1,0) にWest(3)向きコンベアを設置 → (0,0)へ向けて出力
+		# (0,0) をクリック配置するとき、最適方向3(West)で設置されるべき
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(placed.rotation_state, 3, "隣接出力に合わせてWest(3)向きで設置されるべき")
+
+	func test_単一クリック配置で隣接ピースがなければcurrent_rotationで設置される():
+		piece_placer.current_rotation = 2
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(placed.rotation_state, 2, "隣接出力がないとき current_rotation で設置されるべき")
+
+	func test_ドラッグパス先頭で隣接ピースの出力に合わせた向きになる():
+		# (-1,0) にEast(0)向きコンベアを設置 → (0,0)へ向けて出力
+		# ドラッグ: (0,0)→(1,0) のとき先頭(0,0)は隣接入力に関係なくパス方向(East=0)で設置される
+		# (shapez同様、パス方向が優先される)
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(first.rotation_state, 0, "パス方向East(0)で設置されるべき")
+
+	func test_ドラッグパス中間はパス前後の方向が優先される():
+		# (0,0)→(1,0)→(2,0): 全てEast向きになる
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(2, 0)))
+		piece_placer.stop_drag()
+		var mid = chunk.get_piece_at_hex(Hex.new(1, 0))
+		assert_eq(mid.rotation_state, 0, "中間コンベアはパス方向East(0)で設置されるべき")
