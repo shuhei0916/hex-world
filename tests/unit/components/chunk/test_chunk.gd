@@ -306,3 +306,25 @@ class TestHubPlacement:
 		gm.place_hub("iron_plate", 10)
 		gm.generate_ore_deposits(100)
 		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+
+
+class TestReplaceConveyor:
+	extends GutTest
+
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(3)
+
+	func after_each():
+		await get_tree().process_frame
+
+	func test_コンベア占有済みhexにはcan_place_or_replaceがtrueを返す():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		assert_true(chunk.can_place_or_replace(CONVEYOR_SCENE, Hex.new(0, 0)))
+
+	func test_スメルター占有済みhexにはcan_place_or_replaceがfalseを返す():
+		chunk.place_piece(SMELTER_SCENE, Hex.new(0, 0))
+		assert_false(chunk.can_place_or_replace(CONVEYOR_SCENE, Hex.new(0, 0)))

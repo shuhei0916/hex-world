@@ -64,6 +64,21 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 	return _hex_grid.can_place(shape, base_hex)
 
 
+func can_place_or_replace(packed_scene: PackedScene, base_hex: Hex) -> bool:
+	var probe = packed_scene.instantiate()
+	var shape = probe.get_hex_shape()
+	probe.free()
+	for offset in shape:
+		var target = Hex.add(base_hex, offset)
+		if not _hex_grid.is_inside_grid(target):
+			return false
+		if _hex_grid.is_occupied(target):
+			var existing = _registry.get_piece_at_hex(target)
+			if existing == null or not existing.is_replaceable():
+				return false
+	return true
+
+
 func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
 	var piece = packed_scene.instantiate()
 	piece.position = hex_to_pixel(base_hex)
