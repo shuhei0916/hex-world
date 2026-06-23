@@ -4,6 +4,7 @@ extends GutTest
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
 
 class TestMachineCapacity:
@@ -162,8 +163,6 @@ class TestPieceTransformation:
 class TestPieceAcceptor:
 	extends GutTest
 
-	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-
 	func test_機械ピースのget_acceptorはCrafterを返す():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
@@ -212,3 +211,17 @@ class TestPieceMetadata:
 		var p = MINER_SCENE.instantiate()
 		add_child_autofree(p)
 		assert_eq(p.piece_name, "Miner")
+
+
+class TestIsReplaceable:
+	extends GutTest
+
+	func test_コンベアはis_replaceableがtrueを返す():
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_true(p.is_replaceable(), "コンベアは上書き可能であるべき")
+
+	func test_スメルターはis_replaceableがfalseを返す():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_false(p.is_replaceable(), "スメルターは上書き不可であるべき")
