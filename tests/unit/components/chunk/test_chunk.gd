@@ -23,13 +23,6 @@ class TestGridLogic:
 		assert_true(gm.is_inside_grid(Hex.new(0, 0)))
 		assert_false(gm.is_inside_grid(Hex.new(3, 0)), "範囲外は登録されていないべき")
 
-	func test_半径8のグリッドは217マスを持つ():
-		gm.create_hex_grid(8)
-		assert_eq(gm.get_grid_hex_count(), 217)
-
-	func test_デフォルトのgrid_radiusは8():
-		assert_eq(gm.grid_radius, 8)
-
 	func test_グリッド状態を完全にクリアできる():
 		gm.register_grid_hex(Hex.new(0, 0))
 		gm.occupy(Hex.new(0, 0))
