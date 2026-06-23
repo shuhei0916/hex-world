@@ -123,6 +123,46 @@ class TestCrafterLogic:
 		assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")
 
 
+class TestCrafterMultiInput:
+	extends GutTest
+
+	var crafter: Crafter
+	var output_container
+
+	func before_each():
+		crafter = Crafter.new()
+		output_container = ItemEjector.new()
+		crafter.setup(output_container)
+
+	func after_each():
+		crafter.free()
+		output_container.free()
+
+	func test_異なる種別のアイテムを複数スロットで保持できる():
+		var recipe = Recipe.new("test", {"ore": 1, "coal": 1}, {"ingot": 1}, 2.0)
+		crafter.set_recipe(recipe)
+		crafter.add_item("ore", 1)
+		crafter.add_item("coal", 1)
+		assert_eq(crafter.get_item_count("ore"), 1, "ore が保持されているべき")
+		assert_eq(crafter.get_item_count("coal"), 1, "coal が保持されているべき")
+
+	func test_複数種別の材料が揃えば加工開始できる():
+		var recipe = Recipe.new("test", {"ore": 1, "coal": 1}, {"ingot": 1}, 2.0)
+		crafter.set_recipe(recipe)
+		crafter.add_item("ore", 1)
+		crafter.add_item("coal", 1)
+		assert_true(crafter._can_start_crafting(), "複数材料が揃えば開始できるべき")
+
+	func test_複数種別の材料は加工開始時に全て消費される():
+		var recipe = Recipe.new("test", {"ore": 1, "coal": 1}, {"ingot": 1}, 2.0)
+		crafter.set_recipe(recipe)
+		crafter.add_item("ore", 1)
+		crafter.add_item("coal", 1)
+		crafter._start_crafting()
+		assert_eq(crafter.get_item_count("ore"), 0, "開始時に ore が消費されるべき")
+		assert_eq(crafter.get_item_count("coal"), 0, "開始時に coal が消費されるべき")
+
+
 class TestCrafterProgressBar:
 	extends GutTest
 

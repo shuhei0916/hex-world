@@ -2,9 +2,10 @@ class_name Crafter
 extends Node
 
 ## 機械の加工ロジック（shapez の ItemProcessor 相当）。
-## 入力アイテムは Crafter 自身が入力スロット(_input_item/_input_count)で保持する
+## 入力アイテムは Crafter 自身が入力スロット(_input_slots: Dictionary)で種別ごとに保持する
 ## （汎用 Inventory は使わない）。レシピに入力があるピースは Crafter が受け入れ口になる
 ## （get_acceptor が can_accept_item+add_item を持つ Crafter を返す。miner は入力容量0で受け付けない）。
+## can_accept_item はレシピの inputs にない種別のアイテムを拒否する。
 ## 出力は ItemEjector のスロットへ。
 
 # 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
@@ -17,8 +18,7 @@ var input_capacity: int = 0
 
 var output_container: Node
 
-var _input_item: String = ""
-var _input_count: int = 0
+var _input_slots: Dictionary = {}  # {item_name: count}
 
 @onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
 
@@ -50,32 +50,35 @@ func _sum_quantities(items: Dictionary) -> int:
 
 
 # --- 入力受け入れ口（shapez ItemAcceptor 相当をここに内包） ---
-func can_accept_item(_item_name: String) -> bool:
-	return not is_full()
+func can_accept_item(item_name: String) -> bool:
+	if is_full():
+		return false
+	if not current_recipe:
+		return false
+	return current_recipe.inputs.has(item_name)
 
 
 func add_item(item_name: String, amount: int):
-	if _input_item == "":
-		_input_item = item_name
-		_input_count = amount
-	elif _input_item == item_name:
-		_input_count += amount
+	_input_slots[item_name] = _input_slots.get(item_name, 0) + amount
 
 
 func consume_item(item_name: String, amount: int):
-	if _input_item == item_name:
-		_input_count -= amount
-		if _input_count <= 0:
-			_input_item = ""
-			_input_count = 0
+	if not _input_slots.has(item_name):
+		return
+	_input_slots[item_name] -= amount
+	if _input_slots[item_name] <= 0:
+		_input_slots.erase(item_name)
 
 
 func get_item_count(item_name: String) -> int:
-	return _input_count if _input_item == item_name else 0
+	return _input_slots.get(item_name, 0)
 
 
 func is_full() -> bool:
-	return _input_count >= input_capacity
+	var total := 0
+	for count in _input_slots.values():
+		total += count
+	return total >= input_capacity
 
 
 func start_crafting():
