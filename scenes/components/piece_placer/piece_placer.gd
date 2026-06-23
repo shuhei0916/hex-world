@@ -198,7 +198,10 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 	for h in _conveyor_drag_path:
 		if Hex.equals(h, hex):
 			return false
-	if not chunk.can_place(current_piece_shape, hex):
+	if (
+		not chunk.can_place(current_piece_shape, hex)
+		and not chunk.can_place_or_replace(selected_scene, hex)
+	):
 		return false
 	_conveyor_drag_path.append(hex)
 	conveyor_path_extended.emit()
@@ -228,15 +231,17 @@ func _place_conveyor_chain():
 		return
 	for i in range(_conveyor_drag_path.size()):
 		var hex = _conveyor_drag_path[i]
-		if not chunk.can_place(current_piece_shape, hex):
-			continue
 		var direction: int
 		if i < _conveyor_drag_path.size() - 1:
 			direction = Hex.get_direction_to(hex, _conveyor_drag_path[i + 1])
 		else:
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
 		var rotation = (_selected_port_direction - direction + 6) % 6
-		chunk.place_piece(selected_scene, hex, rotation)
+		if chunk.can_place(current_piece_shape, hex):
+			chunk.place_piece(selected_scene, hex, rotation)
+		elif chunk.can_place_or_replace(selected_scene, hex):
+			chunk.remove_piece_at(hex)
+			chunk.place_piece(selected_scene, hex, rotation)
 
 
 func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> int:
