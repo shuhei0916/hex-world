@@ -50,6 +50,14 @@ func _update_piece_neighbors(piece: Piece) -> void:
 	piece.set_connected_pieces(current_connections, current_directions)
 
 	_update_conveyor_input_direction(piece)
+	_update_conveyor_output_directions(piece, current_directions)
+
+
+func _update_conveyor_output_directions(piece: Piece, directions: Array[int]) -> void:
+	var visuals = piece.get_node_or_null("ConveyorVisuals")
+	if visuals == null or directions.is_empty():
+		return
+	visuals.set_output_directions(directions)
 
 
 func _update_conveyor_input_direction(piece: Piece) -> void:
