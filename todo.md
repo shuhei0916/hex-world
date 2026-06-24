@@ -33,6 +33,9 @@
 
 ## リファクタリング
 - [ ] z_indexではなく、ツリー順で順番を制御したほうがクリーンかも。
+- [ ] `_update_conveyor_input_direction` は単一入力方向しか確定できない。将来の合流実装に備え、複数入力元を扱える設計を検討する。
+- [ ] `_is_physically_connected(source, source_hex, direction)` の `source_hex` 引数は多ヘックスピース向けの名残で、コンベア（1ヘックス）では常にベース座標と同値。整理して引数の意図を明確にする。
+- [ ] `_is_physically_connected`（自然分岐）と `_update_conveyor_input_direction`（入力方向検出）の接続判定ロジックが非対称。前者はポート方向の比較、後者はポートの到達先ヘックスの座標計算で判断しており、多ヘックスコンベアを追加した際に後者が誤動作する可能性がある。
 
 ---
 

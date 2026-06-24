@@ -2,7 +2,7 @@ class_name EjectorRouter
 extends RefCounted
 
 ## 接続先ピースへアイテムを1個ずつラウンドロビンで搬出するルーティングヘルパー。
-## ItemEjector / BalancerLogic が合成で利用する（接続＋出力方向スロットの巡回）。
+## ConveyorLogic / ItemEjector が合成で利用する（接続＋出力方向スロットの巡回）。
 ## 各接続は「出力方向(0-5)」を伴うスロットとして保持する。これにより描画側は
 ## 「実際に排出される方向」を読めて、表示と実排出が食い違わない。
 ## 受け入れ先の判定は can_accept_item / add_item のダックタイピングで行う。

@@ -2,8 +2,8 @@ class_name ConveyorLogic
 extends Node
 
 ## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
-## 唯一の接続先へ渡す（単一出力。分岐は BalancerLogic が担う）。
-## 保持＋タイマーは TransferBuffer に、搬出は EjectorRouter に委譲する。
+## EjectorRouter がラウンドロビンで選んだ接続先へ渡す（自然な分岐に対応）。
+## 保持＋タイマーは TransferBuffer に、搬出先選択は EjectorRouter に委譲する。
 
 var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()
