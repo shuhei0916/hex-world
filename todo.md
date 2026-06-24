@@ -20,11 +20,11 @@
 - [ ] **BeltPath 化**: 1ヘックス=最大1アイテムの制約を緩和し、複数アイテムを載せる再設計
 
 ## 自然な分岐（feature/conveyor-natural-branching）
-- [ ] ConveyorVisuals は output_directions が複数のとき、各方向へ1本ずつベジェを描く
-- [ ] NeighborManager は接続更新後に ConveyorVisuals へ出力方向リストを渡す
-- [ ] コンベアBの入力方向がコンベアAを向くとき、AはBを出力先に自動追加する（自然な分岐）
-- [ ] BalancerLogic を廃止し ConveyorLogic に統合する
-- [ ] balancer.tscn を廃止し conveyor.tscn のみで分岐を実現する
+- [x] ConveyorVisuals は output_directions が複数のとき、各方向へ1本ずつベジェを描く
+- [x] NeighborManager は接続更新後に ConveyorVisuals へ出力方向リストを渡す
+- [x] コンベアBの入力方向がコンベアAを向くとき、AはBを出力先に自動追加する（自然な分岐）
+- [x] BalancerLogic を廃止し ConveyorLogic に統合する
+- [ ] balancer.tscn を廃止し conveyor.tscn のみで分岐を実現する（balancer は UI からも削除）
 
 ---
 
