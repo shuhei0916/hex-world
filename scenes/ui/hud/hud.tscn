@@ -1,15 +1,13 @@
-[gd_scene load_steps=29 format=3 uid="uid://qqa8dhve6xp8"]
+[gd_scene load_steps=25 format=3 uid="uid://qqa8dhve6xp8"]
 
 [ext_resource type="Script" uid="uid://btt6nfs1uo5mf" path="res://scenes/ui/hud/hud.gd" id="1_hqnrr"]
 [ext_resource type="PackedScene" uid="uid://7v027spx4ub5" path="res://scenes/ui/hud/piece_info_panel.tscn" id="20_infopanel"]
 [ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/belt.png" id="3_belt"]
-[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/balancer.png" id="4_balancer"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/miner.png" id="5_miner"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/smelter.png" id="6_smelter"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/block.png" id="7_block"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/cutter.png" id="8_cutter"]
-[ext_resource type="Texture2D" path="res://scenes/components/piece/icons/storage.png" id="9_storage"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_bngdn"]
 device = -1
@@ -67,22 +65,6 @@ unicode = 55
 [sub_resource type="Shortcut" id="Shortcut_m7evv"]
 events = [SubResource("InputEventKey_a660p")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_7kkr4"]
-device = -1
-keycode = 56
-unicode = 56
-
-[sub_resource type="Shortcut" id="Shortcut_o6s6k"]
-events = [SubResource("InputEventKey_7kkr4")]
-
-[sub_resource type="InputEventKey" id="InputEventKey_ct28o"]
-device = -1
-keycode = 57
-unicode = 57
-
-[sub_resource type="Shortcut" id="Shortcut_devq0"]
-events = [SubResource("InputEventKey_ct28o")]
-
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hqnrr")
 
@@ -92,9 +74,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -248.0
+offset_left = -220.0
 offset_top = -64.0
-offset_right = 248.0
+offset_right = 220.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -115,7 +97,7 @@ shortcut = SubResource("Shortcut_qao66")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
-icon = ExtResource("4_balancer")
+icon = ExtResource("5_miner")
 icon_alignment = 1
 expand_icon = true
 button_group = ExtResource("2_qao66")
@@ -125,7 +107,7 @@ shortcut = SubResource("Shortcut_as3gr")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
-icon = ExtResource("5_miner")
+icon = ExtResource("6_smelter")
 icon_alignment = 1
 expand_icon = true
 button_group = ExtResource("2_qao66")
@@ -135,7 +117,7 @@ shortcut = SubResource("Shortcut_ax4tw")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
-icon = ExtResource("6_smelter")
+icon = ExtResource("7_block")
 icon_alignment = 1
 expand_icon = true
 button_group = ExtResource("2_qao66")
@@ -145,7 +127,7 @@ shortcut = SubResource("Shortcut_2wu1p")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
-icon = ExtResource("7_block")
+icon = ExtResource("8_cutter")
 icon_alignment = 1
 expand_icon = true
 button_group = ExtResource("2_qao66")
@@ -155,7 +137,7 @@ shortcut = SubResource("Shortcut_todbw")
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 toggle_mode = true
-icon = ExtResource("8_cutter")
+icon = ExtResource("7_block")
 icon_alignment = 1
 expand_icon = true
 button_group = ExtResource("2_qao66")
@@ -171,16 +153,6 @@ expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_m7evv")
 
-[node name="Slot8" type="Button" parent="ToolBar"]
-custom_minimum_size = Vector2(48, 48)
-layout_mode = 2
-toggle_mode = true
-icon = ExtResource("7_block")
-icon_alignment = 1
-expand_icon = true
-button_group = ExtResource("2_qao66")
-shortcut = SubResource("Shortcut_o6s6k")
-
 [node name="PieceInfoPanel" parent="." instance=ExtResource("20_infopanel")]
 
 [connection signal="pressed" from="ToolBar/Slot1" to="." method="on_slot_pressed" binds= [0]]
@@ -190,4 +162,3 @@ shortcut = SubResource("Shortcut_o6s6k")
 [connection signal="pressed" from="ToolBar/Slot5" to="." method="on_slot_pressed" binds= [4]]
 [connection signal="pressed" from="ToolBar/Slot6" to="." method="on_slot_pressed" binds= [5]]
 [connection signal="pressed" from="ToolBar/Slot7" to="." method="on_slot_pressed" binds= [6]]
-[connection signal="pressed" from="ToolBar/Slot8" to="." method="on_slot_pressed" binds= [7]]

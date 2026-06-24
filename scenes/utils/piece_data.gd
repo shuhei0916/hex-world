@@ -11,14 +11,12 @@ enum Type {
 	ASSEMBLER,
 	CHEST,
 	HUB,
-	BALANCER,
 }
 
 # 各 Type に対応するアンロック報酬キー。"" は常時アンロック。
 const UNLOCK_REWARDS: Dictionary = {
 	Type.CONVEYOR: "",
 	Type.MINER: "",
-	Type.BALANCER: "",
 	Type.HUB: "",
 	Type.CHEST: "",
 	Type.SMELTER: "unlock_smelter",
