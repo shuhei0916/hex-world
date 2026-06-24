@@ -58,6 +58,19 @@ class TestConveyorLogic:
 		conveyor.get_node("ConveyorLogic").tick(0.4)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
+	func test_committed方向が塞がれても別方向には排出せず待機する():
+		# East(0)にコミットした後、Eastが満杯でもNE(1)には排出しない
+		var logic = conveyor.get_node("ConveyorLogic")
+		var dest_e = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(dest_e)
+		var dest_ne = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(dest_ne)
+		logic.set_connected_pieces([dest_e, dest_ne], [0, 1])
+		conveyor.add_item("iron_plate", 1)  # _committed_direction = 0 (East)
+		dest_e.add_item("iron_plate", 1)  # Eastを満杯にする
+		logic.tick(TransferBuffer.TRANSFER_TIME)
+		assert_eq(conveyor.get_item_count("iron_plate"), 1, "Eastが塞がれた場合NEへ排出すべきでない")
+
 	func test_搬送中に接続先の受け入れ状態が変わっても進行方向は変わらない():
 		# add_item 時に方向0(East)が選ばれた後、接続先を差し替えても方向0を保持するべき
 		var logic = conveyor.get_node("ConveyorLogic")

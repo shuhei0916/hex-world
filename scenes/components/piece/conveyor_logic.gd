@@ -47,6 +47,11 @@ func get_target_direction() -> int:
 
 func tick(delta: float):
 	if _buffer.advance(delta):
-		if _ejector.try_eject(_buffer.held_item):
+		var ejected := false
+		if _committed_direction >= 0:
+			ejected = _ejector.try_eject_to_direction(_buffer.held_item, _committed_direction)
+		else:
+			ejected = _ejector.try_eject(_buffer.held_item)
+		if ejected:
 			_buffer.clear()
 			_committed_direction = -1
