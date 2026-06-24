@@ -129,3 +129,12 @@ func test_コンベアは基礎タイルを持たない():
 		if child is HexTile:
 			tile_count += 1
 	assert_eq(tile_count, 0)
+
+
+func test_CONVEYORは出力方向が2つのとき2本のパスを持つ():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	visuals.set_output_directions([0, 1])
+	assert_eq(visuals._paths.size(), 2)

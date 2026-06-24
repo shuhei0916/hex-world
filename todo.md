@@ -1,22 +1,8 @@
 # todo
 
 ## 製造チェーン・ゲームループ
-- [ ] **CUTTER・MIXER・PAINTER のシーン作成**: 製造チェーン（iron_rod / screw）を完成させる
-- [ ] **段階的アンロック**: Hub への納品でレベルアップし、新ピースが解放される仕組み
-  ### HubGoals（オートロード）
-  - [x] レベル1の目標は iron_ore × 10 で、報酬は "unlock_smelter"
-  - [x] is_reward_unlocked() は未取得の報酬に false を返す
-  - [x] is_reward_unlocked() は取得済みの報酬に true を返す
-  - [x] advance_level() で gained_rewards に報酬が記録される
-  - [x] advance_level() で level が1増える
-  - [x] advance_level() で level_up シグナルが発火する
-  - [x] advance_level() を最終レベル超えて呼んでもクラッシュしない（freeplay）
-  ### Hub との連携
-  - [x] 目標達成時に add_received() が HubGoals.advance_level() を呼ぶ
-  ### PieceData アンロック判定
-  - [x] MINER / CONVEYOR / BALANCER は常にアンロック済み
-  - [x] SMELTER は unlock_smelter 未取得のときロックされる
-  - [x] SMELTER は unlock_smelter 取得済みのときアンロックされる
+- [ ] 入力方向を限定していない現在の設計が適切かを検討する（出力と同じように、入力も固定方向からのみとするべき？）
+- [ ] 各ピースのtier1、tier2状態のモノを追加する（小さなピース、より少ない生産速度）
 
 ---
 
@@ -32,6 +18,13 @@
   対策候補: 端点円キャップ / ヘックス境界を越えてパスを延長
 - [ ] **設置UXの改善**: shapez2 のようにパス収集＋自動向き決定方式を検討
 - [ ] **BeltPath 化**: 1ヘックス=最大1アイテムの制約を緩和し、複数アイテムを載せる再設計
+
+## 自然な分岐（feature/conveyor-natural-branching）
+- [ ] ConveyorVisuals は output_directions が複数のとき、各方向へ1本ずつベジェを描く
+- [ ] NeighborManager は接続更新後に ConveyorVisuals へ出力方向リストを渡す
+- [ ] コンベアBの入力方向がコンベアAを向くとき、AはBを出力先に自動追加する（自然な分岐）
+- [ ] BalancerLogic を廃止し ConveyorLogic に統合する
+- [ ] balancer.tscn を廃止し conveyor.tscn のみで分岐を実現する
 
 ---
 
