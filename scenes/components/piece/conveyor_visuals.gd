@@ -147,10 +147,21 @@ func update_item_icon():
 
 
 func _item_position_on_path() -> Vector2:
-	if _path.size() < 2:
+	var path = _select_active_path()
+	if path.size() < 2:
 		return Vector2.ZERO
 	var t = _mover.get_progress_ratio()
-	var n = _path.size() - 1
+	var n = path.size() - 1
 	var fi = t * n
 	var i = clampi(int(fi), 0, n - 1)
-	return _path[i].lerp(_path[i + 1], fi - i)
+	return path[i].lerp(path[i + 1], fi - i)
+
+
+func _select_active_path() -> PackedVector2Array:
+	if _paths.size() <= 1 or not _mover.has_method("get_target_direction"):
+		return _path
+	var target_dir = _mover.get_target_direction()
+	for i in range(_output_directions.size()):
+		if _output_directions[i] == target_dir:
+			return _paths[i]
+	return _path
