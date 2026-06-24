@@ -354,3 +354,47 @@ class TestOptimalConveyorDirection:
 		piece_placer.stop_drag()
 		var mid = chunk.get_piece_at_hex(Hex.new(1, 0))
 		assert_eq(mid.rotation_state, 0, "中間コンベアはパス方向East(0)で設置されるべき")
+
+	func test_ドラッグ終端のhexが占有済みピースのとき最後のコンベアはその方向を向く():
+		# (1,0) にHUB(1マス)を設置。ドラッグ (0,0) → hover(1,0) でstop_drag
+		# current_rotation=3 (West向き) だが、HUBはEast(direction=0)方向にあるので
+		# 最後のコンベアは rotation=0 (East) になるべき
+		chunk.place_piece(HUB_SCENE, Hex.new(1, 0))
+		piece_placer.current_rotation = 3
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var last = chunk.get_piece_at_hex(Hex.new(0, 0))
+		assert_eq(last.rotation_state, 0, "最後のコンベアはHUB方向East(rotation=0)を向くべき")
+
+	func test_ドラッグ終端のhexが空のとき最後のコンベアはパス進行方向を向く():
+		# (0,0)→(1,0) とドラッグし (2,0) は空。(1,0) が East(rotation=0) になるべき
+		piece_placer.current_rotation = 3
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var last = chunk.get_piece_at_hex(Hex.new(1, 0))
+		assert_eq(last.rotation_state, 0, "終端が空のとき進行方向East(rotation=0)を向くべき")
+
+	func test_ドラッグ終端のhexが占有済みコンベアのとき既存が上書きされてパス方向を向く():
+		# (1,0) にSouth(rotation=1)のコンベアを設置、その上で stop_drag
+		# → East(rotation=0)に上書きされるべき
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 1)
+		piece_placer.current_rotation = 3
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.stop_drag()
+		var updated = chunk.get_piece_at_hex(Hex.new(1, 0))
+		assert_eq(updated.rotation_state, 0, "既存コンベアがEast(rotation=0)に上書きされるべき")
+
+	func test_ドラッグ中に占有済みピースのhexはパスに追加されない():
+		const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+		chunk.place_piece(SMELTER_SCENE, Hex.new(1, 0))
+		piece_placer.start_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		watch_signals(piece_placer)
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		assert_signal_not_emitted(piece_placer, "conveyor_path_extended")

@@ -155,6 +155,10 @@ func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 	return {"hex": hex, "direction": rotated_direction}
 
 
+func is_replaceable() -> bool:
+	return _is_belt()
+
+
 func _is_belt() -> bool:
 	# ConveyorVisuals を持つのはベルトを描くコンベアのみ（balancer は ItemEjectorVisual）。
 	return get_node_or_null("ConveyorVisuals") != null

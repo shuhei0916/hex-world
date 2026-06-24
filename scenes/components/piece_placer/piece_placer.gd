@@ -40,7 +40,7 @@ func stop_drag():
 	is_dragging = false
 	_last_drag_hex = null
 	if _is_conveyor and not _conveyor_drag_path.is_empty():
-		_place_conveyor_chain()
+		_place_conveyor_chain(current_hovered_hex)
 	_conveyor_drag_path.clear()
 	# パスプレビューで ZERO に移動した snap_preview をホバー位置へ戻してから描き直す
 	# （戻さないとゴーストがチャンク中央に一瞬表示される）
@@ -198,11 +198,16 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 	for h in _conveyor_drag_path:
 		if Hex.equals(h, hex):
 			return false
-	if not chunk.can_place(current_piece_shape, hex):
+	if not chunk.can_place(current_piece_shape, hex) and not _is_replaceable_conveyor(hex):
 		return false
 	_conveyor_drag_path.append(hex)
 	conveyor_path_extended.emit()
 	return true
+
+
+func _is_replaceable_conveyor(hex: Hex) -> bool:
+	var existing = chunk.get_piece_at_hex(hex)
+	return existing != null and existing.is_replaceable()
 
 
 func _add_ghost_tile(hex: Hex):
@@ -222,20 +227,42 @@ func _update_conveyor_path_preview():
 		_add_ghost_tile(hex)
 
 
-func _place_conveyor_chain():
+func _place_conveyor_chain(end_target: Hex = null):
+	var last_hex := _conveyor_drag_path[_conveyor_drag_path.size() - 1]
+	var target_is_occupied := (
+		end_target != null
+		and not Hex.equals(end_target, last_hex)
+		and chunk.is_occupied(end_target)
+	)
+
 	if _conveyor_drag_path.size() == 1:
-		chunk.place_piece(selected_scene, _conveyor_drag_path[0], current_rotation)
+		var direction: int
+		if target_is_occupied:
+			direction = Hex.get_direction_to(last_hex, end_target)
+		else:
+			direction = (_selected_port_direction - current_rotation + 6) % 6
+		var rotation = (_selected_port_direction - direction + 6) % 6
+		if _is_replaceable_conveyor(last_hex):
+			chunk.remove_piece_at(last_hex)
+		chunk.place_piece(selected_scene, last_hex, rotation)
 		return
+
 	for i in range(_conveyor_drag_path.size()):
 		var hex = _conveyor_drag_path[i]
-		if not chunk.can_place(current_piece_shape, hex):
+		var can_place := chunk.can_place(current_piece_shape, hex)
+		var can_replace := _is_replaceable_conveyor(hex)
+		if not can_place and not can_replace:
 			continue
 		var direction: int
 		if i < _conveyor_drag_path.size() - 1:
 			direction = Hex.get_direction_to(hex, _conveyor_drag_path[i + 1])
+		elif target_is_occupied:
+			direction = Hex.get_direction_to(hex, end_target)
 		else:
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
 		var rotation = (_selected_port_direction - direction + 6) % 6
+		if can_replace:
+			chunk.remove_piece_at(hex)
 		chunk.place_piece(selected_scene, hex, rotation)
 
 
