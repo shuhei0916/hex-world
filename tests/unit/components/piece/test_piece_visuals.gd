@@ -1,6 +1,7 @@
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 var piece_scene = load("res://scenes/components/piece/smelter.tscn")
 var piece: Piece
@@ -133,7 +134,7 @@ func test_コンベアは基礎タイルを持たない():
 
 func test_分岐コンベアでアイテムが2番目の出力方向に向かうときアイコンはそのパス上を進む():
 	# A: East(dir=0) と NE(dir=1) に分岐。1個目はEastへ排出済み、2個目はNEへ向かう
-	var gm = load("res://scenes/components/chunk/chunk.gd").new()
+	var gm = Chunk.new()
 	add_child_autofree(gm)
 	gm.create_hex_grid(3)
 	gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A
@@ -152,6 +153,29 @@ func test_分岐コンベアでアイテムが2番目の出力方向に向かう
 	var icon = visuals.get_node("ItemIcon")
 	# NE 方向への出力端は Y < 0（画面上方向）になるはず
 	assert_lt(icon.position.y, 0.0, "NEパス上のアイコンはY<0のはず")
+
+
+func test_全出力が塞がり方向未確定のとき満杯でもアイコンが出力端に到達しない():
+	# 両出力先が満杯で _committed_direction=-1 のとき、icon が出力端(境界)に来ないべき
+	var gm = Chunk.new()
+	add_child_autofree(gm)
+	gm.create_hex_grid(3)
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: 分岐点
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE
+	var a = gm.get_piece_at_hex(Hex.new(0, 0))
+	var logic = a.get_node("ConveyorLogic")
+	var visuals = a.get_node("ConveyorVisuals")
+	# B と C を先に満杯にしてから A にアイテムを入れる(_committed_direction=-1 になる)
+	gm.get_piece_at_hex(Hex.new(1, 0)).add_item("iron_ore", 1)
+	gm.get_piece_at_hex(Hex.new(1, -1)).add_item("iron_ore", 1)
+	a.add_item("iron_ore", 1)
+	logic.tick(TransferBuffer.TRANSFER_TIME)  # 搬送完了、しかし排出できない
+	visuals.update_item_icon()
+	var icon_pos = visuals.get_node("ItemIcon").position
+	# 出力端 (East) の位置を取得して比較
+	var out_edge = visuals._path[visuals._path.size() - 1]
+	assert_ne(icon_pos, out_edge, "方向未確定の満杯時、アイコンは出力端に達するべきでない")
 
 
 func test_CONVEYORは出力方向が2つのとき2本のパスを持つ():
