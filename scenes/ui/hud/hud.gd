@@ -10,11 +10,8 @@ const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
-const BALANCER_SCENE = preload("res://scenes/components/piece/balancer.tscn")
-
 var _scenes: Array[PackedScene] = [
 	CONVEYOR_SCENE,
-	BALANCER_SCENE,
 	MINER_SCENE,
 	SMELTER_SCENE,
 	ASSEMBLER_SCENE,
@@ -25,7 +22,6 @@ var _scenes: Array[PackedScene] = [
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
-	PieceData.Type.BALANCER,
 	PieceData.Type.MINER,
 	PieceData.Type.SMELTER,
 	PieceData.Type.ASSEMBLER,
@@ -82,12 +78,12 @@ func _rate_text_for_type(piece_type: PieceData.Type) -> String:
 	return "スピード: %d/分" % roundi(rate)
 
 
-# 機械はレシピの基準速度、搬送系(コンベア/バランサー)は TransferBuffer の搬送間隔から算出。
+# 機械はレシピの基準速度、コンベアは TransferBuffer の搬送間隔から算出。
 func _items_per_minute_for_type(piece_type: PieceData.Type) -> float:
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
 	if not recipes.is_empty():
 		return recipes[0].items_per_minute()
-	if piece_type == PieceData.Type.CONVEYOR or piece_type == PieceData.Type.BALANCER:
+	if piece_type == PieceData.Type.CONVEYOR:
 		return 60.0 / TransferBuffer.TRANSFER_TIME
 	return 0.0
 

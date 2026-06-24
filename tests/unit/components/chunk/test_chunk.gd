@@ -143,6 +143,24 @@ class TestNeighbors:
 		gm.remove_piece_at(Hex.new(1, 0))
 		assert_eq(source.get_connected_pieces().size(), 0, "削除後は接続が切れているべき")
 
+	func test_自然な分岐後コンベアAのConveyorVisualsは2本のパスを持つ():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE
+		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var visuals = a.get_node("ConveyorVisuals")
+		assert_eq(visuals._paths.size(), 2, "Aの分岐後はベジェパスが2本あるべき")
+
+	func test_コンベアBの入力方向がAを向くときAはBを出力先に自動追加する():
+		# A at (0,0) East(dir=0)、B at (1,0) East、C at (1,-1) NE(dir=1) は自然な分岐
+		# CONVEYOR のデフォルト port_direction=0(East)。rotation=5 → (0-5+6)%6=1(NE)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（Aから見てNE方向にあり、NE向き）
+		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		var c = gm.get_piece_at_hex(Hex.new(1, -1))
+		assert_true(c in a.get_connected_pieces(), "AはCを出力先として持つべき（自然な分岐）")
+
 
 class TestItemTransfer:
 	extends GutTest

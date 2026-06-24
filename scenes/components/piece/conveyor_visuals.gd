@@ -11,6 +11,8 @@ const _ARROW_SPACING := 30.0
 const _ARROW_SIZE := 8.0
 
 var _path: PackedVector2Array = PackedVector2Array()
+var _paths: Array[PackedVector2Array] = []
+var _output_directions: Array = []
 var _input_direction: int = -1
 var _elapsed: float = 0.0
 
@@ -57,32 +59,41 @@ func set_input_direction(direction: int):
 	refresh_belt()
 
 
+func set_output_directions(dirs: Array):
+	_output_directions = dirs
+	refresh_belt()
+
+
 func refresh_belt():
-	_path = PackedVector2Array()
+	_paths = []
 	var ports = _piece.get_output_ports()
 	if ports.is_empty():
 		return
 	var layout = Layout.make_default()
-	var output_dir = ports[0]["direction"]
-	var input_dir = _input_direction if _input_direction >= 0 else (output_dir + 3) % 6
-	var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+	var primary_dir = ports[0]["direction"]
+	var dirs = _output_directions if not _output_directions.is_empty() else [primary_dir]
+	var input_dir = _input_direction if _input_direction >= 0 else (primary_dir + 3) % 6
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
-	var is_straight = (input_dir + 3) % 6 == output_dir
-	var segs = 2 if is_straight else CURVE_SEGMENTS
-	_path = sample_bezier(in_edge, Vector2.ZERO, out_edge, segs)
+	for output_dir in dirs:
+		var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+		var is_straight = (input_dir + 3) % 6 == output_dir
+		var segs = 2 if is_straight else CURVE_SEGMENTS
+		_paths.append(sample_bezier(in_edge, Vector2.ZERO, out_edge, segs))
+	_path = _paths[0]
 	queue_redraw()
 
 
 func _draw():
-	if _path.size() < 2:
-		return
-	draw_polyline(_path, _BELT_EDGE, BELT_WIDTH, true)
-	draw_polyline(_path, _BELT_FILL, BELT_WIDTH - 6.0, true)
-	_draw_belt_arrows()
+	for path in _paths:
+		if path.size() < 2:
+			continue
+		draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
+		draw_polyline(path, _BELT_FILL, BELT_WIDTH - 6.0, true)
+		_draw_belt_arrows_on(path)
 
 
-func _draw_belt_arrows():
-	var total_len := _path_arc_length()
+func _draw_belt_arrows_on(path: PackedVector2Array):
+	var total_len := _arc_length(path)
 	if total_len < 1.0:
 		return
 	var anim_offset: float = fmod(
@@ -90,12 +101,12 @@ func _draw_belt_arrows():
 	)
 	var dist: float = 0.0
 	var next_arrow: float = anim_offset
-	for i in range(_path.size() - 1):
-		var seg_len = (_path[i + 1] - _path[i]).length()
+	for i in range(path.size() - 1):
+		var seg_len = (path[i + 1] - path[i]).length()
 		while next_arrow <= dist + seg_len:
 			var local_t = (next_arrow - dist) / seg_len
-			var pos = _path[i].lerp(_path[i + 1], local_t)
-			var tangent = (_path[i + 1] - _path[i]).normalized()
+			var pos = path[i].lerp(path[i + 1], local_t)
+			var tangent = (path[i + 1] - path[i]).normalized()
 			_draw_chevron(pos, tangent)
 			next_arrow += _ARROW_SPACING
 		dist += seg_len
@@ -109,10 +120,10 @@ func _draw_chevron(pos: Vector2, tangent: Vector2):
 	draw_colored_polygon(PackedVector2Array([tip, left, right]), _BELT_ARROW)
 
 
-func _path_arc_length() -> float:
+func _arc_length(path: PackedVector2Array) -> float:
 	var total := 0.0
-	for i in range(_path.size() - 1):
-		total += (_path[i + 1] - _path[i]).length()
+	for i in range(path.size() - 1):
+		total += (path[i + 1] - path[i]).length()
 	return total
 
 
@@ -136,10 +147,21 @@ func update_item_icon():
 
 
 func _item_position_on_path() -> Vector2:
-	if _path.size() < 2:
+	var path = _select_active_path()
+	if path.size() < 2:
 		return Vector2.ZERO
 	var t = _mover.get_progress_ratio()
-	var n = _path.size() - 1
+	var n = path.size() - 1
 	var fi = t * n
 	var i = clampi(int(fi), 0, n - 1)
-	return _path[i].lerp(_path[i + 1], fi - i)
+	return path[i].lerp(path[i + 1], fi - i)
+
+
+func _select_active_path() -> PackedVector2Array:
+	if _paths.size() <= 1 or not _mover.has_method("get_target_direction"):
+		return _path
+	var target_dir = _mover.get_target_direction()
+	for i in range(_output_directions.size()):
+		if _output_directions[i] == target_dir:
+			return _paths[i]
+	return _path

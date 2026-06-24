@@ -226,3 +226,22 @@ class TestConveyorConnection:
 		var in_edge = bend.get_node("ConveyorVisuals")._path[0]
 		var expected = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
 		assert_almost_eq(in_edge.x, expected.x, 0.1)
+
+
+class TestConveyorLogicRoundRobin:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_ConveyorLogicは接続先が2つのときget_target_directionで次の排出方向を返す():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East（East方向へ続く）
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（自然な分岐）
+		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		a.add_item("iron_ore", 1)
+		assert_ne(a.get_node("ConveyorLogic").get_target_direction(), -1)

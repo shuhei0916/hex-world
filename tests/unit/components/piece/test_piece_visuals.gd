@@ -129,3 +129,35 @@ func test_コンベアは基礎タイルを持たない():
 		if child is HexTile:
 			tile_count += 1
 	assert_eq(tile_count, 0)
+
+
+func test_分岐コンベアでアイテムが2番目の出力方向に向かうときアイコンはそのパス上を進む():
+	# A: East(dir=0) と NE(dir=1) に分岐。1個目はEastへ排出済み、2個目はNEへ向かう
+	var gm = load("res://scenes/components/chunk/chunk.gd").new()
+	add_child_autofree(gm)
+	gm.create_hex_grid(3)
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East（1番目の出力先）
+	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（2番目の出力先）
+	var a = gm.get_piece_at_hex(Hex.new(0, 0))
+	var logic = a.get_node("ConveyorLogic")
+	var visuals = a.get_node("ConveyorVisuals")
+	# 1個目を排出して round-robin を NE 側へ進める
+	a.add_item("iron_ore", 1)
+	logic.tick(TransferBuffer.TRANSFER_TIME)
+	# 2個目は NE 方向へ向かう
+	a.add_item("iron_ore", 1)
+	logic.tick(TransferBuffer.TRANSFER_TIME * 0.9)  # 途中（出力端付近）
+	visuals.update_item_icon()
+	var icon = visuals.get_node("ItemIcon")
+	# NE 方向への出力端は Y < 0（画面上方向）になるはず
+	assert_lt(icon.position.y, 0.0, "NEパス上のアイコンはY<0のはず")
+
+
+func test_CONVEYORは出力方向が2つのとき2本のパスを持つ():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	visuals.set_output_directions([0, 1])
+	assert_eq(visuals._paths.size(), 2)

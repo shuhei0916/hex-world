@@ -50,6 +50,14 @@ func _update_piece_neighbors(piece: Piece) -> void:
 	piece.set_connected_pieces(current_connections, current_directions)
 
 	_update_conveyor_input_direction(piece)
+	_update_conveyor_output_directions(piece, current_directions)
+
+
+func _update_conveyor_output_directions(piece: Piece, directions: Array[int]) -> void:
+	var visuals = piece.get_node_or_null("ConveyorVisuals")
+	if visuals == null or directions.is_empty():
+		return
+	visuals.set_output_directions(directions)
 
 
 func _update_conveyor_input_direction(piece: Piece) -> void:
@@ -86,7 +94,22 @@ func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) ->
 		var absolute_port_hex = Hex.add(base_hex, port.hex)
 		if Hex.equals(absolute_port_hex, source_hex) and port.direction == direction:
 			return true
+
+	# コンベア同士の自然な分岐: 隣のコンベアの出力方向が A→C の向きと一致するとき接続
+	var neighbor = _get_neighbor_piece(source_hex, direction)
+	if _is_downstream_conveyor(neighbor, direction):
+		return true
+
 	return false
+
+
+# 隣のコンベア C が「source から direction 方向に自然に流れ出す」向きかどうか。
+# C.port_direction == direction のとき、C は source から受け取る配置になっている。
+func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
+	if neighbor == null or neighbor.get_node_or_null("ConveyorVisuals") == null:
+		return false
+	var ports = neighbor.get_output_ports()
+	return not ports.is_empty() and ports[0]["direction"] == direction
 
 
 func _get_neighbor_piece(hex: Hex, direction: int) -> Piece:
