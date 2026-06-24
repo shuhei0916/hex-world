@@ -151,14 +151,8 @@ func _item_position_on_path() -> Vector2:
 	if path.size() < 2:
 		return Vector2.ZERO
 	var t = _mover.get_progress_ratio()
-	# 分岐コンベアで全出力が塞がり方向未確定のまま搬送完了した場合、出力端へ到達させず中央で待機
-	# 単一出力の場合は出力端で待機するのが正しい挙動なのでスキップ
-	if (
-		t >= 1.0
-		and _paths.size() > 1
-		and _mover.has_method("get_target_direction")
-		and _mover.get_target_direction() < 0
-	):
+	# 排出できず搬送完了した場合、出力端へ到達させず中央で待機
+	if t >= 1.0 and _mover.has_method("get_target_direction") and _mover.get_target_direction() < 0:
 		t = 0.5
 	var n = path.size() - 1
 	var fi = t * n

@@ -178,8 +178,8 @@ func test_全出力が塞がり方向未確定のとき満杯でもアイコン�
 	assert_ne(icon_pos, out_edge, "方向未確定の満杯時、アイコンは出力端に達するべきでない")
 
 
-func test_単一出力コンベアは接続先が満杯でもアイコンが出力端に留まる():
-	# 単一出力の場合、接続先満杯でも t=0.5 にスナップしてはいけない
+func test_単一出力コンベアは接続先が満杯のとき中央で待機する():
+	# 接続先満杯（target_direction=-1）のとき、単一出力でも中央待機する
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
@@ -192,7 +192,7 @@ func test_単一出力コンベアは接続先が満杯でもアイコンが出�
 	conveyor.get_node("ConveyorVisuals").update_item_icon()
 	var icon_pos = conveyor.get_node("ConveyorVisuals/ItemIcon").position
 	var out_edge = conveyor.get_node("ConveyorVisuals")._path[-1]
-	assert_eq(icon_pos, out_edge, "単一出力満杯時、アイコンは出力端で待機するべき")
+	assert_ne(icon_pos, out_edge, "満杯時、アイコンは出力端ではなく中央で待機するべき")
 
 
 func test_CONVEYORは出力方向が2つのとき2本のパスを持つ():
