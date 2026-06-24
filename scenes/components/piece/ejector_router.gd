@@ -47,16 +47,3 @@ func try_eject(item_name: String) -> bool:
 	connected_pieces[idx].add_item(item_name, 1)
 	_rr_index = (idx + 1) % connected_pieces.size()
 	return true
-
-
-# 指定方向の接続先のみへ排出を試みる。その方向が塞がれていれば待機（他方向へは流さない）。
-func try_eject_to_direction(item_name: String, direction: int) -> bool:
-	for i in range(connected_pieces.size()):
-		if connected_directions[i] == direction:
-			var target = connected_pieces[i]
-			if target.has_method("can_accept_item") and target.can_accept_item(item_name):
-				target.add_item(item_name, 1)
-				_rr_index = (i + 1) % connected_pieces.size()
-				return true
-			return false  # 接続先あり、だが満杯 → 待機
-	return false  # 方向が接続されていない
