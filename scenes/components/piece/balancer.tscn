@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://balancer001"]
 
 [ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
-[ext_resource type="Script" path="res://scenes/components/piece/balancer_logic.gd" id="6_balancer_logic"]
+[ext_resource type="Script" path="res://scenes/components/piece/conveyor_logic.gd" id="6_conveyor_logic"]
 [ext_resource type="Script" path="res://scenes/components/piece/item_ejector_visual.gd" id="7_item_ejector_visual"]
 
 [node name="Piece" type="Node2D"]
@@ -16,8 +16,8 @@ port_direction = 0
 port_direction2 = 5
 piece_color = Color(1, 0.702, 0.278, 1)
 
-[node name="BalancerLogic" type="Node" parent="."]
-script = ExtResource("6_balancer_logic")
+[node name="ConveyorLogic" type="Node" parent="."]
+script = ExtResource("6_conveyor_logic")
 
 [node name="ItemEjectorVisual" type="Node2D" parent="."]
 script = ExtResource("7_item_ejector_visual")

@@ -37,6 +37,10 @@ func get_progress_ratio() -> float:
 	return _buffer.get_progress_ratio()
 
 
+func get_target_direction() -> int:
+	return _ejector.target_direction(_buffer.held_item)
+
+
 func tick(delta: float):
 	if _buffer.advance(delta):
 		if _ejector.try_eject(_buffer.held_item):

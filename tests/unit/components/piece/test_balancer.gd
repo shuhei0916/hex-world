@@ -6,6 +6,25 @@ const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 
+class TestConveyorLogicRoundRobin:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_ConveyorLogicは接続先が2つのときget_target_directionで次の排出方向を返す():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East（East方向へ続く）
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（自然な分岐）
+		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		a.add_item("iron_ore", 1)
+		assert_ne(a.get_node("ConveyorLogic").get_target_direction(), -1)
+
+
 class TestBalancerPorts:
 	extends GutTest
 
@@ -49,9 +68,9 @@ class TestBalancerConnection:
 		var chest_e = gm.get_piece_at_hex(Hex.new(1, 0))
 		var chest_se = gm.get_piece_at_hex(Hex.new(0, 1))
 		balancer.add_item("iron_ore", 1)
-		balancer.get_node("BalancerLogic").tick(0.5)
+		balancer.get_node("ConveyorLogic").tick(0.5)
 		balancer.add_item("iron_ore", 1)
-		balancer.get_node("BalancerLogic").tick(0.5)
+		balancer.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(chest_e.get_item_count("iron_ore") + chest_se.get_item_count("iron_ore"), 2)
 
 	func test_片側のみ接続時_保持アイテムは接続側の出力方向に向く():
@@ -60,7 +79,7 @@ class TestBalancerConnection:
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var balancer = gm.get_piece_at_hex(Hex.new(0, 0))
 		balancer.add_item("iron_ore", 1)
-		assert_eq(balancer.get_node("BalancerLogic").get_target_direction(), 5)
+		assert_eq(balancer.get_node("ConveyorLogic").get_target_direction(), 5)
 
 	func test_連続するアイテムは異なる出力側に飛び出る():
 		gm.place_piece(BALANCER_SCENE, Hex.new(0, 0))
@@ -68,7 +87,7 @@ class TestBalancerConnection:
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1))
 		var balancer = gm.get_piece_at_hex(Hex.new(0, 0))
 		var visual = balancer.get_node("ItemEjectorVisual")
-		var logic = balancer.get_node("BalancerLogic")
+		var logic = balancer.get_node("ConveyorLogic")
 		balancer.add_item("iron_ore", 1)
 		logic.tick(0.25)  # スライド途中(まだ排出しない)
 		visual.update_item_icon()
@@ -93,9 +112,9 @@ class TestBalancerConnection:
 		var conv_se = gm.get_piece_at_hex(Hex.new(0, 1))
 		assert_eq(balancer.get_connected_pieces().size(), 2, "Balancerは2方向に接続されるべき")
 		balancer.add_item("iron_ore", 1)
-		balancer.get_node("BalancerLogic").tick(0.5)
+		balancer.get_node("ConveyorLogic").tick(0.5)
 		balancer.add_item("iron_ore", 1)
-		balancer.get_node("BalancerLogic").tick(0.5)
+		balancer.get_node("ConveyorLogic").tick(0.5)
 		var total_in_conveyors = (
 			conv_e.get_item_count("iron_ore") + conv_se.get_item_count("iron_ore")
 		)
@@ -132,7 +151,7 @@ class TestBalancerVisuals:
 	func test_Balancerの保持アイテムは出力ポート側に飛び出る():
 		# デフォルト出力は East(0)。スライドが進むとアイコンは中央ではなく +X 側に出る
 		balancer.add_item("iron_ore", 1)
-		balancer.get_node("BalancerLogic").tick(0.4)  # スライドを進める(まだ排出しない)
+		balancer.get_node("ConveyorLogic").tick(0.4)  # スライドを進める(まだ排出しない)
 		var visual = balancer.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		assert_gt(visual.get_node("ItemIcon").position.x, 0.0)
