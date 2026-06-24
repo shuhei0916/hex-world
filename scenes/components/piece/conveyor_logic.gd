@@ -2,11 +2,12 @@ class_name ConveyorLogic
 extends Node
 
 ## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
-## 唯一の接続先へ渡す（単一出力。分岐は BalancerLogic が担う）。
-## 保持＋タイマーは TransferBuffer に、搬出は EjectorRouter に委譲する。
+## EjectorRouter が選んだ接続先へ渡す。搬送開始時に進行方向を確定し、
+## 途中で接続状態が変わっても表示パスがぶれないようにする。
 
 var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()
+var _committed_direction: int = -1
 
 
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
@@ -23,6 +24,7 @@ func can_accept_item(_item_name: String) -> bool:
 
 func add_item(item_name: String, _amount: int):
 	_buffer.receive(item_name)
+	_committed_direction = _ejector.target_direction(item_name)
 
 
 func get_item_count(item_name: String) -> int:
@@ -38,6 +40,8 @@ func get_progress_ratio() -> float:
 
 
 func get_target_direction() -> int:
+	if _committed_direction >= 0:
+		return _committed_direction
 	return _ejector.target_direction(_buffer.held_item)
 
 
@@ -45,3 +49,4 @@ func tick(delta: float):
 	if _buffer.advance(delta):
 		if _ejector.try_eject(_buffer.held_item):
 			_buffer.clear()
+			_committed_direction = -1

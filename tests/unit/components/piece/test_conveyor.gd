@@ -58,6 +58,18 @@ class TestConveyorLogic:
 		conveyor.get_node("ConveyorLogic").tick(0.4)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
+	func test_搬送中に接続先の受け入れ状態が変わっても進行方向は変わらない():
+		# add_item 時に方向0(East)が選ばれた後、接続先を差し替えても方向0を保持するべき
+		var logic = conveyor.get_node("ConveyorLogic")
+		var dest_e = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(dest_e)
+		logic.set_connected_pieces([dest_e], [0])
+		conveyor.add_item("iron_plate", 1)
+		assert_eq(logic.get_target_direction(), 0)
+		# 接続先を空配列に切り替えても方向は変わらないべき
+		logic.set_connected_pieces([], [])
+		assert_eq(logic.get_target_direction(), 0, "搬送中は進行方向を維持するべき")
+
 
 class TestConveyorVisuals:
 	extends GutTest
