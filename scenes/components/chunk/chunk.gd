@@ -159,6 +159,10 @@ func get_grid_hex_count() -> int:
 	return _drawn_hexes.size()
 
 
+func get_all_hexes() -> Array[Hex]:
+	return _drawn_hexes.duplicate()
+
+
 func hex_to_pixel(hex: Hex) -> Vector2:
 	return Layout.hex_to_pixel(layout, hex)
 
