@@ -6,8 +6,13 @@ var hud: HUD
 
 
 func before_each():
+	HubGoals.gained_rewards.clear()
 	hud = HUDScene.instantiate()
 	add_child_autofree(hud)
+
+
+func after_each():
+	HubGoals.gained_rewards.clear()
 
 
 func test_アクティブスロット変更でUIハイライトが更新される():
