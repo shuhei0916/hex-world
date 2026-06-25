@@ -4,6 +4,7 @@ extends CanvasLayer
 
 func _ready():
 	visible = false
+	follow_viewport_enabled = true
 
 
 func toggle() -> void:
@@ -18,9 +19,9 @@ func refresh(chunk) -> void:
 		label.name = "hex_%d_%d" % [hex.q, hex.r]
 		var piece = chunk.get_piece_at_hex(hex)
 		if piece:
-			label.text = "%d,%d\n%s" % [hex.q, hex.r, piece.piece_name]
+			label.text = "(%d, %d)\n%s" % [hex.q, hex.r, piece.piece_name]
 		else:
-			label.text = "%d,%d" % [hex.q, hex.r]
+			label.text = "(%d, %d)" % [hex.q, hex.r]
 		label.position = chunk.hex_to_pixel(hex)
 		add_child(label)
 

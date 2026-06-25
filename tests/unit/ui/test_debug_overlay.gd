@@ -44,4 +44,7 @@ class TestRefresh:
 		chunk.place_piece(conveyor_scene, Hex.new(0, 0))
 		overlay.refresh(chunk)
 		var label_text = overlay.get_label_text_at(Hex.new(0, 0))
-		assert_true(label_text.contains("Conveyor") or label_text.contains("conveyor"))
+		assert_true(
+			label_text.contains("Conveyor") or label_text.contains("conveyor"),
+			"Expected piece name in label, got: %s" % label_text
+		)

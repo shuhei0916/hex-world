@@ -47,6 +47,8 @@ func _handle_key_input(event):
 			_toggle_mode()
 		elif event.keycode == KEY_F2:
 			debug_overlay.toggle()
+			if debug_overlay.visible:
+				debug_overlay.refresh(world.get_active_chunk())
 		elif event.is_action_pressed("rotate_piece") and is_local_mode():
 			piece_placer.rotate_current_piece()
 
