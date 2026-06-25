@@ -106,20 +106,18 @@ func _make_left_click_event(pos: Vector2) -> InputEventMouseButton:
 
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
-	main._handle_mouse_click(_make_left_click_event(Vector2.ZERO))
+	main._handle_world_map_chunk_selected(Hex.new(0, 0))
 	assert_true(main.is_local_mode())
 
 
 func test_クリックしたチャンクがアクティブになる():
 	main._handle_key_input(_make_space_event())
-	var hex10_pos = main.world_map_view.get_tile_position(Hex.new(1, 0))
-	main._handle_mouse_click(_make_left_click_event(hex10_pos))
+	main._handle_world_map_chunk_selected(Hex.new(1, 0))
 	assert_eq(main.world.get_active_chunk(), main.world.get_chunk(Hex.new(1, 0)))
 
 
 func test_ワールドマップ再入時に現在アクティブなチャンクが強調される():
 	main._handle_key_input(_make_space_event())
-	var hex10_pos = main.world_map_view.get_tile_position(Hex.new(1, 0))
-	main._handle_mouse_click(_make_left_click_event(hex10_pos))
+	main._handle_world_map_chunk_selected(Hex.new(1, 0))
 	main._handle_key_input(_make_space_event())
 	assert_true(main.world_map_view.get_tile_active(Hex.new(1, 0)))

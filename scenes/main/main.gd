@@ -113,9 +113,13 @@ func _handle_world_map_click(event: InputEventMouseButton) -> void:
 		var view_pos = world_map_view.to_local(to_global(local_pos))
 		var hex = world_map_view.chunk_at_local_pos(view_pos)
 		if hex != null:
-			_activate_chunk(hex)
-			world_map_view.set_active_chunk(hex)
-			_enter_local_mode()
+			_handle_world_map_chunk_selected(hex)
+
+
+func _handle_world_map_chunk_selected(hex: Hex) -> void:
+	_activate_chunk(hex)
+	world_map_view.set_active_chunk(hex)
+	_enter_local_mode()
 
 
 func _handle_local_click(event: InputEventMouseButton) -> void:
