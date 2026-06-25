@@ -44,9 +44,6 @@ class TestPieceDataUnlock:
 	func test_MINERは常にアンロック済み():
 		assert_true(PieceData.is_unlocked(PieceData.Type.MINER))
 
-	func test_BALANCERは常にアンロック済み():
-		assert_true(PieceData.is_unlocked(PieceData.Type.BALANCER))
-
 	func test_SMELTERはunlock_smelter未取得のときロックされる():
 		assert_false(PieceData.is_unlocked(PieceData.Type.SMELTER))
 

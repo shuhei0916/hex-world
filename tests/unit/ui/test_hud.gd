@@ -34,16 +34,16 @@ func test_スロット1はコンベアである():
 	assert_eq(_get_slot_piece_type(0), PieceData.Type.CONVEYOR)
 
 
-func test_スロット2はバランサーである():
-	assert_eq(_get_slot_piece_type(1), PieceData.Type.BALANCER)
+func test_スロット2はマイナーである():
+	assert_eq(_get_slot_piece_type(1), PieceData.Type.MINER)
 
 
-func test_スロット3はマイナーである():
-	assert_eq(_get_slot_piece_type(2), PieceData.Type.MINER)
+func test_スロット3はスメルターである():
+	assert_eq(_get_slot_piece_type(2), PieceData.Type.SMELTER)
 
 
-func test_スロット4はスメルターである():
-	assert_eq(_get_slot_piece_type(3), PieceData.Type.SMELTER)
+func test_スロット4はアッセンブラーである():
+	assert_eq(_get_slot_piece_type(3), PieceData.Type.ASSEMBLER)
 
 
 func test_スロットにアイコンテクスチャが設定されている():
@@ -84,9 +84,9 @@ func test_deselect呼び出しでslot_selectedがnullを持って発火される
 
 
 func test_スロット選択で情報パネルにピース名が表示される():
-	var btn = hud.toolbar.get_child(2) as Button
+	var btn = hud.toolbar.get_child(1) as Button
 	btn.button_pressed = true
-	hud.on_slot_pressed(2)
+	hud.on_slot_pressed(1)
 	assert_eq(hud.info_panel.name_label.text, "Miner")
 
 
@@ -100,7 +100,7 @@ func test_機械スロット選択で情報パネルに生産速度が表示さ�
 	var btn = hud.toolbar.get_child(2) as Button
 	btn.button_pressed = true
 	hud.on_slot_pressed(2)
-	assert_eq(hud.info_panel.rate_label.text, "スピード: 60/分")
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
 
 
 func test_コンベアスロット選択で情報パネルに搬送速度が表示される():
@@ -111,8 +111,11 @@ func test_コンベアスロット選択で情報パネルに搬送速度が表�
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():
-	# Painter（レシピ未定義＝生産速度なし）は速度行を出さない（slot index 7）
-	var btn = hud.toolbar.get_child(7) as Button
+	# Painter（レシピ未定義＝生産速度なし）は速度行を出さない
+	# HubGoals経由でアンロックしてから選択する
+	HubGoals.gained_rewards["unlock_mixer"] = true
+	hud._refresh_unlock_states()
+	var btn = hud.toolbar.get_child(6) as Button
 	btn.button_pressed = true
-	hud.on_slot_pressed(7)
+	hud.on_slot_pressed(6)
 	assert_false(hud.info_panel.rate_label.visible)

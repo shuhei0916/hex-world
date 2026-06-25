@@ -3,7 +3,7 @@ extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const BALANCER_SCENE = preload("res://scenes/components/piece/balancer.tscn")
+const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
 const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 
@@ -53,7 +53,7 @@ class TestPiecePlacement:
 			)
 
 	func test_select_pieceでシーンを外部からセットして配置できる():
-		piece_placer.select_piece(BALANCER_SCENE)
+		piece_placer.select_piece(CONVEYOR_SCENE)
 		var target_hex = Hex.new(1, 1)
 		var result = piece_placer.place_piece_at_hex(target_hex)
 		assert_true(result, "シーンをセットすれば配置できるべき")
@@ -169,15 +169,15 @@ class TestDragBehavior:
 		assert_eq(piece_placer.snap_preview.position, expected)
 
 	func test_削除ドラッグ中にhoverしたヘックスのピースが削除される():
-		chunk.place_piece(BALANCER_SCENE, Hex.new(0, 0))
-		chunk.place_piece(BALANCER_SCENE, Hex.new(1, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
 		piece_placer.start_delete_drag()
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
 		assert_false(chunk.is_occupied(Hex.new(0, 0)) or chunk.is_occupied(Hex.new(1, 0)))
 
 	func test_stop_delete_drag後はhoverしてもピースが削除されない():
-		chunk.place_piece(BALANCER_SCENE, Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
 		piece_placer.start_delete_drag()
 		piece_placer.stop_delete_drag()
 		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
@@ -201,7 +201,7 @@ class TestDragBehavior:
 		assert_false(piece_placer.is_dragging)
 
 	func test_ドラッグ中にupdate_hoverで新しいヘックスに移動するとピースが設置される():
-		piece_placer.select_piece(BALANCER_SCENE)
+		piece_placer.select_piece(MINER_SCENE)
 		piece_placer.start_drag()
 		var target_hex = Hex.new(0, 0)
 		var target_pos = chunk.hex_to_pixel(target_hex)
@@ -209,7 +209,7 @@ class TestDragBehavior:
 		assert_true(chunk.is_occupied(target_hex))
 
 	func test_ドラッグ中に同じヘックスにhoverしても2回設置されない():
-		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.select_piece(MINER_SCENE)
 		piece_placer.start_drag()
 		var target_pos = chunk.hex_to_pixel(Hex.new(0, 0))
 		piece_placer.update_hover(target_pos)
@@ -218,7 +218,7 @@ class TestDragBehavior:
 		assert_eq(chunk.get_piece_count(), placed_count_before)
 
 	func test_stop_drag後はhoverが更新されても設置されない():
-		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.select_piece(MINER_SCENE)
 		piece_placer.start_drag()
 		piece_placer.stop_drag()
 		var count_before = chunk.get_piece_count()
