@@ -10,6 +10,7 @@ var _mode: Mode = Mode.LOCAL
 @onready var world_map_view: WorldMapView = $WorldMapView
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var sfx_player: SfxPlayer = $SfxPlayer
+@onready var debug_overlay: DebugOverlay = $DebugOverlay
 
 
 func _ready():
@@ -44,6 +45,8 @@ func _handle_key_input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.keycode == KEY_SPACE:
 			_toggle_mode()
+		elif event.keycode == KEY_F2:
+			debug_overlay.toggle()
 		elif event.is_action_pressed("rotate_piece") and is_local_mode():
 			piece_placer.rotate_current_piece()
 
@@ -65,6 +68,8 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 	world.set_active_chunk(chunk_hex)
 	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
+	if debug_overlay and debug_overlay.visible:
+		debug_overlay.refresh(chunk)
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
 

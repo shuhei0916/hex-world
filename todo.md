@@ -42,9 +42,9 @@
 ---
 
 ## デバッグオーバーレイ（feature/debug-overlay）
-- [ ] toggle() を呼ぶたびに visible が反転する
-- [ ] refresh(chunk) 後、chunk の全ヘックス分のラベルが生成される
-- [ ] ピース配置済みヘックスではピース名がラベルに含まれる
+- [x] toggle() を呼ぶたびに visible が反転する
+- [x] refresh(chunk) 後、chunk の全ヘックス分のラベルが生成される
+- [x] ピース配置済みヘックスではピース名がラベルに含まれる
 
 ---
 
