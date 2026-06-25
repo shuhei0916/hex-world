@@ -67,10 +67,7 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 			prev.piece_placed.disconnect(sfx_player.on_piece_placed)
 		if prev.piece_removed.is_connected(sfx_player.on_piece_removed):
 			prev.piece_removed.disconnect(sfx_player.on_piece_removed)
-		if prev.piece_placed.is_connected(_on_piece_changed):
-			prev.piece_placed.disconnect(_on_piece_changed)
-		if prev.piece_removed.is_connected(_on_piece_changed):
-			prev.piece_removed.disconnect(_on_piece_changed)
+
 	world.set_active_chunk(chunk_hex)
 	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
@@ -78,13 +75,6 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 		debug_overlay.refresh(chunk)
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
-	chunk.piece_placed.connect(_on_piece_changed)
-	chunk.piece_removed.connect(_on_piece_changed)
-
-
-func _on_piece_changed(_arg = null) -> void:
-	if debug_overlay and debug_overlay.visible:
-		debug_overlay.update_piece_text()
 
 
 func _enter_world_map_mode():

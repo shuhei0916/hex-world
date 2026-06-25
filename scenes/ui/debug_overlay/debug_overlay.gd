@@ -30,8 +30,8 @@ func refresh(chunk) -> void:
 	_update_labels()
 
 
-func update_piece_text() -> void:
-	if _chunk == null:
+func _process(_delta: float) -> void:
+	if not visible or _chunk == null:
 		return
 	_update_labels()
 
