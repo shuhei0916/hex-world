@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://4pii2eovb0nu" path="res://scenes/components/piece_placer/piece_placer.tscn" id="5_piece_placer"]
 [ext_resource type="PackedScene" uid="uid://sfxplayer001" path="res://scenes/main/sfx_player.tscn" id="6_sfx"]
 [ext_resource type="Script" uid="uid://7ybyjnfppj2c" path="res://scenes/components/world/world_map_view.gd" id="7_wmv"]
-[ext_resource type="Script" path="res://scenes/ui/debug_overlay/debug_overlay.gd" id="8_debug"]
+[ext_resource type="Script" uid="uid://ct8qltox54lyh" path="res://scenes/ui/debug_overlay/debug_overlay.gd" id="8_debug"]
 
 [node name="Main" type="Node2D" unique_id=1442817315]
 script = ExtResource("1_l3cfh")
