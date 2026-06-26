@@ -49,6 +49,22 @@ class TestConveyorLogic:
 		conveyor.get_node("ConveyorLogic").tick(0.1)  # progress = 0.2 (前半)
 		assert_false(conveyor.can_accept_item("iron_ore"))
 
+	func test_slot2にアイテムを追加するとget_item_countに反映される():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		assert_eq(conveyor.get_item_count("iron_ore"), 1)
+
+	func test_slot1搬出後slot2がslot1に昇格しget_held_itemで取得できる():
+		var logic = conveyor.get_node("ConveyorLogic")
+		conveyor.add_item("iron_plate", 1)
+		logic.tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		logic.tick(0.25)  # slot1が搬出完了（接続先なし→保持継続）→ここでは搬出されない
+		# 接続先のない状態では搬出されないので、clearを直接呼んでslot1搬出をシミュレート
+		logic._buffer.clear()
+		assert_eq(logic.get_held_item(), "iron_ore")
+
 	func test_ConveyorLogicはadd_itemで受け入れcan_accept_itemで容量を答える():
 		var logic = conveyor.get_node("ConveyorLogic")
 		logic.add_item("iron_plate", 1)
