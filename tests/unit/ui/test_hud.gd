@@ -124,3 +124,11 @@ func test_速度を持たないピース選択で情報パネルのRateLabelが�
 	btn.button_pressed = true
 	hud.on_slot_pressed(6)
 	assert_false(hud.info_panel.rate_label.visible)
+
+
+func test_スロットはバリアントリストを持ちget_scene_for_slotはインデックス0のシーンを返す():
+	# スロット0（コンベア）はバリアントが1つ。インデックス0のシーンが返る
+	var scene = hud.get_scene_for_slot(0)
+	var piece = scene.instantiate()
+	assert_eq(piece.piece_type, PieceData.Type.CONVEYOR)
+	piece.free()

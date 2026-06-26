@@ -1,7 +1,33 @@
 # todo
 ## 製造チェーン・ゲームループ
 - [ ] 入力方向を限定していない現在の設計が適切かを検討する（出力と同じように、入力も固定方向からのみとするべき？）
-- [ ] 各ピースのtier1、tier2状態のモノを追加する（小さなピース、より少ない生産速度）
+
+---
+
+## ピースtier対応（feature/piece-variants）
+
+**方針**: 別シーン方式。`smelter_t1.tscn` / `smelter_t2.tscn` のように tier ごとにシーンを作成。
+HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環する。`PiecePlacer` は変更不要。
+
+### HUD・入力
+- [ ] `_scenes` を `Array[Array[PackedScene]]` に変更し、スロットごとに複数バリアントを持てる
+- [ ] `get_scene_for_slot(index)` は現在のバリアントインデックスに対応するシーンを返す
+- [ ] バリアントが1つのスロットでは `cycle_variant()` を呼んでも変化しない
+- [ ] `cycle_variant()` でアクティブスロットのバリアントが循環する（最後→最初に戻る）
+- [ ] `cycle_variant()` 後に `slot_selected` が新しいシーンで再発火する
+- [ ] スロット切り替え時にバリアントインデックスが0にリセットされる
+- [ ] T キー入力で `cycle_variant()` が呼ばれる（main.gd）
+
+### シーン作成（Smelter を最初のサンプルとして実装）
+- [ ] `smelter.tscn` を `smelter_t2.tscn` にリネームし、既存の形状・速度をそのまま引き継ぐ
+- [ ] `smelter_t1.tscn` を新規作成（1ヘックス、craft_time 遅め）
+- [ ] HUD の Smelter スロットに `variants: [smelter_t1, smelter_t2]` を設定
+
+### 残りのピースへの展開
+- [ ] Miner t1 / t2 シーン作成
+- [ ] Assembler t1 / t2 シーン作成
+- [ ] Cutter t1 / t2 シーン作成
+- [ ] Mixer t1 / t2 シーン作成
 
 ---
 

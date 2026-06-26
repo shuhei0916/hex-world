@@ -10,15 +10,16 @@ const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
-var _scenes: Array[PackedScene] = [
-	CONVEYOR_SCENE,
-	MINER_SCENE,
-	SMELTER_SCENE,
-	ASSEMBLER_SCENE,
-	CUTTER_SCENE,
-	MIXER_SCENE,
-	PAINTER_SCENE,
+var _slot_variants: Array = [
+	[CONVEYOR_SCENE],
+	[MINER_SCENE],
+	[SMELTER_SCENE],
+	[ASSEMBLER_SCENE],
+	[CUTTER_SCENE],
+	[MIXER_SCENE],
+	[PAINTER_SCENE],
 ]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -107,9 +108,10 @@ func _deselect_all_buttons():
 
 
 func get_scene_for_slot(index: int) -> PackedScene:
-	if index < 0 or index >= _scenes.size():
+	if index < 0 or index >= _slot_variants.size():
 		return null
-	return _scenes[index]
+	var variants: Array = _slot_variants[index]
+	return variants[_variant_indices[index]]
 
 
 func deselect():
