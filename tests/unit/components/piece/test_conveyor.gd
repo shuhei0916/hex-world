@@ -155,6 +155,24 @@ class TestConveyorVisuals:
 		var icon2: Sprite2D = conveyor.get_node_or_null("ConveyorVisuals/ItemIcon2")
 		assert_true(icon2 != null and icon2.visible)
 
+	func test_接続先がある場合アイコン位置は終端まで進める():
+		var gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		var conv = gm.get_piece_at_hex(Hex.new(0, 0))
+		var next_conv = gm.get_piece_at_hex(Hex.new(1, 0))
+		# 接続先が詰まった状態でprogress=1.0まで進める
+		next_conv.add_item("iron_plate", 1)
+		conv.add_item("iron_ore", 1)
+		conv.get_node("ConveyorLogic").tick(0.5)
+		conv.get_node("ConveyorVisuals").update_item_icon()
+		var path = conv.get_node("ConveyorVisuals")._path
+		var end_pos = path[path.size() - 1]
+		var icon_pos = conv.get_node("ConveyorVisuals/ItemIcon").position
+		assert_almost_eq(icon_pos, end_pos, Vector2(1.0, 1.0))
+
 	func test_接続先がない場合アイコン位置は0_85を超えない():
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)  # progress = 1.0（端まで到達）
