@@ -39,6 +39,32 @@ class TestConveyorLogic:
 		conveyor.add_item("iron_plate", 1)
 		assert_false(conveyor.can_accept_item("iron_plate"))
 
+	func test_slot1がコンベア後半に達したとき2個目を受け入れられる():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # progress = 0.5 (後半に到達)
+		assert_true(conveyor.can_accept_item("iron_ore"))
+
+	func test_slot1がコンベア前半のとき2個目を受け入れられない():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.1)  # progress = 0.2 (前半)
+		assert_false(conveyor.can_accept_item("iron_ore"))
+
+	func test_slot2にアイテムを追加するとget_item_countに反映される():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		assert_eq(conveyor.get_item_count("iron_ore"), 1)
+
+	func test_slot1搬出後slot2がslot1に昇格しget_held_itemで取得できる():
+		var logic = conveyor.get_node("ConveyorLogic")
+		conveyor.add_item("iron_plate", 1)
+		logic.tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		logic.tick(0.25)  # slot1が搬出完了（接続先なし→保持継続）→ここでは搬出されない
+		# 接続先のない状態では搬出されないので、clearを直接呼んでslot1搬出をシミュレート
+		logic._buffer.clear()
+		assert_eq(logic.get_held_item(), "iron_ore")
+
 	func test_ConveyorLogicはadd_itemで受け入れcan_accept_itemで容量を答える():
 		var logic = conveyor.get_node("ConveyorLogic")
 		logic.add_item("iron_plate", 1)
@@ -118,8 +144,70 @@ class TestConveyorVisuals:
 	func test_直線ベルトのパスは3点():
 		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
-	func test_直線ベルトもプロシージャル描画を使い子ノードはItemIconのみ():
-		assert_eq(conveyor.get_node("ConveyorVisuals").get_child_count(), 1)
+	func test_直線ベルトもプロシージャル描画を使い子ノードはItemIconとItemIcon2のみ():
+		assert_eq(conveyor.get_node("ConveyorVisuals").get_child_count(), 2)
+
+	func test_slot2保持中はItemIcon2が表示される():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var icon2: Sprite2D = conveyor.get_node_or_null("ConveyorVisuals/ItemIcon2")
+		assert_true(icon2 != null and icon2.visible)
+
+	func test_接続先がある場合アイコン位置は終端まで進める():
+		var gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		var conv = gm.get_piece_at_hex(Hex.new(0, 0))
+		var next_conv = gm.get_piece_at_hex(Hex.new(1, 0))
+		# 接続先が詰まった状態でprogress=1.0まで進める
+		next_conv.add_item("iron_plate", 1)
+		conv.add_item("iron_ore", 1)
+		conv.get_node("ConveyorLogic").tick(0.5)
+		conv.get_node("ConveyorVisuals").update_item_icon()
+		var path = conv.get_node("ConveyorVisuals")._path
+		var end_pos = path[path.size() - 1]
+		var icon_pos = conv.get_node("ConveyorVisuals/ItemIcon").position
+		assert_almost_eq(icon_pos, end_pos, Vector2(1.0, 1.0))
+
+	func test_接続先がない場合アイコン位置は0_85を超えない():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.5)  # progress = 1.0（端まで到達）
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var path = conveyor.get_node("ConveyorVisuals")._path
+		var end_pos = path[path.size() - 1]
+		var icon_pos = conveyor.get_node("ConveyorVisuals/ItemIcon").position
+		# アイコンが終端（t=1.0）ではなく手前（t<=0.85）に留まっていること
+		assert_lt(icon_pos.distance_to(Vector2.ZERO), end_pos.distance_to(Vector2.ZERO))
+
+	func test_slot2非保持時はItemIcon2が非表示():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		assert_false(conveyor.get_node("ConveyorVisuals/ItemIcon2").visible)
+
+	func test_ItemIcon2の位置はslot2のprogress_ratioに従う():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		# slot2はprogress_2=0なので入力エッジにある
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var in_edge = conveyor.get_node("ConveyorVisuals")._path[0]
+		assert_almost_eq(
+			conveyor.get_node("ConveyorVisuals/ItemIcon2").position, in_edge, Vector2(0.1, 0.1)
+		)
+
+	func test_slot1搬出後slot2がslot1に昇格しslot2は空になる():
+		var logic = conveyor.get_node("ConveyorLogic")
+		conveyor.add_item("iron_plate", 1)
+		logic.tick(0.25)
+		conveyor.add_item("iron_ore", 1)
+		# slot1搬出をシミュレート
+		logic._buffer.clear()
+		# slot2→slot1に昇格、slot2は空
+		assert_eq(logic._buffer.held_item_2, "")
 
 
 class TestConveyorConnection:

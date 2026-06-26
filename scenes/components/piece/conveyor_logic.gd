@@ -33,8 +33,16 @@ func get_held_item() -> String:
 	return _buffer.held_item
 
 
+func get_held_item_2() -> String:
+	return _buffer.held_item_2
+
+
 func get_progress_ratio() -> float:
 	return _buffer.get_progress_ratio()
+
+
+func get_progress_ratio_2() -> float:
+	return _buffer.get_progress_ratio_2()
 
 
 func get_target_direction() -> int:
