@@ -19,6 +19,7 @@ var _elapsed: float = 0.0
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
 @onready var _item_icon: Sprite2D = $ItemIcon
+@onready var _item_icon_2: Sprite2D = $ItemIcon2
 
 
 static func sample_bezier(
@@ -37,6 +38,8 @@ func _ready():
 	z_as_relative = false
 	_item_icon.z_index = 7
 	_item_icon.z_as_relative = false
+	_item_icon_2.z_index = 7
+	_item_icon_2.z_as_relative = false
 	_piece.shape_changed.connect(refresh_belt)
 	refresh_belt()
 
@@ -133,24 +136,36 @@ func _arc_length(path: PackedVector2Array) -> float:
 func update_item_icon():
 	if not _mover or not _item_icon:
 		return
-	var held_item = _mover.get_held_item()
-	if held_item == "":
-		_item_icon.visible = false
+	_update_slot_icon(_item_icon, _mover.get_held_item(), _mover.get_progress_ratio())
+	if _item_icon_2:
+		var held2 = _mover.get_held_item_2() if _mover.has_method("get_held_item_2") else ""
+		var ratio2 = (
+			_mover.get_progress_ratio_2() if _mover.has_method("get_progress_ratio_2") else 0.0
+		)
+		_update_slot_icon(_item_icon_2, held2, ratio2)
+
+
+func _update_slot_icon(icon: Sprite2D, item_name: String, progress_ratio: float):
+	if item_name == "":
+		icon.visible = false
 		return
-	var item_def = ItemDB.get_item(held_item)
+	var item_def = ItemDB.get_item(item_name)
 	if not item_def:
-		_item_icon.visible = false
+		icon.visible = false
 		return
-	_item_icon.texture = item_def.icon
-	_item_icon.visible = true
-	_item_icon.position = _item_position_on_path()
+	icon.texture = item_def.icon
+	icon.visible = true
+	icon.position = _position_on_path(progress_ratio)
 
 
 func _item_position_on_path() -> Vector2:
+	return _position_on_path(_mover.get_progress_ratio())
+
+
+func _position_on_path(t: float) -> Vector2:
 	var path = _select_active_path()
 	if path.size() < 2:
 		return Vector2.ZERO
-	var t = _mover.get_progress_ratio()
 	var n = path.size() - 1
 	var fi = t * n
 	var i = clampi(int(fi), 0, n - 1)

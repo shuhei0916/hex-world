@@ -21,3 +21,7 @@ script = ExtResource("7_conveyor_visuals")
 [node name="ItemIcon" type="Sprite2D" parent="ConveyorVisuals" unique_id=436012]
 visible = false
 scale = Vector2(0.3, 0.3)
+
+[node name="ItemIcon2" type="Sprite2D" parent="ConveyorVisuals" unique_id=436013]
+visible = false
+scale = Vector2(0.3, 0.3)
