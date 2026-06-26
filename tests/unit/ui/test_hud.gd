@@ -126,6 +126,23 @@ func test_速度を持たないピース選択で情報パネルのRateLabelが�
 	assert_false(hud.info_panel.rate_label.visible)
 
 
+func test_cycle_variantでバリアントが循環しslot_selectedが再発火する():
+	# スロット2（Smelter）に2バリアントをセットアップ
+	const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+	const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+	hud._slot_variants[2] = [SMELTER_SCENE, MINER_SCENE]
+	hud._variant_indices[2] = 0
+	var btn = hud.toolbar.get_child(2) as Button
+	btn.button_pressed = true
+	hud.on_slot_pressed(2)
+
+	watch_signals(hud)
+	hud.cycle_variant()
+
+	assert_eq(hud.get_scene_for_slot(2), MINER_SCENE)
+	assert_signal_emitted_with_parameters(hud, "slot_selected", [MINER_SCENE])
+
+
 func test_バリアントが1つのスロットではcycle_variantを呼んでも変化しない():
 	var btn = hud.toolbar.get_child(0) as Button
 	btn.button_pressed = true
