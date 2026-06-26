@@ -95,11 +95,18 @@ func on_slot_pressed(index: int):
 		slot_selected.emit(null)
 		return
 
+	_reset_other_variant_indices(index)
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
 		slot_selected.emit(get_scene_for_slot(index))
 	else:
 		slot_selected.emit(null)
+
+
+func _reset_other_variant_indices(active_index: int) -> void:
+	for i in _variant_indices.size():
+		if i != active_index:
+			_variant_indices[i] = 0
 
 
 func _deselect_all_buttons():
