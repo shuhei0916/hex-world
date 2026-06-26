@@ -39,6 +39,16 @@ class TestConveyorLogic:
 		conveyor.add_item("iron_plate", 1)
 		assert_false(conveyor.can_accept_item("iron_plate"))
 
+	func test_slot1がコンベア後半に達したとき2個目を受け入れられる():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # progress = 0.5 (後半に到達)
+		assert_true(conveyor.can_accept_item("iron_ore"))
+
+	func test_slot1がコンベア前半のとき2個目を受け入れられない():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.1)  # progress = 0.2 (前半)
+		assert_false(conveyor.can_accept_item("iron_ore"))
+
 	func test_ConveyorLogicはadd_itemで受け入れcan_accept_itemで容量を答える():
 		var logic = conveyor.get_node("ConveyorLogic")
 		logic.add_item("iron_plate", 1)
