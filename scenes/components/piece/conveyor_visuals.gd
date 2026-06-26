@@ -136,7 +136,13 @@ func _arc_length(path: PackedVector2Array) -> float:
 func update_item_icon():
 	if not _mover or not _item_icon:
 		return
-	_update_slot_icon(_item_icon, _mover.get_held_item(), _mover.get_progress_ratio())
+	var has_connection: bool = (
+		_mover.has_method("get_connected_pieces") and not _mover.get_connected_pieces().is_empty()
+	)
+	var ratio1: float = _mover.get_progress_ratio()
+	if not has_connection:
+		ratio1 = minf(ratio1, 0.85)
+	_update_slot_icon(_item_icon, _mover.get_held_item(), ratio1)
 	if _item_icon_2:
 		var held2 = _mover.get_held_item_2() if _mover.has_method("get_held_item_2") else ""
 		var ratio2 = (

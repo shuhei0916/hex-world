@@ -5,13 +5,17 @@
 - [x] slot1のprogress < 0.5 のときslot2にadd_itemできない
 - [x] slot2保持中のget_item_countはslot1+slot2の合計を返す
 - [x] slot1が搬出されるとslot2がslot1に昇格する
-- [ ] 昇格後slot2は空になり再び受け入れ可能になる
+- [x] 昇格後slot2は空になる
 - [x] slot1とslot2それぞれのprogress_ratioが独立して取得できる
+
+### ConveyorVisuals 表示位置クランプ
+- [ ] 接続先がない場合、slot1のビジュアル進行度は0.85を超えない
+- [ ] 接続先がある場合、slot1のビジュアル進行度は1.0まで進む
 
 ### ConveyorVisuals 2アイコン表示
 - [x] slot2保持中はItemIcon2が表示される
 - [x] slot2非保持時はItemIcon2が非表示
-- [ ] ItemIcon2の位置はslot2のprogress_ratioに従う
+- [x] ItemIcon2の位置はslot2のprogress_ratioに従う
 
 ## 製造チェーン・ゲームループ
 - [ ] 入力方向を限定していない現在の設計が適切かを検討する（出力と同じように、入力も固定方向からのみとするべき？）
