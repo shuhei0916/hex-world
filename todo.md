@@ -1,16 +1,16 @@
 # todo
 ## コンベア 2スロット化（feature/conveyor-item-visuals）
 ### TransferBuffer 2スロット化
-- [ ] slot1のprogress >= 0.5 のときslot2にadd_itemできる
-- [ ] slot1のprogress < 0.5 のときslot2にadd_itemできない
-- [ ] slot2保持中のget_item_countはslot1+slot2の合計を返す
-- [ ] slot1が搬出されるとslot2がslot1に昇格する
+- [x] slot1のprogress >= 0.5 のときslot2にadd_itemできる
+- [x] slot1のprogress < 0.5 のときslot2にadd_itemできない
+- [x] slot2保持中のget_item_countはslot1+slot2の合計を返す
+- [x] slot1が搬出されるとslot2がslot1に昇格する
 - [ ] 昇格後slot2は空になり再び受け入れ可能になる
-- [ ] slot1とslot2それぞれのprogress_ratioが独立して取得できる
+- [x] slot1とslot2それぞれのprogress_ratioが独立して取得できる
 
 ### ConveyorVisuals 2アイコン表示
-- [ ] slot2保持中はItemIcon2が表示される
-- [ ] slot2非保持時はItemIcon2が非表示
+- [x] slot2保持中はItemIcon2が表示される
+- [x] slot2非保持時はItemIcon2が非表示
 - [ ] ItemIcon2の位置はslot2のprogress_ratioに従う
 
 ## 製造チェーン・ゲームループ

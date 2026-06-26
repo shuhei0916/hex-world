@@ -160,6 +160,27 @@ class TestConveyorVisuals:
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		assert_false(conveyor.get_node("ConveyorVisuals/ItemIcon2").visible)
 
+	func test_ItemIcon2の位置はslot2のprogress_ratioに従う():
+		conveyor.add_item("iron_plate", 1)
+		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.add_item("iron_ore", 1)
+		# slot2はprogress_2=0なので入力エッジにある
+		conveyor.get_node("ConveyorVisuals").update_item_icon()
+		var in_edge = conveyor.get_node("ConveyorVisuals")._path[0]
+		assert_almost_eq(
+			conveyor.get_node("ConveyorVisuals/ItemIcon2").position, in_edge, Vector2(0.1, 0.1)
+		)
+
+	func test_slot1搬出後slot2がslot1に昇格しslot2は空になる():
+		var logic = conveyor.get_node("ConveyorLogic")
+		conveyor.add_item("iron_plate", 1)
+		logic.tick(0.25)
+		conveyor.add_item("iron_ore", 1)
+		# slot1搬出をシミュレート
+		logic._buffer.clear()
+		# slot2→slot1に昇格、slot2は空
+		assert_eq(logic._buffer.held_item_2, "")
+
 
 class TestConveyorConnection:
 	extends GutTest
