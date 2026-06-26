@@ -126,6 +126,15 @@ func test_速度を持たないピース選択で情報パネルのRateLabelが�
 	assert_false(hud.info_panel.rate_label.visible)
 
 
+func test_バリアントが1つのスロットではcycle_variantを呼んでも変化しない():
+	var btn = hud.toolbar.get_child(0) as Button
+	btn.button_pressed = true
+	hud.on_slot_pressed(0)
+	var before = hud.get_scene_for_slot(0)
+	hud.cycle_variant()
+	assert_eq(hud.get_scene_for_slot(0), before)
+
+
 func test_スロットはバリアントリストを持ちget_scene_for_slotはインデックス0のシーンを返す():
 	# スロット0（コンベア）はバリアントが1つ。インデックス0のシーンが返る
 	var scene = hud.get_scene_for_slot(0)

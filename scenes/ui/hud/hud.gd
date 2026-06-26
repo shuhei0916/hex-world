@@ -114,6 +114,17 @@ func get_scene_for_slot(index: int) -> PackedScene:
 	return variants[_variant_indices[index]]
 
 
+func cycle_variant() -> void:
+	var index = get_active_index()
+	if index < 0:
+		return
+	var variants: Array = _slot_variants[index]
+	if variants.size() <= 1:
+		return
+	_variant_indices[index] = (_variant_indices[index] + 1) % variants.size()
+	slot_selected.emit(get_scene_for_slot(index))
+
+
 func deselect():
 	_deselect_all_buttons()
 	slot_selected.emit(null)
