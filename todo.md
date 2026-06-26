@@ -29,7 +29,26 @@
 
 ---
 
-## リファクタリング
+## リファクタリング（コードレビュー起票 2026-06-26）
+
+### 責務分離
+- [ ] **`Chunk` の責務分割**: `_apply_mining_constraint()` を `ResourceManager` 等の別クラスへ移動。現在 257 行・8 責務が混在
+- [ ] **`Piece` のビジュアル分離**: `_output_arrow` 生成・HexTile 生成を `PieceVisuals` に切り出す
+- [ ] **`Main` の入力処理分離**: 入力ハンドラ（マウス・キー）を `InputHandler` に切り出す
+
+### グローバル依存の軽減
+- [ ] **`Crafter` の `HubGoals` 依存緩和**: グローバルシングルトン参照を減らし、テスト容易性を高める
+
+### 不整合・冗長
+- [ ] **`Main._mode` の削除**: `world.visible` から推論できるため冗長。`is_local_mode()` を `return world.visible` に変更
+- [ ] **`tick()` vs `_process()` の整理**: ロジック系は `tick()`（親が呼ぶ）、ビジュアル系は `_process()`（Godot 自走）の方針をコメントで明文化し、混在箇所を修正
+
+### テスト充実
+- [ ] **`NeighborManager` の接続更新フロー**: 結合テストが薄い。エンドツーエンドで接続更新が正しく伝播するかをテスト化
+- [ ] **エッジケーステスト追加**: グリッド境界へのピース配置試行、リソース枯渇時の鉱山動作
+
+---
+
 - [ ] z_indexではなく、ツリー順で順番を制御したほうがクリーンかも。
 - [ ] `_update_conveyor_input_direction` は単一入力方向しか確定できない。将来の合流実装に備え、複数入力元を扱える設計を検討する。
 - [ ] `_is_physically_connected(source, source_hex, direction)` の `source_hex` 引数は多ヘックスピース向けの名残で、コンベア（1ヘックス）では常にベース座標と同値。整理して引数の意図を明確にする。
