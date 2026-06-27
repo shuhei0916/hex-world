@@ -2,7 +2,7 @@ extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
-var piece_scene = load("res://scenes/components/piece/smelter.tscn")
+var piece_scene = load("res://scenes/components/piece/smelter_t2.tscn")
 var piece: Piece
 
 

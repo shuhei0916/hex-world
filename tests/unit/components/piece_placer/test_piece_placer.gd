@@ -391,7 +391,7 @@ class TestOptimalConveyorDirection:
 		assert_eq(updated.rotation_state, 0, "既存コンベアがEast(rotation=0)に上書きされるべき")
 
 	func test_ドラッグ中に占有済みピースのhexはパスに追加されない():
-		const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+		const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 		chunk.place_piece(SMELTER_SCENE, Hex.new(1, 0))
 		piece_placer.start_drag()
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))

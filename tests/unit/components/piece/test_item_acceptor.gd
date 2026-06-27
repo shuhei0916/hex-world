@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 
 # 機械の受け入れ口は Crafter（入力スロットを内包）。setup でレシピが入り入力容量が定まる。
 var input

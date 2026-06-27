@@ -1,7 +1,7 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const PIECE_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const PIECE_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 
 
 # 容量無制限の受け入れスタブ（round-robin 分配ロジックを実ピースの容量から切り離して検証する）。

@@ -4,7 +4,8 @@ extends CanvasLayer
 signal slot_selected(scene: PackedScene)
 
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
-const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const SMELTER_T1_SCENE = preload("res://scenes/components/piece/smelter_t1.tscn")
+const SMELTER_T2_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
 const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
@@ -13,7 +14,7 @@ const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
 	[MINER_SCENE],
-	[SMELTER_SCENE],
+	[SMELTER_T1_SCENE, SMELTER_T2_SCENE],
 	[ASSEMBLER_SCENE],
 	[CUTTER_SCENE],
 	[MIXER_SCENE],

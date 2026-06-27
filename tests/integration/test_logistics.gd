@@ -7,7 +7,7 @@ class TestPieceLogistics:
 	extends GutTest
 
 	const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
-	const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+	const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
 	var chunk: Chunk

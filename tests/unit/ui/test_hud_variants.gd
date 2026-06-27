@@ -2,7 +2,7 @@ extends GutTest
 
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
 const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
-const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
+const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 
 var hud: HUD
 
