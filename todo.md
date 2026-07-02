@@ -1,4 +1,8 @@
 # todo
+
+- [ ] デバッグ用に、既にすべてがアンロックされている起動モードを追加するか検討する。
+- [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
+
 ## 製造チェーン・ゲームループ
 - [ ] 入力方向を限定していない現在の設計が適切かを検討する（出力と同じように、入力も固定方向からのみとするべき？）
 
@@ -24,10 +28,10 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 - [x] HUD の Smelter スロットに `variants: [smelter_t1, smelter_t2]` を設定
 
 ### 残りのピースへの展開
-- [ ] Miner t1 / t2 シーン作成
-- [ ] Assembler t1 / t2 シーン作成
-- [ ] Cutter t1 / t2 シーン作成
-- [ ] Mixer t1 / t2 シーン作成
+- [x] Miner t1 / t2 シーン作成
+- [x] Assembler t1 / t2 シーン作成
+- [x] Cutter t1 / t2 シーン作成
+- [x] Mixer t1 / t2 シーン作成
 
 ---
 
