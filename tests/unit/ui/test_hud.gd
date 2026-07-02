@@ -103,10 +103,22 @@ func test_選択解除で情報パネルが非表示になる():
 	assert_false(hud.info_panel.visible)
 
 
-func test_機械スロット選択で情報パネルに生産速度が表示される():
+func test_機械スロット選択で情報パネルにt1の生産速度が表示される():
+	# スロット2はSmelter。初期状態はt1（craft_time_multiplier=2.0）なので15/分
 	var btn = hud.toolbar.get_child(2) as Button
 	btn.button_pressed = true
 	hud.on_slot_pressed(2)
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 15/分")
+
+
+func test_Tキーでt2に切り替えると情報パネルの速度が更新される():
+	# スロット2はSmelter。cycle_variantでt2（30/分）に切り替わる
+	HubGoals.gained_rewards["unlock_smelter"] = true
+	hud._refresh_unlock_states()
+	var btn = hud.toolbar.get_child(2) as Button
+	btn.button_pressed = true
+	hud.on_slot_pressed(2)
+	hud.cycle_variant()  # t1→t2
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
 
 
