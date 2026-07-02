@@ -107,6 +107,22 @@ class TestCrafterLogic:
 		crafter.tick(0.34)  # 通常の1.0未満だが 1.0/3≈0.333 は超えるので完成するはず
 		assert_eq(crafter.processing_progress, 0.0, "実効時間を超えたら完成し進捗がリセットされる")
 
+	func test_craft_time_multiplier_2のとき通常の2倍の時間がかかる():
+		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		crafter.craft_time_multiplier = 2.0
+		crafter.start_crafting()
+		crafter.tick(1.0)  # 通常なら完成するが multiplier=2 なので未完成のはず
+		assert_gt(crafter.processing_progress, 0.0, "実効時間2.0秒に達していないので未完成のはず")
+
+	func test_craft_time_multiplier_2のとき2秒で完成する():
+		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		crafter.craft_time_multiplier = 2.0
+		crafter.start_crafting()
+		crafter.tick(2.1)
+		assert_eq(crafter.processing_progress, 0.0, "実効時間を超えたら完成し進捗がリセットされる")
+
 	func test_アウトプットが満杯の場合は開始不可と判定される():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)

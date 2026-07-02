@@ -19,6 +19,7 @@ script = ExtResource("2_cmvld")
 
 [node name="Crafter" type="Node2D" parent="." unique_id=554889115]
 script = ExtResource("3_as18l")
+craft_time_multiplier = 2.0
 
 [node name="ProgressBar" type="ProgressBar" parent="Crafter" unique_id=2009986324]
 visible = false

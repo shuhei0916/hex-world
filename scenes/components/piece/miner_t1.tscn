@@ -20,6 +20,7 @@ script = ExtResource("2_output")
 
 [node name="Crafter" type="Node2D" parent="."]
 script = ExtResource("3_crafter")
+craft_time_multiplier = 2.0
 
 [node name="ProgressBar" type="ProgressBar" parent="Crafter"]
 visible = false

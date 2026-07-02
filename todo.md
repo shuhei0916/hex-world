@@ -3,6 +3,14 @@
 - [ ] デバッグ用に、既にすべてがアンロックされている起動モードを追加するか検討する。
 - [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
 
+## Tierごとの生産速度差別化（feature/tier-speed）
+- [x] `Crafter` に `@export var craft_time_multiplier: float = 1.0` を追加する
+- [x] `_effective_craft_time()` が `craft_time_multiplier` を乗算する
+- [x] `craft_time_multiplier > 1.0` のとき加工時間が長くなる（低速化）
+- [x] 各 t1 シーンの Crafter ノードに `craft_time_multiplier = 2.0` を設定（暫定値・要バランス調整）
+
+---
+
 ## 製造チェーン・ゲームループ
 - [ ] 入力方向を限定していない現在の設計が適切かを検討する（出力と同じように、入力も固定方向からのみとするべき？）
 
