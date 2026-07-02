@@ -3,21 +3,25 @@ extends CanvasLayer
 
 signal slot_selected(scene: PackedScene)
 
-const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const MINER_T1_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
+const MINER_T2_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
 const SMELTER_T1_SCENE = preload("res://scenes/components/piece/smelter_t1.tscn")
 const SMELTER_T2_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
-const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
-const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
-const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
+const ASSEMBLER_T1_SCENE = preload("res://scenes/components/piece/assembler_t1.tscn")
+const ASSEMBLER_T2_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
+const CUTTER_T1_SCENE = preload("res://scenes/components/piece/cutter_t1.tscn")
+const CUTTER_T2_SCENE = preload("res://scenes/components/piece/cutter_t2.tscn")
+const MIXER_T1_SCENE = preload("res://scenes/components/piece/mixer_t1.tscn")
+const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
-	[MINER_SCENE],
+	[MINER_T1_SCENE, MINER_T2_SCENE],
 	[SMELTER_T1_SCENE, SMELTER_T2_SCENE],
-	[ASSEMBLER_SCENE],
-	[CUTTER_SCENE],
-	[MIXER_SCENE],
+	[ASSEMBLER_T1_SCENE, ASSEMBLER_T2_SCENE],
+	[CUTTER_T1_SCENE, CUTTER_T2_SCENE],
+	[MIXER_T1_SCENE, MIXER_T2_SCENE],
 	[PAINTER_SCENE],
 ]
 var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0]

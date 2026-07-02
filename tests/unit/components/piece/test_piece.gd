@@ -1,9 +1,9 @@
 # gdlint:disable=constant-name
 extends GutTest
 
-const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
-const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
+const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
 
 
 class TestMachineCapacity:

@@ -3,7 +3,7 @@ extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
+const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
 const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 
