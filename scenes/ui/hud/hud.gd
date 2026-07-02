@@ -3,22 +3,28 @@ extends CanvasLayer
 
 signal slot_selected(scene: PackedScene)
 
-const MINER_SCENE = preload("res://scenes/components/piece/miner.tscn")
-const SMELTER_SCENE = preload("res://scenes/components/piece/smelter.tscn")
-const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler.tscn")
-const CUTTER_SCENE = preload("res://scenes/components/piece/cutter.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const MIXER_SCENE = preload("res://scenes/components/piece/mixer.tscn")
+const MINER_T1_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
+const MINER_T2_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
+const SMELTER_T1_SCENE = preload("res://scenes/components/piece/smelter_t1.tscn")
+const SMELTER_T2_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
+const ASSEMBLER_T1_SCENE = preload("res://scenes/components/piece/assembler_t1.tscn")
+const ASSEMBLER_T2_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
+const CUTTER_T1_SCENE = preload("res://scenes/components/piece/cutter_t1.tscn")
+const CUTTER_T2_SCENE = preload("res://scenes/components/piece/cutter_t2.tscn")
+const MIXER_T1_SCENE = preload("res://scenes/components/piece/mixer_t1.tscn")
+const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
-var _scenes: Array[PackedScene] = [
-	CONVEYOR_SCENE,
-	MINER_SCENE,
-	SMELTER_SCENE,
-	ASSEMBLER_SCENE,
-	CUTTER_SCENE,
-	MIXER_SCENE,
-	PAINTER_SCENE,
+var _slot_variants: Array = [
+	[CONVEYOR_SCENE],
+	[MINER_T1_SCENE, MINER_T2_SCENE],
+	[SMELTER_T1_SCENE, SMELTER_T2_SCENE],
+	[ASSEMBLER_T1_SCENE, ASSEMBLER_T2_SCENE],
+	[CUTTER_T1_SCENE, CUTTER_T2_SCENE],
+	[MIXER_T1_SCENE, MIXER_T2_SCENE],
+	[PAINTER_SCENE],
 ]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -94,11 +100,18 @@ func on_slot_pressed(index: int):
 		slot_selected.emit(null)
 		return
 
+	_reset_other_variant_indices(index)
 	var btn = slot_buttons[index]
 	if btn.button_pressed:
 		slot_selected.emit(get_scene_for_slot(index))
 	else:
 		slot_selected.emit(null)
+
+
+func _reset_other_variant_indices(active_index: int) -> void:
+	for i in _variant_indices.size():
+		if i != active_index:
+			_variant_indices[i] = 0
 
 
 func _deselect_all_buttons():
@@ -107,9 +120,21 @@ func _deselect_all_buttons():
 
 
 func get_scene_for_slot(index: int) -> PackedScene:
-	if index < 0 or index >= _scenes.size():
+	if index < 0 or index >= _slot_variants.size():
 		return null
-	return _scenes[index]
+	var variants: Array = _slot_variants[index]
+	return variants[_variant_indices[index]]
+
+
+func cycle_variant() -> void:
+	var index = get_active_index()
+	if index < 0:
+		return
+	var variants: Array = _slot_variants[index]
+	if variants.size() <= 1:
+		return
+	_variant_indices[index] = (_variant_indices[index] + 1) % variants.size()
+	slot_selected.emit(get_scene_for_slot(index))
 
 
 func deselect():
