@@ -70,25 +70,26 @@ func _on_slot_selected_for_info(scene: PackedScene):
 		info_panel.clear()
 		return
 	var piece = scene.instantiate()
-	info_panel.show_info(
-		piece.piece_name, piece.piece_description, _rate_text_for_type(piece.piece_type)
-	)
+	info_panel.show_info(piece.piece_name, piece.piece_description, _rate_text_for_piece(piece))
 	piece.free()
 
 
-# ピース種別の基準速度（個/分）を表示用テキストにする。速度を持たないピースは空文字。
-func _rate_text_for_type(piece_type: PieceData.Type) -> String:
-	var rate = _items_per_minute_for_type(piece_type)
+# ピースの実効速度（個/分）を表示用テキストにする。速度を持たないピースは空文字。
+func _rate_text_for_piece(piece: Node) -> String:
+	var rate = _items_per_minute_for_piece(piece)
 	if rate <= 0.0:
 		return ""
 	return "スピード: %d/分" % roundi(rate)
 
 
-# 機械はレシピの基準速度、コンベアは TransferBuffer の搬送間隔から算出。
-func _items_per_minute_for_type(piece_type: PieceData.Type) -> float:
+# 機械はレシピ速度÷craft_time_multiplier、コンベアは TransferBuffer の搬送間隔から算出。
+func _items_per_minute_for_piece(piece: Node) -> float:
+	var piece_type: PieceData.Type = piece.piece_type
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
 	if not recipes.is_empty():
-		return recipes[0].items_per_minute()
+		var crafter = piece.get_node_or_null("Crafter")
+		var multiplier: float = crafter.craft_time_multiplier if crafter else 1.0
+		return recipes[0].items_per_minute() / multiplier
 	if piece_type == PieceData.Type.CONVEYOR:
 		return 60.0 / TransferBuffer.TRANSFER_TIME
 	return 0.0
