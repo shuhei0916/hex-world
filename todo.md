@@ -4,10 +4,10 @@
 - [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
 
 ## Tierごとの生産速度差別化（feature/tier-speed）
-- [ ] `Crafter` に `@export var craft_time_multiplier: float = 1.0` を追加する
-- [ ] `_effective_craft_time()` が `craft_time_multiplier` を乗算する
-- [ ] `craft_time_multiplier > 1.0` のとき加工時間が長くなる（低速化）
-- [ ] 各 t1 シーンの Crafter ノードに適切な `craft_time_multiplier` を設定する
+- [x] `Crafter` に `@export var craft_time_multiplier: float = 1.0` を追加する
+- [x] `_effective_craft_time()` が `craft_time_multiplier` を乗算する
+- [x] `craft_time_multiplier > 1.0` のとき加工時間が長くなる（低速化）
+- [x] 各 t1 シーンの Crafter ノードに `craft_time_multiplier = 2.0` を設定（暫定値・要バランス調整）
 
 ---
 
