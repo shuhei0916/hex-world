@@ -11,6 +11,8 @@ extends Node
 # 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
 const CRAFTING_START_PROGRESS = 0.001
 
+@export var craft_time_multiplier: float = 1.0
+
 var current_recipe: Recipe
 var processing_progress: float = 0.0
 var output_multiplier: int = 1
@@ -111,7 +113,7 @@ func tick(delta: float):
 
 # output_multiplier は生産個数ではなく速度に作用する（鉱床が濃いほど速く加工）。
 func _effective_craft_time() -> float:
-	return current_recipe.craft_time / output_multiplier
+	return current_recipe.craft_time / output_multiplier * craft_time_multiplier
 
 
 func _can_start_crafting() -> bool:
