@@ -39,6 +39,7 @@ var _scene_types: Array[PieceData.Type] = [
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
 @onready var info_panel: PieceInfoPanel = $PieceInfoPanel
+@onready var variant_panel: VariantPanel = $VariantPanel
 @onready var _button_group: ButtonGroup = (
 	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
 )
@@ -72,6 +73,29 @@ func _on_slot_selected_for_info(scene: PackedScene):
 	var piece = scene.instantiate()
 	info_panel.show_info(piece.piece_name, piece.piece_description, _rate_text_for_piece(piece))
 	piece.free()
+	var slot_index = get_active_index()
+	_refresh_variant_row(slot_index)
+
+
+func _refresh_variant_row(slot_index: int) -> void:
+	if slot_index < 0:
+		variant_panel.clear()
+		return
+	var variants: Array = _slot_variants[slot_index]
+	if variants.size() <= 1:
+		variant_panel.clear()
+		return
+	var labels: Array[String] = []
+	for i in variants.size():
+		labels.append("T%d" % (i + 1))
+	variant_panel.show_variants(
+		labels, _variant_indices[slot_index], func(vi: int): _select_variant(slot_index, vi)
+	)
+
+
+func _select_variant(slot_index: int, variant_index: int) -> void:
+	_variant_indices[slot_index] = variant_index
+	slot_selected.emit(get_scene_for_slot(slot_index))
 
 
 # ピースの実効速度（個/分）を表示用テキストにする。速度を持たないピースは空文字。
@@ -135,11 +159,13 @@ func cycle_variant() -> void:
 	if variants.size() <= 1:
 		return
 	_variant_indices[index] = (_variant_indices[index] + 1) % variants.size()
+	_refresh_variant_row(index)
 	slot_selected.emit(get_scene_for_slot(index))
 
 
 func deselect():
 	_deselect_all_buttons()
+	variant_panel.clear()
 	slot_selected.emit(null)
 
 
