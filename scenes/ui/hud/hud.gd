@@ -158,6 +158,7 @@ func cycle_variant() -> void:
 	if variants.size() <= 1:
 		return
 	_variant_indices[index] = (_variant_indices[index] + 1) % variants.size()
+	_refresh_variant_row(index)
 	slot_selected.emit(get_scene_for_slot(index))
 
 

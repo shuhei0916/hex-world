@@ -17,7 +17,7 @@ func show_info(piece_name: String, piece_description: String, rate_text: String 
 
 func show_variants(labels: Array[String], active_index: int, on_pressed: Callable) -> void:
 	for child in variant_row.get_children():
-		child.queue_free()
+		child.free()
 	for i in labels.size():
 		var btn := Button.new()
 		btn.text = labels[i]
