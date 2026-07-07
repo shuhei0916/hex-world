@@ -72,6 +72,29 @@ func _on_slot_selected_for_info(scene: PackedScene):
 	var piece = scene.instantiate()
 	info_panel.show_info(piece.piece_name, piece.piece_description, _rate_text_for_piece(piece))
 	piece.free()
+	var slot_index = get_active_index()
+	_refresh_variant_row(slot_index)
+
+
+func _refresh_variant_row(slot_index: int) -> void:
+	if slot_index < 0:
+		info_panel.hide_variants()
+		return
+	var variants: Array = _slot_variants[slot_index]
+	if variants.size() <= 1:
+		info_panel.hide_variants()
+		return
+	var labels: Array[String] = []
+	for i in variants.size():
+		labels.append("T%d" % (i + 1))
+	info_panel.show_variants(
+		labels, _variant_indices[slot_index], func(vi: int): _select_variant(slot_index, vi)
+	)
+
+
+func _select_variant(slot_index: int, variant_index: int) -> void:
+	_variant_indices[slot_index] = variant_index
+	slot_selected.emit(get_scene_for_slot(slot_index))
 
 
 # ピースの実効速度（個/分）を表示用テキストにする。速度を持たないピースは空文字。
