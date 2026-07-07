@@ -39,6 +39,7 @@ var _scene_types: Array[PieceData.Type] = [
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
 @onready var info_panel: PieceInfoPanel = $PieceInfoPanel
+@onready var variant_panel: VariantPanel = $VariantPanel
 @onready var _button_group: ButtonGroup = (
 	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
 )
@@ -78,16 +79,16 @@ func _on_slot_selected_for_info(scene: PackedScene):
 
 func _refresh_variant_row(slot_index: int) -> void:
 	if slot_index < 0:
-		info_panel.hide_variants()
+		variant_panel.clear()
 		return
 	var variants: Array = _slot_variants[slot_index]
 	if variants.size() <= 1:
-		info_panel.hide_variants()
+		variant_panel.clear()
 		return
 	var labels: Array[String] = []
 	for i in variants.size():
 		labels.append("T%d" % (i + 1))
-	info_panel.show_variants(
+	variant_panel.show_variants(
 		labels, _variant_indices[slot_index], func(vi: int): _select_variant(slot_index, vi)
 	)
 
@@ -164,6 +165,7 @@ func cycle_variant() -> void:
 
 func deselect():
 	_deselect_all_buttons()
+	variant_panel.clear()
 	slot_selected.emit(null)
 
 
