@@ -81,6 +81,17 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 
 ---
 
+## 事前リファクタリング（refactor/pre-chunk-ports）
+
+- [x] `Main._mode` を削除し、`is_local_mode()` が `world.visible` を返す（既存テストで担保）
+- [x] `Chunk` の資源関連ロジック（`_resources` / `mark_resource_hex` / `get_hex_resource` / `generate_ore_deposits` / `_apply_mining_constraint`）を `ChunkResources` に分離する
+	- [x] `ChunkResources.mark_resource_hex` / `get_resource` が資源を記録・取得できる
+	- [x] `ChunkResources.apply_mining_constraint` が鉱床0のMINERのレシピをnullにする
+	- [x] `ChunkResources.apply_mining_constraint` が鉱床数をoutput_multiplierに設定する
+	- [x] `Chunk` の既存公開API（mark_resource_hex 等）は委譲として維持され、既存テストが通る
+
+---
+
 ## リファクタリング（コードレビュー起票 2026-06-26）
 
 ### 責務分離

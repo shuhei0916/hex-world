@@ -1,10 +1,6 @@
 class_name Main
 extends Node2D
 
-enum Mode { LOCAL, WORLD_MAP }
-
-var _mode: Mode = Mode.LOCAL
-
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
 @onready var world_map_view: WorldMapView = $WorldMapView
@@ -28,7 +24,7 @@ func _ready():
 
 
 func is_local_mode() -> bool:
-	return _mode == Mode.LOCAL
+	return world.visible
 
 
 func _on_hud_slot_selected(scene: PackedScene):
@@ -56,7 +52,7 @@ func _handle_key_input(event):
 
 
 func _toggle_mode():
-	if _mode == Mode.LOCAL:
+	if is_local_mode():
 		_enter_world_map_mode()
 	else:
 		_enter_local_mode()
@@ -80,7 +76,6 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 
 
 func _enter_world_map_mode():
-	_mode = Mode.WORLD_MAP
 	world.visible = false
 	world_map_view.visible = true
 	world_map_view.setup(world)
@@ -89,7 +84,6 @@ func _enter_world_map_mode():
 
 
 func _enter_local_mode():
-	_mode = Mode.LOCAL
 	world.visible = true
 	world_map_view.visible = false
 
@@ -103,10 +97,10 @@ func _handle_mouse_motion(event):
 func _handle_mouse_click(event):
 	if not event is InputEventMouseButton:
 		return
-	if _mode == Mode.WORLD_MAP:
-		_handle_world_map_click(event)
-	else:
+	if is_local_mode():
 		_handle_local_click(event)
+	else:
+		_handle_world_map_click(event)
 
 
 func _handle_world_map_click(event: InputEventMouseButton) -> void:
