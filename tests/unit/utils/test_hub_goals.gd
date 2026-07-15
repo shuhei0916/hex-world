@@ -52,3 +52,17 @@ class TestHubGoalsRewards:
 		for i in range(10):
 			hub_goals.advance_level()
 		assert_eq(hub_goals.level, 11)
+
+
+class TestHubGoalsCreativeMode:
+	extends GutTest
+
+	var hub_goals: Node
+
+	func before_each():
+		hub_goals = HUB_GOALS_SCRIPT.new()
+		add_child_autofree(hub_goals)
+
+	func test_クリエイティブモード中は未取得の報酬もtrueを返す():
+		hub_goals.creative_mode = true
+		assert_true(hub_goals.is_reward_unlocked("unlock_smelter"))

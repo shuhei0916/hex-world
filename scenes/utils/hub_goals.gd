@@ -12,6 +12,7 @@ const LEVELS = [
 
 var level: int = 1
 var gained_rewards: Dictionary = {}
+var creative_mode: bool = false
 
 
 func get_current_goal() -> Dictionary:
@@ -22,6 +23,8 @@ func get_current_goal() -> Dictionary:
 
 
 func is_reward_unlocked(reward: String) -> bool:
+	if creative_mode:
+		return true
 	if reward == "":
 		return true
 	return gained_rewards.get(reward, false)
