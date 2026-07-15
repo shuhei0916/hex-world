@@ -45,6 +45,8 @@ func _handle_key_input(event):
 			debug_overlay.toggle()
 			if debug_overlay.visible:
 				debug_overlay.refresh(world.get_active_chunk())
+		elif event.keycode == KEY_F3:
+			HubGoals.toggle_creative_mode()
 		elif event.is_action_pressed("rotate_piece") and is_local_mode():
 			piece_placer.rotate_current_piece()
 		elif event.keycode == KEY_T and is_local_mode():

@@ -10,7 +10,7 @@ F3 キーでトグル（F2 はデバッグオーバーレイで使用済み）�
 - [x] `toggle_creative_mode()` で `creative_mode` が反転する
 - [x] `toggle_creative_mode()` で `unlocks_changed` シグナルが発火する
 - [x] HUD が `unlocks_changed` 受信で全スロットボタンを有効化する
-- [ ] F3 キー押下で `HubGoals.toggle_creative_mode()` が呼ばれる（main 経由）
+- [x] F3 キー押下で `HubGoals.toggle_creative_mode()` が呼ばれる（main 経由）
 - [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
 
 ## Tierごとの生産速度差別化（feature/tier-speed）
