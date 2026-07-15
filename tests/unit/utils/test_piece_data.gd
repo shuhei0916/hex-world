@@ -50,3 +50,9 @@ class TestPieceDataUnlock:
 	func test_SMELTERはunlock_smelter取得済みのときアンロックされる():
 		HubGoals.gained_rewards["unlock_smelter"] = true
 		assert_true(PieceData.is_unlocked(PieceData.Type.SMELTER))
+
+	func test_SENDERは常にアンロック済み():
+		assert_true(PieceData.is_unlocked(PieceData.Type.SENDER))
+
+	func test_RECEIVERは常にアンロック済み():
+		assert_true(PieceData.is_unlocked(PieceData.Type.RECEIVER))

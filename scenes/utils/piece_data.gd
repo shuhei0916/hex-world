@@ -11,6 +11,8 @@ enum Type {
 	ASSEMBLER,
 	CHEST,
 	HUB,
+	SENDER,
+	RECEIVER,
 }
 
 # 各 Type に対応するアンロック報酬キー。"" は常時アンロック。
@@ -24,6 +26,8 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.CUTTER: "unlock_cutter_and_splitter",
 	Type.MIXER: "unlock_mixer",
 	Type.PAINTER: "unlock_mixer",
+	Type.SENDER: "",
+	Type.RECEIVER: "",
 }
 
 

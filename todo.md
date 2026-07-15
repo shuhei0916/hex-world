@@ -12,16 +12,18 @@ World は「配線」（点対称位置の相手解決 → set_connected_pieces�
 - [x] 角ヘックスは -1 を返す
 - [x] 内側ヘックスは -1 を返す
 
-### Sender ピース
-- [ ] Sender はアイテムを1個受け入れて保持する（acceptor インターフェース）
-- [ ] 保持中は can_accept_item が false（容量1）
-- [ ] 接続先（Receiver）が受け入れ可能なら tick でアイテムを渡す（既存 ejector 再利用）
-- [ ] 接続先不在・満杯時はアイテムを保持し続ける
-- [ ] 辺ヘックス以外には設置できない
+### Sender / Receiver ピース
+**方式**: どちらも ConveyorLogic を持つピース（＝配線元が違うコンベア）。搬送ロジックの新規実装なし。
+Sender は出力ポートを持たない（port_direction=-1）ため NeighborManager はチャンク内配線しない。
+Receiver の下流配線は既存 NeighborManager がそのまま担う。
 
-### Receiver ピース
-- [ ] acceptor としてアイテムを受け入れる（既存 Input 再利用）
-- [ ] 受け取ったアイテムを下流の接続先へ搬出する（既存 Output/ejector 再利用）
+- [x] PieceData.Type に SENDER / RECEIVER を追加（アンロック条件なし）
+- [ ] sender.tscn: アイテムを受け入れて保持する
+- [ ] sender: set_connected_pieces で接続した相手（別チャンクのピース）へ tick で渡せる
+- [ ] sender: 接続先不在ならアイテムを保持し続ける
+- [ ] sender: チャンク内の隣接ピースへは自動配線されない（出力ポートなし）
+- [ ] receiver.tscn: アイテムを受け入れ、チャンク内の下流へ搬出する（既存配線で動く）
+- [ ] sender/receiver は辺ヘックス以外には設置できない
 
 ### World 配線
 - [ ] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
