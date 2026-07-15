@@ -24,7 +24,7 @@ Receiver の下流配線は既存 NeighborManager がそのまま担う。
 - [x] sender: チャンク内の隣接ピースへは自動配線されない（NeighborManager が SENDER を除外）
 - [x] receiver.tscn: アイテムを受け入れ、チャンク内の下流へ搬出する（既存配線で動く）
 - [x] sender/receiver は辺ヘックス以外には設置できない（Chunk.can_place に piece_type 引数を追加）
-- [ ] PiecePlacer が can_place に piece_type を渡す（UI経由の設置でも制約が効く）
+- [x] PiecePlacer が can_place に piece_type を渡す（UI経由の設置でも制約が効く）
 
 ### World 配線
 - [x] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
@@ -34,7 +34,7 @@ Receiver の下流配線は既存 NeighborManager がそのまま担う。
 - [x] 非アクティブ（非表示）チャンクの Receiver でも受信できる（結合テスト）
 
 ### UI・結線
-- [ ] HUD ツールバーに Sender / Receiver スロットを追加
+- [x] HUD ツールバーに Sender / Receiver スロットを追加（スロット8「送」・9「受」）
 - [ ] （目視）配置・搬送・詰まりの画面確認
 
 

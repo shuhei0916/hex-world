@@ -15,6 +15,8 @@ const CUTTER_T2_SCENE = preload("res://scenes/components/piece/cutter_t2.tscn")
 const MIXER_T1_SCENE = preload("res://scenes/components/piece/mixer_t1.tscn")
 const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
+const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
+const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
 	[MINER_T1_SCENE, MINER_T2_SCENE],
@@ -23,8 +25,10 @@ var _slot_variants: Array = [
 	[CUTTER_T1_SCENE, CUTTER_T2_SCENE],
 	[MIXER_T1_SCENE, MIXER_T2_SCENE],
 	[PAINTER_SCENE],
+	[SENDER_SCENE],
+	[RECEIVER_SCENE],
 ]
-var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -34,6 +38,8 @@ var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CUTTER,
 	PieceData.Type.MIXER,
 	PieceData.Type.PAINTER,
+	PieceData.Type.SENDER,
+	PieceData.Type.RECEIVER,
 ]
 
 @onready var toolbar: HBoxContainer = $ToolBar

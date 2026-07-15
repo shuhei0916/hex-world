@@ -22,6 +22,7 @@ var selected_scene: PackedScene
 var _last_drag_hex: Hex = null
 var _selected_color: Color
 var _is_conveyor: bool = false
+var _selected_piece_type: int = -1
 var _selected_port_direction: int = -1
 var _selected_port_hex: Vector2i = Vector2i.ZERO
 var _conveyor_drag_path: Array[Hex] = []
@@ -71,6 +72,7 @@ func select_piece(scene: PackedScene):
 		current_piece_shape = piece.get_hex_shape()
 		_selected_color = piece.piece_color
 		_is_conveyor = (piece.piece_type == PieceData.Type.CONVEYOR)
+		_selected_piece_type = piece.piece_type
 		_selected_port_direction = piece.port_direction
 		_selected_port_hex = piece.port_hex
 		piece.free()
@@ -183,7 +185,7 @@ func _place_piece_at(target_hex: Hex) -> bool:
 		return false
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
-	if chunk.can_place(current_piece_shape, target_hex):
+	if chunk.can_place(current_piece_shape, target_hex, _selected_piece_type):
 		var rotation := current_rotation
 		if _is_conveyor:
 			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6

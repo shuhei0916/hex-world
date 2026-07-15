@@ -66,6 +66,22 @@ unicode = 55
 [sub_resource type="Shortcut" id="Shortcut_m7evv"]
 events = [SubResource("InputEventKey_a660p")]
 
+[sub_resource type="InputEventKey" id="InputEventKey_slot8"]
+device = -1
+keycode = 56
+unicode = 56
+
+[sub_resource type="Shortcut" id="Shortcut_slot8"]
+events = [SubResource("InputEventKey_slot8")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_slot9"]
+device = -1
+keycode = 57
+unicode = 57
+
+[sub_resource type="Shortcut" id="Shortcut_slot9"]
+events = [SubResource("InputEventKey_slot9")]
+
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hqnrr")
 
@@ -154,6 +170,22 @@ expand_icon = true
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_m7evv")
 
+[node name="Slot8" type="Button" parent="ToolBar"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+toggle_mode = true
+text = "送"
+button_group = ExtResource("2_qao66")
+shortcut = SubResource("Shortcut_slot8")
+
+[node name="Slot9" type="Button" parent="ToolBar"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+toggle_mode = true
+text = "受"
+button_group = ExtResource("2_qao66")
+shortcut = SubResource("Shortcut_slot9")
+
 [node name="PieceInfoPanel" parent="." instance=ExtResource("20_infopanel")]
 
 [node name="VariantPanel" parent="." instance=ExtResource("21_vp")]
@@ -165,3 +197,5 @@ shortcut = SubResource("Shortcut_m7evv")
 [connection signal="pressed" from="ToolBar/Slot5" to="." method="on_slot_pressed" binds= [4]]
 [connection signal="pressed" from="ToolBar/Slot6" to="." method="on_slot_pressed" binds= [5]]
 [connection signal="pressed" from="ToolBar/Slot7" to="." method="on_slot_pressed" binds= [6]]
+[connection signal="pressed" from="ToolBar/Slot8" to="." method="on_slot_pressed" binds= [7]]
+[connection signal="pressed" from="ToolBar/Slot9" to="." method="on_slot_pressed" binds= [8]]

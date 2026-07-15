@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
@@ -16,6 +17,14 @@ func before_each():
 func after_each():
 	HubGoals.gained_rewards.clear()
 	HubGoals.creative_mode = false
+
+
+func test_スロット8はSenderである():
+	assert_eq(_get_slot_piece_type(7), PieceData.Type.SENDER)
+
+
+func test_スロット9はReceiverである():
+	assert_eq(_get_slot_piece_type(8), PieceData.Type.RECEIVER)
 
 
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
