@@ -27,11 +27,11 @@ Receiver の下流配線は既存 NeighborManager がそのまま担う。
 - [ ] PiecePlacer が can_place に piece_type を渡す（UI経由の設置でも制約が効く）
 
 ### World 配線
-- [ ] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
-- [ ] Receiver 設置時、隣接チャンクの点対称位置に Sender があれば接続される（後置きでも配線される）
-- [ ] 隣接チャンク未生成・Receiver 不在なら接続されない（Sender は詰まる）
-- [ ] Sender/Receiver の撤去で配線が解除される
-- [ ] 非アクティブ（非表示）チャンクの Receiver でも受信できる（結合テスト）
+- [x] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
+- [x] Receiver 設置時、隣接チャンクの点対称位置に Sender があれば接続される（後置きでも配線される）
+- [x] 隣接チャンク未生成・Receiver 不在なら接続されない（Sender は詰まる）
+- [x] Sender/Receiver の撤去で配線が解除される
+- [x] 非アクティブ（非表示）チャンクの Receiver でも受信できる（結合テスト）
 
 ### UI・結線
 - [ ] HUD ツールバーに Sender / Receiver スロットを追加

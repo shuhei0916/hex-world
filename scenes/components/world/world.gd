@@ -15,7 +15,49 @@ func create_chunk(chunk_hex: Hex) -> Chunk:
 	add_child(chunk)
 	_chunks[key] = chunk
 	_chunk_hexes.append(chunk_hex)
+	chunk.piece_placed.connect(_on_piece_placed)
+	chunk.piece_removed.connect(_rewire_all_senders)
 	return chunk
+
+
+# ---- チャンク間配線 ---------------------------------------------------------
+# Sender の接続先は隣接チャンクの点対称位置にある Receiver。
+# 搬送自体は既存の acceptor/ejector 機構がそのまま行うため、World は配線のみを担う。
+
+
+func _on_piece_placed(piece: Piece):
+	if piece.piece_type == PieceData.Type.SENDER or piece.piece_type == PieceData.Type.RECEIVER:
+		_rewire_all_senders()
+
+
+func _rewire_all_senders():
+	for chunk_hex in _chunk_hexes:
+		var chunk = get_chunk(chunk_hex)
+		for piece in chunk.get_all_pieces():
+			if piece.piece_type == PieceData.Type.SENDER:
+				_wire_sender(chunk_hex, chunk, piece)
+
+
+func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
+	var base_hex = chunk.get_base_hex(sender)
+	var edge_dir = chunk.get_edge_direction(base_hex)
+	var receiver = _find_receiver(chunk_hex, base_hex, edge_dir)
+	if receiver:
+		sender.set_connected_pieces([receiver], [edge_dir])
+	else:
+		sender.set_connected_pieces([])
+
+
+func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
+	if edge_dir == -1:
+		return null
+	var target_chunk = get_chunk(Hex.neighbor(chunk_hex, edge_dir))
+	if target_chunk == null:
+		return null
+	var piece = target_chunk.get_piece_at_hex(Hex.scale(sender_hex, -1))
+	if piece and piece.piece_type == PieceData.Type.RECEIVER:
+		return piece
+	return null
 
 
 func get_chunk_hexes() -> Array[Hex]:

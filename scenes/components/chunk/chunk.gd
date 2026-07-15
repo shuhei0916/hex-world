@@ -119,6 +119,10 @@ func get_piece_at_hex(hex: Hex) -> Piece:
 	return _registry.get_piece_at_hex(hex)
 
 
+func get_all_pieces() -> Array:
+	return _registry.get_all_pieces()
+
+
 func get_piece_count() -> int:
 	return _registry.get_all_pieces().size()
 
