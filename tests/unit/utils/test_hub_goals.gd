@@ -75,3 +75,8 @@ class TestHubGoalsCreativeMode:
 	func test_toggle_creative_modeでフラグが反転する():
 		hub_goals.toggle_creative_mode()
 		assert_true(hub_goals.creative_mode)
+
+	func test_toggle_creative_modeでunlocks_changedシグナルが発火する():
+		watch_signals(hub_goals)
+		hub_goals.toggle_creative_mode()
+		assert_signal_emitted(hub_goals, "unlocks_changed")

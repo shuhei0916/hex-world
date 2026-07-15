@@ -1,6 +1,7 @@
 extends Node
 
 signal level_up(new_level: int, reward: String)
+signal unlocks_changed
 
 const LEVELS = [
 	{"goal_item": "iron_ore", "required": 10, "reward": "unlock_smelter"},
@@ -32,6 +33,7 @@ func is_reward_unlocked(reward: String) -> bool:
 
 func toggle_creative_mode():
 	creative_mode = not creative_mode
+	unlocks_changed.emit()
 
 
 func advance_level():
