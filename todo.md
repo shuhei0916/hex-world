@@ -1,5 +1,40 @@
 # todo
 
+## チャンク間転送（feature/chunk-transporter）
+
+**方針**: Sender/Receiver は別ピース。搬送は既存の acceptor/ejector 参照ベース機構をそのまま再利用し、
+World は「配線」（点対称位置の相手解決 → set_connected_pieces）のみを担う。
+辺ヘックス（座標1つだけが±R）にのみ設置可。角ヘックス（座標2つが±R）はどの辺にも属さない。
+受信位置は Sender の点対称位置（h → -h）。当面アンロック条件なし。
+
+### 辺方向判定
+- [x] 辺ヘックスは get_edge_direction() が属する辺方向 0〜5 を返す
+- [x] 角ヘックスは -1 を返す
+- [x] 内側ヘックスは -1 を返す
+
+### Sender ピース
+- [ ] Sender はアイテムを1個受け入れて保持する（acceptor インターフェース）
+- [ ] 保持中は can_accept_item が false（容量1）
+- [ ] 接続先（Receiver）が受け入れ可能なら tick でアイテムを渡す（既存 ejector 再利用）
+- [ ] 接続先不在・満杯時はアイテムを保持し続ける
+- [ ] 辺ヘックス以外には設置できない
+
+### Receiver ピース
+- [ ] acceptor としてアイテムを受け入れる（既存 Input 再利用）
+- [ ] 受け取ったアイテムを下流の接続先へ搬出する（既存 Output/ejector 再利用）
+
+### World 配線
+- [ ] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
+- [ ] Receiver 設置時、隣接チャンクの点対称位置に Sender があれば接続される（後置きでも配線される）
+- [ ] 隣接チャンク未生成・Receiver 不在なら接続されない（Sender は詰まる）
+- [ ] Sender/Receiver の撤去で配線が解除される
+- [ ] 非アクティブ（非表示）チャンクの Receiver でも受信できる（結合テスト）
+
+### UI・結線
+- [ ] HUD ツールバーに Sender / Receiver スロットを追加
+- [ ] （目視）配置・搬送・詰まりの画面確認
+
+
 ## クリエイティブモード（feature/creative-mode）
 
 **方針**: `HubGoals` に `creative_mode: bool` を追加し、`is_reward_unlocked()` が creative_mode 時は常に true を返す。

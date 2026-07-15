@@ -178,6 +178,23 @@ func get_outer_hexes() -> Array[Hex]:
 	return result
 
 
+# 辺ヘックスが属する辺の方向（0〜5）を返す。角・内側ヘックスは -1。
+# 辺は「座標1つだけが±R」で判定し、その座標の符号と一致する成分を持つ方向に対応させる。
+# 対辺は正確に逆方向（+3 mod 6）になる。
+func get_edge_direction(hex: Hex) -> int:
+	var on_edge := [
+		hex.q == grid_radius,  # E(0)
+		hex.r == -grid_radius,  # NE(1)
+		hex.s == grid_radius,  # NW(2)
+		hex.q == -grid_radius,  # W(3)
+		hex.r == grid_radius,  # SW(4)
+		hex.s == -grid_radius,  # SE(5)
+	]
+	if on_edge.count(true) != 1:
+		return -1
+	return on_edge.find(true)
+
+
 func mark_resource_hex(hex: Hex, resource_type: String):
 	_resources.mark_resource_hex(hex, resource_type)
 	var tile = find_hex_tile(hex)
