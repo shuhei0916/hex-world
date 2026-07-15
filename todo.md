@@ -1,6 +1,16 @@
 # todo
 
-- [ ] デバッグ用に、既にすべてがアンロックされている起動モードを追加するか検討する。
+## クリエイティブモード（feature/creative-mode）
+
+**方針**: `HubGoals` に `creative_mode: bool` を追加し、`is_reward_unlocked()` が creative_mode 時は常に true を返す。
+F3 キーでトグル（F2 はデバッグオーバーレイで使用済み）。永続化なし・起動ごとにリセット。
+
+- [x] `creative_mode = true` のとき、未取得の報酬でも `is_reward_unlocked()` が true を返す
+- [x] `creative_mode = false` に戻すと `gained_rewards` に基づく判定に戻る
+- [x] `toggle_creative_mode()` で `creative_mode` が反転する
+- [x] `toggle_creative_mode()` で `unlocks_changed` シグナルが発火する
+- [x] HUD が `unlocks_changed` 受信で全スロットボタンを有効化する
+- [x] F3 キー押下で `HubGoals.toggle_creative_mode()` が呼ばれる（main 経由）
 - [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
 
 ## Tierごとの生産速度差別化（feature/tier-speed）
@@ -65,10 +75,11 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 ---
 
 ## コンベア
-- [ ] **つなぎ目の改善**: draw_polyline の端点で隣接ベルトとの微細な隙間が発生する問題。
-  対策候補: 端点円キャップ / ヘックス境界を越えてパスを延長
+- [ ] **つなぎ目の改善**（fix/belt-seam）: 調査済み（2026-07-14）。原因は各ピースがヘックス辺中点で描画を打ち切ることによるサブピクセルの隙間（背景が透ける）。
+  対策: 接続がある側のパス端点を1〜2px外側へ延長して隣とオーバーラップさせる（`ConveyorVisuals.refresh_belt()` の修正）
+- [ ] **搬出時の余剰deltaの持ち越し**: `TransferBuffer.advance()` で TRANSFER_TIME 超過分を捨てているため境界ごとに最大1フレーム停滞する。超過分を搬出先の初期 progress に渡す（微差・任意）
 - [ ] **設置UXの改善**: shapez2 のようにパス収集＋自動向き決定方式を検討
-- [ ] **BeltPath 化**: 1ヘックス=最大1アイテムの制約を緩和し、複数アイテムを載せる再設計
+- [ ] ~~**BeltPath 化**~~: 検討の結果不採用（2026-07-14）。shapez.io の belt_path.js は約1700行でパス分割/結合の複雑さが大きく、本作の規模ではパフォーマンス動機がない。切れ目は描画修正で解決可能。大規模化する場合に再検討
 - [ ] コンベアの分岐において、アイテムが満たされたあと、片方の分岐のベルトコンベアのみを延長した際、延長していないコンベアの根元から、延長したコンベアへアイテムが瞬間移動したように見えるバグを修正する
 - [ ] コンベアで180度逆方向の分岐を作った際のバグを修正する。
 

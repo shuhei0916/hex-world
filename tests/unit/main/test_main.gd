@@ -71,6 +71,19 @@ func _make_space_event() -> InputEventKey:
 	return event
 
 
+func _make_f3_event() -> InputEventKey:
+	var event = InputEventKey.new()
+	event.keycode = KEY_F3
+	event.pressed = true
+	return event
+
+
+func test_F3キーでクリエイティブモードがトグルされる():
+	main._handle_key_input(_make_f3_event())
+	assert_true(HubGoals.creative_mode)
+	HubGoals.creative_mode = false
+
+
 func test_初期モードはローカルマップ():
 	assert_true(main.is_local_mode())
 

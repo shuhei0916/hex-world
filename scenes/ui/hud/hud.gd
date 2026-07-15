@@ -49,6 +49,7 @@ func _ready():
 	info_panel.clear()
 	slot_selected.connect(_on_slot_selected_for_info)
 	HubGoals.level_up.connect(_on_level_up)
+	HubGoals.unlocks_changed.connect(_refresh_unlock_states)
 	_refresh_unlock_states()
 
 

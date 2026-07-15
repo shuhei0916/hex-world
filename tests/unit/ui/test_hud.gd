@@ -15,6 +15,15 @@ func before_each():
 
 func after_each():
 	HubGoals.gained_rewards.clear()
+	HubGoals.creative_mode = false
+
+
+func test_unlocks_changed受信で未アンロックのスロットが有効になる():
+	var smelter_btn = hud.toolbar.get_child(2) as Button
+	assert_true(smelter_btn.disabled, "前提: Smelterスロットは初期状態でロック")
+	HubGoals.creative_mode = true
+	HubGoals.unlocks_changed.emit()
+	assert_false(smelter_btn.disabled)
 
 
 func test_アクティブスロット変更でUIハイライトが更新される():
