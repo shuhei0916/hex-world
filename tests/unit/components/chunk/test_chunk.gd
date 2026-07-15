@@ -247,6 +247,22 @@ class TestEdgeDirection:
 	func test_内側ヘックスはマイナス1を返す():
 		assert_eq(gm.get_edge_direction(Hex.new(0, 0, 0)), -1)
 
+	func test_SENDERは内側ヘックスに設置できない():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_false(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.SENDER))
+
+	func test_SENDERは辺ヘックスに設置できる():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_true(gm.can_place(shape, Hex.new(2, -1, -1), PieceData.Type.SENDER))
+
+	func test_RECEIVERは角ヘックスに設置できない():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_false(gm.can_place(shape, Hex.new(2, -2, 0), PieceData.Type.RECEIVER))
+
+	func test_通常ピースは内側ヘックスに設置できる():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_true(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.CONVEYOR))
+
 
 class TestOreDeposits:
 	extends GutTest

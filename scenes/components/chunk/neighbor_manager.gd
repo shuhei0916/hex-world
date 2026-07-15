@@ -33,6 +33,10 @@ func update_connections_around(piece: Piece, precalculated_hexes = null) -> void
 func _update_piece_neighbors(piece: Piece) -> void:
 	if not is_instance_valid(piece):
 		return
+	# SENDER の出力はチャンク間配線（World が管理）専用。
+	# チャンク内で配線すると World の配線を上書きしてしまうため対象外とする。
+	if piece.piece_type == PieceData.Type.SENDER:
+		return
 
 	var current_connections: Array[Piece] = []
 	var current_directions: Array[int] = []  # 各接続への出力方向(0-5)

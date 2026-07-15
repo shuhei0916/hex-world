@@ -56,8 +56,14 @@ func occupy(hex: Hex):
 	_hex_grid.occupy(hex)
 
 
-func can_place(shape: Array, base_hex: Hex) -> bool:
+func can_place(shape: Array, base_hex: Hex, piece_type: int = -1) -> bool:
+	if _requires_edge(piece_type) and get_edge_direction(base_hex) == -1:
+		return false
 	return _hex_grid.can_place(shape, base_hex)
+
+
+func _requires_edge(piece_type: int) -> bool:
+	return piece_type == PieceData.Type.SENDER or piece_type == PieceData.Type.RECEIVER
 
 
 func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):

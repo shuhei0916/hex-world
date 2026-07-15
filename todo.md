@@ -18,12 +18,13 @@ Sender は出力ポートを持たない（port_direction=-1）ため NeighborMa
 Receiver の下流配線は既存 NeighborManager がそのまま担う。
 
 - [x] PieceData.Type に SENDER / RECEIVER を追加（アンロック条件なし）
-- [ ] sender.tscn: アイテムを受け入れて保持する
-- [ ] sender: set_connected_pieces で接続した相手（別チャンクのピース）へ tick で渡せる
-- [ ] sender: 接続先不在ならアイテムを保持し続ける
-- [ ] sender: チャンク内の隣接ピースへは自動配線されない（出力ポートなし）
-- [ ] receiver.tscn: アイテムを受け入れ、チャンク内の下流へ搬出する（既存配線で動く）
-- [ ] sender/receiver は辺ヘックス以外には設置できない
+- [x] sender.tscn: アイテムを受け入れて保持する
+- [x] sender: set_connected_pieces で接続した相手（別チャンクのピース）へ tick で渡せる
+- [x] sender: 接続先不在ならアイテムを保持し続ける
+- [x] sender: チャンク内の隣接ピースへは自動配線されない（NeighborManager が SENDER を除外）
+- [x] receiver.tscn: アイテムを受け入れ、チャンク内の下流へ搬出する（既存配線で動く）
+- [x] sender/receiver は辺ヘックス以外には設置できない（Chunk.can_place に piece_type 引数を追加）
+- [ ] PiecePlacer が can_place に piece_type を渡す（UI経由の設置でも制約が効く）
 
 ### World 配線
 - [ ] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
