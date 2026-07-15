@@ -6,8 +6,8 @@
 F3 キーでトグル（F2 はデバッグオーバーレイで使用済み）。永続化なし・起動ごとにリセット。
 
 - [x] `creative_mode = true` のとき、未取得の報酬でも `is_reward_unlocked()` が true を返す
-- [ ] `creative_mode = false` に戻すと `gained_rewards` に基づく判定に戻る
-- [ ] `toggle_creative_mode()` で `creative_mode` が反転する
+- [x] `creative_mode = false` に戻すと `gained_rewards` に基づく判定に戻る
+- [x] `toggle_creative_mode()` で `creative_mode` が反転する
 - [ ] `toggle_creative_mode()` で `unlocks_changed` シグナルが発火する
 - [ ] HUD が `unlocks_changed` 受信で全スロットボタンを有効化する
 - [ ] F3 キー押下で `HubGoals.toggle_creative_mode()` が呼ばれる（main 経由）

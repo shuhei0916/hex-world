@@ -30,6 +30,10 @@ func is_reward_unlocked(reward: String) -> bool:
 	return gained_rewards.get(reward, false)
 
 
+func toggle_creative_mode():
+	creative_mode = not creative_mode
+
+
 func advance_level():
 	var goal = get_current_goal()
 	var reward = goal.get("reward", "")

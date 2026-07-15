@@ -66,3 +66,12 @@ class TestHubGoalsCreativeMode:
 	func test_クリエイティブモード中は未取得の報酬もtrueを返す():
 		hub_goals.creative_mode = true
 		assert_true(hub_goals.is_reward_unlocked("unlock_smelter"))
+
+	func test_クリエイティブモード解除後は通常の判定に戻る():
+		hub_goals.creative_mode = true
+		hub_goals.creative_mode = false
+		assert_false(hub_goals.is_reward_unlocked("unlock_smelter"))
+
+	func test_toggle_creative_modeでフラグが反転する():
+		hub_goals.toggle_creative_mode()
+		assert_true(hub_goals.creative_mode)
