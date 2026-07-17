@@ -107,6 +107,12 @@ class TestReceiverHints:
 		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
 		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-2, 1, 1))])
 
+	func test_Receiver設置済みの位置は候補から除外される():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, 1, 1))
+		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
+		assert_eq(hints, [])
+
 
 class TestWorldChunkManagement:
 	extends GutTest

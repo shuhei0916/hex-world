@@ -72,8 +72,11 @@ func get_receiver_hint_hexes(chunk_hex: Hex) -> Array:
 			var edge_dir = other.get_edge_direction(sender_hex)
 			if edge_dir == -1:
 				continue
-			if Hex.to_key(Hex.neighbor(other_hex, edge_dir)) == Hex.to_key(chunk_hex):
-				result.append(Hex.scale(sender_hex, -1))
+			if Hex.to_key(Hex.neighbor(other_hex, edge_dir)) != Hex.to_key(chunk_hex):
+				continue
+			var mirror = Hex.scale(sender_hex, -1)
+			if get_chunk(chunk_hex).get_piece_at_hex(mirror) == null:
+				result.append(mirror)
 	return result
 
 
