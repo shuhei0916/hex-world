@@ -107,3 +107,11 @@ func set_active_chunk(chunk_hex: Hex):
 	var chunk = get_chunk(chunk_hex)
 	if chunk:
 		chunk.visible = true
+	_update_receiver_hints()
+
+
+func _update_receiver_hints():
+	var chunk = get_active_chunk()
+	if chunk == null:
+		return
+	chunk.show_receiver_hints(get_receiver_hint_hexes(_active_hex))

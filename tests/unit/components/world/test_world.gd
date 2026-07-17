@@ -107,6 +107,11 @@ class TestReceiverHints:
 		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
 		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-2, 1, 1))])
 
+	func test_アクティブチャンク切替でヒントがハイライトされる():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		world.set_active_chunk(Hex.new(1, 0))
+		assert_true(chunk_b.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
 	func test_Receiver設置済みの位置は候補から除外される():
 		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
 		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, 1, 1))
