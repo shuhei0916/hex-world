@@ -112,6 +112,12 @@ class TestReceiverHints:
 		world.set_active_chunk(Hex.new(1, 0))
 		assert_true(chunk_b.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
 
+	func test_Sender撤去でアクティブチャンクのヒントが消える():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		world.set_active_chunk(Hex.new(1, 0))
+		chunk_a.remove_piece_at(Hex.new(2, -1, -1))
+		assert_false(chunk_b.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
 	func test_Receiver設置済みの位置は候補から除外される():
 		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
 		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, 1, 1))

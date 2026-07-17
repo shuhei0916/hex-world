@@ -36,6 +36,7 @@ func _rewire_all_senders():
 		for piece in chunk.get_all_pieces():
 			if piece.piece_type == PieceData.Type.SENDER:
 				_wire_sender(chunk_hex, chunk, piece)
+	_update_receiver_hints()
 
 
 func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
