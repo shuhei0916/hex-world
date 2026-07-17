@@ -278,6 +278,11 @@ class TestReceiverHints:
 		gm.show_receiver_hints([Hex.new(-2, 1, 1)])
 		assert_true(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
 
+	func test_再表示で前回のハイライトはクリアされる():
+		gm.show_receiver_hints([Hex.new(-2, 1, 1)])
+		gm.show_receiver_hints([])
+		assert_false(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
 
 class TestOreDeposits:
 	extends GutTest
