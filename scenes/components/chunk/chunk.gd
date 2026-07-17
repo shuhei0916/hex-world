@@ -26,6 +26,7 @@ var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Hex] = []
 var _resources = preload("res://scenes/components/chunk/chunk_resources.gd").new()
+var _hint_hexes: Array = []
 
 
 func _init():
@@ -203,6 +204,19 @@ func get_edge_direction(hex: Hex) -> int:
 	if on_edge.count(true) != 1:
 		return -1
 	return on_edge.find(true)
+
+
+# Receiver の設置候補位置をハイライトする。呼ぶたびに前回分はクリアされる。
+func show_receiver_hints(hexes: Array):
+	for hex in _hint_hexes:
+		var tile = find_hex_tile(hex)
+		if tile:
+			tile.set_highlight(false)
+	_hint_hexes = hexes.duplicate()
+	for hex in _hint_hexes:
+		var tile = find_hex_tile(hex)
+		if tile:
+			tile.set_highlight(true)
 
 
 func mark_resource_hex(hex: Hex, resource_type: String):

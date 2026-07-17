@@ -264,6 +264,21 @@ class TestEdgeDirection:
 		assert_true(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.CONVEYOR))
 
 
+class TestReceiverHints:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_show_receiver_hintsで指定タイルがハイライトされる():
+		gm.show_receiver_hints([Hex.new(-2, 1, 1)])
+		assert_true(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
+
 class TestOreDeposits:
 	extends GutTest
 
