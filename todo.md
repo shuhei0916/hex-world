@@ -42,14 +42,12 @@ Receiver の下流配線は既存 NeighborManager がそのまま担う。
 背景: 辺⇔隣接チャンク方向は30°ずれるため、Receiver をどこに置けばよいか直感で分からない。
 Sender の対岸（点対称位置）をハイライトし、置き場所を一目で分かるようにする。
 
-- [ ] World.get_receiver_hint_hexes(chunk_hex): 隣接チャンクの Sender の点対称位置一覧を返す
-- [ ] 対応する Sender がなければ空を返す
-- [ ] すでに Receiver が置かれている位置は候補から除外される
-- [ ] Sender 撤去で候補から消える
-- [ ] Chunk.show_receiver_hints(hexes): 指定タイルがハイライトされる
-- [ ] ハイライトは再表示のたびに前回分がクリアされる
-- [ ] World: アクティブチャンク切替時・配線更新時にアクティブチャンクのヒントが更新される
-- [ ] （目視）ハイライトの見た目確認（色調整）
+- [x] World.get_receiver_hint_hexes(chunk_hex): 隣接チャンクの Sender の点対称位置一覧を返す
+- [x] すでに Receiver が置かれている位置は候補から除外される
+- [x] Chunk.show_receiver_hints(hexes): 指定タイルがハイライトされる
+- [x] ハイライトは再表示のたびに前回分がクリアされる
+- [x] World: アクティブチャンク切替時・配線更新時にアクティブチャンクのヒントが更新される
+- [x] （目視）ハイライトの見た目確認（Receiver橙の暗色に調整、2026-07-18）
 - [ ] Sender/Receiver の接続状態可視化（矢印・色）※ハイライト実装後に着手
 
 

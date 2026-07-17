@@ -8,7 +8,8 @@ extends Node2D
 var hex_coordinate: Hex
 var is_highlighted: bool = false
 var normal_color: Color = Color("#3D3D3D")
-var highlight_color: Color = Color("#7c7c7c")
+# 受信候補ヒント用。Receiver のピース色（橙）を暗くした色
+var highlight_color: Color = Color(0.55, 0.35, 0.25)
 var _current_color: Color  # 追加: 現在のHexの色 (ピースの色が優先される)
 
 @onready var _sprite: Sprite2D = $Sprite2D
