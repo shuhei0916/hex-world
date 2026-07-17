@@ -60,6 +60,23 @@ func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
 	return null
 
 
+# chunk_hex のチャンクに向いた隣接チャンクの Sender の点対称位置（＝Receiver を置くべき位置）を返す
+func get_receiver_hint_hexes(chunk_hex: Hex) -> Array:
+	var result = []
+	for other_hex in _chunk_hexes:
+		var other = get_chunk(other_hex)
+		for piece in other.get_all_pieces():
+			if piece.piece_type != PieceData.Type.SENDER:
+				continue
+			var sender_hex = other.get_base_hex(piece)
+			var edge_dir = other.get_edge_direction(sender_hex)
+			if edge_dir == -1:
+				continue
+			if Hex.to_key(Hex.neighbor(other_hex, edge_dir)) == Hex.to_key(chunk_hex):
+				result.append(Hex.scale(sender_hex, -1))
+	return result
+
+
 func get_chunk_hexes() -> Array[Hex]:
 	return _chunk_hexes.duplicate()
 
