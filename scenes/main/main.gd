@@ -93,6 +93,8 @@ func _enter_local_mode():
 	world.visible = true
 	hud.visible = true
 	piece_placer.visible = true
+	if debug_overlay.visible:
+		debug_overlay.refresh(world.get_active_chunk())
 	world_map_view.visible = false
 
 
