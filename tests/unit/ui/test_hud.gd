@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
@@ -155,3 +156,8 @@ func test_スロットはバリアントリストを持ちget_scene_for_slotは�
 	var piece = scene.instantiate()
 	assert_eq(piece.piece_type, PieceData.Type.CONVEYOR)
 	piece.free()
+
+
+func test_set_chunk_coordinateで左上ラベルにチャンク座標が表示される():
+	hud.set_chunk_coordinate(Hex.new(1, 0))
+	assert_eq(hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
