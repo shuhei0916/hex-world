@@ -117,6 +117,11 @@ func _make_left_click_event(pos: Vector2) -> InputEventMouseButton:
 	return event
 
 
+func test_ワールドマップ時はHUDが非表示():
+	main._handle_key_input(_make_space_event())
+	assert_false(main.hud.visible)
+
+
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
 	main._handle_world_map_chunk_selected(Hex.new(0, 0))

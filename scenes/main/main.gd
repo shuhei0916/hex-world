@@ -79,6 +79,7 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 
 func _enter_world_map_mode():
 	world.visible = false
+	hud.visible = false
 	world_map_view.visible = true
 	world_map_view.setup(world)
 	if world.get_active_hex() != null:

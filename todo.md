@@ -1,5 +1,18 @@
 # todo
 
+## ワールドマップUI整備（fix/world-map-ui）
+
+**方針**: ワールドマップはチャンク選択専用の画面。ローカル編集用UI（HUD・ピースプレビュー）は非表示にする。
+F2 デバッグオーバーレイはワールドマップでも効くようにし、チャンク座標を表示する。
+
+- [ ] ワールドマップモードで HUD が非表示になる
+- [ ] ローカルモードに戻ると HUD が再表示される
+- [ ] ワールドマップモードで PiecePlacer（手持ちプレビュー）が非表示になる
+- [ ] ローカルモードに戻ると PiecePlacer が再表示される
+- [ ] DebugOverlay.refresh_world_map で各チャンクの座標ラベルが生成される
+- [ ] F2 表示中にワールドマップへ切り替えるとチャンク座標ラベルに切り替わる
+- [ ] （目視）ワールドマップ画面の確認
+
 ## クリエイティブモード（feature/creative-mode）
 
 **方針**: `HubGoals` に `creative_mode: bool` を追加し、`is_reward_unlocked()` が creative_mode 時は常に true を返す。
