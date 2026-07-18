@@ -88,6 +88,7 @@ func _enter_world_map_mode():
 
 func _enter_local_mode():
 	world.visible = true
+	hud.visible = true
 	world_map_view.visible = false
 
 
