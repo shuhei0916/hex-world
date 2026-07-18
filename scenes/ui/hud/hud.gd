@@ -176,6 +176,10 @@ func deselect():
 	slot_selected.emit(null)
 
 
+func set_chunk_coordinate(chunk_hex: Hex) -> void:
+	$ChunkCoordLabel.text = "Chunk: %d, %d" % [chunk_hex.q, chunk_hex.r]
+
+
 func get_active_index() -> int:
 	if not _button_group:
 		return -1
