@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
@@ -126,6 +127,11 @@ func test_ローカルモードに戻るとHUDが再表示される():
 	main._handle_key_input(_make_space_event())
 	main._handle_key_input(_make_space_event())
 	assert_true(main.hud.visible)
+
+
+func test_ワールドマップ時はPiecePlacerが非表示():
+	main._handle_key_input(_make_space_event())
+	assert_false(main.piece_placer.visible)
 
 
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
