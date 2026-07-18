@@ -140,6 +140,19 @@ func test_ローカルモードに戻るとPiecePlacerが再表示される():
 	assert_true(main.piece_placer.visible)
 
 
+func _make_f2_event() -> InputEventKey:
+	var event = InputEventKey.new()
+	event.keycode = KEY_F2
+	event.pressed = true
+	return event
+
+
+func test_F2表示中にワールドマップへ切り替えるとチャンク座標ラベルになる():
+	main._handle_key_input(_make_f2_event())
+	main._handle_key_input(_make_space_event())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+
+
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
 	main._handle_world_map_chunk_selected(Hex.new(0, 0))

@@ -85,6 +85,8 @@ func _enter_world_map_mode():
 	world_map_view.setup(world)
 	if world.get_active_hex() != null:
 		world_map_view.set_active_chunk(world.get_active_hex())
+	if debug_overlay.visible:
+		debug_overlay.refresh_world_map(world_map_view, world.get_chunk_hexes())
 
 
 func _enter_local_mode():
