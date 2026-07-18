@@ -39,6 +39,17 @@ class TestRefresh:
 		overlay.refresh(chunk)
 		assert_eq(overlay.get_label_count(), chunk.get_grid_hex_count())
 
+	func test_refresh_world_map後にチャンク数分の座標ラベルが生成される():
+		var world = load("res://scenes/components/world/world.gd").new()
+		add_child_autofree(world)
+		world.create_chunk(Hex.new(0, 0))
+		world.create_chunk(Hex.new(1, 0))
+		var view = WorldMapView.new()
+		add_child_autofree(view)
+		view.setup(world)
+		overlay.refresh_world_map(view, world.get_chunk_hexes())
+		assert_eq(overlay.get_label_count(), 2)
+
 	func test_ピース配置済みヘックスのラベルにはピース名が含まれる():
 		var conveyor_scene = load("res://scenes/components/piece/conveyor.tscn")
 		chunk.place_piece(conveyor_scene, Hex.new(0, 0))

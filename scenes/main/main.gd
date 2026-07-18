@@ -43,8 +43,7 @@ func _handle_key_input(event):
 			_toggle_mode()
 		elif event.keycode == KEY_F2:
 			debug_overlay.toggle()
-			if debug_overlay.visible:
-				debug_overlay.refresh(world.get_active_chunk())
+			_refresh_debug_overlay()
 		elif event.keycode == KEY_F3:
 			HubGoals.toggle_creative_mode()
 		elif event.is_action_pressed("rotate_piece") and is_local_mode():
@@ -71,23 +70,39 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 	world.set_active_chunk(chunk_hex)
 	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
-	if debug_overlay and debug_overlay.visible:
-		debug_overlay.refresh(chunk)
+	hud.set_chunk_coordinate(chunk_hex)
+	_refresh_debug_overlay()
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
 
 
 func _enter_world_map_mode():
 	world.visible = false
+	hud.visible = false
+	piece_placer.visible = false
 	world_map_view.visible = true
 	world_map_view.setup(world)
 	if world.get_active_hex() != null:
 		world_map_view.set_active_chunk(world.get_active_hex())
+	_refresh_debug_overlay()
 
 
 func _enter_local_mode():
 	world.visible = true
+	hud.visible = true
+	piece_placer.visible = true
 	world_map_view.visible = false
+	_refresh_debug_overlay()
+
+
+# デバッグ表示の内容は現在のモードだけで決まるようここに一元化する
+func _refresh_debug_overlay():
+	if not debug_overlay or not debug_overlay.visible:
+		return
+	if is_local_mode():
+		debug_overlay.refresh(world.get_active_chunk())
+	else:
+		debug_overlay.refresh_world_map(world_map_view, world.get_chunk_hexes())
 
 
 func _handle_mouse_motion(event):

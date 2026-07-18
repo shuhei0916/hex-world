@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
@@ -115,6 +116,61 @@ func _make_left_click_event(pos: Vector2) -> InputEventMouseButton:
 	event.pressed = true
 	event.position = pos
 	return event
+
+
+func test_ワールドマップ時はHUDが非表示():
+	main._handle_key_input(_make_space_event())
+	assert_false(main.hud.visible)
+
+
+func test_ローカルモードに戻るとHUDが再表示される():
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_space_event())
+	assert_true(main.hud.visible)
+
+
+func test_ワールドマップ時はPiecePlacerが非表示():
+	main._handle_key_input(_make_space_event())
+	assert_false(main.piece_placer.visible)
+
+
+func test_ローカルモードに戻るとPiecePlacerが再表示される():
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_space_event())
+	assert_true(main.piece_placer.visible)
+
+
+func _make_f2_event() -> InputEventKey:
+	var event = InputEventKey.new()
+	event.keycode = KEY_F2
+	event.pressed = true
+	return event
+
+
+func test_F2表示中にワールドマップへ切り替えるとチャンク座標ラベルになる():
+	main._handle_key_input(_make_f2_event())
+	main._handle_key_input(_make_space_event())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+
+
+func test_ワールドマップ表示中にF2を押すとチャンク座標ラベルが表示される():
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_f2_event())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+
+
+func test_F2表示中にローカルへ戻るとヘックス座標ラベルに戻る():
+	main._handle_key_input(_make_f2_event())
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_space_event())
+	var expected = main.world.get_active_chunk().get_grid_hex_count()
+	assert_eq(main.debug_overlay.get_label_count(), expected)
+
+
+func test_チャンク切替でHUDの座標ラベルが更新される():
+	main._handle_key_input(_make_space_event())
+	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	assert_eq(main.hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
