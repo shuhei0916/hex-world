@@ -70,6 +70,7 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 	world.set_active_chunk(chunk_hex)
 	var chunk = world.get_active_chunk()
 	piece_placer.setup(chunk)
+	hud.set_chunk_coordinate(chunk_hex)
 	_refresh_debug_overlay()
 	chunk.piece_placed.connect(sfx_player.on_piece_placed)
 	chunk.piece_removed.connect(sfx_player.on_piece_removed)
