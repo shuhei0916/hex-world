@@ -153,6 +153,12 @@ func test_F2表示中にワールドマップへ切り替えるとチャンク�
 	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
 
 
+func test_ワールドマップ表示中にF2を押すとチャンク座標ラベルが表示される():
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_f2_event())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+
+
 func test_F2表示中にローカルへ戻るとヘックス座標ラベルに戻る():
 	main._handle_key_input(_make_f2_event())
 	main._handle_key_input(_make_space_event())
