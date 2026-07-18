@@ -134,6 +134,12 @@ func test_ワールドマップ時はPiecePlacerが非表示():
 	assert_false(main.piece_placer.visible)
 
 
+func test_ローカルモードに戻るとPiecePlacerが再表示される():
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_space_event())
+	assert_true(main.piece_placer.visible)
+
+
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
 	main._handle_world_map_chunk_selected(Hex.new(0, 0))
