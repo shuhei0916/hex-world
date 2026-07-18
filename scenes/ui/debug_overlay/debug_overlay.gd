@@ -30,6 +30,21 @@ func refresh(chunk) -> void:
 	_update_labels()
 
 
+# ワールドマップ用: 各チャンクタイルの位置に座標ラベルを表示する
+func refresh_world_map(view, chunk_hexes) -> void:
+	_chunk = null
+	for child in get_children():
+		child.queue_free()
+	for hex in chunk_hexes:
+		var label := Label.new()
+		label.size = _LABEL_SIZE
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.position = view.position + view.get_tile_position(hex) - _LABEL_SIZE / 2
+		label.text = "%d, %d" % [hex.q, hex.r]
+		add_child(label)
+
+
 func _process(_delta: float) -> void:
 	if not visible or _chunk == null:
 		return
