@@ -76,12 +76,24 @@ class TestChunkWiring:
 	func test_辺方向とworldmap上の隣接方向のズレを補正して配線される():
 		# chunk(0,0)のhex(3,2)(s=-5, SEの辺)は、worldmap(flat-top)上では
 		# (1,0)方向に隣接する(pointy⇔flatの角度ズレによりedge_dir+1が真の隣接方向)。
+		# 辺内の対応位置は単純な原点対称ではなくq,rを入れ替えた(-2,-3,5)。
 		chunk_a.grid_radius = 5
 		chunk_b.grid_radius = 5
 		chunk_a.place_piece(SENDER_SCENE, Hex.new(3, 2, -5))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-3, -2, 5))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, -3, 5))
 		var sender = chunk_a.get_piece_at_hex(Hex.new(3, 2, -5))
-		var receiver = chunk_b.get_piece_at_hex(Hex.new(-3, -2, 5))
+		var receiver = chunk_b.get_piece_at_hex(Hex.new(-2, -3, 5))
+		assert_eq(sender.get_connected_pieces(), [receiver])
+
+	func test_点対称位置ではなく辺内の対応位置に配線される():
+		# chunk(0,0)のhex(4,1,-5)(SEの辺、q=radius寄りの端)は、
+		# 単純な原点対称(-4,-1,5)ではなく、辺内で対応する位置(-1,-4,5)に配線される。
+		chunk_a.grid_radius = 5
+		chunk_b.grid_radius = 5
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(4, 1, -5))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -4, 5))
+		var sender = chunk_a.get_piece_at_hex(Hex.new(4, 1, -5))
+		var receiver = chunk_b.get_piece_at_hex(Hex.new(-1, -4, 5))
 		assert_eq(sender.get_connected_pieces(), [receiver])
 
 	func test_非アクティブチャンクのReceiverへアイテムが届く():
