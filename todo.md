@@ -50,6 +50,19 @@ Sender の対岸（点対称位置）をハイライトし、置き場所を一�
 - [x] （目視）ハイライトの見た目確認（Receiver橙の暗色に調整、2026-07-18）
 - [ ] Sender/Receiver の接続状態可視化（矢印・色）※ハイライト実装後に着手
 
+### 辺方向とワールド隣接方向の30度ズレ修正
+背景: チャンク内部は pointy-top レイアウト、world map は flat-top レイアウトで描画されており、
+同じ方向インデックス（0=E〜5=SE）でもピクセル角度が60度（インデックス1つ分）ズレる。
+実測: chunk(0,0)のhex(3,2)はget_edge_direction()でSE(5)と判定されるが、
+world map上で実際に隣接するのはchunk(1,0)（= (5+1)%6 = E(0)方向）であり、(0,1)ではない。
+修正方針: World._find_receiver()・World.get_receiver_hint_hexes() 内の
+Hex.neighbor(chunk_hex, edge_dir) を Hex.neighbor(chunk_hex, (edge_dir + 1) % 6) に変更する。
+Sender自身のローカル排出方向（set_connected_pieces の edge_dir 引数）は補正不要（pointy-topのローカル描画のまま正しいため）。
+
+- [x] chunk(0,0)のhex(3,2)にSenderを置くと、chunk(1,0)のhex(-3,-2)に配線される（現状は誤ってchunk(0,1)に配線される）
+- [x] 既存のチャンク間配線テスト群を、補正後の正しい隣接チャンク座標に合わせて修正する
+- [x] 受信候補ハイライト（get_receiver_hint_hexes）も補正後の正しい隣接チャンクを対象にする
+
 ## ワールドマップUI整備（fix/world-map-ui）
 
 **方針**: ワールドマップはチャンク選択専用の画面。ローカル編集用UI（HUD・ピースプレビュー）は非表示にする。

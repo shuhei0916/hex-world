@@ -10,8 +10,8 @@ class TestChunkWiring:
 	const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
 	const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
 
-	# 東(0)の辺ヘックスとその点対称位置
-	const SENDER_HEX_QRS = [2, -1, -1]
+	# SE(5)の辺ヘックスとその点対称位置(pointy⇔flatのズレ補正によりworldmap上の東隣(1,0)に接続)
+	const SENDER_HEX_QRS = [1, 1, -2]
 
 	var world
 	var chunk_a: Chunk
@@ -26,10 +26,10 @@ class TestChunkWiring:
 		chunk_b.create_hex_grid(2)
 
 	func _sender_hex() -> Hex:
-		return Hex.new(2, -1, -1)
+		return Hex.new(1, 1, -2)
 
 	func _receiver_hex() -> Hex:
-		return Hex.new(-2, 1, 1)
+		return Hex.new(-1, -1, 2)
 
 	func test_Receiverを後置きするとSenderが配線される():
 		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
@@ -66,11 +66,22 @@ class TestChunkWiring:
 	func test_南東チャンクへも点対称位置で配線される():
 		var chunk_c = world.create_chunk(Hex.new(0, 1))  # 南東隣
 		chunk_c.create_hex_grid(2)
-		# s=-R の辺（南東の辺）: (1,1,-2)
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		chunk_c.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
-		var sender = chunk_a.get_piece_at_hex(Hex.new(1, 1, -2))
-		var receiver = chunk_c.get_piece_at_hex(Hex.new(-1, -1, 2))
+		# r=R の辺（W(4)の辺、pointy⇔flat補正でworldmap上のSE(5)=南東隣へ接続）
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(-1, 2, -1))
+		chunk_c.place_piece(RECEIVER_SCENE, Hex.new(1, -2, 1))
+		var sender = chunk_a.get_piece_at_hex(Hex.new(-1, 2, -1))
+		var receiver = chunk_c.get_piece_at_hex(Hex.new(1, -2, 1))
+		assert_eq(sender.get_connected_pieces(), [receiver])
+
+	func test_辺方向とworldmap上の隣接方向のズレを補正して配線される():
+		# chunk(0,0)のhex(3,2)(s=-5, SEの辺)は、worldmap(flat-top)上では
+		# (1,0)方向に隣接する(pointy⇔flatの角度ズレによりedge_dir+1が真の隣接方向)。
+		chunk_a.grid_radius = 5
+		chunk_b.grid_radius = 5
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(3, 2, -5))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-3, -2, 5))
+		var sender = chunk_a.get_piece_at_hex(Hex.new(3, 2, -5))
+		var receiver = chunk_b.get_piece_at_hex(Hex.new(-3, -2, 5))
 		assert_eq(sender.get_connected_pieces(), [receiver])
 
 	func test_非アクティブチャンクのReceiverへアイテムが届く():
@@ -103,24 +114,24 @@ class TestReceiverHints:
 		chunk_b.create_hex_grid(2)
 
 	func test_隣接チャンクのSenderの点対称位置が受信候補になる():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
 		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
-		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-2, 1, 1))])
+		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-1, -1, 2))])
 
 	func test_アクティブチャンク切替でヒントがハイライトされる():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
 		world.set_active_chunk(Hex.new(1, 0))
-		assert_true(chunk_b.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+		assert_true(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
 
 	func test_Sender撤去でアクティブチャンクのヒントが消える():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
 		world.set_active_chunk(Hex.new(1, 0))
-		chunk_a.remove_piece_at(Hex.new(2, -1, -1))
-		assert_false(chunk_b.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+		chunk_a.remove_piece_at(Hex.new(1, 1, -2))
+		assert_false(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
 
 	func test_Receiver設置済みの位置は候補から除外される():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(2, -1, -1))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, 1, 1))
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
 		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
 		assert_eq(hints, [])
 

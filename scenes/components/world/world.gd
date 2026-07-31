@@ -52,7 +52,7 @@ func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
 func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
 	if edge_dir == -1:
 		return null
-	var target_chunk = get_chunk(Hex.neighbor(chunk_hex, edge_dir))
+	var target_chunk = get_chunk(Hex.neighbor(chunk_hex, _to_world_direction(edge_dir)))
 	if target_chunk == null:
 		return null
 	var piece = target_chunk.get_piece_at_hex(Hex.scale(sender_hex, -1))
@@ -73,12 +73,21 @@ func get_receiver_hint_hexes(chunk_hex: Hex) -> Array:
 			var edge_dir = other.get_edge_direction(sender_hex)
 			if edge_dir == -1:
 				continue
-			if Hex.to_key(Hex.neighbor(other_hex, edge_dir)) != Hex.to_key(chunk_hex):
+			if (
+				Hex.to_key(Hex.neighbor(other_hex, _to_world_direction(edge_dir)))
+				!= Hex.to_key(chunk_hex)
+			):
 				continue
 			var mirror = Hex.scale(sender_hex, -1)
 			if get_chunk(chunk_hex).get_piece_at_hex(mirror) == null:
 				result.append(mirror)
 	return result
+
+
+# チャンク内部は pointy-top、world map は flat-top レイアウトで描画されており、
+# 同じ方向インデックスでもピクセル角度が60度(インデックス1つ分)ズレるための補正。
+func _to_world_direction(edge_dir: int) -> int:
+	return (edge_dir + 1) % 6
 
 
 func get_chunk_hexes() -> Array[Hex]:
