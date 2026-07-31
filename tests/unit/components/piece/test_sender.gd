@@ -32,6 +32,37 @@ func test_接続先が不在ならアイテムを保持し続ける():
 	assert_eq(sender.get_item_count("iron_ore"), 1)
 
 
+func test_接続先を設定するとhas_connected_pieceがtrueになる():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver])
+	assert_true(sender.has_connected_piece())
+
+
+func test_接続先がなければhas_connected_pieceはfalse():
+	assert_false(sender.has_connected_piece())
+
+
+func test_接続時にmodulateが変わる():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	var before = sender.modulate
+	sender.set_connected_pieces([receiver])
+	assert_ne(sender.modulate, before)
+
+
+func test_接続解除でmodulateが元に戻る():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	var before = sender.modulate
+	sender.set_connected_pieces([receiver])
+	sender.set_connected_pieces([])
+	assert_eq(sender.modulate, before)
+
+
 func test_チャンク内の隣接ピースへは自動配線されない():
 	var chunk = Chunk.new()
 	add_child_autofree(chunk)
