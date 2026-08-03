@@ -63,6 +63,27 @@ func test_接続解除でmodulateが元に戻る():
 	assert_eq(sender.modulate, before)
 
 
+func test_接続時に辺の外側へ向かう矢印が表示される():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	assert_not_null(sender.get_node_or_null("ConnectionArrow"))
+
+
+func test_接続解除で矢印が消える():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	sender.set_connected_pieces([])
+	assert_null(sender.get_node_or_null("ConnectionArrow"))
+
+
+func test_未接続では矢印が表示されない():
+	assert_null(sender.get_node_or_null("ConnectionArrow"))
+
+
 func test_チャンク内の隣接ピースへは自動配線されない():
 	var chunk = Chunk.new()
 	add_child_autofree(chunk)

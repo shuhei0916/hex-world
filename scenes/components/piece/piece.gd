@@ -32,6 +32,7 @@ var current_recipe: Recipe:
 
 var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
+var _connection_direction: int = -1
 
 # コンポーネント
 # 受け入れ口は get_acceptor()（can_accept_item+add_item を持つ子をダックタイピング）で解決する。
@@ -203,6 +204,7 @@ func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
 		if child.has_method("set_connected_pieces"):
 			child.set_connected_pieces(pieces, directions)
 			break
+	_connection_direction = directions[0] if not directions.is_empty() else -1
 	_refresh_connection_indicator()
 
 
@@ -221,6 +223,22 @@ func _refresh_connection_indicator() -> void:
 	if piece_type != PieceData.Type.SENDER and piece_type != PieceData.Type.RECEIVER:
 		return
 	modulate = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
+	_refresh_connection_arrow()
+
+
+func _refresh_connection_arrow() -> void:
+	var existing = get_node_or_null("ConnectionArrow")
+	if existing:
+		remove_child(existing)
+		existing.queue_free()
+	if piece_type != PieceData.Type.SENDER:
+		return
+	if not has_connected_piece() or _connection_direction < 0:
+		return
+	var arrow = make_output_arrow({"hex": Hex.new(0, 0, 0), "direction": _connection_direction})
+	arrow.name = "ConnectionArrow"
+	arrow.modulate = CONNECTED_COLOR
+	add_child(arrow)
 
 
 static func make_output_arrow(port: Dictionary) -> Sprite2D:
