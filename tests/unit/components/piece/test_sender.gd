@@ -44,23 +44,30 @@ func test_接続先がなければhas_connected_pieceはfalse():
 	assert_false(sender.has_connected_piece())
 
 
-func test_接続時にmodulateが変わる():
+func _get_hex_tile(piece: Piece) -> HexTile:
+	for child in piece.get_children():
+		if child is HexTile:
+			return child
+	return null
+
+
+func test_接続時にヘックスタイルのmodulateが変わる():
 	var receiver = SENDER_SCENE.instantiate()
 	add_child_autofree(receiver)
 	receiver.setup()
-	var before = sender.modulate
+	var before = _get_hex_tile(sender).modulate
 	sender.set_connected_pieces([receiver])
-	assert_ne(sender.modulate, before)
+	assert_ne(_get_hex_tile(sender).modulate, before)
 
 
-func test_接続解除でmodulateが元に戻る():
+func test_接続解除でヘックスタイルのmodulateが元に戻る():
 	var receiver = SENDER_SCENE.instantiate()
 	add_child_autofree(receiver)
 	receiver.setup()
-	var before = sender.modulate
+	var before = _get_hex_tile(sender).modulate
 	sender.set_connected_pieces([receiver])
 	sender.set_connected_pieces([])
-	assert_eq(sender.modulate, before)
+	assert_eq(_get_hex_tile(sender).modulate, before)
 
 
 func test_接続時に辺の外側へ向かう矢印が表示される():

@@ -222,7 +222,11 @@ func has_connected_piece() -> bool:
 func _refresh_connection_indicator() -> void:
 	if piece_type != PieceData.Type.SENDER and piece_type != PieceData.Type.RECEIVER:
 		return
-	modulate = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
+	# modulate は子にも伝播し矢印まで緑に染めてしまうため、タイル側だけを個別に着色する。
+	var color = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
+	for child in get_children():
+		if child is HexTile:
+			child.modulate = color
 	_refresh_connection_arrow()
 
 
@@ -237,7 +241,8 @@ func _refresh_connection_arrow() -> void:
 		return
 	var arrow = make_output_arrow({"hex": Hex.new(0, 0, 0), "direction": _connection_direction})
 	arrow.name = "ConnectionArrow"
-	arrow.modulate = CONNECTED_COLOR
+	arrow.scale = Vector2(1.0, 1.0)
+	arrow.position += Vector2(PORT_OFFSET, 0).rotated(arrow.rotation)
 	arrow.z_index = 20
 	arrow.z_as_relative = false
 	add_child(arrow)
