@@ -71,6 +71,15 @@ func test_接続時に辺の外側へ向かう矢印が表示される():
 	assert_not_null(sender.get_node_or_null("ConnectionArrow"))
 
 
+func test_矢印は自身のヘックスタイルより手前に描画される():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	var arrow = sender.get_node_or_null("ConnectionArrow")
+	assert_gt(arrow.z_index, 10)
+
+
 func test_接続解除で矢印が消える():
 	var receiver = SENDER_SCENE.instantiate()
 	add_child_autofree(receiver)

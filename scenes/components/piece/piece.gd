@@ -238,6 +238,8 @@ func _refresh_connection_arrow() -> void:
 	var arrow = make_output_arrow({"hex": Hex.new(0, 0, 0), "direction": _connection_direction})
 	arrow.name = "ConnectionArrow"
 	arrow.modulate = CONNECTED_COLOR
+	arrow.z_index = 20
+	arrow.z_as_relative = false
 	add_child(arrow)
 
 
