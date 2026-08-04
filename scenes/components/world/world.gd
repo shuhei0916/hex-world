@@ -90,6 +90,25 @@ func _to_world_direction(edge_dir: int) -> int:
 	return (edge_dir + 1) % 6
 
 
+# 実際に接続が成立している Sender→Receiver のチャンクペア(sender側hex, receiver側hex)一覧を返す。
+func get_connected_chunk_pairs() -> Array:
+	var result = []
+	for chunk_hex in _chunk_hexes:
+		var chunk = get_chunk(chunk_hex)
+		for piece in chunk.get_all_pieces():
+			if piece.piece_type != PieceData.Type.SENDER:
+				continue
+			if piece.get_connected_pieces().is_empty():
+				continue
+			var base_hex = chunk.get_base_hex(piece)
+			var edge_dir = chunk.get_edge_direction(base_hex)
+			if edge_dir == -1:
+				continue
+			var target_hex = Hex.neighbor(chunk_hex, _to_world_direction(edge_dir))
+			result.append([chunk_hex, target_hex])
+	return result
+
+
 # 隣接チャンクは回転せず同じローカル座標系で描かれているため、単純な原点対称(-h)では
 # 辺は合っても辺内の位置が逆側の端になってしまう。原点対称のあと、辺を定義する座標
 # (edge_dir % 3 で決まる軸)以外の2軸を入れ替えることで、辺内の対応位置を保つ。

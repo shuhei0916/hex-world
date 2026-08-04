@@ -148,6 +148,45 @@ class TestReceiverHints:
 		assert_eq(hints, [])
 
 
+class TestConnectedChunkPairs:
+	extends GutTest
+
+	const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
+	const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+
+	var world
+	var chunk_a: Chunk
+	var chunk_b: Chunk
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		chunk_a = world.create_chunk(Hex.new(0, 0))
+		chunk_b = world.create_chunk(Hex.new(1, 0))  # 東隣
+		chunk_a.create_hex_grid(2)
+		chunk_b.create_hex_grid(2)
+
+	func test_接続済みのSenderがあるチャンクペアを返す():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
+		var pairs = world.get_connected_chunk_pairs()
+		assert_eq(pairs.size(), 1)
+		assert_eq(Hex.to_key(pairs[0][0]), Hex.to_key(Hex.new(0, 0)))
+		assert_eq(Hex.to_key(pairs[0][1]), Hex.to_key(Hex.new(1, 0)))
+
+	func test_未接続なら空になる():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
+		var pairs = world.get_connected_chunk_pairs()
+		assert_eq(pairs, [])
+
+	func test_Sender撤去で対象ペアが消える():
+		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
+		chunk_a.remove_piece_at(Hex.new(1, 1, -2))
+		var pairs = world.get_connected_chunk_pairs()
+		assert_eq(pairs, [])
+
+
 class TestWorldChunkManagement:
 	extends GutTest
 
