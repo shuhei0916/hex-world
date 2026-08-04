@@ -75,11 +75,12 @@ Sender の対岸（点対称位置）をハイライトし、置き場所を一�
 - [x] World.get_connected_chunk_pairs()は接続済みSenderがあるチャンクペア(sender側hex, receiver側hex)の一覧を返す
 - [x] Sender/Receiverが未接続なら、そのペアは含まれない
 - [x] Sender撤去済み・Receiver不在なら、そのペアは含まれない
-- [x] WorldMapView.refresh_connections(pairs)で、対応するチャンクタイル間に線が表示される
-- [x] 接続がないペアには線が表示されない
-- [x] 再表示のたびに前回分の線がクリアされる
-- [x] World: ワールドマップ表示に入るたびに最新の接続チャンクペアの線が表示される（main._enter_world_map_mode）
-- [x] （目視）ワールドマップでの接続線の見た目確認（2026-08-04、通常起動+スクリーンショットで接続線を確認）
+- [x] WorldMapView.refresh_connections(pairs)で、線ではなくチャンクの境目に矢印が表示される（2026-08-04、線表示から矢印表示に変更。get_connection_line_count→get_connection_arrow_countにリネーム）
+- [x] 接続がないペアには矢印が表示されない
+- [x] 再表示のたびに前回分の矢印がクリアされる
+- [x] World: ワールドマップ表示に入るたびに最新の接続チャンクペアの矢印が表示される（main._enter_world_map_mode）
+- [x] （目視）ワールドマップでの接続矢印の見た目・向きを確認（2026-08-04、通常起動+スクリーンショットで境目に正しい向きで表示されることを確認）
+- [ ] ワールドマップの接続矢印の内部に、搬送中のアイテムのアイコンを表示する（現状はただの矢印のみ）
 
 ### 辺方向とワールド隣接方向の30度ズレ修正
 背景: チャンク内部は pointy-top レイアウト、world map は flat-top レイアウトで描画されており、

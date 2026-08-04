@@ -48,18 +48,26 @@ class TestWorldMapView:
 		view.setup(world)
 		assert_null(view.chunk_at_local_pos(Vector2(9999, 9999)))
 
-	func test_refresh_connectionsで接続ペア数分の線が生成される():
+	func test_refresh_connectionsで接続ペア数分の矢印が境目に生成される():
 		view.setup(world)
 		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
-		assert_eq(view.get_connection_line_count(), 1)
+		assert_eq(view.get_connection_arrow_count(), 1)
 
-	func test_接続ペアがなければ線は生成されない():
+	func test_接続ペアがなければ矢印は生成されない():
 		view.setup(world)
 		view.refresh_connections([])
-		assert_eq(view.get_connection_line_count(), 0)
+		assert_eq(view.get_connection_arrow_count(), 0)
 
-	func test_再表示のたびに前回分の線がクリアされる():
+	func test_再表示のたびに前回分の矢印がクリアされる():
 		view.setup(world)
 		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
 		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
-		assert_eq(view.get_connection_line_count(), 1)
+		assert_eq(view.get_connection_arrow_count(), 1)
+
+	func test_矢印は2つのタイルの中間の境目に配置される():
+		view.setup(world)
+		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		var pos0 = view.get_tile_position(Hex.new(0, 0))
+		var pos1 = view.get_tile_position(Hex.new(1, 0))
+		var expected_midpoint = (pos0 + pos1) / 2.0
+		assert_eq(view.get_connection_arrow_position(0), expected_midpoint)
