@@ -1,5 +1,112 @@
 # todo
 
+- [ ] world mapにおいて、カーソルを合わせたchunkをハイライトするように変更する
+- [ ] クリックされてローカルマップに即移行するのではなく、クリックでworld mapの中央にクリックされたchunkを据える用カメラを移動し、その状態でspaceでそのチャンクのローカルマップに移動するよう変更するか、検討する。
+
+## チャンク間転送（feature/chunk-transporter）
+
+**方針**: Sender/Receiver は別ピース。搬送は既存の acceptor/ejector 参照ベース機構をそのまま再利用し、
+World は「配線」（点対称位置の相手解決 → set_connected_pieces）のみを担う。
+辺ヘックス（座標1つだけが±R）にのみ設置可。角ヘックス（座標2つが±R）はどの辺にも属さない。
+受信位置は Sender の点対称位置（h → -h）。当面アンロック条件なし。
+
+### 辺方向判定
+- [x] 辺ヘックスは get_edge_direction() が属する辺方向 0〜5 を返す
+- [x] 角ヘックスは -1 を返す
+- [x] 内側ヘックスは -1 を返す
+
+### Sender / Receiver ピース
+**方式**: どちらも ConveyorLogic を持つピース（＝配線元が違うコンベア）。搬送ロジックの新規実装なし。
+Sender は出力ポートを持たない（port_direction=-1）ため NeighborManager はチャンク内配線しない。
+Receiver の下流配線は既存 NeighborManager がそのまま担う。
+
+- [x] PieceData.Type に SENDER / RECEIVER を追加（アンロック条件なし）
+- [x] sender.tscn: アイテムを受け入れて保持する
+- [x] sender: set_connected_pieces で接続した相手（別チャンクのピース）へ tick で渡せる
+- [x] sender: 接続先不在ならアイテムを保持し続ける
+- [x] sender: チャンク内の隣接ピースへは自動配線されない（NeighborManager が SENDER を除外）
+- [x] receiver.tscn: アイテムを受け入れ、チャンク内の下流へ搬出する（既存配線で動く）
+- [x] sender/receiver は辺ヘックス以外には設置できない（Chunk.can_place に piece_type 引数を追加）
+- [x] PiecePlacer が can_place に piece_type を渡す（UI経由の設置でも制約が効く）
+
+### World 配線
+- [x] Sender 設置時、隣接チャンクの点対称位置に Receiver があれば接続される
+- [x] Receiver 設置時、隣接チャンクの点対称位置に Sender があれば接続される（後置きでも配線される）
+- [x] 隣接チャンク未生成・Receiver 不在なら接続されない（Sender は詰まる）
+- [x] Sender/Receiver の撤去で配線が解除される
+- [x] 非アクティブ（非表示）チャンクの Receiver でも受信できる（結合テスト）
+
+### UI・結線
+- [x] HUD ツールバーに Sender / Receiver スロットを追加（スロット8「送」・9「受」）
+- [x] （目視）配置・搬送の画面確認（2026-07-15 スクリーンショットでチャンク間搬送を確認）
+- [x] SE 方向（南東チャンク）への配線もテストで確認
+
+### 受信候補ハイライト（UX改善）
+背景: 辺⇔隣接チャンク方向は30°ずれるため、Receiver をどこに置けばよいか直感で分からない。
+Sender の対岸（点対称位置）をハイライトし、置き場所を一目で分かるようにする。
+
+- [x] World.get_receiver_hint_hexes(chunk_hex): 隣接チャンクの Sender の点対称位置一覧を返す
+- [x] すでに Receiver が置かれている位置は候補から除外される
+- [x] Chunk.show_receiver_hints(hexes): 指定タイルがハイライトされる
+- [x] ハイライトは再表示のたびに前回分がクリアされる
+- [x] World: アクティブチャンク切替時・配線更新時にアクティブチャンクのヒントが更新される
+- [x] （目視）ハイライトの見た目確認（Receiver橙の暗色に調整、2026-07-18）
+- [ ] Sender/Receiver の接続状態可視化（矢印・色）※ハイライト実装後に着手
+
+### 接続状態可視化（3段階で実装）
+1. 接続成立時の色変化: Sender/Receiverが接続中は緑系、未接続はデフォルトの色になる
+2. 矢印表示: Senderの辺の外側に、接続先チャンクへ向かう矢印アイコンを表示する
+3. ワールドマップでの接続辺表示: Sender/Receiverが実際に繋がっているチャンク間の辺を線・矢印で表示する
+
+#### 1. 接続時の色変化
+- [x] Piece.has_connected_piece()は接続先ピースがあるときtrueを返す（is_connectedはObject既存メソッドと衝突するため改名）
+- [x] Sender/Receiverは接続時にmodulateが変わる
+- [x] 接続解除でmodulateが元に戻る
+- [x] （目視）色変化の見た目確認（2026-08-03、Piece.modulateだと矢印も緑に染まるためHexTile個別に着色するよう修正）
+
+#### 2. 矢印表示
+- [x] Senderが接続中のとき、辺の外側（接続先チャンクへ向かう方向）に矢印が表示される
+- [x] 接続解除で矢印が消える
+- [x] 未接続のSenderには矢印が表示されない
+- [x] （目視）矢印の見た目確認（2026-08-03、通常起動+スクリーンショットでデバッグ。z_index不足と緑同士の重なりが原因と判明し修正）
+- [ ] 矢印の向き・描画位置の微調整（現状は動作確認レベル。位置バランスや大きさを見た目で調整する）
+
+#### 3. ワールドマップでの接続辺表示
+- [x] World.get_connected_chunk_pairs()は接続済みSenderがあるチャンクペア(sender側hex, receiver側hex)の一覧を返す
+- [x] Sender/Receiverが未接続なら、そのペアは含まれない
+- [x] Sender撤去済み・Receiver不在なら、そのペアは含まれない
+- [x] WorldMapView.refresh_connections(pairs)で、線ではなくチャンクの境目に矢印が表示される（2026-08-04、線表示から矢印表示に変更。get_connection_line_count→get_connection_arrow_countにリネーム）
+- [x] 接続がないペアには矢印が表示されない
+- [x] 再表示のたびに前回分の矢印がクリアされる
+- [x] World: ワールドマップ表示に入るたびに最新の接続チャンクペアの矢印が表示される（main._enter_world_map_mode）
+- [x] （目視）ワールドマップでの接続矢印の見た目・向きを確認（2026-08-04、通常起動+スクリーンショットで境目に正しい向きで表示されることを確認）
+- [ ] ワールドマップの接続矢印の内部に、搬送中のアイテムのアイコンを表示する（現状はただの矢印のみ）
+
+### 辺方向とワールド隣接方向の30度ズレ修正
+背景: チャンク内部は pointy-top レイアウト、world map は flat-top レイアウトで描画されており、
+同じ方向インデックス（0=E〜5=SE）でもピクセル角度が60度（インデックス1つ分）ズレる。
+実測: chunk(0,0)のhex(3,2)はget_edge_direction()でSE(5)と判定されるが、
+world map上で実際に隣接するのはchunk(1,0)（= (5+1)%6 = E(0)方向）であり、(0,1)ではない。
+修正方針: World._find_receiver()・World.get_receiver_hint_hexes() 内の
+Hex.neighbor(chunk_hex, edge_dir) を Hex.neighbor(chunk_hex, (edge_dir + 1) % 6) に変更する。
+Sender自身のローカル排出方向（set_connected_pieces の edge_dir 引数）は補正不要（pointy-topのローカル描画のまま正しいため）。
+
+- [x] chunk(0,0)のhex(3,2)にSenderを置くと、chunk(1,0)のhex(-3,-2)に配線される（現状は誤ってchunk(0,1)に配線される）
+- [x] 既存のチャンク間配線テスト群を、補正後の正しい隣接チャンク座標に合わせて修正する
+- [x] 受信候補ハイライト（get_receiver_hint_hexes）も補正後の正しい隣接チャンクを対象にする
+
+### 辺内の対応位置のズレ修正（単純な原点対称では逆側の端になる）
+背景: 隣接チャンクは回転せず同じローカル座標系で描かれているため、単純な点対称(h→-h)では
+辺（＝どのチャンクへ向かうか）は合っていても、辺内のどの位置か（＝どちら寄りの端か）が
+逆側になってしまう。
+実測: chunk(0,0)のhex(4,1,-5)は、単純な点対称だとchunk(1,0)の(-4,-1,5)になるが、
+本来対応する位置は(-1,-4,5)（q,rを入れ替えた位置）。
+修正方針: World._mirror_hex(hex, edge_dir) を新設。原点対称のあと、
+edge_dir % 3 に応じて辺を定義する座標以外の2軸を入れ替える
+（0: E/W→r,s入替 / 1: NE/SW→q,s入替 / 2: NW/SE→q,r入替）。
+
+- [x] chunk(0,0)のhex(4,1,-5)にSenderを置くと、単純な点対称(-4,-1,5)ではなくchunk(1,0)の(-1,-4,5)に配線される
+
 ## ワールドマップUI整備（fix/world-map-ui）
 
 **方針**: ワールドマップはチャンク選択専用の画面。ローカル編集用UI（HUD・ピースプレビュー）は非表示にする。

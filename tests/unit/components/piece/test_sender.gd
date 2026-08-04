@@ -1,0 +1,110 @@
+extends GutTest
+
+const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
+
+var sender: Piece
+
+
+func before_each():
+	sender = SENDER_SCENE.instantiate()
+	add_child_autofree(sender)
+	sender.setup()
+
+
+func test_アイテムを受け入れて保持する():
+	sender.add_item("iron_ore", 1)
+	assert_eq(sender.get_item_count("iron_ore"), 1)
+
+
+func test_接続した相手へtickでアイテムを渡す():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver])
+	sender.add_item("iron_ore", 1)
+	sender.tick(1.0)
+	assert_eq(receiver.get_item_count("iron_ore"), 1)
+
+
+func test_接続先が不在ならアイテムを保持し続ける():
+	sender.add_item("iron_ore", 1)
+	sender.tick(1.0)
+	assert_eq(sender.get_item_count("iron_ore"), 1)
+
+
+func test_接続先を設定するとhas_connected_pieceがtrueになる():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver])
+	assert_true(sender.has_connected_piece())
+
+
+func test_接続先がなければhas_connected_pieceはfalse():
+	assert_false(sender.has_connected_piece())
+
+
+func _get_hex_tile(piece: Piece) -> HexTile:
+	for child in piece.get_children():
+		if child is HexTile:
+			return child
+	return null
+
+
+func test_接続時にヘックスタイルのmodulateが変わる():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	var before = _get_hex_tile(sender).modulate
+	sender.set_connected_pieces([receiver])
+	assert_ne(_get_hex_tile(sender).modulate, before)
+
+
+func test_接続解除でヘックスタイルのmodulateが元に戻る():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	var before = _get_hex_tile(sender).modulate
+	sender.set_connected_pieces([receiver])
+	sender.set_connected_pieces([])
+	assert_eq(_get_hex_tile(sender).modulate, before)
+
+
+func test_接続時に辺の外側へ向かう矢印が表示される():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	assert_not_null(sender.get_node_or_null("ConnectionArrow"))
+
+
+func test_矢印は自身のヘックスタイルより手前に描画される():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	var arrow = sender.get_node_or_null("ConnectionArrow")
+	assert_gt(arrow.z_index, 10)
+
+
+func test_接続解除で矢印が消える():
+	var receiver = SENDER_SCENE.instantiate()
+	add_child_autofree(receiver)
+	receiver.setup()
+	sender.set_connected_pieces([receiver], [5])
+	sender.set_connected_pieces([])
+	assert_null(sender.get_node_or_null("ConnectionArrow"))
+
+
+func test_未接続では矢印が表示されない():
+	assert_null(sender.get_node_or_null("ConnectionArrow"))
+
+
+func test_チャンク内の隣接ピースへは自動配線されない():
+	var chunk = Chunk.new()
+	add_child_autofree(chunk)
+	chunk.create_hex_grid(2)
+	chunk.place_piece(SENDER_SCENE, Hex.new(-2, 1, 1), 0)
+	chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(-1, 1, 0), 0)
+	var placed_sender = chunk.get_piece_at_hex(Hex.new(-2, 1, 1))
+	assert_eq(placed_sender.get_connected_pieces(), [])

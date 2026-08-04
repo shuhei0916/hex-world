@@ -4,9 +4,13 @@ extends Node2D
 const ChunkTileScript = preload("res://scenes/components/world/chunk_tile.gd")
 const TILE_SIZE := 80.0
 
+const CONNECTION_ARROW_TEXTURE = preload("res://scenes/components/piece/forward.png")
+const CONNECTION_ARROW_COLOR = Color(0.5, 1.0, 0.5, 1)
+
 var _tiles: Dictionary = {}  # Hex.to_key → ChunkTile
 var _active_hex = null
 var _map_layout: Layout
+var _connection_arrows: Array = []
 
 
 func _init() -> void:
@@ -50,6 +54,33 @@ func get_tile_position(chunk_hex: Hex) -> Vector2:
 func get_tile_active(chunk_hex: Hex) -> bool:
 	var tile = _tiles.get(Hex.to_key(chunk_hex))
 	return tile.is_active if tile else false
+
+
+func get_connection_arrow_count() -> int:
+	return _connection_arrows.size()
+
+
+func get_connection_arrow_position(index: int) -> Vector2:
+	return _connection_arrows[index].position
+
+
+func refresh_connections(pairs: Array) -> void:
+	for arrow in _connection_arrows:
+		remove_child(arrow)
+		arrow.queue_free()
+	_connection_arrows.clear()
+	for pair in pairs:
+		var from_tile = _tiles.get(Hex.to_key(pair[0]))
+		var to_tile = _tiles.get(Hex.to_key(pair[1]))
+		if from_tile == null or to_tile == null:
+			continue
+		var arrow = Sprite2D.new()
+		arrow.texture = CONNECTION_ARROW_TEXTURE
+		arrow.modulate = CONNECTION_ARROW_COLOR
+		arrow.position = (from_tile.position + to_tile.position) / 2.0
+		arrow.rotation = (to_tile.position - from_tile.position).angle()
+		add_child(arrow)
+		_connection_arrows.append(arrow)
 
 
 func chunk_at_local_pos(local_pos: Vector2):

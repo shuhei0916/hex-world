@@ -222,6 +222,68 @@ class TestOuterHexes:
 			assert_true(max_coord >= 2, "内側ヘックスが含まれていてはならない")
 
 
+class TestEdgeDirection:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_辺ヘックスは属する辺の方向を返す():
+		# q=+R の辺（角以外）は東(0)の辺に属する
+		assert_eq(gm.get_edge_direction(Hex.new(2, -1, -1)), 0)
+
+	func test_対辺の点対称位置は逆方向を返す():
+		# q=-R の辺（東の辺の点対称）は西(3)の辺に属する
+		assert_eq(gm.get_edge_direction(Hex.new(-2, 1, 1)), 3)
+
+	func test_角ヘックスはマイナス1を返す():
+		# 座標2つが±R に達する角はどの辺にも属さない
+		assert_eq(gm.get_edge_direction(Hex.new(2, -2, 0)), -1)
+
+	func test_内側ヘックスはマイナス1を返す():
+		assert_eq(gm.get_edge_direction(Hex.new(0, 0, 0)), -1)
+
+	func test_SENDERは内側ヘックスに設置できない():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_false(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.SENDER))
+
+	func test_SENDERは辺ヘックスに設置できる():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_true(gm.can_place(shape, Hex.new(2, -1, -1), PieceData.Type.SENDER))
+
+	func test_RECEIVERは角ヘックスに設置できない():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_false(gm.can_place(shape, Hex.new(2, -2, 0), PieceData.Type.RECEIVER))
+
+	func test_通常ピースは内側ヘックスに設置できる():
+		var shape: Array = [Hex.new(0, 0, 0)]
+		assert_true(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.CONVEYOR))
+
+
+class TestReceiverHints:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(2)
+
+	func test_show_receiver_hintsで指定タイルがハイライトされる():
+		gm.show_receiver_hints([Hex.new(-2, 1, 1)])
+		assert_true(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
+	func test_再表示で前回のハイライトはクリアされる():
+		gm.show_receiver_hints([Hex.new(-2, 1, 1)])
+		gm.show_receiver_hints([])
+		assert_false(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+
+
 class TestOreDeposits:
 	extends GutTest
 

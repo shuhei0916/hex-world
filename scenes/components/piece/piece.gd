@@ -9,6 +9,7 @@ const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 const PORT_OFFSET = 35.0
 const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
+const CONNECTED_COLOR = Color(0.5, 1.0, 0.5, 1)
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
 @export var piece_name: String = ""
@@ -31,6 +32,7 @@ var current_recipe: Recipe:
 
 var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
+var _connection_direction: int = -1
 
 # コンポーネント
 # 受け入れ口は get_acceptor()（can_accept_item+add_item を持つ子をダックタイピング）で解決する。
@@ -201,7 +203,9 @@ func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
 	for child in get_children():
 		if child.has_method("set_connected_pieces"):
 			child.set_connected_pieces(pieces, directions)
-			return
+			break
+	_connection_direction = directions[0] if not directions.is_empty() else -1
+	_refresh_connection_indicator()
 
 
 func get_connected_pieces() -> Array:
@@ -209,6 +213,39 @@ func get_connected_pieces() -> Array:
 		if child.has_method("get_connected_pieces"):
 			return child.get_connected_pieces()
 	return []
+
+
+func has_connected_piece() -> bool:
+	return not get_connected_pieces().is_empty()
+
+
+func _refresh_connection_indicator() -> void:
+	if piece_type != PieceData.Type.SENDER and piece_type != PieceData.Type.RECEIVER:
+		return
+	# modulate は子にも伝播し矢印まで緑に染めてしまうため、タイル側だけを個別に着色する。
+	var color = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
+	for child in get_children():
+		if child is HexTile:
+			child.modulate = color
+	_refresh_connection_arrow()
+
+
+func _refresh_connection_arrow() -> void:
+	var existing = get_node_or_null("ConnectionArrow")
+	if existing:
+		remove_child(existing)
+		existing.queue_free()
+	if piece_type != PieceData.Type.SENDER:
+		return
+	if not has_connected_piece() or _connection_direction < 0:
+		return
+	var arrow = make_output_arrow({"hex": Hex.new(0, 0, 0), "direction": _connection_direction})
+	arrow.name = "ConnectionArrow"
+	arrow.scale = Vector2(1.0, 1.0)
+	arrow.position += Vector2(PORT_OFFSET, 0).rotated(arrow.rotation)
+	arrow.z_index = 20
+	arrow.z_as_relative = false
+	add_child(arrow)
 
 
 static func make_output_arrow(port: Dictionary) -> Sprite2D:

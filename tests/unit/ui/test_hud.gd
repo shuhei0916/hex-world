@@ -19,6 +19,14 @@ func after_each():
 	HubGoals.creative_mode = false
 
 
+func test_スロット8はSenderである():
+	assert_eq(_get_slot_piece_type(7), PieceData.Type.SENDER)
+
+
+func test_スロット9はReceiverである():
+	assert_eq(_get_slot_piece_type(8), PieceData.Type.RECEIVER)
+
+
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
 	var smelter_btn = hud.toolbar.get_child(2) as Button
 	assert_true(smelter_btn.disabled, "前提: Smelterスロットは初期状態でロック")

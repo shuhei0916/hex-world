@@ -26,6 +26,7 @@ var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Hex] = []
 var _resources = preload("res://scenes/components/chunk/chunk_resources.gd").new()
+var _hint_hexes: Array = []
 
 
 func _init():
@@ -56,8 +57,14 @@ func occupy(hex: Hex):
 	_hex_grid.occupy(hex)
 
 
-func can_place(shape: Array, base_hex: Hex) -> bool:
+func can_place(shape: Array, base_hex: Hex, piece_type: int = -1) -> bool:
+	if _requires_edge(piece_type) and get_edge_direction(base_hex) == -1:
+		return false
 	return _hex_grid.can_place(shape, base_hex)
+
+
+func _requires_edge(piece_type: int) -> bool:
+	return piece_type == PieceData.Type.SENDER or piece_type == PieceData.Type.RECEIVER
 
 
 func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
@@ -111,6 +118,10 @@ func clear_grid():
 
 func get_piece_at_hex(hex: Hex) -> Piece:
 	return _registry.get_piece_at_hex(hex)
+
+
+func get_all_pieces() -> Array:
+	return _registry.get_all_pieces()
 
 
 func get_piece_count() -> int:
@@ -176,6 +187,36 @@ func get_outer_hexes() -> Array[Hex]:
 		if max_coord == grid_radius:
 			result.append(hex)
 	return result
+
+
+# 辺ヘックスが属する辺の方向（0〜5）を返す。角・内側ヘックスは -1。
+# 辺は「座標1つだけが±R」で判定し、その座標の符号と一致する成分を持つ方向に対応させる。
+# 対辺は正確に逆方向（+3 mod 6）になる。
+func get_edge_direction(hex: Hex) -> int:
+	var on_edge := [
+		hex.q == grid_radius,  # E(0)
+		hex.r == -grid_radius,  # NE(1)
+		hex.s == grid_radius,  # NW(2)
+		hex.q == -grid_radius,  # W(3)
+		hex.r == grid_radius,  # SW(4)
+		hex.s == -grid_radius,  # SE(5)
+	]
+	if on_edge.count(true) != 1:
+		return -1
+	return on_edge.find(true)
+
+
+# Receiver の設置候補位置をハイライトする。呼ぶたびに前回分はクリアされる。
+func show_receiver_hints(hexes: Array):
+	for hex in _hint_hexes:
+		var tile = find_hex_tile(hex)
+		if tile:
+			tile.set_highlight(false)
+	_hint_hexes = hexes.duplicate()
+	for hex in _hint_hexes:
+		var tile = find_hex_tile(hex)
+		if tile:
+			tile.set_highlight(true)
 
 
 func mark_resource_hex(hex: Hex, resource_type: String):
