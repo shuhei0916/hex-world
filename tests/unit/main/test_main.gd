@@ -173,6 +173,17 @@ func test_チャンク切替でHUDの座標ラベルが更新される():
 	assert_eq(main.hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
+func test_ワールドマップ表示時に接続済みチャンクペアの線が表示される():
+	var sender_scene = main.hud.get_scene_for_slot(7)
+	var receiver_scene = main.hud.get_scene_for_slot(8)
+	main.world.get_active_chunk().grid_radius = 5
+	main.world.get_active_chunk().place_piece(sender_scene, Hex.new(4, 1, -5))
+	var chunk_b = main.world.create_chunk(Hex.new(1, 0))
+	chunk_b.place_piece(receiver_scene, Hex.new(-1, -4, 5))
+	main._handle_key_input(_make_space_event())
+	assert_eq(main.world_map_view.get_connection_line_count(), 1)
+
+
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
 	main._handle_world_map_chunk_selected(Hex.new(0, 0))

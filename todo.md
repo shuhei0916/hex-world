@@ -78,7 +78,7 @@ Sender の対岸（点対称位置）をハイライトし、置き場所を一�
 - [x] WorldMapView.refresh_connections(pairs)で、対応するチャンクタイル間に線が表示される
 - [x] 接続がないペアには線が表示されない
 - [x] 再表示のたびに前回分の線がクリアされる
-- [ ] World: 配線更新時（_rewire_all_senders後）にworld map表示中ならWorldMapViewの接続線が更新される
+- [x] World: ワールドマップ表示に入るたびに最新の接続チャンクペアの線が表示される（main._enter_world_map_mode）
 - [ ] （目視）ワールドマップでの接続線の見た目確認
 
 ### 辺方向とワールド隣接方向の30度ズレ修正

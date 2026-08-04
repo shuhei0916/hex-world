@@ -84,6 +84,7 @@ func _enter_world_map_mode():
 	world_map_view.setup(world)
 	if world.get_active_hex() != null:
 		world_map_view.set_active_chunk(world.get_active_hex())
+	world_map_view.refresh_connections(world.get_connected_chunk_pairs())
 	_refresh_debug_overlay()
 
 
