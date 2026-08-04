@@ -75,9 +75,9 @@ Sender の対岸（点対称位置）をハイライトし、置き場所を一�
 - [x] World.get_connected_chunk_pairs()は接続済みSenderがあるチャンクペア(sender側hex, receiver側hex)の一覧を返す
 - [x] Sender/Receiverが未接続なら、そのペアは含まれない
 - [x] Sender撤去済み・Receiver不在なら、そのペアは含まれない
-- [ ] WorldMapView.refresh_connections(pairs)で、対応するチャンクタイル間に線が表示される
-- [ ] 接続がないペアには線が表示されない
-- [ ] 再表示のたびに前回分の線がクリアされる
+- [x] WorldMapView.refresh_connections(pairs)で、対応するチャンクタイル間に線が表示される
+- [x] 接続がないペアには線が表示されない
+- [x] 再表示のたびに前回分の線がクリアされる
 - [ ] World: 配線更新時（_rewire_all_senders後）にworld map表示中ならWorldMapViewの接続線が更新される
 - [ ] （目視）ワールドマップでの接続線の見た目確認
 

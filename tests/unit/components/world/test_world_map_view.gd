@@ -47,3 +47,19 @@ class TestWorldMapView:
 	func test_タイルが存在しない位置ではnullを返す():
 		view.setup(world)
 		assert_null(view.chunk_at_local_pos(Vector2(9999, 9999)))
+
+	func test_refresh_connectionsで接続ペア数分の線が生成される():
+		view.setup(world)
+		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		assert_eq(view.get_connection_line_count(), 1)
+
+	func test_接続ペアがなければ線は生成されない():
+		view.setup(world)
+		view.refresh_connections([])
+		assert_eq(view.get_connection_line_count(), 0)
+
+	func test_再表示のたびに前回分の線がクリアされる():
+		view.setup(world)
+		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		assert_eq(view.get_connection_line_count(), 1)
