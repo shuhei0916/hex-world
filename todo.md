@@ -12,7 +12,7 @@ main.gd の _handle_mouse_motion で world map モード時にマウス位置→
 - [x] set_hovered_chunk切り替えで前のタイルのホバーが解除される
 - [x] set_hovered_chunk(null)でホバーが解除される
 - [x] アクティブなタイルはホバーされても色が変わらない（アクティブ表示を優先）
-- [ ] main: world mapモードでのマウス移動でホバー先タイルが更新される
+- [x] main: world mapモードでのマウス移動でホバー先タイルが更新される
 - [ ] （目視）ホバーハイライトの見た目確認
 
 ## チャンク間転送（feature/chunk-transporter）

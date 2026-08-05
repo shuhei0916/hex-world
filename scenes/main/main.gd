@@ -107,9 +107,15 @@ func _refresh_debug_overlay():
 
 
 func _handle_mouse_motion(event):
-	if event is InputEventMouseMotion and is_local_mode():
+	if not event is InputEventMouseMotion:
+		return
+	if is_local_mode():
 		var local_mouse_pos = make_input_local(event).position
 		piece_placer.update_hover(local_mouse_pos)
+	else:
+		var local_pos = make_input_local(event).position
+		var view_pos = world_map_view.to_local(to_global(local_pos))
+		world_map_view.set_hovered_chunk(world_map_view.chunk_at_local_pos(view_pos))
 
 
 func _handle_mouse_click(event):
