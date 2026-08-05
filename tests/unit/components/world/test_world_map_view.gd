@@ -75,6 +75,12 @@ class TestWorldMapView:
 		view.set_hovered_chunk(Hex.new(1, 0))
 		assert_false(view.get_tile_hovered(Hex.new(0, 0)))
 
+	func test_set_hovered_chunkにnullを渡すとホバーが解除される():
+		view.setup(world)
+		view.set_hovered_chunk(Hex.new(0, 0))
+		view.set_hovered_chunk(null)
+		assert_false(view.get_tile_hovered(Hex.new(0, 0)))
+
 	func test_矢印は2つのタイルの中間の境目に配置される():
 		view.setup(world)
 		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
