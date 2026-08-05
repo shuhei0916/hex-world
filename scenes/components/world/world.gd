@@ -52,10 +52,12 @@ func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
 func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
 	if edge_dir == -1:
 		return null
-	var target_chunk = get_chunk(Hex.neighbor(chunk_hex, _to_world_direction(edge_dir)))
+	var target_chunk = get_chunk(
+		Hex.neighbor(chunk_hex, ChunkTopology.to_world_direction(edge_dir))
+	)
 	if target_chunk == null:
 		return null
-	var piece = target_chunk.get_piece_at_hex(_mirror_hex(sender_hex, edge_dir))
+	var piece = target_chunk.get_piece_at_hex(ChunkTopology.mirror_hex(sender_hex, edge_dir))
 	if piece and piece.piece_type == PieceData.Type.RECEIVER:
 		return piece
 	return null
@@ -74,20 +76,14 @@ func get_receiver_hint_hexes(chunk_hex: Hex) -> Array:
 			if edge_dir == -1:
 				continue
 			if (
-				Hex.to_key(Hex.neighbor(other_hex, _to_world_direction(edge_dir)))
+				Hex.to_key(Hex.neighbor(other_hex, ChunkTopology.to_world_direction(edge_dir)))
 				!= Hex.to_key(chunk_hex)
 			):
 				continue
-			var mirror = _mirror_hex(sender_hex, edge_dir)
+			var mirror = ChunkTopology.mirror_hex(sender_hex, edge_dir)
 			if get_chunk(chunk_hex).get_piece_at_hex(mirror) == null:
 				result.append(mirror)
 	return result
-
-
-# チャンク内部は pointy-top、world map は flat-top レイアウトで描画されており、
-# 同じ方向インデックスでもピクセル角度が60度(インデックス1つ分)ズレるための補正。
-func _to_world_direction(edge_dir: int) -> int:
-	return (edge_dir + 1) % 6
 
 
 # 実際に接続が成立している Sender→Receiver のチャンクペア(sender側hex, receiver側hex)一覧を返す。
@@ -104,23 +100,9 @@ func get_connected_chunk_pairs() -> Array:
 			var edge_dir = chunk.get_edge_direction(base_hex)
 			if edge_dir == -1:
 				continue
-			var target_hex = Hex.neighbor(chunk_hex, _to_world_direction(edge_dir))
+			var target_hex = Hex.neighbor(chunk_hex, ChunkTopology.to_world_direction(edge_dir))
 			result.append([chunk_hex, target_hex])
 	return result
-
-
-# 隣接チャンクは回転せず同じローカル座標系で描かれているため、単純な原点対称(-h)では
-# 辺は合っても辺内の位置が逆側の端になってしまう。原点対称のあと、辺を定義する座標
-# (edge_dir % 3 で決まる軸)以外の2軸を入れ替えることで、辺内の対応位置を保つ。
-func _mirror_hex(hex: Hex, edge_dir: int) -> Hex:
-	var negated = Hex.scale(hex, -1)
-	match edge_dir % 3:
-		0:  # E/W の辺 → r, s を入れ替え
-			return Hex.new(negated.q, negated.s, negated.r)
-		1:  # NE/SW の辺 → q, s を入れ替え
-			return Hex.new(negated.s, negated.r, negated.q)
-		_:  # NW/SE の辺 → q, r を入れ替え
-			return Hex.new(negated.r, negated.q, negated.s)
 
 
 func get_chunk_hexes() -> Array[Hex]:
