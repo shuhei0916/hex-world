@@ -26,14 +26,17 @@ func set_hovered(hovered: bool) -> void:
 	queue_redraw()
 
 
-func _draw() -> void:
-	var color = NORMAL_COLOR
+func get_current_color() -> Color:
 	if is_active:
-		color = ACTIVE_COLOR
-	elif is_hovered:
-		color = HOVER_COLOR
+		return ACTIVE_COLOR
+	if is_hovered:
+		return HOVER_COLOR
+	return NORMAL_COLOR
+
+
+func _draw() -> void:
 	var pts = _hex_corners()
-	draw_colored_polygon(pts, color)
+	draw_colored_polygon(pts, get_current_color())
 	draw_polyline(pts + PackedVector2Array([pts[0]]), BORDER_COLOR, 2.0)
 
 

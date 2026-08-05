@@ -30,3 +30,9 @@ class TestChunkTile:
 		tile.set_active(true)
 		tile.set_active(false)
 		assert_false(tile.is_active)
+
+	func test_アクティブかつホバー中はアクティブ色が優先される():
+		tile.setup(Hex.new(0, 0))
+		tile.set_active(true)
+		tile.set_hovered(true)
+		assert_eq(tile.get_current_color(), ChunkTile.ACTIVE_COLOR)
