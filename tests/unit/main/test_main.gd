@@ -201,3 +201,16 @@ func test_ワールドマップ再入時に現在アクティブなチャンク�
 	main._handle_world_map_chunk_selected(Hex.new(1, 0))
 	main._handle_key_input(_make_space_event())
 	assert_true(main.world_map_view.get_tile_active(Hex.new(1, 0)))
+
+
+func _make_mouse_motion_event(pos: Vector2) -> InputEventMouseMotion:
+	var event = InputEventMouseMotion.new()
+	event.position = pos
+	return event
+
+
+func test_ワールドマップモードでマウス移動するとホバー先タイルが更新される():
+	main._handle_key_input(_make_space_event())
+	var pos = main.world_map_view.get_tile_position(Hex.new(1, 0))
+	main._handle_mouse_motion(_make_mouse_motion_event(pos))
+	assert_true(main.world_map_view.get_tile_hovered(Hex.new(1, 0)))
