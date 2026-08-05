@@ -1,7 +1,19 @@
 # todo
 
-- [ ] world mapにおいて、カーソルを合わせたchunkをハイライトするように変更する
 - [ ] クリックされてローカルマップに即移行するのではなく、クリックでworld mapの中央にクリックされたchunkを据える用カメラを移動し、その状態でspaceでそのチャンクのローカルマップに移動するよう変更するか、検討する。
+
+## world mapホバーハイライト（feature/world-map-hover-highlight）
+
+**方針**: ChunkTile に is_hovered を追加し、is_active と同様に色を変える（ホバー色はアクティブ色と別系統）。
+WorldMapView.set_hovered_chunk(chunk_hex) で対象タイルをホバー状態にし、前回分は解除する。
+main.gd の _handle_mouse_motion で world map モード時にマウス位置→hex変換してset_hovered_chunkを呼ぶ。
+
+- [x] WorldMapView.set_hovered_chunk(chunk_hex)でそのタイルがホバー状態になる
+- [ ] set_hovered_chunk切り替えで前のタイルのホバーが解除される
+- [ ] set_hovered_chunk(null)でホバーが解除される
+- [ ] アクティブなタイルはホバーされても色が変わらない（アクティブ表示を優先）
+- [ ] main: world mapモードでのマウス移動でホバー先タイルが更新される
+- [ ] （目視）ホバーハイライトの見た目確認
 
 ## チャンク間転送（feature/chunk-transporter）
 

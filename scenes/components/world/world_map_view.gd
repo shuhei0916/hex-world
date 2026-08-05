@@ -9,6 +9,7 @@ const CONNECTION_ARROW_COLOR = Color(0.5, 1.0, 0.5, 1)
 
 var _tiles: Dictionary = {}  # Hex.to_key → ChunkTile
 var _active_hex = null
+var _hovered_hex = null
 var _map_layout: Layout
 var _connection_arrows: Array = []
 
@@ -40,6 +41,24 @@ func set_active_chunk(chunk_hex: Hex) -> void:
 	var tile = _tiles.get(Hex.to_key(chunk_hex))
 	if tile:
 		tile.set_active(true)
+
+
+func set_hovered_chunk(chunk_hex) -> void:
+	if _hovered_hex != null:
+		var prev = _tiles.get(Hex.to_key(_hovered_hex))
+		if prev:
+			prev.set_hovered(false)
+	_hovered_hex = chunk_hex
+	if chunk_hex == null:
+		return
+	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	if tile:
+		tile.set_hovered(true)
+
+
+func get_tile_hovered(chunk_hex: Hex) -> bool:
+	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	return tile.is_hovered if tile else false
 
 
 func get_tile_count() -> int:
