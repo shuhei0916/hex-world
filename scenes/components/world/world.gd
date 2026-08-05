@@ -30,18 +30,41 @@ func _on_piece_placed(piece: Piece):
 		_rewire_all_senders()
 
 
-func _rewire_all_senders():
+# edge_dirが有効なSenderを全チャンクから列挙する。
+# 各要素: {chunk_hex, chunk, piece, base_hex, edge_dir}
+func _iter_senders() -> Array:
+	var result = []
 	for chunk_hex in _chunk_hexes:
 		var chunk = get_chunk(chunk_hex)
 		for piece in chunk.get_all_pieces():
-			if piece.piece_type == PieceData.Type.SENDER:
-				_wire_sender(chunk_hex, chunk, piece)
+			if piece.piece_type != PieceData.Type.SENDER:
+				continue
+			var base_hex = chunk.get_base_hex(piece)
+			var edge_dir = chunk.get_edge_direction(base_hex)
+			if edge_dir == -1:
+				continue
+			(
+				result
+				. append(
+					{
+						"chunk_hex": chunk_hex,
+						"chunk": chunk,
+						"piece": piece,
+						"base_hex": base_hex,
+						"edge_dir": edge_dir,
+					}
+				)
+			)
+	return result
+
+
+func _rewire_all_senders():
+	for entry in _iter_senders():
+		_wire_sender(entry["chunk_hex"], entry["base_hex"], entry["edge_dir"], entry["piece"])
 	_update_receiver_hints()
 
 
-func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
-	var base_hex = chunk.get_base_hex(sender)
-	var edge_dir = chunk.get_edge_direction(base_hex)
+func _wire_sender(chunk_hex: Hex, base_hex: Hex, edge_dir: int, sender: Piece):
 	var receiver = _find_receiver(chunk_hex, base_hex, edge_dir)
 	if receiver:
 		sender.set_connected_pieces([receiver], [edge_dir])
@@ -50,8 +73,6 @@ func _wire_sender(chunk_hex: Hex, chunk: Chunk, sender: Piece):
 
 
 func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
-	if edge_dir == -1:
-		return null
 	var target_chunk = get_chunk(
 		Hex.neighbor(chunk_hex, ChunkTopology.to_world_direction(edge_dir))
 	)
@@ -66,42 +87,28 @@ func _find_receiver(chunk_hex: Hex, sender_hex: Hex, edge_dir: int):
 # chunk_hex のチャンクに向いた隣接チャンクの Sender の点対称位置（＝Receiver を置くべき位置）を返す
 func get_receiver_hint_hexes(chunk_hex: Hex) -> Array:
 	var result = []
-	for other_hex in _chunk_hexes:
-		var other = get_chunk(other_hex)
-		for piece in other.get_all_pieces():
-			if piece.piece_type != PieceData.Type.SENDER:
-				continue
-			var sender_hex = other.get_base_hex(piece)
-			var edge_dir = other.get_edge_direction(sender_hex)
-			if edge_dir == -1:
-				continue
-			if (
-				Hex.to_key(Hex.neighbor(other_hex, ChunkTopology.to_world_direction(edge_dir)))
-				!= Hex.to_key(chunk_hex)
-			):
-				continue
-			var mirror = ChunkTopology.mirror_hex(sender_hex, edge_dir)
-			if get_chunk(chunk_hex).get_piece_at_hex(mirror) == null:
-				result.append(mirror)
+	for entry in _iter_senders():
+		var target_hex = Hex.neighbor(
+			entry["chunk_hex"], ChunkTopology.to_world_direction(entry["edge_dir"])
+		)
+		if Hex.to_key(target_hex) != Hex.to_key(chunk_hex):
+			continue
+		var mirror = ChunkTopology.mirror_hex(entry["base_hex"], entry["edge_dir"])
+		if get_chunk(chunk_hex).get_piece_at_hex(mirror) == null:
+			result.append(mirror)
 	return result
 
 
 # 実際に接続が成立している Sender→Receiver のチャンクペア(sender側hex, receiver側hex)一覧を返す。
 func get_connected_chunk_pairs() -> Array:
 	var result = []
-	for chunk_hex in _chunk_hexes:
-		var chunk = get_chunk(chunk_hex)
-		for piece in chunk.get_all_pieces():
-			if piece.piece_type != PieceData.Type.SENDER:
-				continue
-			if piece.get_connected_pieces().is_empty():
-				continue
-			var base_hex = chunk.get_base_hex(piece)
-			var edge_dir = chunk.get_edge_direction(base_hex)
-			if edge_dir == -1:
-				continue
-			var target_hex = Hex.neighbor(chunk_hex, ChunkTopology.to_world_direction(edge_dir))
-			result.append([chunk_hex, target_hex])
+	for entry in _iter_senders():
+		if entry["piece"].get_connected_pieces().is_empty():
+			continue
+		var target_hex = Hex.neighbor(
+			entry["chunk_hex"], ChunkTopology.to_world_direction(entry["edge_dir"])
+		)
+		result.append([entry["chunk_hex"], target_hex])
 	return result
 
 
