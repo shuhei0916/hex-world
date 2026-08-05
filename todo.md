@@ -2,6 +2,19 @@
 
 - [ ] クリックされてローカルマップに即移行するのではなく、クリックでworld mapの中央にクリックされたchunkを据える用カメラを移動し、その状態でspaceでそのチャンクのローカルマップに移動するよう変更するか、検討する。
 
+## World配線ロジックの整理（refactor/world-wiring）
+
+**背景**: `_rewire_all_senders` / `get_receiver_hint_hexes` / `get_connected_chunk_pairs` の3箇所が
+「全チャンク×全ピースを走査してSENDERを絞り込み、edge_dir==-1を除外する」処理を重複して持っている。
+また pointy-top/flat-top の30°ズレ補正（`_to_world_direction`）と辺内対応位置の軸入替（`_mirror_hex`）が
+World に直接書かれており、座標系の知識が配線ロジックと混在している。
+既存のWorld関連テスト（27件）を安全網として、振る舞いを変えずに整理する（Refactorフェーズのため新規テスト無し、既存テストの全通過で担保）。
+
+- [x] 座標系の知識（`_to_world_direction` / `_mirror_hex`）を `ChunkTopology`（新規 utils）へ切り出す
+- [x] `_rewire_all_senders` / `get_receiver_hint_hexes` / `get_connected_chunk_pairs` に共通する
+	  「全チャンクからedge_dir有効なSenderを列挙する」処理を `_iter_senders()` に一元化する
+- [x] 上記整理後も既存435テストが全通過する
+
 ## world mapホバーハイライト（feature/world-map-hover-highlight）
 
 **方針**: ChunkTile に is_hovered を追加し、is_active と同様に色を変える（ホバー色はアクティブ色と別系統）。
