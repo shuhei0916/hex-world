@@ -9,7 +9,7 @@ WorldMapView.set_hovered_chunk(chunk_hex) で対象タイルをホバー状態�
 main.gd の _handle_mouse_motion で world map モード時にマウス位置→hex変換してset_hovered_chunkを呼ぶ。
 
 - [x] WorldMapView.set_hovered_chunk(chunk_hex)でそのタイルがホバー状態になる
-- [ ] set_hovered_chunk切り替えで前のタイルのホバーが解除される
+- [x] set_hovered_chunk切り替えで前のタイルのホバーが解除される
 - [ ] set_hovered_chunk(null)でホバーが解除される
 - [ ] アクティブなタイルはホバーされても色が変わらない（アクティブ表示を優先）
 - [ ] main: world mapモードでのマウス移動でホバー先タイルが更新される
