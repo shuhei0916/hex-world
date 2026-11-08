@@ -1,5 +1,6 @@
 # todo
 
+## ワールドマップ操作（検討中）
 - [ ] クリックされてローカルマップに即移行するのではなく、クリックでworld mapの中央にクリックされたchunkを据える用カメラを移動し、その状態でspaceでそのチャンクのローカルマップに移動するよう変更するか、検討する。
 
 ## World配線ロジックの整理（refactor/world-wiring）
@@ -76,7 +77,7 @@ Sender の対岸（点対称位置）をハイライトし、置き場所を一�
 - [x] ハイライトは再表示のたびに前回分がクリアされる
 - [x] World: アクティブチャンク切替時・配線更新時にアクティブチャンクのヒントが更新される
 - [x] （目視）ハイライトの見た目確認（Receiver橙の暗色に調整、2026-07-18）
-- [ ] Sender/Receiver の接続状態可視化（矢印・色）※ハイライト実装後に着手
+- [x] Sender/Receiver の接続状態可視化（矢印・色）→ 下記「接続状態可視化（3段階）」で完了
 
 ### 接続状態可視化（3段階で実装）
 1. 接続成立時の色変化: Sender/Receiverが接続中は緑系、未接続はデフォルトの色になる
@@ -164,7 +165,7 @@ F3 キーでトグル（F2 はデバッグオーバーレイで使用済み）�
 - [x] `toggle_creative_mode()` で `unlocks_changed` シグナルが発火する
 - [x] HUD が `unlocks_changed` 受信で全スロットボタンを有効化する
 - [x] F3 キー押下で `HubGoals.toggle_creative_mode()` が呼ばれる（main 経由）
-- [ ] 隣接するchunkにアイテムを送信する用のピースを追加する。
+- [x] 隣接するchunkにアイテムを送信する用のピースを追加する。→ feature/chunk-transporter（Sender/Receiver）で完了
 
 ## Tierごとの生産速度差別化（feature/tier-speed）
 - [x] `Crafter` に `@export var craft_time_multiplier: float = 1.0` を追加する
@@ -259,7 +260,8 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 ## リファクタリング（コードレビュー起票 2026-06-26）
 
 ### 責務分離
-- [ ] **`Chunk` の責務分割**: `_apply_mining_constraint()` を `ResourceManager` 等の別クラスへ移動。現在 257 行・8 責務が混在
+- [x] **`Chunk` の資源ロジック分離**: `ChunkResources` へ移動済み（refactor/pre-chunk-ports）
+- [ ] **`Chunk` の残りの責務分割**: 資源ロジック分離後も 258 行。グリッド管理・ピース配置・タイル描画・受信候補ハイライト等が混在しているため、さらなる分割を検討
 - [ ] **`Piece` のビジュアル分離**: `_output_arrow` 生成・HexTile 生成を `PieceVisuals` に切り出す
 - [ ] **`Main` の入力処理分離**: 入力ハンドラ（マウス・キー）を `InputHandler` に切り出す
 
@@ -267,7 +269,7 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 - [ ] **`Crafter` の `HubGoals` 依存緩和**: グローバルシングルトン参照を減らし、テスト容易性を高める
 
 ### 不整合・冗長
-- [ ] **`Main._mode` の削除**: `world.visible` から推論できるため冗長。`is_local_mode()` を `return world.visible` に変更
+- [x] **`Main._mode` の削除**: refactor/pre-chunk-ports で完了
 - [ ] **`tick()` vs `_process()` の整理**: ロジック系は `tick()`（親が呼ぶ）、ビジュアル系は `_process()`（Godot 自走）の方針をコメントで明文化し、混在箇所を修正
 
 ### テスト充実
@@ -291,7 +293,7 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 ---
 
 ## チャンク間連携（将来）
-- [ ] チャンク間アイテム移動: Chunk の辺にポート（入出力）を定義。ワールドマップ上でフロー表示
+- [x] チャンク間アイテム移動: Chunk の辺にポート（入出力）を定義。ワールドマップ上でフロー表示 → feature/chunk-transporter で完了（Sender/Receiver・ワールドマップの接続矢印）
 ---
 
 
