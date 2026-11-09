@@ -441,3 +441,15 @@ class TestConveyorBranching:
 		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
 		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
 		assert_true(first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は1本目の分岐(-2,1)へ出力するべき")
+
+	func test_分岐を2本引いたあとも分岐元は本線の下流とつながっている():
+		_draw_two_branches()
+		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
+		var downstream = chunk.get_piece_at_hex(Hex.new(-3, 1))
+		assert_true(downstream in origin.get_connected_pieces(), "分岐元(-2,0)は本線の下流(-3,1)へ出力するべき")
+
+	func test_分岐を2本引いたあと2本目の分岐も分岐元とつながっている():
+		_draw_two_branches()
+		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
+		var second_branch = chunk.get_piece_at_hex(Hex.new(-3, 0))
+		assert_true(second_branch in origin.get_connected_pieces(), "分岐元(-2,0)は2本目の分岐(-3,0)へ出力するべき")
