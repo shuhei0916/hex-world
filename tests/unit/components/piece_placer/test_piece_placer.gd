@@ -458,3 +458,12 @@ class TestConveyorBranching:
 		_draw_two_branches()
 		var visuals = chunk.get_piece_at_hex(Hex.new(-2, 1)).get_node("ConveyorVisuals")
 		assert_eq(visuals._input_direction, 2, "(-2,1)のベルトは分岐元のあるNW(2)から入力を受けて描かれるべき")
+
+	func test_曲がった分岐の先頭からさらに分岐を引いても先頭は分岐元とつながったままになる():
+		_draw_two_branches()
+		_drag([Hex.new(-2, 1), Hex.new(-1, 1), Hex.new(0, 1)])  # 1本目の分岐の先頭(-2,1)から東へ
+		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
+		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
+		assert_true(
+			first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は置き直された(-2,1)へ出力し続けるべき"
+		)
