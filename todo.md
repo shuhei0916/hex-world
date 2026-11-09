@@ -246,7 +246,7 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 - [x] 分岐を2本引いたあとも、1本目の分岐（先頭で曲がる分岐）が分岐元とつながっている
 - [x] 分岐を2本引いたあとも、分岐元は本線の下流とつながっている
 - [x] 分岐を2本引いたあと、2本目の分岐も分岐元とつながっている
-- [ ] 分岐を2本引いたあと、1本目の分岐の先頭のベルトは分岐元の方向から曲がって描かれる（入力方向が分岐元を向く）
+- [x] 分岐を2本引いたあと、1本目の分岐の先頭のベルトは分岐元の方向から曲がって描かれる（入力方向が分岐元を向く）
 
 ## 自然な分岐（feature/conveyor-natural-branching）
 - [x] ConveyorVisuals は output_directions が複数のとき、各方向へ1本ずつベジェを描く
@@ -292,7 +292,7 @@ HUD スロットが `variants: Array[PackedScene]` を持ち、T キーで循環
 - [ ] z_indexではなく、ツリー順で順番を制御したほうがクリーンかも。
 - [ ] `_update_conveyor_input_direction` は単一入力方向しか確定できない。将来の合流実装に備え、複数入力元を扱える設計を検討する。
 - [ ] `_is_physically_connected(source, source_hex, direction)` の `source_hex` 引数は多ヘックスピース向けの名残で、コンベア（1ヘックス）では常にベース座標と同値。整理して引数の意図を明確にする。
-- [ ] `_is_physically_connected`（自然分岐）と `_update_conveyor_input_direction`（入力方向検出）の接続判定ロジックが非対称。前者はポート方向の比較、後者はポートの到達先ヘックスの座標計算で判断しており、多ヘックスコンベアを追加した際に後者が誤動作する可能性がある。
+- [x] `_is_physically_connected`（自然分岐）と `_update_conveyor_input_direction`（入力方向検出）の接続判定ロジックが非対称。→ fix/conveyor-branch-overwrite で入力方向検出も `_is_physically_connected` を使うよう統一。前者はポート方向の比較、後者はポートの到達先ヘックスの座標計算で判断しており、多ヘックスコンベアを追加した際に後者が誤動作する可能性がある。
 
 ---
 
