@@ -24,6 +24,8 @@ const CONNECTED_COLOR = Color(0.5, 1.0, 0.5, 1)
 
 # 回転状態 (0-5)
 var rotation_state: int = 0
+# コンベアがどちら側(0-5)から受け取るか。-1 は未指定（出力の反対側から受け取る直進）
+var input_direction: int = -1
 
 # プロパティアクセサ
 var current_recipe: Recipe:

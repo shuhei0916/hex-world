@@ -67,11 +67,14 @@ func _requires_edge(piece_type: int) -> bool:
 	return piece_type == PieceData.Type.SENDER or piece_type == PieceData.Type.RECEIVER
 
 
-func place_piece(packed_scene: PackedScene, base_hex: Hex, rotation: int = 0):
+func place_piece(
+	packed_scene: PackedScene, base_hex: Hex, rotation: int = 0, input_direction: int = -1
+):
 	var piece = packed_scene.instantiate()
 	piece.position = hex_to_pixel(base_hex)
 	add_child(piece)
 	piece.setup(rotation)
+	piece.input_direction = input_direction
 
 	var occupied_hexes: Array[Hex] = []
 	for offset in piece.get_hex_shape():

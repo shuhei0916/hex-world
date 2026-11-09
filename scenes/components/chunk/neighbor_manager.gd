@@ -107,11 +107,14 @@ func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) ->
 	return false
 
 
-# 隣のコンベア C が「source から direction 方向に自然に流れ出す」向きかどうか。
-# C.port_direction == direction のとき、C は source から受け取る配置になっている。
+# 隣のコンベア C が source から受け取る配置かどうか。
+# - 直進: C の出力方向が source→C の向きと一致する
+# - 曲がり: C の入力側（input_direction）が source を向いている
 func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
 	if neighbor == null or neighbor.get_node_or_null("ConveyorVisuals") == null:
 		return false
+	if neighbor.input_direction == (direction + 3) % 6:
+		return true
 	var ports = neighbor.get_output_ports()
 	return not ports.is_empty() and ports[0]["direction"] == direction
 

@@ -263,9 +263,13 @@ func _place_conveyor_chain(end_target: Hex = null):
 		else:
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
 		var rotation = (_selected_port_direction - direction + 6) % 6
+		# 2マス目以降はパス上の1つ前から受け取る（先頭で曲がる分岐も入力側で接続を保つため）
+		var input_direction := -1
+		if i > 0:
+			input_direction = Hex.get_direction_to(hex, _conveyor_drag_path[i - 1])
 		if can_replace:
 			chunk.remove_piece_at(hex)
-		chunk.place_piece(selected_scene, hex, rotation)
+		chunk.place_piece(selected_scene, hex, rotation, input_direction)
 
 
 func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> int:

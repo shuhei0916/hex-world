@@ -403,3 +403,41 @@ class TestOptimalConveyorDirection:
 		watch_signals(piece_placer)
 		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
 		assert_signal_not_emitted(piece_placer, "conveyor_path_extended")
+
+
+# 既存ラインの途中（分岐元）から、ドラッグで複数の分岐を引くケース
+# 本線: (0,-2)→(-1,-1)→(-2,0)→(-3,1)（SW向き）。分岐元は (-2,0)
+class TestConveyorBranching:
+	extends GutTest
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(4)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_drag([Hex.new(0, -2), Hex.new(-1, -1), Hex.new(-2, 0), Hex.new(-3, 1)])
+
+	func after_each():
+		await get_tree().process_frame
+
+	func _drag(path: Array) -> void:
+		piece_placer.start_drag()
+		for hex in path:
+			piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_drag()
+
+	func _draw_two_branches() -> void:
+		_drag([Hex.new(-2, 0), Hex.new(-2, 1), Hex.new(-3, 2)])  # 分岐①: 先頭で曲がる
+		_drag([Hex.new(-2, 0), Hex.new(-3, 0), Hex.new(-4, 0)])  # 分岐②: 直進
+
+	func test_分岐を2本引いたあとも1本目の分岐は分岐元とつながっている():
+		_draw_two_branches()
+		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
+		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
+		assert_true(first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は1本目の分岐(-2,1)へ出力するべき")
