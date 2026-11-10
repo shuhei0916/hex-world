@@ -79,6 +79,10 @@ func refresh_belt():
 	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
 	for output_dir in dirs:
 		var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+		# 分岐は中心で行き先を決めるため、どの出口へも入口→中心の区間を共有する直線で描く
+		if dirs.size() >= 2:
+			_paths.append(PackedVector2Array([in_edge, Vector2.ZERO, out_edge]))
+			continue
 		var is_straight = (input_dir + 3) % 6 == output_dir
 		var segs = 2 if is_straight else CURVE_SEGMENTS
 		_paths.append(sample_bezier(in_edge, Vector2.ZERO, out_edge, segs))

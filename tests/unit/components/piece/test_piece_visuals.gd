@@ -161,3 +161,20 @@ func test_CONVEYORは出力方向が2つのとき2本のパスを持つ():
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	visuals.set_output_directions([0, 1])
 	assert_eq(visuals._paths.size(), 2)
+
+
+func test_分岐コンベアのベルトは入口の辺から中心を通って各出口の辺へ直線で描かれる():
+	# 入力は West(3)、出力は East(0) と NE(1) に分岐
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	visuals.set_output_directions([0, 1])
+	var layout = Layout.make_default()
+	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
+	var ne_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[1]) * 0.5
+	assert_eq(
+		visuals._paths[1],
+		PackedVector2Array([in_edge, Vector2.ZERO, ne_edge]),
+		"NEへの分岐は入口→中心→出口の直線"
+	)
