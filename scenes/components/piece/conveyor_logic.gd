@@ -16,6 +16,9 @@ var _locked_direction: int = -1  # 中心で確定した行き先。-1 は未確
 
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
 	_ejector.set_connections(pieces, directions)
+	# 行き先の出口が無くなったら確定を解除する（止まり続けないように）
+	if not _locked_direction in directions:
+		_locked_direction = -1
 
 
 func get_connected_pieces() -> Array:

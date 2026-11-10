@@ -376,3 +376,12 @@ class TestConveyorBranchRouting:
 		chunk.remove_piece_at(target_hex)
 		chunk.place_piece(CONVEYOR_SCENE, target_hex, rotation)
 		assert_eq(logic.get_target_direction(), locked_direction, "同じ方向の出口が残っていれば行き先は変わらないべき")
+
+	func test_中心を過ぎたあとに行き先の出口が撤去されると残っている出口へ進む():
+		a.add_item("iron_ore", 1)
+		logic.tick(HALF * 1.2)
+		var locked_direction = logic.get_target_direction()
+		var other = _piece_in_direction(1 - locked_direction)  # 行き先は E(0) か NE(1)
+		chunk.remove_piece_at(Hex.neighbor(Hex.new(0, 0), locked_direction))
+		logic.tick(HALF)
+		assert_eq(other.get_node("ConveyorLogic").get_held_item(), "iron_ore", "残っている出口へ渡されるべき")
