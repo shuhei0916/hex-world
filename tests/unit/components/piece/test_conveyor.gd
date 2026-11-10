@@ -419,3 +419,14 @@ class TestConveyorBranchRouting:
 		a.add_item("iron_ore", 1)
 		logic.tick(TransferBuffer.TRANSFER_TIME)  # 中心で待つ
 		assert_false(logic.can_accept_item("iron_ore"), "中心で待っている間は2個目を受け入れないべき（アイコンが重なるため）")
+
+	func test_中心で待っていたアイテムの行き先が決まると次のアイテムを再び受け入れる():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))  # B の下流（B を空けるため）
+		var b = _piece_in_direction(0)
+		b.add_item("iron_ore", 1)
+		_piece_in_direction(1).add_item("iron_ore", 1)
+		a.add_item("copper_ore", 1)
+		logic.tick(TransferBuffer.TRANSFER_TIME)  # 中心で待つ
+		b.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # B が空く
+		logic.tick(0.01)  # 行き先が B に決まり、中心を過ぎる
+		assert_true(logic.can_accept_item("iron_ore"), "行き先が決まれば次のアイテムを受け入れるべき")
