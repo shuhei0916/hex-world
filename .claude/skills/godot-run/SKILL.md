@@ -56,6 +56,7 @@ TDD で検証しづらい「実際のゲームに組み込んだときの状態�
 | `moveto:<NodePath>` / `clickon:<NodePath>` | ノードの画面位置へマウス移動 / 左クリック（カメラ変換込み） |
 | `wait:10` | フレーム待機 |
 | `call:World/get_active_hex` | メソッドを呼んで戻り値を表示（引数なしのみ） |
+| `script:res://tools/scenarios/x.gd` | シナリオの `run(scene)` を実行（await 可）。ピース配置や複数フレームの観察など、ステップで書けない操作に使う |
 
 各ノードは `名前 (class_name:組み込みクラス)` と、既定値から変わったものだけ
 （`pos` / `rot` / `scale` / `rect` / `text` / `HIDDEN` / `modulate` / `z` / `color`）を表示する。
@@ -72,6 +73,16 @@ dump_tree.sh "--do=key:SPACE;moveto:WorldMapView/@Node2D@371" \
 
 # クリックでチャンク移動できるか
 dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_active_hex" --depth=1
+```
+
+### シナリオ
+`tools/scenarios/` に `extends RefCounted` で `func run(scene: Node) -> void` を持つスクリプトを置く。
+`scene` はメインシーン（`scene.world` などで子へアクセスできる）。観察結果は `print` で出力する。
+
+- `conveyor_branch_flow.gd`: 分岐コンベアにアイテムを流し続け、分岐元のアイコン位置を毎フレーム追う（飛び移りを検出）
+
+```bash
+dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth=0
 ```
 
 ### 注意

@@ -16,6 +16,7 @@ extends SceneTree
 ##                             clickon:<NodePath>  ノードの画面位置を左クリック
 ##                             wait:10          指定フレーム待つ
 ##                             call:World/get_chunk_hexes  ノードのメソッドを呼び結果を表示
+##                             script:res://tools/scenarios/x.gd  シナリオの run(scene) を実行（await 可）
 ##   --root=<NodePath>       出力するサブツリーの起点（シーンルートからの相対パス）
 ##   --depth=<n>             出力する最大深さ（既定: 無制限）
 ##   --props=<a,b,...>       追加で出力するプロパティ（そのプロパティを持つノードのみ）
@@ -32,7 +33,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var scene_path: String = _args.get("scene", ProjectSettings.get_setting("application/run/main_scene"))
+	var scene_path: String = _args.get(
+		"scene", ProjectSettings.get_setting("application/run/main_scene")
+	)
 	var packed: PackedScene = load(scene_path)
 	if packed == null:
 		printerr("シーンを読み込めません: %s" % scene_path)
@@ -89,6 +92,8 @@ func _run_step(step: String) -> void:
 			return
 		"call":
 			_call_method(value)
+		"script":
+			await _run_scenario(value)
 		_:
 			printerr("不明なステップ: %s" % step)
 	print("[step] %s" % step)
@@ -147,10 +152,21 @@ func _screen_pos_of(path: String) -> Vector2:
 	return node.get_global_transform_with_canvas().origin
 
 
+## 引数付きの呼び出しや複数フレームにわたる観察など、ステップで書けない操作を行う
+func _run_scenario(path: String) -> void:
+	var scenario = load(path)
+	if scenario == null or not scenario.new().has_method("run"):
+		printerr("シナリオを実行できません（run(scene) が必要）: %s" % path)
+		return
+	await scenario.new().run(current_scene)
+
+
 func _call_method(value: String) -> void:
 	var node_path := value.get_base_dir()
 	var method := value.get_file()
-	var node := current_scene.get_node_or_null(NodePath(node_path)) if node_path != "" else current_scene
+	var node := (
+		current_scene.get_node_or_null(NodePath(node_path)) if node_path != "" else current_scene
+	)
 	if node == null or not node.has_method(method):
 		printerr("呼び出せません: %s" % value)
 		return
