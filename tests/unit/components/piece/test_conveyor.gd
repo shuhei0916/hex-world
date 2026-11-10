@@ -385,3 +385,10 @@ class TestConveyorBranchRouting:
 		chunk.remove_piece_at(Hex.neighbor(Hex.new(0, 0), locked_direction))
 		logic.tick(HALF)
 		assert_eq(other.get_node("ConveyorLogic").get_held_item(), "iron_ore", "残っている出口へ渡されるべき")
+
+	func test_全部の出口が詰まっているとアイテムは中心で待つ():
+		_piece_in_direction(0).add_item("iron_ore", 1)
+		_piece_in_direction(1).add_item("iron_ore", 1)
+		a.add_item("iron_ore", 1)
+		logic.tick(TransferBuffer.TRANSFER_TIME)
+		assert_eq(logic.get_progress_ratio(), 0.5, "全出口が詰まっているとき中心(0.5)で待つべき")

@@ -56,11 +56,12 @@ func get_progress_ratio_2() -> float:
 
 
 # 時間を進め、搬出可能になったら true を返す。
-func advance(delta: float) -> bool:
+# limit: slot1 の進行の上限（分岐コンベアが中心で待つときに使う）。既に超えていれば戻さない。
+func advance(delta: float, limit: float = TRANSFER_TIME) -> bool:
 	if held_item_2 != "":
 		progress_2 = minf(progress_2 + delta, TRANSFER_TIME * 0.5)
 	if held_item == "":
 		progress = 0.0
 		return false
-	progress = minf(progress + delta, TRANSFER_TIME)
+	progress = minf(progress + delta, maxf(limit, progress))
 	return progress >= TRANSFER_TIME

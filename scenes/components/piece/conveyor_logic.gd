@@ -60,10 +60,14 @@ func get_target_direction() -> int:
 
 
 func tick(delta: float):
-	var reached_end = _buffer.advance(delta)
-	if _is_branching() and _locked_direction < 0 and _buffer.progress >= CENTER_TIME:
-		_locked_direction = _ejector.target_direction(_buffer.held_item)
-	if reached_end and _try_eject():
+	var limit = TransferBuffer.TRANSFER_TIME
+	if _is_branching() and _locked_direction < 0:
+		# 中心に達するタイミングで行き先を確定する。確定できなければ中心で待つ
+		if _buffer.held_item != "" and _buffer.progress + delta >= CENTER_TIME:
+			_locked_direction = _ejector.target_direction(_buffer.held_item)
+		if _locked_direction < 0:
+			limit = CENTER_TIME
+	if _buffer.advance(delta, limit) and _try_eject():
 		_buffer.clear()
 		_locked_direction = -1
 
