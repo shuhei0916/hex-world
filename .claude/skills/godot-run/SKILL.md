@@ -79,7 +79,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 `tools/scenarios/` に `extends RefCounted` で `func run(scene: Node) -> void` を持つスクリプトを置く。
 `scene` はメインシーン（`scene.world` などで子へアクセスできる）。観察結果は `print` で出力する。
 
-- `conveyor_branch_flow.gd`: 分岐コンベアにアイテムを流し続け、分岐元のアイコン位置を毎フレーム追う（飛び移りを検出）
+- `conveyor_branch_flow.gd`: 分岐コンベアにアイテムを流し続け、分岐元のアイコン位置を毎フレーム追う（飛び移り・アイコン同士の重なりを検出）
 
 ```bash
 dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth=0

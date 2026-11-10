@@ -1,6 +1,7 @@
 extends RefCounted
 ## 分岐コンベアにアイテムを流し続け、分岐元のアイテムアイコンの位置を毎フレーム出力する。
 ## 確認したいこと: アイコンが入口→中心→出口を連続的に動き、別のパスへ飛び移らないこと。
+## また、分岐元と上流のアイコン同士が重ならないこと（満杯で中心待ちのときに起きやすい）。
 ##
 ## 配置（アクティブチャンク）: 本線 (-1,0)→(0,0)→(1,0)→(2,0)（East）、
 ## (0,0) から (1,-1)→(2,-2)（NE）へ分岐。分岐元は (0,0)。
@@ -11,6 +12,7 @@ const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const FRAMES = 1500
 const EXTEND_FRAME = 1100
 const JUMP_THRESHOLD = 12.0  # 1フレームでこれ以上動いたら「飛び移り」とみなす（px）
+const OVERLAP_THRESHOLD = 8.0  # 表示中のアイコン同士がこれより近ければ「重なり」とみなす（px）
 
 
 func run(scene: Node) -> void:
@@ -24,6 +26,11 @@ func run(scene: Node) -> void:
 	var origin: Piece = chunk.get_piece_at_hex(Hex.new(0, 0))
 	var logic: ConveyorLogic = origin.get_node("ConveyorLogic")
 	var icon: Sprite2D = origin.get_node("ConveyorVisuals/ItemIcon")
+	var watched_icons: Array = []
+	for piece in [feeder, origin]:
+		for icon_name in ["ItemIcon", "ItemIcon2"]:
+			watched_icons.append(piece.get_node("ConveyorVisuals/" + icon_name))
+	var overlap_frames := 0
 	print("[scenario] origin connections=%d" % logic.get_connected_pieces().size())
 
 	var prev = null
@@ -52,8 +59,22 @@ func run(scene: Node) -> void:
 				jumps += 1
 				line += "  <-- JUMP %.1fpx" % step
 		prev = {"pos": pos, "ratio": ratio} if shown else null
+		if _has_overlap(watched_icons):
+			overlap_frames += 1
+			line += "  <-- OVERLAP"
 		var target = logic.get_target_direction()
-		if frame % 50 == 0 or "JUMP" in line or target != prev_target:
+		if frame % 50 == 0 or "JUMP" in line or "OVERLAP" in line or target != prev_target:
 			print(line)
 		prev_target = target
-	print("[scenario] max_step=%.1fpx jumps=%d" % [max_step, jumps])
+	print(
+		"[scenario] max_step=%.1fpx jumps=%d overlap_frames=%d" % [max_step, jumps, overlap_frames]
+	)
+
+
+func _has_overlap(icons: Array) -> bool:
+	var shown = icons.filter(func(i): return i.visible)
+	for i in shown.size():
+		for j in range(i + 1, shown.size()):
+			if shown[i].global_position.distance_to(shown[j].global_position) < OVERLAP_THRESHOLD:
+				return true
+	return false
