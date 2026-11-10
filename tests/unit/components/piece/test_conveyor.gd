@@ -365,3 +365,14 @@ class TestConveyorBranchRouting:
 		var locked_direction = logic.get_target_direction()
 		_piece_in_direction(locked_direction).add_item("iron_ore", 1)  # 行き先を詰まらせる
 		assert_eq(logic.get_target_direction(), locked_direction, "中心で決めた行き先は変わらないべき")
+
+	func test_中心を過ぎたあとに接続が更新されても同じ方向の出口が残っていれば行き先は変わらない():
+		a.add_item("iron_ore", 1)
+		logic.tick(HALF * 1.2)
+		var locked_direction = logic.get_target_direction()
+		# 行き先のコンベアを置き直す（分岐を延長したときと同様に A の接続が更新される）
+		var target_hex = Hex.neighbor(Hex.new(0, 0), locked_direction)
+		var rotation = _piece_in_direction(locked_direction).rotation_state
+		chunk.remove_piece_at(target_hex)
+		chunk.place_piece(CONVEYOR_SCENE, target_hex, rotation)
+		assert_eq(logic.get_target_direction(), locked_direction, "同じ方向の出口が残っていれば行き先は変わらないべき")
