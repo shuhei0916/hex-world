@@ -290,6 +290,15 @@ class TestConveyorConnection:
 		conv_a.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conv_a.get_item_count("iron_plate"), 1)
 
+	func test_出口が1本のコンベアは詰まっているとき出口の端まで進んで待つ():
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)
+		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.get_piece_at_hex(Hex.new(1, 0)).add_item("iron_plate", 1)
+		conv_a.add_item("iron_plate", 1)
+		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
+		assert_eq(conv_a.get_node("ConveyorLogic").get_progress_ratio(), 1.0, "分岐でなければ端(1.0)で待つべき")
+
 	func test_接続先が受け入れ可能になったらその後のtickで転送される():
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
 		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
@@ -392,3 +401,14 @@ class TestConveyorBranchRouting:
 		a.add_item("iron_ore", 1)
 		logic.tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(logic.get_progress_ratio(), 0.5, "全出口が詰まっているとき中心(0.5)で待つべき")
+
+	func test_中心で待っていたアイテムは出口が空くと進み出して搬出される():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))  # B の下流（B を空けるため）
+		var b = _piece_in_direction(0)
+		b.add_item("iron_ore", 1)
+		_piece_in_direction(1).add_item("iron_ore", 1)
+		a.add_item("copper_ore", 1)
+		logic.tick(TransferBuffer.TRANSFER_TIME)  # 中心で待つ
+		b.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # B が下流へ流して空く
+		logic.tick(TransferBuffer.TRANSFER_TIME)
+		assert_eq(b.get_node("ConveyorLogic").get_held_item(), "copper_ore", "空いた出口Bへ搬出されるべき")
