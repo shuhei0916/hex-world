@@ -412,3 +412,10 @@ class TestConveyorBranchRouting:
 		b.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # B が下流へ流して空く
 		logic.tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(b.get_node("ConveyorLogic").get_held_item(), "copper_ore", "空いた出口Bへ搬出されるべき")
+
+	func test_全部の出口が詰まって中心で待っている間は次のアイテムを受け入れない():
+		_piece_in_direction(0).add_item("iron_ore", 1)
+		_piece_in_direction(1).add_item("iron_ore", 1)
+		a.add_item("iron_ore", 1)
+		logic.tick(TransferBuffer.TRANSFER_TIME)  # 中心で待つ
+		assert_false(logic.can_accept_item("iron_ore"), "中心で待っている間は2個目を受け入れないべき（アイコンが重なるため）")

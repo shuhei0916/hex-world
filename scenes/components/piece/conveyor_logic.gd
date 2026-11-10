@@ -26,6 +26,9 @@ func get_connected_pieces() -> Array:
 
 
 func can_accept_item(_item_name: String) -> bool:
+	# 中心で行き先待ちのアイテムがあるときに受け入れると、2個目も中心まで進んで重なる
+	if _is_waiting_at_center():
+		return false
 	return _buffer.can_accept()
 
 
@@ -76,6 +79,10 @@ func _try_eject() -> bool:
 	if _locked_direction >= 0:
 		return _ejector.try_eject_to(_buffer.held_item, _locked_direction)
 	return _ejector.try_eject(_buffer.held_item)
+
+
+func _is_waiting_at_center() -> bool:
+	return _is_branching() and _locked_direction < 0 and _buffer.held_item != ""
 
 
 func _is_branching() -> bool:
