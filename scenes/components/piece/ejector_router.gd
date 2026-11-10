@@ -39,6 +39,19 @@ func target_direction(item_name: String) -> int:
 	return connected_directions[idx]
 
 
+# direction 方向の接続先へ item_name を1個渡す。渡せたら true。
+func try_eject_to(item_name: String, direction: int) -> bool:
+	var idx = connected_directions.find(direction)
+	if idx < 0 or idx >= connected_pieces.size():
+		return false
+	var target = connected_pieces[idx]
+	if not target.can_accept_item(item_name):
+		return false
+	target.add_item(item_name, 1)
+	_rr_index = (idx + 1) % connected_pieces.size()
+	return true
+
+
 # 最初に受け入れ可能な接続先へ item_name を1個渡す。渡せたら true。
 func try_eject(item_name: String) -> bool:
 	var idx = _next_acceptable_index(item_name)

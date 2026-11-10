@@ -3,10 +3,15 @@ extends Node
 
 ## コンベアの搬送ロジック。アイテムを1個保持し、TRANSFER_TIME 経過後に
 ## EjectorRouter がラウンドロビンで選んだ接続先へ渡す（自然な分岐に対応）。
+## 分岐（接続先2つ以上）では、アイテムが中心に達した時点で行き先の方向を確定し、
+## 以後は出口の空き状況が変わってもその方向へ進む。
 ## 保持＋タイマーは TransferBuffer に、搬出先選択は EjectorRouter に委譲する。
+
+const CENTER_TIME = TransferBuffer.TRANSFER_TIME * 0.5
 
 var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()
+var _locked_direction: int = -1  # 中心で確定した行き先。-1 は未確定
 
 
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
@@ -46,10 +51,25 @@ func get_progress_ratio_2() -> float:
 
 
 func get_target_direction() -> int:
+	if _locked_direction >= 0:
+		return _locked_direction
 	return _ejector.target_direction(_buffer.held_item)
 
 
 func tick(delta: float):
-	if _buffer.advance(delta):
-		if _ejector.try_eject(_buffer.held_item):
-			_buffer.clear()
+	var reached_end = _buffer.advance(delta)
+	if _is_branching() and _locked_direction < 0 and _buffer.progress >= CENTER_TIME:
+		_locked_direction = _ejector.target_direction(_buffer.held_item)
+	if reached_end and _try_eject():
+		_buffer.clear()
+		_locked_direction = -1
+
+
+func _try_eject() -> bool:
+	if _locked_direction >= 0:
+		return _ejector.try_eject_to(_buffer.held_item, _locked_direction)
+	return _ejector.try_eject(_buffer.held_item)
+
+
+func _is_branching() -> bool:
+	return _ejector.connected_pieces.size() >= 2

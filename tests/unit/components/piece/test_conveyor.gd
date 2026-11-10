@@ -333,3 +333,35 @@ class TestConveyorLogicRoundRobin:
 		var a = gm.get_piece_at_hex(Hex.new(0, 0))
 		a.add_item("iron_ore", 1)
 		assert_ne(a.get_node("ConveyorLogic").get_target_direction(), -1)
+
+
+# 分岐コンベアは入口→中心を進み、中心で行き先（出力方向）を確定してから出口へ進む
+# A(0,0) East から、B(1,0) East（ポート）と C(1,-1) NE（自然な分岐）へ分岐する
+class TestConveyorBranchRouting:
+	extends GutTest
+
+	const HALF = TransferBuffer.TRANSFER_TIME * 0.5
+
+	var chunk: Chunk
+	var a: Piece
+	var logic: ConveyorLogic
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(3)
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)
+		a = chunk.get_piece_at_hex(Hex.new(0, 0))
+		logic = a.get_node("ConveyorLogic")
+
+	func _piece_in_direction(direction: int) -> Piece:
+		return chunk.get_piece_at_hex(Hex.neighbor(Hex.new(0, 0), direction))
+
+	func test_中心を過ぎたあとに出口の空き状況が変わっても行き先の方向は変わらない():
+		a.add_item("iron_ore", 1)
+		logic.tick(HALF * 1.2)
+		var locked_direction = logic.get_target_direction()
+		_piece_in_direction(locked_direction).add_item("iron_ore", 1)  # 行き先を詰まらせる
+		assert_eq(logic.get_target_direction(), locked_direction, "中心で決めた行き先は変わらないべき")
