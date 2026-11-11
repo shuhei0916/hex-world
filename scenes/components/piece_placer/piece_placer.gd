@@ -237,20 +237,6 @@ func _place_conveyor_chain(end_target: Hex = null):
 		and chunk.is_occupied(end_target)
 	)
 
-	if _conveyor_drag_path.size() == 1:
-		var direction: int
-		if target_is_occupied:
-			direction = Hex.get_direction_to(last_hex, end_target)
-		else:
-			direction = (_selected_port_direction - current_rotation + 6) % 6
-		var rotation = (_selected_port_direction - direction + 6) % 6
-		var single_input_direction := -1
-		if _is_replaceable_conveyor(last_hex):
-			single_input_direction = chunk.get_piece_at_hex(last_hex).input_direction
-			chunk.remove_piece_at(last_hex)
-		chunk.place_piece(selected_scene, last_hex, rotation, single_input_direction)
-		return
-
 	for i in range(_conveyor_drag_path.size()):
 		var hex = _conveyor_drag_path[i]
 		var can_place := chunk.can_place(current_piece_shape, hex)
@@ -262,8 +248,11 @@ func _place_conveyor_chain(end_target: Hex = null):
 			direction = Hex.get_direction_to(hex, _conveyor_drag_path[i + 1])
 		elif target_is_occupied:
 			direction = Hex.get_direction_to(hex, end_target)
-		else:
+		elif i > 0:
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
+		else:
+			# 1マスだけのときは進行方向がないので、手持ちの向きで置く
+			direction = (_selected_port_direction - current_rotation + 6) % 6
 		var rotation = (_selected_port_direction - direction + 6) % 6
 		# 2マス目以降はパス上の1つ前から受け取る（先頭で曲がる分岐も入力側で接続を保つため）
 		# 始点の既存コンベアは元の入力方向を引き継ぐ（分岐元から引いた分岐でも上流との接続を保つため）
