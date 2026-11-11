@@ -173,15 +173,15 @@ class TestConveyorVisuals:
 		var icon_pos = conv.get_node("ConveyorVisuals/ItemIcon").position
 		assert_almost_eq(icon_pos, end_pos, Vector2(1.0, 1.0))
 
-	func test_接続先がない場合アイコン位置は0_85を超えない():
+	func test_接続先がない終端でもアイコンは出口の端まで進む():
+		# 詰まったときの間隔を他のコンベアと同じ0.5にそろえるため（手前で止めると後続と詰まって見える）
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)  # progress = 1.0（端まで到達）
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		var path = conveyor.get_node("ConveyorVisuals")._path
 		var end_pos = path[path.size() - 1]
 		var icon_pos = conveyor.get_node("ConveyorVisuals/ItemIcon").position
-		# アイコンが終端（t=1.0）ではなく手前（t<=0.85）に留まっていること
-		assert_lt(icon_pos.distance_to(Vector2.ZERO), end_pos.distance_to(Vector2.ZERO))
+		assert_almost_eq(icon_pos, end_pos, Vector2(1.0, 1.0))
 
 	func test_slot2非保持時はItemIcon2が非表示():
 		conveyor.add_item("iron_plate", 1)
