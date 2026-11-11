@@ -244,9 +244,11 @@ func _place_conveyor_chain(end_target: Hex = null):
 		else:
 			direction = (_selected_port_direction - current_rotation + 6) % 6
 		var rotation = (_selected_port_direction - direction + 6) % 6
+		var single_input_direction := -1
 		if _is_replaceable_conveyor(last_hex):
+			single_input_direction = chunk.get_piece_at_hex(last_hex).input_direction
 			chunk.remove_piece_at(last_hex)
-		chunk.place_piece(selected_scene, last_hex, rotation)
+		chunk.place_piece(selected_scene, last_hex, rotation, single_input_direction)
 		return
 
 	for i in range(_conveyor_drag_path.size()):
