@@ -476,3 +476,9 @@ class TestConveyorBranching:
 		assert_true(
 			first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は1マス置き直した(-2,1)へ出力し続けるべき"
 		)
+
+	func test_曲がった分岐の先頭を1マスだけ置き直してもベルトは分岐元の方向から入力を受けて描かれる():
+		_draw_two_branches()
+		_drag([Hex.new(-2, 1)])
+		var visuals = chunk.get_piece_at_hex(Hex.new(-2, 1)).get_node("ConveyorVisuals")
+		assert_eq(visuals._input_direction, 2, "1マス置き直した(-2,1)のベルトは分岐元のあるNW(2)から入力を受けて描かれるべき")
