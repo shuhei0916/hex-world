@@ -11,9 +11,11 @@ const _ARROW_SPACING := 30.0
 const _ARROW_SIZE := 8.0
 
 var _path: PackedVector2Array = PackedVector2Array()
-var _paths: Array[PackedVector2Array] = []
+var _paths: Array[PackedVector2Array] = []  # 出力方向ごとの、主入力から出口までのパス
+var _merge_paths: Array[PackedVector2Array] = []  # 主入力以外の入力（合流）の、辺から中心までのパス
 var _output_directions: Array = []
-var _input_direction: int = -1
+var _input_direction: int = -1  # 主入力。出口へのパスはここから描く
+var _merge_input_directions: Array = []
 var _elapsed: float = 0.0
 
 @onready var _piece: Piece = get_parent()
@@ -58,8 +60,20 @@ func _process(delta: float):
 
 
 func set_input_direction(direction: int):
-	_input_direction = direction
+	set_input_directions([] if direction < 0 else [direction])
+
+
+# 先頭を主入力、残りを合流してくる入力として描く
+func set_input_directions(dirs: Array):
+	_input_direction = dirs[0] if not dirs.is_empty() else -1
+	_merge_input_directions = dirs.slice(1)
 	refresh_belt()
+
+
+func get_input_directions() -> Array:
+	if _input_direction < 0:
+		return []
+	return [_input_direction] + _merge_input_directions
 
 
 func set_output_directions(dirs: Array):
@@ -69,6 +83,7 @@ func set_output_directions(dirs: Array):
 
 func refresh_belt():
 	_paths = []
+	_merge_paths = []
 	var ports = _piece.get_output_ports()
 	if ports.is_empty():
 		return
@@ -87,11 +102,15 @@ func refresh_belt():
 		var segs = 2 if is_straight else CURVE_SEGMENTS
 		_paths.append(sample_bezier(in_edge, Vector2.ZERO, out_edge, segs))
 	_path = _paths[0]
+	# 合流: 主入力のパスは中心を通るので、辺から中心までの直線で継ぎ足せばつながって見える
+	for merge_dir in _merge_input_directions:
+		var merge_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[merge_dir]) * 0.5
+		_merge_paths.append(PackedVector2Array([merge_edge, Vector2.ZERO]))
 	queue_redraw()
 
 
 func _draw():
-	for path in _paths:
+	for path in _merge_paths + _paths:
 		if path.size() < 2:
 			continue
 		draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)

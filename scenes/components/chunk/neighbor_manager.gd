@@ -72,16 +72,20 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 	if base_hex == null:
 		visuals.set_input_direction(-1)
 		return
-	# 出力の配線（_is_physically_connected）と同じ判定で入力元を探す
+	# 出力の配線（_is_physically_connected）と同じ判定で、流し込んでくる入力元をすべて探す。
+	# 合流では複数になる。ドラッグで決まった入力方向がつながっていればそれを主入力にする。
+	var directions: Array = []
 	for direction in range(6):
 		var input_hex = Hex.neighbor(base_hex, direction)
 		var neighbor = _registry.get_piece_at_hex(input_hex)
 		if neighbor == null or neighbor == piece:
 			continue
 		if _is_physically_connected(neighbor, input_hex, (direction + 3) % 6):
-			visuals.set_input_direction(direction)
-			return
-	visuals.set_input_direction(-1)
+			directions.append(direction)
+	if piece.input_direction in directions:
+		directions.erase(piece.input_direction)
+		directions.push_front(piece.input_direction)
+	visuals.set_input_directions(directions)
 
 
 func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:

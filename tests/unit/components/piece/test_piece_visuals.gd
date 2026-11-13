@@ -178,3 +178,26 @@ func test_分岐コンベアのベルトは入口の辺から中心を通って�
 		PackedVector2Array([in_edge, Vector2.ZERO, ne_edge]),
 		"NEへの分岐は入口→中心→出口の直線"
 	)
+
+
+func test_合流コンベアは主入力以外の入力の辺から中心へ合流用のベルトを描く():
+	# 出力 East(0)。主入力 West(3)、もう1本は SE(5) から合流する
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	visuals.set_input_directions([3, 5])
+	var layout = Layout.make_default()
+	var se_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[5]) * 0.5
+	assert_eq(visuals._paths.size(), 1, "出口へのパスは主入力からの1本のまま")
+	assert_eq(visuals._merge_paths, [PackedVector2Array([se_edge, Vector2.ZERO])])
+
+
+func test_入力が1つなら合流用のベルトは描かない():
+	var conveyor = CONVEYOR_SCENE.instantiate()
+	add_child_autofree(conveyor)
+	conveyor.setup(0)
+	var visuals = conveyor.get_node("ConveyorVisuals")
+	visuals.set_input_directions([3])
+	assert_eq(visuals._merge_paths, [])
+	assert_eq(visuals._input_direction, 3)

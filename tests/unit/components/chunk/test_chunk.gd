@@ -162,6 +162,42 @@ class TestNeighbors:
 		assert_true(c in a.get_connected_pieces(), "AはCを出力先として持つべき（自然な分岐）")
 
 
+class TestConveyorMerge:
+	extends GutTest
+
+	# C(0,0) は East へ出力。A(-1,0) が West 側から、B(0,1) が SE 側から C へ流し込む
+	var gm
+	var visuals
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func _place_merge(c_input_direction: int):
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0, c_input_direction)  # C: East へ
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)  # A: East へ（C の West 側から）
+		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1), 4)  # B: NW へ（C の SE 側から）
+		visuals = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("ConveyorVisuals")
+
+	func test_合流先のベルトは接続しているすべての入力方向を持つ():
+		_place_merge(-1)
+		var dirs = visuals.get_input_directions()
+		dirs.sort()
+		assert_eq(dirs, [3, 5])
+
+	func test_合流先のベルトはドラッグで決まった入力方向を主入力にする():
+		_place_merge(5)
+		assert_eq(visuals._input_direction, 5)
+		assert_eq(visuals._merge_paths.size(), 1)
+
+	func test_合流元を撤去すると合流用のベルトが消える():
+		_place_merge(3)
+		gm.remove_piece_at(Hex.new(0, 1))
+		assert_eq(visuals.get_input_directions(), [3])
+		assert_eq(visuals._merge_paths, [])
+
+
 class TestItemTransfer:
 	extends GutTest
 
