@@ -73,3 +73,20 @@ func test_Tキーで循環するとバリアントボタンの強調が更新さ
 	hud.cycle_variant()  # t1→t2
 	var second_btn := hud.variant_panel.button_row.get_child(1) as Button
 	assert_true(second_btn.button_pressed)
+
+
+func test_切替パネルはピース情報のスピード表示と重ならず下に並ぶ():
+	HubGoals.gained_rewards["unlock_miner"] = true
+	hud._refresh_unlock_states()
+	_select_slot(1)
+	# Container のレイアウトはフレーム処理時に確定する
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var rate_rect = hud.info_panel.rate_label.get_global_rect()
+	var variant_rect = hud.variant_panel.get_global_rect()
+	assert_true(hud.info_panel.rate_label.visible, "スピードが表示されているべき")
+	assert_gt(
+		variant_rect.position.y,
+		rate_rect.end.y,
+		"切替パネル(%s)はスピード表示(%s)より下にあるべき" % [variant_rect, rate_rect]
+	)

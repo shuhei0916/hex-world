@@ -193,9 +193,21 @@ text = "受"
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_slot9")
 
-[node name="PieceInfoPanel" parent="." instance=ExtResource("20_infopanel")]
+[node name="SidePanels" type="VBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 16.0
+offset_right = -16.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
 
-[node name="VariantPanel" parent="." instance=ExtResource("21_vp")]
+[node name="PieceInfoPanel" parent="SidePanels" instance=ExtResource("20_infopanel")]
+layout_mode = 2
+
+[node name="VariantPanel" parent="SidePanels" instance=ExtResource("21_vp")]
+layout_mode = 2
 
 [connection signal="pressed" from="ToolBar/Slot1" to="." method="on_slot_pressed" binds= [0]]
 [connection signal="pressed" from="ToolBar/Slot2" to="." method="on_slot_pressed" binds= [1]]

@@ -44,8 +44,8 @@ var _scene_types: Array[PieceData.Type] = [
 
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
-@onready var info_panel: PieceInfoPanel = $PieceInfoPanel
-@onready var variant_panel: VariantPanel = $VariantPanel
+@onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
+@onready var variant_panel: VariantPanel = $SidePanels/VariantPanel
 @onready var _button_group: ButtonGroup = (
 	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
 )
