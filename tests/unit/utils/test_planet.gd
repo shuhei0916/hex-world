@@ -53,7 +53,7 @@ class TestBiomeAssignment:
 
 	func test_各地域は連結しており複数のchunkからなる():
 		for seed_val in range(20):
-			var planet = Planet.new(4, seed_val, 6)
+			var planet = Planet.new(4, seed_val)
 			for region in range(planet.get_region_count()):
 				var hexes = _region_hexes(planet, region)
 				assert_gt(hexes.size(), 1, "seed=%d region=%d" % [seed_val, region])
@@ -66,6 +66,24 @@ class TestBiomeAssignment:
 			for hex in _region_hexes(planet, region):
 				ids[planet.get_biome_id(hex)] = true
 			assert_eq(ids.size(), 1)
+
+	# 3色では塗り分け不能な配置もあり得るため常に成り立つ性質ではないが、
+	# 代表的なシードで同じバイオーム同士が隣接して一つの塊にならないことを確かめる
+	func test_隣接する地域は異なるバイオームになる():
+		for seed_val in range(20):
+			var planet = Planet.new(4, seed_val)
+			for hex in planet.get_chunk_hexes():
+				for dir in range(6):
+					var neighbor = Hex.neighbor(hex, dir)
+					if not planet.has_chunk(neighbor):
+						continue
+					if planet.get_region_id(neighbor) == planet.get_region_id(hex):
+						continue
+					assert_ne(
+						planet.get_biome_id(neighbor),
+						planet.get_biome_id(hex),
+						"seed=%d %s-%s" % [seed_val, hex, neighbor]
+					)
 
 	func _biome_map(planet: Planet) -> Dictionary:
 		var result = {}
