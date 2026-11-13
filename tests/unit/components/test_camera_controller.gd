@@ -68,3 +68,47 @@ func test_zoomが大きいほどworld移動量が小さくなる():
 	camera.zoom = Vector2(2.0, 2.0)
 	var delta_zoom2 = camera._calc_move_delta(Vector2(1, 0), 1.0)
 	assert_almost_eq(delta_zoom1.x * 1.0, delta_zoom2.x * 2.0, 0.001)
+
+
+func _middle_button(pressed: bool) -> InputEventMouseButton:
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_MIDDLE
+	event.pressed = pressed
+	return event
+
+
+func _motion(relative: Vector2) -> InputEventMouseMotion:
+	var event = InputEventMouseMotion.new()
+	event.relative = relative
+	return event
+
+
+func test_中ボタンを押したままドラッグするとマップが手に付いて動く():
+	camera.zoom = Vector2(1.0, 1.0)
+	camera.position = Vector2(100, 100)
+	camera._unhandled_input(_middle_button(true))
+	camera._unhandled_input(_motion(Vector2(30, -20)))
+	# マウスを右上へ動かすと地図も右上へ動く＝カメラは左下へ動く
+	assert_eq(camera.position, Vector2(70, 120))
+
+
+func test_ズームしているときはドラッグ量を画面上の移動量に合わせる():
+	camera.zoom = Vector2(2.0, 2.0)
+	camera.position = Vector2.ZERO
+	camera._unhandled_input(_middle_button(true))
+	camera._unhandled_input(_motion(Vector2(40, 0)))
+	assert_eq(camera.position, Vector2(-20, 0))
+
+
+func test_中ボタンを離したあとのマウス移動ではカメラは動かない():
+	camera.position = Vector2.ZERO
+	camera._unhandled_input(_middle_button(true))
+	camera._unhandled_input(_middle_button(false))
+	camera._unhandled_input(_motion(Vector2(30, 0)))
+	assert_eq(camera.position, Vector2.ZERO)
+
+
+func test_中ボタンを押していないマウス移動ではカメラは動かない():
+	camera.position = Vector2.ZERO
+	camera._unhandled_input(_motion(Vector2(30, 0)))
+	assert_eq(camera.position, Vector2.ZERO)

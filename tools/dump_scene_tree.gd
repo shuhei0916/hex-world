@@ -12,6 +12,7 @@ extends SceneTree
 ##                             action:rotate_piece  InputMap のアクションを押して離す
 ##                             move:400,300     マウス移動（ビューポート座標）
 ##                             click:400,300    左クリック（rclick: で右クリック）
+##                             mdrag:400,300,500,250  中ボタンを押したまま 1点目→2点目へドラッグ
 ##                             moveto:WorldMapView/@Node2D@5  ノードの画面位置へマウス移動
 ##                             clickon:<NodePath>  ノードの画面位置を左クリック
 ##                             wait:10          指定フレーム待つ
@@ -82,6 +83,13 @@ func _run_step(step: String) -> void:
 			_send_click(_parse_vec(value), MOUSE_BUTTON_LEFT)
 		"rclick":
 			_send_click(_parse_vec(value), MOUSE_BUTTON_RIGHT)
+		"mdrag":
+			var nums = value.split(",")
+			_send_drag(
+				Vector2(float(nums[0]), float(nums[1])),
+				Vector2(float(nums[2]), float(nums[3])),
+				MOUSE_BUTTON_MIDDLE
+			)
 		"moveto":
 			_send_mouse_motion(_screen_pos_of(value))
 		"clickon":
@@ -141,6 +149,29 @@ func _send_click(pos: Vector2, button: MouseButton) -> void:
 		ev.pressed = pressed
 		Input.parse_input_event(ev)
 		Input.flush_buffered_events()
+
+
+func _send_drag(from: Vector2, to: Vector2, button: MouseButton) -> void:
+	_send_mouse_motion(from)
+	_send_mouse_button(from, button, true)
+	var ev := InputEventMouseMotion.new()
+	ev.position = to
+	ev.global_position = to
+	ev.relative = to - from
+	ev.button_mask = MOUSE_BUTTON_MASK_MIDDLE if button == MOUSE_BUTTON_MIDDLE else 0
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
+	_send_mouse_button(to, button, false)
+
+
+func _send_mouse_button(pos: Vector2, button: MouseButton, pressed: bool) -> void:
+	var ev := InputEventMouseButton.new()
+	ev.button_index = button
+	ev.position = pos
+	ev.global_position = pos
+	ev.pressed = pressed
+	Input.parse_input_event(ev)
+	Input.flush_buffered_events()
 
 
 ## カメラ等のキャンバス変換を含めた、ノード原点のビューポート座標

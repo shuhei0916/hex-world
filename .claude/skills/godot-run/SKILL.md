@@ -54,6 +54,7 @@ TDD で検証しづらい「実際のゲームに組み込んだときの状態�
 | `action:rotate_piece` | InputMap のアクション |
 | `move:400,300` / `click:400,300` / `rclick:400,300` | ビューポート座標でマウス操作 |
 | `moveto:<NodePath>` / `clickon:<NodePath>` | ノードの画面位置へマウス移動 / 左クリック（カメラ変換込み） |
+| `mdrag:400,300,500,250` | 中ボタンを押したまま 1点目→2点目へドラッグ（カメラのパン確認など） |
 | `wait:10` | フレーム待機 |
 | `call:World/get_active_hex` | メソッドを呼んで戻り値を表示（引数なしのみ） |
 | `script:res://tools/scenarios/x.gd` | シナリオの `run(scene)` を実行（await 可）。ピース配置や複数フレームの観察など、ステップで書けない操作に使う |

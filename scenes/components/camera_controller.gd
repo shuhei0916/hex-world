@@ -6,6 +6,8 @@ extends Camera2D
 @export var zoom_sensitivity: float = 0.1
 @export var move_speed: float = 500.0
 
+var _is_panning := false
+
 
 func _ready() -> void:
 	change_zoom(-0.1)
@@ -36,6 +38,13 @@ func _calc_move_delta(direction: Vector2, delta: float) -> Vector2:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_MIDDLE:
+		_is_panning = event.pressed
+		return
+	# 中ボタンドラッグ: 地図をつかんで動かす感覚にするため、マウスと逆向きにカメラを動かす
+	if event is InputEventMouseMotion and _is_panning:
+		position -= event.relative / zoom.x
+		return
 	if event is InputEventMouseButton:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
