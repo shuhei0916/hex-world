@@ -15,6 +15,7 @@ var _local_camera_position := Vector2.ZERO
 @onready var sfx_player: SfxPlayer = $SfxPlayer
 @onready var debug_overlay: DebugOverlay = $DebugOverlay
 @onready var camera: CameraController = $CameraController
+@onready var pause_menu: PauseMenu = $PauseMenu
 
 
 func _ready():
@@ -25,6 +26,11 @@ func _ready():
 	_activate_chunk(Hex.new(0, 0))
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
+	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
+
+
+func _on_pause_menu_quit_requested() -> void:
+	get_tree().quit()
 
 
 func is_local_mode() -> bool:

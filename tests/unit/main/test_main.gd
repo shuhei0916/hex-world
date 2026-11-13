@@ -260,3 +260,11 @@ func test_ローカルに戻るとワールドマップに入る前のカメラ�
 	main._handle_key_input(_make_space_event())
 	main._handle_key_input(_make_space_event())
 	assert_eq(main.camera.position, Vector2(123, 45))
+
+
+func test_ポーズメニューの終了要求でゲームを終了する処理につながっている():
+	assert_true(main.pause_menu.quit_requested.is_connected(main._on_pause_menu_quit_requested))
+
+
+func test_ポーズメニューはHUDより手前に表示される():
+	assert_gt(main.pause_menu.layer, main.hud.layer)
