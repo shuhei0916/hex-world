@@ -1,9 +1,22 @@
 class_name World
 extends Node2D
 
+# 1 chunk あたりの鉱床のマス数
+const DEPOSIT_SIZE := 5
+
 var _chunks: Dictionary = {}
-var _chunk_hexes: Array[Hex] = []
+var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
 var _active_hex = null
+var _planet: Planet = null
+
+
+# planet を設定する。chunk の実体は初めてアクティブにしたときに生成する（遅延生成）。
+func setup_planet(planet: Planet) -> void:
+	_planet = planet
+
+
+func get_planet() -> Planet:
+	return _planet
 
 
 func create_chunk(chunk_hex: Hex) -> Chunk:
@@ -17,7 +30,16 @@ func create_chunk(chunk_hex: Hex) -> Chunk:
 	_chunk_hexes.append(chunk_hex)
 	chunk.piece_placed.connect(_on_piece_placed)
 	chunk.piece_removed.connect(_rewire_all_senders)
+	_generate_biome_deposits(chunk_hex, chunk)
 	return chunk
+
+
+func _generate_biome_deposits(chunk_hex: Hex, chunk: Chunk) -> void:
+	if _planet == null:
+		return
+	var biome = _planet.get_biome(chunk_hex)
+	if biome:
+		chunk.generate_ore_deposits(DEPOSIT_SIZE, biome.resource_type)
 
 
 # ---- チャンク間配線 ---------------------------------------------------------
@@ -116,6 +138,13 @@ func get_chunk_hexes() -> Array[Hex]:
 	return _chunk_hexes.duplicate()
 
 
+# ワールドマップに並べる chunk の座標。planet があれば未生成の chunk も含む。
+func get_map_hexes() -> Array[Hex]:
+	if _planet:
+		return _planet.get_chunk_hexes()
+	return get_chunk_hexes()
+
+
 func get_chunk(chunk_hex: Hex):
 	return _chunks.get(Hex.to_key(chunk_hex), null)
 
@@ -131,6 +160,10 @@ func get_active_chunk() -> Chunk:
 
 
 func set_active_chunk(chunk_hex: Hex):
+	if _planet and not _planet.has_chunk(chunk_hex):
+		return
+	if get_chunk(chunk_hex) == null:
+		create_chunk(chunk_hex)
 	if _active_hex != null:
 		var prev = get_chunk(_active_hex)
 		if prev:

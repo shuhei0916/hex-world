@@ -3,17 +3,22 @@ extends Node2D
 
 const TILE_SIZE := 80.0
 const NORMAL_COLOR := Color("#2a4a2a")
-const ACTIVE_COLOR := Color("#4a8c4a")
-const HOVER_COLOR := Color("#3a6a8c")
 const BORDER_COLOR := Color("#aaaaaa")
+const ACTIVE_BORDER_COLOR := Color("#ffffff")
+# 基本色（バイオーム色）を保ったまま状態が分かるよう、明るさで表す
+const HOVER_LIGHTEN := 0.2
+const ACTIVE_LIGHTEN := 0.4
 
 var chunk_hex: Hex
+var base_color: Color = NORMAL_COLOR
 var is_active: bool = false
 var is_hovered: bool = false
 
 
-func setup(hex: Hex) -> void:
+func setup(hex: Hex, color: Color = NORMAL_COLOR) -> void:
 	chunk_hex = hex
+	base_color = color
+	queue_redraw()
 
 
 func set_active(active: bool) -> void:
@@ -28,16 +33,17 @@ func set_hovered(hovered: bool) -> void:
 
 func get_current_color() -> Color:
 	if is_active:
-		return ACTIVE_COLOR
+		return base_color.lightened(ACTIVE_LIGHTEN)
 	if is_hovered:
-		return HOVER_COLOR
-	return NORMAL_COLOR
+		return base_color.lightened(HOVER_LIGHTEN)
+	return base_color
 
 
 func _draw() -> void:
 	var pts = _hex_corners()
 	draw_colored_polygon(pts, get_current_color())
-	draw_polyline(pts + PackedVector2Array([pts[0]]), BORDER_COLOR, 2.0)
+	var border = ACTIVE_BORDER_COLOR if is_active else BORDER_COLOR
+	draw_polyline(pts + PackedVector2Array([pts[0]]), border, 4.0 if is_active else 2.0)
 
 
 func _hex_corners() -> PackedVector2Array:

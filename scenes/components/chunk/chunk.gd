@@ -246,10 +246,10 @@ func get_inner_hexes() -> Array[Hex]:
 	return result
 
 
+# 中心(0,0)はハブの設置位置なので鉱床にしない
 func generate_ore_deposits(count: int, resource_type: String = "iron_ore"):
-	var cluster = _resources.generate_ore_deposits(
-		count, get_inner_hexes(), _hex_grid, resource_type
-	)
+	var candidates = get_inner_hexes().filter(func(h): return not Hex.equals(h, Hex.new(0, 0)))
+	var cluster = _resources.generate_ore_deposits(count, candidates, _hex_grid, resource_type)
 	for hex in cluster:
 		_paint_resource_tile(hex, resource_type)
 

@@ -1,23 +1,27 @@
 class_name Main
 extends Node2D
 
+const PLANET_RADIUS := 4
+# セーブ機能が無いうちは毎回同じ惑星を生成する（動作確認の再現性のため）
+const PLANET_SEED := 2026
+
+# ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
+var _local_camera_position := Vector2.ZERO
+
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
 @onready var world_map_view: WorldMapView = $WorldMapView
 @onready var piece_placer: PiecePlacer = $PiecePlacer
 @onready var sfx_player: SfxPlayer = $SfxPlayer
 @onready var debug_overlay: DebugOverlay = $DebugOverlay
+@onready var camera: CameraController = $CameraController
 
 
 func _ready():
-	world.create_chunk(Hex.new(0, 0))
-	world.create_chunk(Hex.new(1, 0))
-	world.create_chunk(Hex.new(-1, 0))
-	world.create_chunk(Hex.new(0, 1))
-	var initial_chunk = world.get_chunk(Hex.new(0, 0))
+	world.setup_planet(Planet.new(PLANET_RADIUS, PLANET_SEED))
+	var initial_chunk = world.create_chunk(Hex.new(0, 0))
 	var goal = HubGoals.get_current_goal()
 	initial_chunk.place_hub(goal["goal_item"], goal["required"])
-	initial_chunk.generate_ore_deposits(5)
 	_activate_chunk(Hex.new(0, 0))
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
@@ -85,6 +89,10 @@ func _enter_world_map_mode():
 	if world.get_active_hex() != null:
 		world_map_view.set_active_chunk(world.get_active_hex())
 	world_map_view.refresh_connections(world.get_connected_chunk_pairs())
+	_local_camera_position = camera.position
+	if world.get_active_hex() != null:
+		var tile_pos = world_map_view.get_tile_position(world.get_active_hex())
+		camera.position = world_map_view.to_global(tile_pos)
 	_refresh_debug_overlay()
 
 
@@ -93,6 +101,7 @@ func _enter_local_mode():
 	hud.visible = true
 	piece_placer.visible = true
 	world_map_view.visible = false
+	camera.position = _local_camera_position
 	_refresh_debug_overlay()
 
 
@@ -103,7 +112,7 @@ func _refresh_debug_overlay():
 	if is_local_mode():
 		debug_overlay.refresh(world.get_active_chunk())
 	else:
-		debug_overlay.refresh_world_map(world_map_view, world.get_chunk_hexes())
+		debug_overlay.refresh_world_map(world_map_view, world.get_map_hexes())
 
 
 func _handle_mouse_motion(event):

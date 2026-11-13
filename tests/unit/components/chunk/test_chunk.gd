@@ -314,6 +314,10 @@ class TestOreDeposits:
 		for hex in gm.get_outer_hexes():
 			assert_eq(gm.get_hex_resource(hex), "", "外縁に鉱床があってはならない")
 
+	func test_generate_ore_depositsはハブを置くchunk中心に鉱床を作らない():
+		gm.generate_ore_deposits(100)
+		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+
 	func test_generate_ore_depositsで資源の種類を指定できる():
 		gm.generate_ore_deposits(3, "copper_ore")
 		var count = 0

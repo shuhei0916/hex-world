@@ -40,6 +40,22 @@ func test_起動時の初期配置では音が鳴らない():
 	assert_false(main.get_node("SfxPlayer/PlaceBuilding").playing)
 
 
+func test_起動時にplanetが設定され原点chunkだけが生成される():
+	assert_eq(main.world.get_planet().radius, Main.PLANET_RADIUS)
+	assert_eq(main.world.get_chunk_hexes().size(), 1)
+	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+
+
+func test_原点chunkにはハブと鉄鉱石の鉱床がある():
+	var chunk = main.world.get_active_chunk()
+	assert_eq(chunk.get_piece_at_hex(Hex.new(0, 0)).piece_type, PieceData.Type.HUB)
+	var ore_count = 0
+	for hex in chunk.get_all_hexes():
+		if chunk.get_hex_resource(hex) == "iron_ore":
+			ore_count += 1
+	assert_eq(ore_count, World.DEPOSIT_SIZE)
+
+
 func _make_right_button_event(pressed: bool) -> InputEventMouseButton:
 	var event = InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_RIGHT
@@ -150,13 +166,13 @@ func _make_f2_event() -> InputEventKey:
 func test_F2表示中にワールドマップへ切り替えるとチャンク座標ラベルになる():
 	main._handle_key_input(_make_f2_event())
 	main._handle_key_input(_make_space_event())
-	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_map_hexes().size())
 
 
 func test_ワールドマップ表示中にF2を押すとチャンク座標ラベルが表示される():
 	main._handle_key_input(_make_space_event())
 	main._handle_key_input(_make_f2_event())
-	assert_eq(main.debug_overlay.get_label_count(), main.world.get_chunk_hexes().size())
+	assert_eq(main.debug_overlay.get_label_count(), main.world.get_map_hexes().size())
 
 
 func test_F2表示中にローカルへ戻るとヘックス座標ラベルに戻る():
@@ -214,3 +230,33 @@ func test_ワールドマップモードでマウス移動するとホバー先�
 	var pos = main.world_map_view.get_tile_position(Hex.new(1, 0))
 	main._handle_mouse_motion(_make_mouse_motion_event(pos))
 	assert_true(main.world_map_view.get_tile_hovered(Hex.new(1, 0)))
+
+
+func test_ワールドマップにはplanetの全chunkが表示される():
+	main._handle_key_input(_make_space_event())
+	var expected = main.world.get_planet().get_chunk_hexes().size()
+	assert_eq(main.world_map_view.get_tile_count(), expected)
+
+
+func test_未生成のchunkを選ぶとそのchunkに入れる():
+	main._handle_key_input(_make_space_event())
+	main._handle_world_map_chunk_selected(Hex.new(-2, 1))
+	assert_true(main.is_local_mode())
+	assert_not_null(main.world.get_chunk(Hex.new(-2, 1)))
+	assert_eq(main.piece_placer.chunk, main.world.get_chunk(Hex.new(-2, 1)))
+
+
+func test_ワールドマップに入るとカメラがアクティブchunkのタイルへ移る():
+	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main._handle_key_input(_make_space_event())
+	var expected = main.world_map_view.to_global(
+		main.world_map_view.get_tile_position(Hex.new(1, 0))
+	)
+	assert_eq(main.camera.position, expected)
+
+
+func test_ローカルに戻るとワールドマップに入る前のカメラ位置に戻る():
+	main.camera.position = Vector2(123, 45)
+	main._handle_key_input(_make_space_event())
+	main._handle_key_input(_make_space_event())
+	assert_eq(main.camera.position, Vector2(123, 45))

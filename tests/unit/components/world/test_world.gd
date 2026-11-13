@@ -223,6 +223,60 @@ class TestWorldChunkManagement:
 		assert_eq(hexes.size(), 2)
 
 
+class TestPlanetIntegration:
+	extends GutTest
+
+	var world
+	var planet: Planet
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		planet = Planet.new(2, 1)
+		world.setup_planet(planet)
+
+	func test_setup_planetしたplanetを取得できる():
+		assert_eq(world.get_planet(), planet)
+
+	func test_get_map_hexesは未生成も含めplanetの全chunkを返す():
+		assert_eq(world.get_map_hexes().size(), planet.get_chunk_hexes().size())
+
+	func test_planet未設定ならget_map_hexesは生成済みchunkを返す():
+		var plain_world = World.new()
+		add_child_autofree(plain_world)
+		plain_world.create_chunk(Hex.new(0, 0))
+		assert_eq(plain_world.get_map_hexes().size(), 1)
+
+	func test_planetのchunkは入るまで生成されない():
+		assert_null(world.get_chunk(Hex.new(1, 0)))
+		assert_eq(world.get_chunk_hexes().size(), 0)
+
+	func test_未生成のchunkをアクティブにすると生成されて表示される():
+		world.set_active_chunk(Hex.new(1, 0))
+		var chunk = world.get_chunk(Hex.new(1, 0))
+		assert_not_null(chunk)
+		assert_true(chunk.visible)
+		assert_eq(world.get_active_chunk(), chunk)
+
+	func test_planet外のhexはアクティブにできない():
+		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(5, 0))
+		assert_null(world.get_chunk(Hex.new(5, 0)))
+		assert_true(Hex.equals(world.get_active_hex(), Hex.new(0, 0)))
+
+	func test_生成されたchunkにはバイオームの資源の鉱床がある():
+		for hex in planet.get_chunk_hexes():
+			var chunk = world.create_chunk(hex)
+			var expected = planet.get_biome(hex).resource_type
+			var count = 0
+			for inner in chunk.get_all_hexes():
+				var resource_type = chunk.get_hex_resource(inner)
+				if resource_type != "":
+					assert_eq(resource_type, expected, str(hex))
+					count += 1
+			assert_eq(count, World.DEPOSIT_SIZE, str(hex))
+
+
 class TestWorldActiveChunk:
 	extends GutTest
 

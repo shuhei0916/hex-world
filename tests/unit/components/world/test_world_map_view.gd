@@ -88,3 +88,46 @@ class TestWorldMapView:
 		var pos1 = view.get_tile_position(Hex.new(1, 0))
 		var expected_midpoint = (pos0 + pos1) / 2.0
 		assert_eq(view.get_connection_arrow_position(0), expected_midpoint)
+
+
+class TestPlanetMap:
+	extends GutTest
+
+	var view
+	var world
+	var planet: Planet
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		planet = Planet.new(2, 1)
+		world.setup_planet(planet)
+		view = WorldMapView.new()
+		add_child_autofree(view)
+		view.setup(world)
+
+	func test_planetの全chunkのタイルが生成される():
+		assert_eq(view.get_tile_count(), planet.get_chunk_hexes().size())
+
+	func test_タイルはそのchunkのバイオーム色で塗られる():
+		for hex in planet.get_chunk_hexes():
+			assert_eq(view.get_tile_color(hex), planet.get_biome(hex).map_color, str(hex))
+
+	func test_ホバー中のchunkのバイオーム名と資源名が表示される():
+		var hex = Hex.new(1, 0)
+		view.set_hovered_chunk(hex)
+		var biome = planet.get_biome(hex)
+		var text = view.get_hover_info_text()
+		assert_string_contains(text, biome.display_name)
+		assert_string_contains(text, ItemDB.get_item(biome.resource_type).display_name)
+
+	func test_ホバー解除で情報表示が消える():
+		view.set_hovered_chunk(Hex.new(1, 0))
+		view.set_hovered_chunk(null)
+		assert_eq(view.get_hover_info_text(), "")
+
+	func test_再setupしても情報表示は1つだけ():
+		view.setup(world)
+		view.set_hovered_chunk(Hex.new(1, 0))
+		assert_ne(view.get_hover_info_text(), "")
+		assert_eq(view.get_tile_count(), planet.get_chunk_hexes().size())
