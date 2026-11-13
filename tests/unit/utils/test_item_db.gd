@@ -26,3 +26,11 @@ func test_全バイオームの資源がアイコン付きでItemDBに登録さ�
 		assert_not_null(item_def, resource_type)
 		if item_def:
 			assert_not_null(item_def.icon, resource_type)
+
+
+func test_新資源から作るアイテムがアイコン付きで登録されている():
+	for id in ["copper_ingot", "steel"]:
+		var item_def = ItemDB.get_item(id)
+		assert_not_null(item_def, id)
+		if item_def:
+			assert_not_null(item_def.icon, id)

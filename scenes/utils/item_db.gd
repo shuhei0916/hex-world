@@ -37,6 +37,12 @@ func _register_defaults():
 		ItemDefinition.new("copper_ore", "Copper Ore", load("res://assets/items/copper_ore.png"))
 	)
 	register_item(ItemDefinition.new("coal", "Coal", load("res://assets/items/coal.png")))
+	register_item(
+		ItemDefinition.new(
+			"copper_ingot", "Copper Ingot", load("res://assets/items/copper_ingot.png")
+		)
+	)
+	register_item(ItemDefinition.new("steel", "Steel", load("res://assets/items/steel.png")))
 
 
 func register_item(item: ItemDefinition):

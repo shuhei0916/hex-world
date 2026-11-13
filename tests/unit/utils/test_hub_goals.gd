@@ -80,3 +80,29 @@ class TestHubGoalsCreativeMode:
 		watch_signals(hub_goals)
 		hub_goals.toggle_creative_mode()
 		assert_signal_emitted(hub_goals, "unlocks_changed")
+
+
+class TestHubGoalsBiomeLevels:
+	extends GutTest
+
+	var hub_goals: Node
+
+	func before_each():
+		hub_goals = HUB_GOALS_SCRIPT.new()
+		add_child_autofree(hub_goals)
+
+	func _advance_to(goal_item: String) -> void:
+		for i in range(20):
+			if hub_goals.get_current_goal()["goal_item"] == goal_item:
+				return
+			hub_goals.advance_level()
+
+	func test_ネジの次は銅インゴットが目標になる():
+		_advance_to("screw")
+		hub_goals.advance_level()
+		assert_eq(hub_goals.get_current_goal()["goal_item"], "copper_ingot")
+
+	func test_銅インゴットの次は鋼材が目標になる():
+		_advance_to("copper_ingot")
+		hub_goals.advance_level()
+		assert_eq(hub_goals.get_current_goal()["goal_item"], "steel")

@@ -9,6 +9,9 @@ const LEVELS = [
 	{"goal_item": "iron_plate", "required": 30, "reward": "unlock_cutter_and_splitter"},
 	{"goal_item": "iron_rod", "required": 30, "reward": "unlock_mixer"},
 	{"goal_item": "screw", "required": 50, "reward": ""},
+	# ここからは平原以外のバイオームの資源を運び込まないと達成できない
+	{"goal_item": "copper_ingot", "required": 30, "reward": ""},
+	{"goal_item": "steel", "required": 20, "reward": ""},
 ]
 
 var level: int = 1

@@ -204,6 +204,21 @@ class TestPieceRoles:
 		p.tick(1.1)
 		assert_eq(p.get_item_count("iron_ore"), 1)
 
+	func test_製錬所は同じ種類の機械の別レシピの材料も受け入れる():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		assert_true(p.can_accept_item("copper_ore"))
+
+	func test_製錬所に銅鉱石を入れると銅インゴットが作られる():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup()
+		p.add_item("copper_ore", 1)
+		p.tick(0.0)
+		p.tick(10.0)
+		assert_eq(p.get_item_count("copper_ingot"), 1)
+
 
 class TestPieceMetadata:
 	extends GutTest

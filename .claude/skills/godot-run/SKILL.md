@@ -81,6 +81,8 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 
 - `conveyor_branch_flow.gd`: 分岐コンベアにアイテムを流し続け、分岐元のアイコン位置を毎フレーム追う（飛び移り・アイコン同士の重なりを検出）
 - `conveyor_spacing.gd`: 分岐を含むラインを詰まらせ、レーンごとのアイテム間隔（ヘックス間距離=1.0）を出力する
+- `planet_overview.gd`: planet のバイオーム分布を文字で描き、ワールドマップのホバー表示と未生成 chunk への入場（遅延生成・鉱床）を出力する
+- `biome_production.gd`: 山岳・森林 chunk の鉱床に Miner を置いて新資源の採掘を確かめ、銅インゴット・鋼材が実際の tick で加工されるかを出力する（約9秒待つ）
 
 ```bash
 dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth=0

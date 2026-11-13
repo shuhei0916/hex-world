@@ -72,3 +72,19 @@ func test_全バイオームの資源に対応する採掘レシピがある():
 
 func test_採掘できない資源の採掘レシピはnull():
 	assert_null(Recipe.RecipeDB.get_mining_recipe("iron_plate"))
+
+
+func test_製錬炉は銅鉱石から銅インゴットを作れる():
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.SMELTER)
+	var found = recipes.filter(
+		func(r): return r.inputs == {"copper_ore": 1} and r.outputs == {"copper_ingot": 1}
+	)
+	assert_eq(found.size(), 1)
+
+
+func test_ミキサーは鉄インゴットと石炭から鋼材を作れる():
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.MIXER)
+	var found = recipes.filter(
+		func(r): return r.inputs == {"iron_ingot": 1, "coal": 1} and r.outputs == {"steel": 1}
+	)
+	assert_eq(found.size(), 1)

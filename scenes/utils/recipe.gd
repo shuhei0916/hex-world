@@ -47,6 +47,12 @@ class RecipeDB:
 			PieceData.Type.SMELTER
 		)
 
+		# Smelter: Copper Ingot (2.0s) — 山岳バイオームの銅鉱石から
+		register_recipe(
+			Recipe.new("copper_ingot", {"copper_ore": 1}, {"copper_ingot": 1}, 2.0),
+			PieceData.Type.SMELTER
+		)
+
 		# Assembler: Iron Plate (3.0s)
 		register_recipe(
 			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0),
@@ -61,6 +67,12 @@ class RecipeDB:
 		# Mixer: Screw (6.0s)
 		register_recipe(
 			Recipe.new("screw", {"iron_rod": 1}, {"screw": 1}, 6.0), PieceData.Type.MIXER
+		)
+
+		# Mixer: Steel (4.0s) — 森林バイオームの石炭と鉄インゴットから
+		register_recipe(
+			Recipe.new("steel", {"iron_ingot": 1, "coal": 1}, {"steel": 1}, 4.0),
+			PieceData.Type.MIXER
 		)
 
 	static func register_recipe(
