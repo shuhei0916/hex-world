@@ -14,6 +14,7 @@ const CRAFTING_START_PROGRESS = 0.001
 @export var craft_time_multiplier: float = 1.0
 
 var current_recipe: Recipe
+var available_recipes: Array[Recipe] = []
 var processing_progress: float = 0.0
 var output_multiplier: int = 1
 var input_capacity: int = 0
@@ -51,8 +52,17 @@ func _sum_quantities(items: Dictionary) -> int:
 	return total
 
 
+# 機械が扱えるレシピの候補。手が空いているときに届いた材料に応じて current_recipe を切り替える。
+func set_available_recipes(recipes: Array) -> void:
+	available_recipes.assign(recipes)
+
+
 # --- 入力受け入れ口（shapez ItemAcceptor 相当をここに内包） ---
+# 手が空いている（材料を持たず加工中でもない）ときは、候補レシピのどれかの材料なら受け入れる。
+# それ以外は current_recipe の材料だけを受け入れる。
 func can_accept_item(item_name: String) -> bool:
+	if _is_idle():
+		return _find_recipe_for(item_name) != null
 	if is_full():
 		return false
 	if not current_recipe:
@@ -61,7 +71,25 @@ func can_accept_item(item_name: String) -> bool:
 
 
 func add_item(item_name: String, amount: int):
+	if _is_idle():
+		var recipe = _find_recipe_for(item_name)
+		if recipe and recipe != current_recipe:
+			set_recipe(recipe)
 	_input_slots[item_name] = _input_slots.get(item_name, 0) + amount
+
+
+func _is_idle() -> bool:
+	return _input_slots.is_empty() and processing_progress == 0.0
+
+
+# 現在のレシピを優先し、なければ候補から item を材料とする最初のレシピを返す
+func _find_recipe_for(item_name: String) -> Recipe:
+	if current_recipe and current_recipe.inputs.has(item_name):
+		return current_recipe
+	for recipe in available_recipes:
+		if recipe.inputs.has(item_name):
+			return recipe
+	return null
 
 
 func consume_item(item_name: String, amount: int):

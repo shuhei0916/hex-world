@@ -179,6 +179,65 @@ class TestCrafterMultiInput:
 		assert_eq(crafter.get_item_count("coal"), 0, "開始時に coal が消費されるべき")
 
 
+class TestCrafterRecipeSelection:
+	extends GutTest
+
+	var crafter: Crafter
+	var output_container
+	var iron_recipe = Recipe.new("iron", {"iron_ore": 1}, {"iron_ingot": 1}, 1.0)
+	var copper_recipe = Recipe.new("copper", {"copper_ore": 1}, {"copper_ingot": 1}, 1.0)
+	var steel_recipe = Recipe.new("steel", {"iron_ingot": 1, "coal": 1}, {"steel": 1}, 1.0)
+
+	func before_each():
+		crafter = Crafter.new()
+		output_container = ItemEjector.new()
+		crafter.setup(output_container)
+		crafter.set_available_recipes([iron_recipe, copper_recipe, steel_recipe])
+		crafter.set_recipe(iron_recipe)
+
+	func after_each():
+		crafter.free()
+		output_container.free()
+
+	func test_手が空いていれば他のレシピの材料も受け入れる():
+		assert_true(crafter.can_accept_item("copper_ore"))
+
+	func test_どのレシピの材料でもないアイテムは受け入れない():
+		assert_false(crafter.can_accept_item("screw"))
+
+	func test_手が空いているとき届いた材料のレシピに切り替わる():
+		crafter.add_item("copper_ore", 1)
+		assert_eq(crafter.current_recipe, copper_recipe)
+
+	func test_切り替え後のレシピで加工される():
+		crafter.add_item("copper_ore", 1)
+		crafter.tick(0.0)
+		crafter.tick(1.0)
+		assert_eq(output_container.get_item_count("copper_ingot"), 1)
+
+	func test_材料を保持している間は別レシピの材料を受け入れない():
+		crafter.set_recipe(steel_recipe)
+		crafter.add_item("coal", 1)
+		assert_false(crafter.can_accept_item("copper_ore"))
+		assert_true(crafter.can_accept_item("iron_ingot"))
+
+	func test_加工中は別レシピの材料を受け入れない():
+		crafter.add_item("iron_ore", 1)
+		crafter.tick(0.0)  # 材料を消費して加工開始
+		assert_false(crafter.can_accept_item("copper_ore"))
+		assert_true(crafter.can_accept_item("iron_ore"))
+
+	func test_複数入力レシピは片方の材料が届いた時点でそのレシピになる():
+		crafter.add_item("coal", 1)
+		assert_eq(crafter.current_recipe, steel_recipe)
+		assert_eq(crafter.input_capacity, 2)
+
+	func test_レシピ未設定でも候補があれば材料を受け入れて切り替わる():
+		crafter.set_recipe(null)
+		crafter.add_item("copper_ore", 1)
+		assert_eq(crafter.current_recipe, copper_recipe)
+
+
 class TestCrafterProgressBar:
 	extends GutTest
 
