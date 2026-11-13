@@ -35,8 +35,11 @@ class RecipeDB:
 			_register_defaults()
 
 	static func _register_defaults():
-		# Miner: Iron Ore (1.0s)
-		register_recipe(Recipe.new("iron_ore", {}, {"iron_ore": 1}, 1.0), PieceData.Type.MINER)
+		# Miner: 足元の鉱床の資源を採掘する (1.0s)。先頭の iron_ore が配置直後の既定レシピ
+		for resource_type in ["iron_ore", "copper_ore", "coal"]:
+			register_recipe(
+				Recipe.new(resource_type, {}, {resource_type: 1}, 1.0), PieceData.Type.MINER
+			)
 
 		# Smelter: Iron Ingot (2.0s)
 		register_recipe(
@@ -71,6 +74,13 @@ class RecipeDB:
 	static func get_recipe(id: String) -> Recipe:
 		_static_init()
 		return _recipes.get(id)
+
+	# 指定した資源を採掘する Miner のレシピ。採掘できない資源なら null。
+	static func get_mining_recipe(resource_type: String) -> Recipe:
+		for recipe in get_recipes_by_type(PieceData.Type.MINER):
+			if recipe.outputs.has(resource_type):
+				return recipe
+		return null
 
 	static func get_recipes_by_type(piece_type: PieceData.Type) -> Array[Recipe]:
 		_static_init()

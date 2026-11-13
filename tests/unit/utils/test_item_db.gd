@@ -17,3 +17,12 @@ func test_iron_rodがItemDBに登録されている():
 func test_存在しないアイテムはnullを返す():
 	var item_def = ItemDB.get_item("non_existent_item")
 	assert_null(item_def, "Should return null for unknown items")
+
+
+func test_全バイオームの資源がアイコン付きでItemDBに登録されている():
+	for biome_id in Biome.all_ids():
+		var resource_type = Biome.get_biome(biome_id).resource_type
+		var item_def = ItemDB.get_item(resource_type)
+		assert_not_null(item_def, resource_type)
+		if item_def:
+			assert_not_null(item_def.icon, resource_type)

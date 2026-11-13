@@ -58,3 +58,17 @@ func test_Recipeにはroleフィールドが存在しない():
 func test_items_per_minuteは60割るcraft_timeを返す():
 	var recipe = Recipe.new("test", {}, {"iron_ingot": 1}, 2.0)
 	assert_eq(recipe.items_per_minute(), 30.0)
+
+
+func test_全バイオームの資源に対応する採掘レシピがある():
+	for biome_id in Biome.all_ids():
+		var resource_type = Biome.get_biome(biome_id).resource_type
+		var recipe = Recipe.RecipeDB.get_mining_recipe(resource_type)
+		assert_not_null(recipe, resource_type)
+		if recipe:
+			assert_eq(recipe.outputs, {resource_type: 1})
+			assert_eq(recipe.inputs, {})
+
+
+func test_採掘できない資源の採掘レシピはnull():
+	assert_null(Recipe.RecipeDB.get_mining_recipe("iron_plate"))

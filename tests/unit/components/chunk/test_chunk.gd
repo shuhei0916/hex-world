@@ -314,6 +314,26 @@ class TestOreDeposits:
 		for hex in gm.get_outer_hexes():
 			assert_eq(gm.get_hex_resource(hex), "", "外縁に鉱床があってはならない")
 
+	func test_generate_ore_depositsで資源の種類を指定できる():
+		gm.generate_ore_deposits(3, "copper_ore")
+		var count = 0
+		for hex in gm.get_inner_hexes():
+			if gm.get_hex_resource(hex) == "copper_ore":
+				count += 1
+		assert_eq(count, 3)
+
+	func test_鉱床タイルは資源の種類ごとに異なる色になる():
+		var colors = {}
+		var hexes = [Hex.new(0, 0), Hex.new(1, 0), Hex.new(0, 1)]
+		var biome_ids = Biome.all_ids()
+		for i in range(biome_ids.size()):
+			var resource_type = Biome.get_biome(biome_ids[i]).resource_type
+			gm.mark_resource_hex(hexes[i], resource_type)
+			var color = gm.find_hex_tile(hexes[i]).get_color()
+			assert_ne(color, Color("#3D3D3D"), "%s の鉱床に色が付くべき" % resource_type)
+			colors[color] = true
+		assert_eq(colors.size(), biome_ids.size())
+
 
 class TestMinerConstraint:
 	extends GutTest
@@ -348,6 +368,21 @@ class TestMinerConstraint:
 		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
 		assert_eq(crafter.output_multiplier, 4)
+
+	func test_MINER_は足元の鉱床の資源を採掘する():
+		gm.mark_resource_hex(Hex.new(0, 0), "copper_ore")
+		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
+		var crafter = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("Crafter")
+		assert_eq(crafter.current_recipe.outputs, {"copper_ore": 1})
+
+	func test_MINER_は複数種の鉱床にまたがると最も多い資源だけをその数ぶん採掘する():
+		gm.mark_resource_hex(Hex.new(0, 0), "copper_ore")
+		gm.mark_resource_hex(Hex.new(0, 1), "coal")
+		gm.mark_resource_hex(Hex.new(1, 0), "coal")
+		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
+		var crafter = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("Crafter")
+		assert_eq(crafter.current_recipe.outputs, {"coal": 1})
+		assert_eq(crafter.output_multiplier, 2)
 
 
 class TestHubProtection:

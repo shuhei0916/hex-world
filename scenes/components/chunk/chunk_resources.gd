@@ -4,6 +4,8 @@ extends RefCounted
 
 const RESOURCE_COLORS = {
 	"iron_ore": Color("#8B6914"),
+	"copper_ore": Color("#b8562a"),
+	"coal": Color("#1e1e1e"),
 }
 
 var _resources: Dictionary = {}
@@ -17,7 +19,9 @@ func get_hex_resource(hex: Hex) -> String:
 	return _resources.get(Hex.to_key(hex), "")
 
 
-func generate_ore_deposits(count: int, inner_hexes: Array[Hex], hex_grid) -> Array[Hex]:
+func generate_ore_deposits(
+	count: int, inner_hexes: Array[Hex], hex_grid, resource_type: String = "iron_ore"
+) -> Array[Hex]:
 	if inner_hexes.is_empty():
 		return []
 	var inner_set: Dictionary = {}
@@ -47,18 +51,22 @@ func generate_ore_deposits(count: int, inner_hexes: Array[Hex], hex_grid) -> Arr
 					break
 
 	for hex in cluster:
-		mark_resource_hex(hex, "iron_ore")
+		mark_resource_hex(hex, resource_type)
 	return cluster
 
 
+# Miner は足元で最も多い資源を、その鉱床マス数ぶんの倍率で採掘する。鉱床が無ければ停止。
 func apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]) -> void:
 	if piece.piece_type != PieceData.Type.MINER:
 		return
-	var ore_count = 0
+	var counts: Dictionary = {}
 	for hex in occupied_hexes:
-		if get_hex_resource(hex) == "iron_ore":
-			ore_count += 1
-	if ore_count == 0:
+		var resource_type = get_hex_resource(hex)
+		if resource_type != "":
+			counts[resource_type] = counts.get(resource_type, 0) + 1
+	if counts.is_empty():
 		piece.set_recipe(null)
-	else:
-		piece.set_output_multiplier(ore_count)
+		return
+	var best: String = counts.keys().reduce(func(a, b): return a if counts[a] >= counts[b] else b)
+	piece.set_recipe(Recipe.RecipeDB.get_mining_recipe(best))
+	piece.set_output_multiplier(counts[best])

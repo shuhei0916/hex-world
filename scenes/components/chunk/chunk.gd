@@ -224,6 +224,10 @@ func show_receiver_hints(hexes: Array):
 
 func mark_resource_hex(hex: Hex, resource_type: String):
 	_resources.mark_resource_hex(hex, resource_type)
+	_paint_resource_tile(hex, resource_type)
+
+
+func _paint_resource_tile(hex: Hex, resource_type: String):
 	var tile = find_hex_tile(hex)
 	if tile and resource_type in _resources.RESOURCE_COLORS:
 		tile.set_color(_resources.RESOURCE_COLORS[resource_type])
@@ -242,12 +246,12 @@ func get_inner_hexes() -> Array[Hex]:
 	return result
 
 
-func generate_ore_deposits(count: int):
-	var cluster = _resources.generate_ore_deposits(count, get_inner_hexes(), _hex_grid)
+func generate_ore_deposits(count: int, resource_type: String = "iron_ore"):
+	var cluster = _resources.generate_ore_deposits(
+		count, get_inner_hexes(), _hex_grid, resource_type
+	)
 	for hex in cluster:
-		var tile = find_hex_tile(hex)
-		if tile:
-			tile.set_color(_resources.RESOURCE_COLORS["iron_ore"])
+		_paint_resource_tile(hex, resource_type)
 
 
 func _apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]):
