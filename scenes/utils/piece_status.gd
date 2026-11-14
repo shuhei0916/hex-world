@@ -111,8 +111,8 @@ static func _state_text(piece: Piece) -> String:
 
 
 static func _no_target_text(piece: Piece) -> String:
-	if piece.piece_type == PieceData.Type.SENDER:
-		return "接続先の Receiver がない"
+	if piece.piece_type == PieceData.Type.BRIDGE:
+		return "向かいのマスに受け取るコンベアや施設がない"
 	return "搬出先がない"
 
 

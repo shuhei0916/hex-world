@@ -206,12 +206,10 @@ func test_チャンク切替でHUDの座標ラベルが更新される():
 
 
 func test_ワールドマップ表示時に接続済みチャンクペアの矢印が表示される():
-	var sender_scene = main.hud.get_scene_for_slot(7)
-	var receiver_scene = main.hud.get_scene_for_slot(8)
-	main.world.get_active_chunk().grid_radius = 5
-	main.world.get_active_chunk().place_piece(sender_scene, Hex.new(4, 1, -5))
+	var bridge_scene = main.hud.get_scene_for_slot(7)
+	main.world.get_active_chunk().place_piece(bridge_scene, Hex.new(4, 1, -5))
 	var chunk_b = main.world.create_chunk(Hex.new(1, 0))
-	chunk_b.place_piece(receiver_scene, Hex.new(-1, -4, 5))
+	chunk_b.place_piece(CONVEYOR, Hex.new(-1, -4, 5))
 	main._handle_key_input(_make_space_event())
 	assert_eq(main.world_map_view.get_connection_arrow_count(), 1)
 

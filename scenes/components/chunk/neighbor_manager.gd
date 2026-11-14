@@ -35,7 +35,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 		return
 	# SENDER の出力はチャンク間配線（World が管理）専用。
 	# チャンク内で配線すると World の配線を上書きしてしまうため対象外とする。
-	if piece.piece_type == PieceData.Type.SENDER:
+	if piece.piece_type == PieceData.Type.BRIDGE:
 		return
 
 	var current_connections: Array[Piece] = []

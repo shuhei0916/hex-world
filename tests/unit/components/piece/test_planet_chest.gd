@@ -97,8 +97,8 @@ class TestDefinitions:
 class TestToolbarVariants:
 	extends "res://tests/unit/components/piece/test_planet_chest.gd"
 
-	const SLOT_IN := 9
-	const SLOT_OUT := 10
+	const SLOT_IN := HUD.CHEST_SLOTS[0]
+	const SLOT_OUT := HUD.CHEST_SLOTS[1]
 
 	var hud: HUD
 

@@ -19,12 +19,9 @@ func after_each():
 	HubGoals.creative_mode = false
 
 
-func test_スロット8はSenderである():
-	assert_eq(_get_slot_piece_type(7), PieceData.Type.SENDER)
-
-
-func test_スロット9はReceiverである():
-	assert_eq(_get_slot_piece_type(8), PieceData.Type.RECEIVER)
+func test_スロット8は橋である():
+	assert_eq(_get_slot_piece_type(7), PieceData.Type.BRIDGE)
+	assert_eq(hud.slot_buttons[7].text, "橋")
 
 
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
@@ -352,31 +349,31 @@ class TestChestSlots:
 		HubGoals.reset()
 
 	func test_ツールバーに搬入チェストと搬出チェストのスロットがある():
-		assert_eq(hud.slot_buttons.size(), 11)
+		assert_eq(hud.slot_buttons.size(), 10)
 		assert_eq(
-			hud.get_scene_for_slot(9).resource_path, "res://scenes/components/piece/chest_in.tscn"
+			hud.get_scene_for_slot(8).resource_path, "res://scenes/components/piece/chest_in.tscn"
 		)
 		assert_eq(
-			hud.get_scene_for_slot(10).resource_path, "res://scenes/components/piece/chest_out.tscn"
+			hud.get_scene_for_slot(9).resource_path, "res://scenes/components/piece/chest_out.tscn"
 		)
 
 	func test_チェストのスロットは研究するまで使えない():
+		assert_true(hud.slot_buttons[8].disabled)
 		assert_true(hud.slot_buttons[9].disabled)
-		assert_true(hud.slot_buttons[10].disabled)
 
 	func test_チェストを研究するとスロットが使えるようになる():
 		HubGoals.researched = {"unlock_chunk_chest": true}
 		HubGoals.unlocks_changed.emit()
+		assert_false(hud.slot_buttons[8].disabled)
 		assert_false(hud.slot_buttons[9].disabled)
-		assert_false(hud.slot_buttons[10].disabled)
 
 	func test_チェストのスロットを押すとそのピースが選ばれる():
 		HubGoals.researched = {"unlock_chunk_chest": true}
 		HubGoals.unlocks_changed.emit()
 		watch_signals(hud)
-		hud.slot_buttons[10].button_pressed = true
-		hud.slot_buttons[10].pressed.emit()
-		assert_signal_emitted_with_parameters(hud, "slot_selected", [hud.get_scene_for_slot(10)])
+		hud.slot_buttons[9].button_pressed = true
+		hud.slot_buttons[9].pressed.emit()
+		assert_signal_emitted_with_parameters(hud, "slot_selected", [hud.get_scene_for_slot(9)])
 
 	func test_アイテム選択パネルは最初は閉じている():
 		assert_false(hud.item_picker.visible)

@@ -53,10 +53,10 @@ class TestPiecePlacement:
 				"Rotated hex at index %d should be correct" % i
 			)
 
-	func test_Senderは内側ヘックスに配置できない():
-		piece_placer.select_piece(preload("res://scenes/components/piece/sender.tscn"))
+	func test_橋は内側ヘックスに配置できない():
+		piece_placer.select_piece(preload("res://scenes/components/piece/bridge.tscn"))
 		var placed = piece_placer.place_piece_at_hex(Hex.new(0, 0, 0))
-		assert_false(placed, "辺ヘックス以外へのSender設置は拒否されるべき")
+		assert_false(placed, "辺ヘックス以外への橋の設置は拒否されるべき")
 
 	func test_select_pieceでシーンを外部からセットして配置できる():
 		piece_placer.select_piece(CONVEYOR_SCENE)

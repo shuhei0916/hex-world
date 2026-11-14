@@ -8,7 +8,7 @@ extends Node2D
 var hex_coordinate: Hex
 var is_highlighted: bool = false
 var normal_color: Color = Color("#3D3D3D")
-# 受信候補ヒント用。Receiver のピース色（橙）を暗くした色
+# 橋の着地点（受け取りを置く場所）のヒント用の色
 var highlight_color: Color = Color(0.55, 0.35, 0.25)
 var _current_color: Color  # 追加: 現在のHexの色 (ピースの色が優先される)
 

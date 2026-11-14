@@ -5,7 +5,7 @@ extends GutTest
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
 const MINER = preload("res://scenes/components/piece/miner_t1.tscn")
-const SENDER = preload("res://scenes/components/piece/sender.tscn")
+const BRIDGE = preload("res://scenes/components/piece/bridge.tscn")
 const CHEST_IN = preload("res://scenes/components/piece/chest_in.tscn")
 
 var chunk: Chunk
@@ -54,9 +54,9 @@ class TestOutputs:
 		var stubs = _ports_of(smelter).get_output_stubs()
 		assert_eq(stubs[0]["direction"], smelter.get_output_ports()[0]["direction"])
 
-	func test_Senderの出力はchunkの外へ向かうので出口の印を描かない():
-		var sender = _place(SENDER, Hex.new(5, -2))
-		assert_eq(_ports_of(sender).get_output_stubs(), [])
+	func test_橋の出力はchunkの外へ向かうので出口の印を描かない():
+		var bridge = _place(BRIDGE, Hex.new(5, -2))
+		assert_eq(_ports_of(bridge).get_output_stubs(), [])
 
 	func test_出力を持たない施設には出口が無い():
 		assert_eq(_ports_of(_place(CHEST_IN, Hex.new(0, 0))).get_output_stubs(), [])

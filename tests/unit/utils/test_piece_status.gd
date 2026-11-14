@@ -4,7 +4,7 @@ const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const MINER = preload("res://scenes/components/piece/miner_t1.tscn")
 const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
 const MIXER = preload("res://scenes/components/piece/mixer_t1.tscn")
-const SENDER = preload("res://scenes/components/piece/sender.tscn")
+const BRIDGE = preload("res://scenes/components/piece/bridge.tscn")
 
 var chunk: Chunk
 
@@ -168,9 +168,9 @@ class TestDescription:
 		chunk.place_hub("iron_ore", 10)
 		assert_eq(chunk.get_piece_at_hex(Hex.new(0, 0)).piece_name, "Hub")
 
-	func test_つながっていないSenderは接続先がないと表示する():
-		var sender = _place(SENDER, Hex.new(5, -2))
-		assert_string_contains(PieceStatus.describe(sender), "接続先の Receiver がない")
+	func test_つながっていない橋は向かいに受け取り先がないと表示する():
+		var bridge = _place(BRIDGE, Hex.new(5, -2))
+		assert_string_contains(PieceStatus.describe(bridge), "向かいのマスに受け取るコンベアや施設がない")
 
 
 class TestChestDescription:

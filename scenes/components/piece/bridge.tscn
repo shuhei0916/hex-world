@@ -5,8 +5,8 @@
 
 [node name="Piece" type="Node2D"]
 script = ExtResource("1_piece")
-piece_name = "Sender"
-piece_description = "隣接チャンクの対辺にあるReceiverへアイテムを送る。チャンクの辺にのみ設置できる。"
+piece_name = "Bridge"
+piece_description = "chunk の辺に置き、溝の向こうの隣の chunk の真正面のマスへアイテムを渡す。受け取る側にはコンベアや施設を置く。"
 piece_type = 9
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
 port_direction = -1

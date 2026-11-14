@@ -161,6 +161,11 @@ func refresh_belt():
 	queue_redraw()
 
 
+# 全コンベア共有の矢印の時計（橋の帯も同じ時計で矢印を流す）
+static func shared_clock() -> float:
+	return _shared_clock
+
+
 # いまの時刻での矢印の位置（1マスの経路に対する割合）
 func current_arrow_fractions() -> Array:
 	return arrow_fractions(_shared_clock)
@@ -184,21 +189,30 @@ func _draw_belt(path: PackedVector2Array, fractions: Array, covered: float) -> v
 
 
 func _draw_chevron(pos: Vector2, tangent: Vector2):
-	var polygon = chevron_polygon(pos, tangent)
-	if polygon.size() >= 3:
+	for polygon in chevron_polygons(pos, tangent):
 		draw_colored_polygon(polygon, _BELT_ARROW)
 
 
-# 矢印の三角形を、このコンベアのマスの内側に切り取ったもの（マスの外に出る部分が無ければそのまま）。
-# 辺にかかった矢印の残りは隣のコンベアが描くので、境目でつながって見え、行き止まりでははみ出さない。
-static func chevron_polygon(pos: Vector2, tangent: Vector2) -> PackedVector2Array:
+# 矢印の形（くの字）。正三角形に近い三角形は120度回すと同じ形になり、斜めに流れると
+# 向きを読み違えるので、先端が1点・後ろに左右の腕の端が2点並ぶ形にする。
+static func chevron_shape(
+	pos: Vector2, tangent: Vector2, size: float = _ARROW_SIZE
+) -> PackedVector2Array:
 	var perp = tangent.rotated(PI * 0.5)
-	var tip = pos + tangent * _ARROW_SIZE
-	var left = pos - tangent * (_ARROW_SIZE * 0.4) + perp * (_ARROW_SIZE * 0.7)
-	var right = pos - tangent * (_ARROW_SIZE * 0.4) - perp * (_ARROW_SIZE * 0.7)
-	var triangle = PackedVector2Array([tip, left, right])
-	var clipped = Geometry2D.intersect_polygons(triangle, _cell_polygon())
-	return clipped[0] if not clipped.is_empty() else PackedVector2Array()
+	var tip = pos + tangent * (size * 0.55)
+	var left = pos - tangent * (size * 0.45) + perp * (size * 0.8)
+	var right = pos - tangent * (size * 0.45) - perp * (size * 0.8)
+	# 腕の太さ。前側の縁を後ろへずらして後ろ側の縁にする
+	var thickness = tangent * (size * 0.5)
+	return PackedVector2Array(
+		[tip, left, left - thickness, tip - thickness, right - thickness, right]
+	)
+
+
+# 矢印を、このコンベアのマスの内側に切り取ったもの（くの字なので2つに分かれることがある）。
+# 辺にかかった矢印の残りは隣のコンベアが描くので、境目でつながって見え、行き止まりでははみ出さない。
+static func chevron_polygons(pos: Vector2, tangent: Vector2) -> Array:
+	return Geometry2D.intersect_polygons(chevron_shape(pos, tangent), _cell_polygon())
 
 
 # このピースのマス（pointy-top の六角形）の角

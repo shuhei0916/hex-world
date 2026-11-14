@@ -5,8 +5,7 @@ const WorldScript = preload("res://scenes/components/world/world.gd")
 const HubGoalsScript = preload("res://scenes/utils/hub_goals.gd")
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const MINER = preload("res://scenes/components/piece/miner_t1.tscn")
-const SENDER = preload("res://scenes/components/piece/sender.tscn")
-const RECEIVER = preload("res://scenes/components/piece/receiver.tscn")
+const BRIDGE = preload("res://scenes/components/piece/bridge.tscn")
 const TEST_PATH := "user://test_save_game.json"
 
 var world: World
@@ -133,19 +132,37 @@ class TestPieces:
 		var miner = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(-2, 0))
 		assert_eq(miner.current_recipe.outputs, {"coal": 1})
 
-	func test_chunkをまたぐSenderとReceiverの接続が復元される():
+	func test_chunkをまたぐ橋の接続が復元される():
 		var east = world.create_chunk(Hex.new(1, 0))
 		chunk.create_hex_grid(2)
 		east.create_hex_grid(2)
-		chunk.place_piece(SENDER, Hex.new(1, 1, -2))
-		east.place_piece(RECEIVER, Hex.new(-1, -1, 2))
+		chunk.place_piece(BRIDGE, Hex.new(1, 1, -2))
+		east.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
 		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
 		var restored = _new_world()
 		SaveGame.apply(restored, data, _new_goals())
-		var sender = restored.get_chunk(Hex.new(0, 0)).get_piece_at_hex(Hex.new(1, 1, -2))
-		var receiver = restored.get_chunk(Hex.new(1, 0)).get_piece_at_hex(Hex.new(-1, -1, 2))
-		assert_not_null(receiver)
-		assert_eq(sender.get_connected_pieces(), [receiver])
+		var bridge = restored.get_chunk(Hex.new(0, 0)).get_piece_at_hex(Hex.new(1, 1, -2))
+		var landing = restored.get_chunk(Hex.new(1, 0)).get_piece_at_hex(Hex.new(-1, -1, 2))
+		assert_not_null(landing)
+		assert_eq(bridge.get_connected_pieces(), [landing])
+
+	func test_旧セーブのSenderは橋として読み込まれ_Receiverは取り除かれる():
+		chunk.create_hex_grid(2)
+		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
+		var pieces = data["chunks"][0]["pieces"]
+		pieces.append(
+			{"scene": "res://scenes/components/piece/sender.tscn", "hex": [1, 1], "rotation": 0}
+		)
+		pieces.append(
+			{"scene": "res://scenes/components/piece/receiver.tscn", "hex": [-1, -1], "rotation": 0}
+		)
+		var restored = _new_world()
+		SaveGame.apply(restored, data, _new_goals())
+		var restored_chunk = restored.get_chunk(Hex.new(0, 0))
+		var bridge = restored_chunk.get_piece_at_hex(Hex.new(1, 1))
+		assert_not_null(bridge)
+		assert_eq(bridge.piece_type, PieceData.Type.BRIDGE)
+		assert_null(restored_chunk.get_piece_at_hex(Hex.new(-1, -1)))
 
 	func test_chunkの大きさが復元される():
 		chunk.create_hex_grid(2)

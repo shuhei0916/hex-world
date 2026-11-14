@@ -8,6 +8,12 @@ extends RefCounted
 
 const VERSION := 1
 const DEFAULT_PATH := "user://save.json"
+# 名前を変えたピース {旧シーン: 新シーン}。旧セーブを読み込むときに読み替える
+const RENAMED_SCENES := {
+	"res://scenes/components/piece/sender.tscn": "res://scenes/components/piece/bridge.tscn",
+}
+# 廃止したピース。旧セーブにあっても置かない（Receiver は橋が直接受け取り先へ渡すので不要）
+const RETIRED_SCENES := ["res://scenes/components/piece/receiver.tscn"]
 
 # 実際に読み書きするファイル。テストや動作確認ツールが本物のセーブを触らないよう差し替えられる。
 static var path: String = DEFAULT_PATH
@@ -149,7 +155,10 @@ static func _apply_chunk(world: World, chunk_data: Dictionary, goals: Node) -> v
 
 
 static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> void:
-	var scene = load(piece_data["scene"])
+	var scene_path: String = RENAMED_SCENES.get(piece_data["scene"], piece_data["scene"])
+	if scene_path in RETIRED_SCENES or not ResourceLoader.exists(scene_path):
+		return
+	var scene = load(scene_path)
 	if scene == null:
 		return
 	var hex = _array_to_hex(piece_data["hex"])

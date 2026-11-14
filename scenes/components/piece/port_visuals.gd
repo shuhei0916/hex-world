@@ -33,7 +33,7 @@ func _ready() -> void:
 
 # 出口 [{hex, direction}]。Sender の出力は chunk の外へ向かう配線なので描かない。
 func get_output_stubs() -> Array:
-	if _piece.piece_type == PieceData.Type.SENDER:
+	if _piece.piece_type == PieceData.Type.BRIDGE:
 		return []
 	return _piece.get_output_ports()
 

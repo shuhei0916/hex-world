@@ -4,7 +4,7 @@ extends RefCounted
 ## 配置:
 ##   山岳の chunk: コンベア (-4,3) → planet 搬入チェスト (-3,3)。コンベアに銅鉱石を流し続ける。
 ##   原点の chunk(0,0): planet 搬出チェスト (-2,0) → コンベア (-1,0) → ハブ (0,0)。
-## 2つの chunk は隣り合っておらず、Sender/Receiver も使わない。
+## 2つの chunk は隣り合っておらず、橋も使わない。
 
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const PLANET_IN = preload("res://scenes/components/piece/planet_chest_in.tscn")

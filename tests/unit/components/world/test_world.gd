@@ -4,14 +4,15 @@ extends GutTest
 const World = preload("res://scenes/components/world/world.gd")
 
 
-class TestChunkWiring:
+class TestBridgeWiring:
 	extends GutTest
 
-	const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
-	const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+	## 橋は chunk の辺に置き、溝の向こうの隣の chunk の向かいのマス（mirror_hex）にある
+	## コンベアや施設へアイテムを渡す。受け取り専用の施設は要らない。
 
-	# SE(5)の辺ヘックスとその点対称位置(pointy⇔flatのズレ補正によりworldmap上の東隣(1,0)に接続)
-	const SENDER_HEX_QRS = [1, 1, -2]
+	const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+	const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
+	const CHEST_IN = preload("res://scenes/components/piece/chest_in.tscn")
 
 	var world
 	var chunk_a: Chunk
@@ -25,93 +26,87 @@ class TestChunkWiring:
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
 
-	func _sender_hex() -> Hex:
+	# SE(5)の辺の橋と、その向かいのマス（worldmap 上の東隣(1,0)の chunk の中）
+	func _bridge_hex() -> Hex:
 		return Hex.new(1, 1, -2)
 
-	func _receiver_hex() -> Hex:
+	func _landing_hex() -> Hex:
 		return Hex.new(-1, -1, 2)
 
-	func test_Receiverを後置きするとSenderが配線される():
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		chunk_b.place_piece(RECEIVER_SCENE, _receiver_hex())
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		var receiver = chunk_b.get_piece_at_hex(_receiver_hex())
-		assert_eq(sender.get_connected_pieces(), [receiver])
+	func _bridge() -> Piece:
+		return chunk_a.get_piece_at_hex(_bridge_hex())
 
-	func test_Receiverが先にあってもSender設置時に配線される():
-		chunk_b.place_piece(RECEIVER_SCENE, _receiver_hex())
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		var receiver = chunk_b.get_piece_at_hex(_receiver_hex())
-		assert_eq(sender.get_connected_pieces(), [receiver])
+	func test_向かいのマスにコンベアを後から置くと橋がつながる():
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		chunk_b.place_piece(CONVEYOR, _landing_hex())
+		assert_eq(_bridge().get_connected_pieces(), [chunk_b.get_piece_at_hex(_landing_hex())])
 
-	func test_Receiver不在なら配線されない():
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		assert_eq(sender.get_connected_pieces(), [])
+	func test_向かいのマスに先に置いてあっても橋を置いたときにつながる():
+		chunk_b.place_piece(CONVEYOR, _landing_hex())
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		assert_eq(_bridge().get_connected_pieces(), [chunk_b.get_piece_at_hex(_landing_hex())])
 
-	func test_点対称位置以外のReceiverには配線されない():
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, 0, 2))  # ずれた位置
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		assert_eq(sender.get_connected_pieces(), [])
+	func test_施設にも直接渡せる():
+		chunk_b.place_piece(CHEST_IN, _landing_hex())
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		assert_eq(_bridge().get_connected_pieces(), [chunk_b.get_piece_at_hex(_landing_hex())])
 
-	func test_Receiver撤去で配線が解除される():
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		chunk_b.place_piece(RECEIVER_SCENE, _receiver_hex())
-		chunk_b.remove_piece_at(_receiver_hex())
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		assert_eq(sender.get_connected_pieces(), [])
+	func test_向かいのマスが空ならつながらない():
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		assert_eq(_bridge().get_connected_pieces(), [])
 
-	func test_南東チャンクへも点対称位置で配線される():
+	func test_向かいからずれた位置のコンベアにはつながらない():
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		chunk_b.place_piece(CONVEYOR, Hex.new(-2, 0, 2))
+		assert_eq(_bridge().get_connected_pieces(), [])
+
+	func test_向かい合う橋どうしはつながらない():
+		# つなぐと、アイテムが溝の上を行ったり来たりする
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		chunk_b.place_piece(BRIDGE_SCENE, _landing_hex())
+		assert_eq(_bridge().get_connected_pieces(), [])
+		assert_eq(chunk_b.get_piece_at_hex(_landing_hex()).get_connected_pieces(), [])
+
+	func test_向かいのマスのコンベアを撤去すると解除される():
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		chunk_b.place_piece(CONVEYOR, _landing_hex())
+		chunk_b.remove_piece_at(_landing_hex())
+		assert_eq(_bridge().get_connected_pieces(), [])
+
+	func test_南東のchunkへも辺の対応位置でつながる():
 		var chunk_c = world.create_chunk(Hex.new(0, 1))  # 南東隣
 		chunk_c.create_hex_grid(2)
-		# r=R の辺（W(4)の辺、pointy⇔flat補正でworldmap上のSE(5)=南東隣へ接続）
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(-1, 2, -1))
-		chunk_c.place_piece(RECEIVER_SCENE, Hex.new(1, -2, 1))
-		var sender = chunk_a.get_piece_at_hex(Hex.new(-1, 2, -1))
-		var receiver = chunk_c.get_piece_at_hex(Hex.new(1, -2, 1))
-		assert_eq(sender.get_connected_pieces(), [receiver])
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(-1, 2, -1))
+		chunk_c.place_piece(CONVEYOR, Hex.new(1, -2, 1))
+		var bridge = chunk_a.get_piece_at_hex(Hex.new(-1, 2, -1))
+		assert_eq(bridge.get_connected_pieces(), [chunk_c.get_piece_at_hex(Hex.new(1, -2, 1))])
 
-	func test_辺方向とworldmap上の隣接方向のズレを補正して配線される():
-		# chunk(0,0)のhex(3,2)(s=-5, SEの辺)は、worldmap(flat-top)上では
-		# (1,0)方向に隣接する(pointy⇔flatの角度ズレによりedge_dir+1が真の隣接方向)。
-		# 辺内の対応位置は単純な原点対称ではなくq,rを入れ替えた(-2,-3,5)。
-		chunk_a.grid_radius = 5
-		chunk_b.grid_radius = 5
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(3, 2, -5))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-2, -3, 5))
-		var sender = chunk_a.get_piece_at_hex(Hex.new(3, 2, -5))
-		var receiver = chunk_b.get_piece_at_hex(Hex.new(-2, -3, 5))
-		assert_eq(sender.get_connected_pieces(), [receiver])
-
-	func test_点対称位置ではなく辺内の対応位置に配線される():
+	func test_点対称位置ではなく辺内の対応位置につながる():
 		# chunk(0,0)のhex(4,1,-5)(SEの辺、q=radius寄りの端)は、
-		# 単純な原点対称(-4,-1,5)ではなく、辺内で対応する位置(-1,-4,5)に配線される。
+		# 単純な原点対称(-4,-1,5)ではなく、辺内で対応する位置(-1,-4,5)につながる。
 		chunk_a.grid_radius = 5
 		chunk_b.grid_radius = 5
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(4, 1, -5))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -4, 5))
-		var sender = chunk_a.get_piece_at_hex(Hex.new(4, 1, -5))
-		var receiver = chunk_b.get_piece_at_hex(Hex.new(-1, -4, 5))
-		assert_eq(sender.get_connected_pieces(), [receiver])
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(4, 1, -5))
+		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -4, 5))
+		var bridge = chunk_a.get_piece_at_hex(Hex.new(4, 1, -5))
+		assert_eq(bridge.get_connected_pieces(), [chunk_b.get_piece_at_hex(Hex.new(-1, -4, 5))])
 
-	func test_非アクティブチャンクのReceiverへアイテムが届く():
-		world.set_active_chunk(Hex.new(0, 0))  # chunk_b は非表示のまま
-		chunk_a.place_piece(SENDER_SCENE, _sender_hex())
-		chunk_b.place_piece(RECEIVER_SCENE, _receiver_hex())
-		var sender = chunk_a.get_piece_at_hex(_sender_hex())
-		var receiver = chunk_b.get_piece_at_hex(_receiver_hex())
-		sender.add_item("iron_ore", 1)
-		sender.tick(1.0)
-		assert_eq(receiver.get_item_count("iron_ore"), 1)
+	func test_表示していないchunkのコンベアへもアイテムが届く():
+		world.set_active_chunk(Hex.new(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
+		chunk_b.place_piece(CONVEYOR, _landing_hex())
+		_bridge().add_item("iron_ore", 1)
+		_bridge().tick(1.0)
+		assert_eq(chunk_b.get_piece_at_hex(_landing_hex()).get_item_count("iron_ore"), 1)
 
 
-class TestReceiverHints:
+class TestBridgeLandingHints:
 	extends GutTest
 
-	const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
-	const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+	## 橋の向かいのマスが空いているとき、そこを「受け取りを置く場所」として光らせる
+
+	const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+	const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 
 	var world
 	var chunk_a: Chunk
@@ -125,34 +120,42 @@ class TestReceiverHints:
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
 
-	func test_隣接チャンクのSenderの点対称位置が受信候補になる():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
+	func test_隣のchunkの橋の向かいのマスが着地点の候補になる():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		var hints = world.get_bridge_landing_hexes(Hex.new(1, 0))
 		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-1, -1, 2))])
 
-	func test_アクティブチャンク切替でヒントがハイライトされる():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
+	func test_隣に描いているchunkでも着地点が光る():
+		world.set_active_chunk(Hex.new(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		assert_true(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
+
+	func test_アクティブなchunkの着地点も光る():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
 		world.set_active_chunk(Hex.new(1, 0))
 		assert_true(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
 
-	func test_Sender撤去でアクティブチャンクのヒントが消える():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		world.set_active_chunk(Hex.new(1, 0))
+	func test_橋を撤去すると着地点の光が消える():
+		world.set_active_chunk(Hex.new(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
 		chunk_a.remove_piece_at(Hex.new(1, 1, -2))
 		assert_false(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
 
-	func test_Receiver設置済みの位置は候補から除外される():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
-		var hints = world.get_receiver_hint_hexes(Hex.new(1, 0))
-		assert_eq(hints, [])
+	func test_着地点に何か置くと候補から外れ_光も消える():
+		world.set_active_chunk(Hex.new(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
+		assert_eq(world.get_bridge_landing_hexes(Hex.new(1, 0)), [])
+		assert_false(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
 
 
-class TestConnectedChunkPairs:
+class TestBridgeSpans:
 	extends GutTest
 
-	const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
-	const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+	## 溝の上に描く橋の帯。画面上の始点（橋のマス）と終点（向かいのマス）、つながっているか
+
+	const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+	const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 
 	var world
 	var chunk_a: Chunk
@@ -162,29 +165,70 @@ class TestConnectedChunkPairs:
 		world = World.new()
 		add_child_autofree(world)
 		chunk_a = world.create_chunk(Hex.new(0, 0))
-		chunk_b = world.create_chunk(Hex.new(1, 0))  # 東隣
+		chunk_b = world.create_chunk(Hex.new(1, 0))
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
+		world.set_active_chunk(Hex.new(0, 0))
 
-	func test_接続済みのSenderがあるチャンクペアを返す():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
-		var pairs = world.get_connected_chunk_pairs()
-		assert_eq(pairs.size(), 1)
-		assert_eq(Hex.to_key(pairs[0][0]), Hex.to_key(Hex.new(0, 0)))
-		assert_eq(Hex.to_key(pairs[0][1]), Hex.to_key(Hex.new(1, 0)))
+	func _screen(chunk: Chunk, hex: Hex) -> Vector2:
+		return chunk.position + chunk.hex_to_pixel(hex)
 
-	func test_未接続なら空になる():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		var pairs = world.get_connected_chunk_pairs()
-		assert_eq(pairs, [])
+	func test_橋のマスから向かいのマスまでの帯になる():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		var spans = world.get_bridge_spans()
+		assert_eq(spans.size(), 1)
+		assert_true(spans[0]["from"].is_equal_approx(_screen(chunk_a, Hex.new(1, 1, -2))))
+		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_b, Hex.new(-1, -1, 2))))
 
-	func test_Sender撤去で対象ペアが消える():
-		chunk_a.place_piece(SENDER_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(RECEIVER_SCENE, Hex.new(-1, -1, 2))
-		chunk_a.remove_piece_at(Hex.new(1, 1, -2))
-		var pairs = world.get_connected_chunk_pairs()
-		assert_eq(pairs, [])
+	func test_帯は橋の外側の辺の中点から出て_着地点の向かい合う辺の中点に入る():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		var path: PackedVector2Array = world.get_bridge_spans()[0]["path"]
+		var edge_dir = chunk_a.get_edge_direction(Hex.new(1, 1, -2))
+		var out = chunk_a.hex_to_pixel(Hex.direction(edge_dir)) * 0.5
+		var bridge_center = _screen(chunk_a, Hex.new(1, 1, -2))
+		var landing_center = _screen(chunk_b, Hex.new(-1, -1, 2))
+		assert_true(path[0].is_equal_approx(bridge_center + out), "橋の外側の辺の中点")
+		assert_true(path[-1].is_equal_approx(landing_center - out), "着地点の向かい合う辺の中点")
+		# 辺に垂直に出入りする（コンベアの入口とそのままつながる）
+		assert_almost_eq((path[1] - path[0]).normalized().dot(out.normalized()), 1.0, 0.01)
+		assert_almost_eq((path[-1] - path[-2]).normalized().dot(out.normalized()), 1.0, 0.01)
+
+	func test_向かいに受け取り先が無ければつながっていない帯になる():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		assert_false(world.get_bridge_spans()[0]["connected"])
+
+	func test_受け取り先があればつながった帯になる():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
+		assert_true(world.get_bridge_spans()[0]["connected"])
+
+	func test_隣のchunkからこちらへ向かう橋も描く():
+		chunk_b.place_piece(BRIDGE_SCENE, Hex.new(-1, -1, 2))
+		var spans = world.get_bridge_spans()
+		assert_eq(spans.size(), 1)
+		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_a, Hex.new(1, 1, -2))))
+
+	func test_渡している途中のアイテムと進み具合が分かる():
+		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
+		var bridge = chunk_a.get_piece_at_hex(Hex.new(1, 1, -2))
+		bridge.add_item("iron_ore", 1)
+		bridge.tick(TransferBuffer.TRANSFER_TIME * 0.5)
+		var span = world.get_bridge_spans()[0]
+		assert_eq(span["item"], "iron_ore")
+		assert_almost_eq(span["progress"], 0.5, 0.01)
+
+	func test_表示していないchunkどうしの橋は描かない():
+		var far = world.create_chunk(Hex.new(3, 0))
+		far.create_hex_grid(2)
+		world.create_chunk(Hex.new(4, 0)).create_hex_grid(2)
+		far.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		assert_eq(world.get_bridge_spans(), [])
+
+	func test_橋の帯は施設のタイルより奥_床より手前に描く():
+		var overlay = world.get_node("BridgeOverlay")
+		assert_lt(overlay.z_index, PortVisuals.PIECE_TILE_Z)
+		assert_gt(overlay.z_index, 0)
 
 
 class TestWorldChunkManagement:

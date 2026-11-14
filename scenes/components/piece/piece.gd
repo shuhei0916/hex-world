@@ -240,32 +240,14 @@ func has_connected_piece() -> bool:
 
 
 func _refresh_connection_indicator() -> void:
-	if piece_type != PieceData.Type.SENDER and piece_type != PieceData.Type.RECEIVER:
+	if piece_type != PieceData.Type.BRIDGE:
 		return
-	# modulate は子にも伝播し矢印まで緑に染めてしまうため、タイル側だけを個別に着色する。
+	# つながっている橋はタイルを緑がかった色にする。向きは溝の上の帯（BridgeOverlay）で示す。
+	# modulate は子にも伝播するため、タイル側だけを個別に着色する。
 	var color = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
 	for child in get_children():
 		if child is HexTile:
 			child.modulate = color
-	_refresh_connection_arrow()
-
-
-func _refresh_connection_arrow() -> void:
-	var existing = get_node_or_null("ConnectionArrow")
-	if existing:
-		remove_child(existing)
-		existing.queue_free()
-	if piece_type != PieceData.Type.SENDER:
-		return
-	if not has_connected_piece() or _connection_direction < 0:
-		return
-	var arrow = make_output_arrow({"hex": Hex.new(0, 0, 0), "direction": _connection_direction})
-	arrow.name = "ConnectionArrow"
-	arrow.scale = Vector2(1.0, 1.0)
-	arrow.position += Vector2(PORT_OFFSET, 0).rotated(arrow.rotation)
-	arrow.z_index = 20
-	arrow.z_as_relative = false
-	add_child(arrow)
 
 
 static func make_output_arrow(port: Dictionary) -> Sprite2D:

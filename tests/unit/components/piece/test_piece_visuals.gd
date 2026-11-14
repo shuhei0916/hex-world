@@ -295,17 +295,34 @@ class TestBeltArrowContinuity:
 
 	func test_出口の辺にかかった矢印はマスの外へはみ出さない():
 		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[0]) * 0.5
-		var polygon = ConveyorVisuals.chevron_polygon(edge_mid, Vector2(1, 0))
-		assert_gt(polygon.size(), 0, "マスの中にある部分は描く")
-		for point in polygon:
-			assert_true(_inside_cell(point), str(point))
+		var polygons = ConveyorVisuals.chevron_polygons(edge_mid, Vector2(1, 0))
+		assert_gt(polygons.size(), 0, "マスの中にある部分は描く")
+		for polygon in polygons:
+			for point in polygon:
+				assert_true(_inside_cell(point), str(point))
 
 	func test_入口の辺にかかった矢印もマスの外へはみ出さない():
 		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[3]) * 0.5
-		var polygon = ConveyorVisuals.chevron_polygon(edge_mid, Vector2(1, 0))
-		for point in polygon:
-			assert_true(_inside_cell(point), str(point))
+		for polygon in ConveyorVisuals.chevron_polygons(edge_mid, Vector2(1, 0)):
+			for point in polygon:
+				assert_true(_inside_cell(point), str(point))
 
-	func test_マスの中ほどの矢印は欠けずに三角形のまま():
-		var polygon = ConveyorVisuals.chevron_polygon(Vector2.ZERO, Vector2(1, 0))
-		assert_eq(polygon.size(), 3)
+	func test_マスの中ほどの矢印は欠けずに元の形のまま():
+		var polygons = ConveyorVisuals.chevron_polygons(Vector2.ZERO, Vector2(1, 0))
+		assert_eq(polygons.size(), 1)
+		assert_eq(
+			polygons[0].size(), ConveyorVisuals.chevron_shape(Vector2.ZERO, Vector2(1, 0)).size()
+		)
+
+	func test_矢印はくの字で_斜めに流れても向きを読み違えない():
+		# 正三角形に近い三角形は120度回すと同じ形になり、斜めの流れで向きが逆に見える。
+		# くの字なら先端は1点だけで、反対側には左右の腕の端が2点並ぶ
+		for angle in [0.0, PI / 3.0, -PI / 6.0, PI * 2.0 / 3.0]:
+			var tangent = Vector2.RIGHT.rotated(angle)
+			var shape = ConveyorVisuals.chevron_shape(Vector2.ZERO, tangent)
+			var along = Array(shape).map(func(p): return snappedf(p.dot(tangent), 0.01))
+			var front = along.max()
+			var back = along.min()
+			assert_eq(along.count(front), 1, "先端は1点 (角度 %.2f)" % angle)
+			assert_eq(along.count(back), 2, "後ろは腕の端の2点 (角度 %.2f)" % angle)
+			assert_gt(front - back, 0.0)

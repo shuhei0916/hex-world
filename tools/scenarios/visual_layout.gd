@@ -1,14 +1,14 @@
 extends RefCounted
 
 ## 見た目の確認用の配置（screenshot.sh と組み合わせる）。
-## 鉱床の Miner → コンベア → Smelter → コンベア → ハブ、境界の Sender と隣の Receiver を置き、
+## 鉱床の Miner → コンベア → Smelter → コンベア → ハブ、境界の橋と、隣の chunk で受け取るコンベアを置き、
 ## 少し流してから撮れる状態にする。カメラは CAMERA_ZOOM で引いて隣の chunk も映す。
 
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const MINER = preload("res://scenes/components/piece/miner_t1.tscn")
 const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
-const SENDER = preload("res://scenes/components/piece/sender.tscn")
-const RECEIVER = preload("res://scenes/components/piece/receiver.tscn")
+const SENDER = preload("res://scenes/components/piece/bridge.tscn")
+
 const CAMERA_ZOOM := 0.55
 
 
@@ -35,7 +35,7 @@ func run(scene: Node) -> void:
 	var edge_dir = chunk.get_edge_direction(Hex.new(5, -2))
 	var target_hex = Hex.neighbor(Hex.new(0, 0), ChunkTopology.to_world_direction(edge_dir))
 	world.get_chunk(target_hex).place_piece(
-		RECEIVER, ChunkTopology.mirror_hex(Hex.new(5, -2), edge_dir), 0
+		CONVEYOR, ChunkTopology.mirror_hex(Hex.new(5, -2), edge_dir), 0
 	)
 	scene.camera.zoom = Vector2(CAMERA_ZOOM, CAMERA_ZOOM)
 	for i in 60:

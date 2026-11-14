@@ -11,8 +11,8 @@ enum Type {
 	ASSEMBLER,
 	CHEST,
 	HUB,
-	SENDER,
-	RECEIVER,
+	BRIDGE,
+	RETIRED_RECEIVER,  # 廃止（橋が直接受け取り先へ渡す）。後ろの番号を変えないための欠番
 	CHEST_OUT,
 	PLANET_CHEST,
 	PLANET_CHEST_OUT,
@@ -36,8 +36,7 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.CUTTER: "unlock_cutter_and_splitter",
 	Type.MIXER: "unlock_mixer",
 	Type.PAINTER: "unlock_mixer",
-	Type.SENDER: "",
-	Type.RECEIVER: "",
+	Type.BRIDGE: "",
 }
 
 

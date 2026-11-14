@@ -68,7 +68,7 @@ func can_place(shape: Array, base_hex: Hex, piece_type: int = -1) -> bool:
 
 
 func _requires_edge(piece_type: int) -> bool:
-	return piece_type == PieceData.Type.SENDER or piece_type == PieceData.Type.RECEIVER
+	return piece_type == PieceData.Type.BRIDGE
 
 
 func place_piece(
@@ -229,8 +229,8 @@ func get_edge_direction(hex: Hex) -> int:
 	return on_edge.find(true)
 
 
-# Receiver の設置候補位置をハイライトする。呼ぶたびに前回分はクリアされる。
-func show_receiver_hints(hexes: Array):
+# 橋の着地点（受け取りを置く場所）をハイライトする。呼ぶたびに前回分はクリアされる。
+func show_landing_hints(hexes: Array):
 	for hex in _hint_hexes:
 		var tile = find_hex_tile(hex)
 		if tile:
