@@ -52,6 +52,10 @@ func is_completed() -> bool:
 	return received_count >= goal_count
 
 
+func refresh_display():
+	_update_display()
+
+
 func _update_display():
 	var parent = get_parent()
 	if not parent:

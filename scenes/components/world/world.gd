@@ -19,7 +19,8 @@ func get_planet() -> Planet:
 	return _planet
 
 
-func create_chunk(chunk_hex: Hex) -> Chunk:
+# generate_deposits=false はセーブデータからの復元用（鉱床は保存された配置を使う）
+func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
 	var key = Hex.to_key(chunk_hex)
 	if key in _chunks:
 		return _chunks[key]
@@ -30,7 +31,8 @@ func create_chunk(chunk_hex: Hex) -> Chunk:
 	_chunk_hexes.append(chunk_hex)
 	chunk.piece_placed.connect(_on_piece_placed)
 	chunk.piece_removed.connect(_rewire_all_senders)
-	_generate_biome_deposits(chunk_hex, chunk)
+	if generate_deposits:
+		_generate_biome_deposits(chunk_hex, chunk)
 	return chunk
 
 

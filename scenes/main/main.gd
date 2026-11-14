@@ -2,7 +2,7 @@ class_name Main
 extends Node2D
 
 const PLANET_RADIUS := 4
-# セーブ機能が無いうちは毎回同じ惑星を生成する（動作確認の再現性のため）
+# 新しいゲームは毎回同じ惑星で始める（シードの選択は未実装）
 const PLANET_SEED := 2026
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
@@ -19,14 +19,53 @@ var _local_camera_position := Vector2.ZERO
 
 
 func _ready():
+	if not _load_game():
+		_start_new_game()
+	_activate_chunk(world.get_active_hex())
+	hud.slot_selected.connect(sfx_player.on_slot_selected)
+	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
+	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
+	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
+	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
+
+
+func _start_new_game() -> void:
 	world.setup_planet(Planet.new(PLANET_RADIUS, PLANET_SEED))
 	var initial_chunk = world.create_chunk(Hex.new(0, 0))
 	var goal = HubGoals.get_current_goal()
 	initial_chunk.place_hub(goal["goal_item"], goal["required"])
-	_activate_chunk(Hex.new(0, 0))
-	hud.slot_selected.connect(sfx_player.on_slot_selected)
-	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
-	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
+	world.set_active_chunk(Hex.new(0, 0))
+
+
+# セーブデータがあれば復元して true を返す。無い・壊れている場合は false。
+func _load_game() -> bool:
+	var data = SaveGame.read()
+	if data.get("chunks", []).is_empty() or not data.has("active_chunk"):
+		return false
+	SaveGame.apply(world, data, HubGoals)
+	# HUD は Main より先に初期化されるので、復元した解放状況を反映させる
+	HubGoals.unlocks_changed.emit()
+	return true
+
+
+func save_game() -> bool:
+	return SaveGame.write(SaveGame.path, SaveGame.capture(world, HubGoals))
+
+
+# セーブデータと進行度を捨てる（シーンの再読み込みは呼び出し側で行う）
+func discard_progress() -> void:
+	SaveGame.delete()
+	HubGoals.reset()
+
+
+func _on_pause_menu_save_requested() -> void:
+	pause_menu.show_status("セーブしました" if save_game() else "セーブに失敗しました")
+
+
+func _on_pause_menu_new_game_requested() -> void:
+	discard_progress()
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func _on_pause_menu_quit_requested() -> void:

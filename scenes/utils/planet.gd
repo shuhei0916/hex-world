@@ -14,6 +14,7 @@ const MIN_SEED_DISTANCE := 2
 const MAX_REGION_ATTEMPTS := 20
 
 var radius: int
+var seed_value: int
 
 var _chunk_hexes: Array[Hex] = []
 var _chunk_keys: Dictionary = {}
@@ -24,6 +25,7 @@ var _rng := RandomNumberGenerator.new()
 
 func _init(radius_val: int, seed_val: int, region_count: int = DEFAULT_REGION_COUNT) -> void:
 	radius = radius_val
+	seed_value = seed_val
 	_rng.seed = seed_val
 	for q in range(-radius, radius + 1):
 		for r in range(maxi(-radius, -q - radius), mini(radius, -q + radius) + 1):

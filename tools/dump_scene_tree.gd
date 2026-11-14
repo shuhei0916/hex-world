@@ -23,6 +23,8 @@ extends SceneTree
 ##   --props=<a,b,...>       追加で出力するプロパティ（そのプロパティを持つノードのみ）
 ##   --frames=<n>            起動後、シナリオ開始前に待つフレーム数（既定: 2）
 
+const TOOL_SAVE_PATH := "user://tool_session_save.json"
+
 var _args := {}
 var _extra_props: PackedStringArray = []
 
@@ -37,6 +39,12 @@ func _run() -> void:
 	var scene_path: String = _args.get(
 		"scene", ProjectSettings.get_setting("application/run/main_scene")
 	)
+	# 本物のセーブデータを読み書きせず、毎回新しいゲームの状態から始める。
+	# このスクリプトは autoload より先にコンパイルされるので、SaveGame は実行時に読み込む
+	# （直接参照すると、依存先が HubGoals を解決できずコンパイルに失敗する）
+	var save_game = load("res://scenes/utils/save_game.gd")
+	save_game.path = TOOL_SAVE_PATH
+	save_game.delete()
 	var packed: PackedScene = load(scene_path)
 	if packed == null:
 		printerr("シーンを読み込めません: %s" % scene_path)

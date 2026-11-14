@@ -2,17 +2,32 @@
 extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
+const SAVE_PATH := "user://test_main_save.json"
+const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 
 var main: Main
 
 
 func before_each():
+	# 本物のセーブデータを読み書きしないよう、テスト用のファイルに差し替える
+	SaveGame.path = SAVE_PATH
+	SaveGame.delete()
+	HubGoals.reset()
 	main = MainScene.instantiate()
 	add_child_autofree(main)
 
 
 func after_each():
 	await get_tree().process_frame
+	SaveGame.delete()
+	SaveGame.path = SaveGame.DEFAULT_PATH
+	HubGoals.reset()
+
+
+func _start_another_main() -> Main:
+	var other = MainScene.instantiate()
+	add_child_autofree(other)
+	return other
 
 
 func test_HUDのスロット選択でPiecePlacerが更新される():
@@ -268,3 +283,63 @@ func test_ポーズメニューの終了要求でゲームを終了する処理�
 
 func test_ポーズメニューはHUDより手前に表示される():
 	assert_gt(main.pause_menu.layer, main.hud.layer)
+
+
+func test_セーブデータが無ければ新しいゲームとして始まる():
+	assert_eq(main.world.get_chunk_hexes().size(), 1)
+	assert_eq(main.world.get_active_chunk().get_piece_count(), 1, "ハブだけがある")
+
+
+func test_セーブすると次の起動で設置したピースが復元される():
+	main.world.get_active_chunk().place_piece(CONVEYOR, Hex.new(2, 1), 4)
+	main.save_game()
+	var piece = _start_another_main().world.get_active_chunk().get_piece_at_hex(Hex.new(2, 1))
+	assert_not_null(piece)
+	assert_eq(piece.rotation_state, 4)
+
+
+func test_ロードしてもハブは1つだけ():
+	main.save_game()
+	var chunk = _start_another_main().world.get_chunk(Hex.new(0, 0))
+	var hubs = chunk.get_all_pieces().filter(func(p): return p.piece_type == PieceData.Type.HUB)
+	assert_eq(hubs.size(), 1)
+
+
+func test_ロードすると最後にいたchunkから再開しピース設置先もそのchunkになる():
+	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main.save_game()
+	var other = _start_another_main()
+	assert_true(Hex.equals(other.world.get_active_hex(), Hex.new(1, 0)))
+	assert_eq(other.piece_placer.chunk, other.world.get_active_chunk())
+
+
+func test_ロードすると解放済みのピースがツールバーで使える():
+	HubGoals.advance_level()
+	main.save_game()
+	HubGoals.reset()
+	var other = _start_another_main()
+	assert_eq(HubGoals.level, 2)
+	assert_true(HubGoals.is_reward_unlocked("unlock_smelter"))
+	assert_false(other.hud.slot_buttons[2].disabled, "Smelter のスロット")
+
+
+func test_ポーズメニューのセーブ要求でセーブされ結果が表示される():
+	main.pause_menu.save_requested.emit()
+	assert_true(SaveGame.exists())
+	assert_eq(main.pause_menu.status_label.text, "セーブしました")
+
+
+func test_壊れたセーブデータなら新しいゲームとして始まる():
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	file.store_string("こわれたデータ")
+	file.close()
+	var other = _start_another_main()
+	assert_eq(other.world.get_active_chunk().get_piece_count(), 1, "ハブだけがある")
+
+
+func test_最初からやり直すとセーブデータと進行度が消える():
+	HubGoals.advance_level()
+	main.save_game()
+	main.discard_progress()
+	assert_false(SaveGame.exists())
+	assert_eq(HubGoals.level, 1)

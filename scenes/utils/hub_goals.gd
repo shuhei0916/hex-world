@@ -34,6 +34,14 @@ func is_reward_unlocked(reward: String) -> bool:
 	return gained_rewards.get(reward, false)
 
 
+# 進行度を最初の状態に戻す（新しいゲームの開始時）
+func reset():
+	level = 1
+	gained_rewards = {}
+	creative_mode = false
+	unlocks_changed.emit()
+
+
 func toggle_creative_mode():
 	creative_mode = not creative_mode
 	unlocks_changed.emit()

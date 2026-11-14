@@ -65,3 +65,31 @@ func test_キーを離したイベントやリピートでは開閉しない():
 	echo.echo = true
 	menu._unhandled_input(echo)
 	assert_false(menu.visible)
+
+
+func test_セーブボタンでセーブ要求が通知されメニューは開いたまま():
+	watch_signals(menu)
+	menu.open()
+	menu.save_button.pressed.emit()
+	assert_signal_emitted(menu, "save_requested")
+	assert_true(menu.visible)
+
+
+func test_やり直しボタンは1回目は確認を求め2回目でやり直し要求を通知する():
+	watch_signals(menu)
+	menu.open()
+	menu.new_game_button.pressed.emit()
+	assert_signal_not_emitted(menu, "new_game_requested")
+	assert_eq(menu.new_game_button.text, "本当にやり直す（もう一度押す）")
+	menu.new_game_button.pressed.emit()
+	assert_signal_emitted(menu, "new_game_requested")
+
+
+func test_メニューを開き直すとやり直しの確認とメッセージは元に戻る():
+	menu.open()
+	menu.new_game_button.pressed.emit()
+	menu.show_status("セーブしました")
+	menu.close()
+	menu.open()
+	assert_eq(menu.new_game_button.text, "最初からやり直す")
+	assert_eq(menu.status_label.text, "")
