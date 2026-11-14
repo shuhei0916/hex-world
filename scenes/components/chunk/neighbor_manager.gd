@@ -54,7 +54,6 @@ func _update_piece_neighbors(piece: Piece) -> void:
 	piece.set_connected_pieces(current_connections, current_directions)
 
 	_update_conveyor_input_direction(piece)
-	_update_port_inputs(piece)
 	_update_conveyor_output_directions(piece, current_directions)
 
 
@@ -87,38 +86,6 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 		directions.erase(piece.input_direction)
 		directions.push_front(piece.input_direction)
 	visuals.set_input_directions(directions)
-
-
-# 施設の入口の描画用に、流し込んでくる隣のピースがある位置（施設内のマスと辺）を知らせる
-func _update_port_inputs(piece: Piece) -> void:
-	var ports = piece.get_node_or_null("PortVisuals")
-	var base_hex = _registry.get_base_hex(piece)
-	if ports == null or base_hex == null:
-		return
-	var inputs: Array = []
-	for hex in _registry.get_occupied_hexes(piece):
-		for direction in range(6):
-			var source_hex = Hex.neighbor(hex, direction)
-			var source = _registry.get_piece_at_hex(source_hex)
-			if source == null or source == piece:
-				continue
-			if _feeds_into(source, source_hex, (direction + 3) % 6):
-				inputs.append({"hex": Hex.subtract(hex, base_hex), "direction": direction})
-	ports.set_input_ports(inputs)
-
-
-# source の出力ポートが、source_hex から direction の向きへ出ているか
-func _feeds_into(source: Piece, source_hex: Hex, direction: int) -> bool:
-	# Sender の出力は chunk の外へ向かう配線専用なので、chunk 内の隣には流し込まない
-	if source.piece_type == PieceData.Type.SENDER:
-		return false
-	var base_hex = _registry.get_base_hex(source)
-	if base_hex == null:
-		return false
-	for port in source.get_output_ports():
-		if Hex.equals(Hex.add(base_hex, port.hex), source_hex) and port.direction == direction:
-			return true
-	return false
 
 
 func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:
