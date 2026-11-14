@@ -112,3 +112,26 @@ func test_中ボタンを押していないマウス移動ではカメラは動�
 	camera.position = Vector2.ZERO
 	camera._unhandled_input(_motion(Vector2(30, 0)))
 	assert_eq(camera.position, Vector2.ZERO)
+
+
+func test_ズームを止めている間はホイールで拡縮しない():
+	camera.zoom = Vector2(1.0, 1.0)
+	camera.zoom_enabled = false
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_WHEEL_UP
+	event.pressed = true
+	camera._unhandled_input(event)
+	assert_eq(camera.zoom, Vector2(1.0, 1.0))
+
+
+func test_ズームを止めていても中ボタンドラッグでは動かせる():
+	camera.zoom_enabled = false
+	var press = InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_MIDDLE
+	press.pressed = true
+	camera._unhandled_input(press)
+	var motion = InputEventMouseMotion.new()
+	motion.relative = Vector2(10, 0)
+	var before = camera.position
+	camera._unhandled_input(motion)
+	assert_ne(camera.position, before)

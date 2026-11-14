@@ -32,7 +32,7 @@ func test_すべての研究が一覧に並ぶ():
 func test_研究の名前と説明と価格が表示される():
 	assert_string_contains(panel.get_row_text("belt_speed_1"), "コンベア高速化 I")
 	assert_string_contains(panel.get_row_text("belt_speed_1"), "1.5倍")
-	assert_string_contains(panel.get_row_text("belt_speed_1"), "Iron Ingot 20")
+	assert_string_contains(panel.get_row_text("belt_speed_1"), "価格: Iron Ingot 0/20")
 
 
 func test_レベルが足りない研究はボタンが押せず理由が表示される():
@@ -77,3 +77,48 @@ func test_やり直しで進行度が消えると表示も元に戻る():
 	panel.get_button("unlock_assembler").pressed.emit()
 	HubGoals.reset()
 	assert_eq(panel.get_status_text("unlock_assembler"), "ハブ Lv3 で研究できる")
+
+
+func test_閉じるボタンで閉じる():
+	panel.toggle()
+	panel.close_button.pressed.emit()
+	assert_false(panel.visible)
+
+
+func test_開閉すると通知される():
+	watch_signals(panel)
+	panel.toggle()
+	assert_signal_emitted(panel, "visibility_changed")
+
+
+func test_価格には手持ちの数も表示される():
+	HubGoals.add_stock("iron_ingot", 5)
+	assert_string_contains(panel.get_row_text("belt_speed_1"), "Iron Ingot 5/20")
+
+
+func test_研究できるものが一覧の先頭に来る():
+	HubGoals.level = 3
+	HubGoals.add_stock("iron_ingot", 20)
+	assert_eq(panel.get_row_order()[0], "unlock_assembler")
+	assert_eq(panel.get_row_order()[1], "belt_speed_1")
+
+
+func test_研究済みのものは一覧の末尾へ回る():
+	HubGoals.level = 3
+	HubGoals.add_stock("iron_ingot", 10)
+	panel.get_button("unlock_assembler").pressed.emit()
+	assert_eq(panel.get_row_order()[-1], "unlock_assembler")
+
+
+func test_研究済みの行は薄く表示される():
+	HubGoals.level = 3
+	HubGoals.add_stock("iron_ingot", 10)
+	panel.get_button("unlock_assembler").pressed.emit()
+	assert_lt(panel.get_row("unlock_assembler").modulate.a, 1.0)
+	assert_eq(panel.get_row("belt_speed_1").modulate.a, 1.0)
+
+
+func test_背景は不透明で後ろのマップが透けない():
+	var style = panel.get_theme_stylebox("panel") as StyleBoxFlat
+	assert_not_null(style)
+	assert_gt(style.bg_color.a, 0.95)

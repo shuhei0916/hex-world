@@ -25,6 +25,7 @@ func _ready():
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
+	hud.modal_changed.connect(_on_hud_modal_changed)
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
 
@@ -68,6 +69,11 @@ func _on_pause_menu_new_game_requested() -> void:
 	get_tree().reload_current_scene()
 
 
+# 研究画面などを開いている間は、ホイールを一覧のスクロールに使うのでマップは拡縮しない
+func _on_hud_modal_changed() -> void:
+	camera.zoom_enabled = not hud.is_modal_open()
+
+
 func _on_pause_menu_quit_requested() -> void:
 	get_tree().quit()
 
@@ -100,7 +106,7 @@ func _handle_key_input(event):
 		elif event.keycode == KEY_T and is_local_mode():
 			hud.cycle_variant()
 		elif event.keycode == KEY_E and is_local_mode():
-			hud.research_panel.toggle()
+			hud.toggle_research_panel()
 
 
 func _toggle_mode():
@@ -205,6 +211,11 @@ func _handle_world_map_chunk_selected(hex: Hex) -> void:
 
 
 func _handle_local_click(event: InputEventMouseButton) -> void:
+	# 研究画面などを開いている間の盤面クリックは、画面を閉じるだけで盤面には作用させない
+	if hud.is_modal_open():
+		if event.pressed and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+			hud.close_modals()
+		return
 	if event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed and _open_item_picker_at_cursor():
 			return

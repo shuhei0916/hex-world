@@ -429,3 +429,54 @@ func test_コンベアをクリックしてもアイテム選択パネルは開�
 	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_false(main.hud.item_picker.visible)
+
+
+func _right_click(pressed: bool) -> InputEventMouseButton:
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_RIGHT
+	event.pressed = pressed
+	return event
+
+
+func test_研究画面を開いている間はホイールでマップを拡縮できない():
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_false(main.camera.zoom_enabled)
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_true(main.camera.zoom_enabled)
+
+
+func test_アイテム選択パネルを開いている間もホイールでマップを拡縮できない():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
+	main.hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	assert_false(main.camera.zoom_enabled)
+	main.hud.item_picker.get_button("coal").pressed.emit()
+	assert_true(main.camera.zoom_enabled)
+
+
+func test_研究画面を開いている間に盤面を左クリックしても設置されず研究画面が閉じる():
+	var chunk = main.world.get_active_chunk()
+	main._handle_key_input(_make_key_event(KEY_E))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._handle_local_click(_left_click(true))
+	assert_false(main.hud.research_panel.visible)
+	assert_null(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	assert_false(main.piece_placer.is_dragging)
+
+
+func test_研究画面を開いている間に盤面を右クリックしてもピースは撤去されない():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._handle_key_input(_make_key_event(KEY_E))
+	main._handle_local_click(_right_click(true))
+	assert_not_null(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	assert_false(main.hud.research_panel.visible)
+
+
+func test_研究画面を開くと設置しようとしていたピースの選択が解除される():
+	main.hud.slot_buttons[0].button_pressed = true
+	main.hud.on_slot_pressed(0)
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(0))
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_null(main.piece_placer.selected_scene)

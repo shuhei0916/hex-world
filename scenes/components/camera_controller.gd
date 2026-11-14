@@ -6,6 +6,9 @@ extends Camera2D
 @export var zoom_sensitivity: float = 0.1
 @export var move_speed: float = 500.0
 
+# false の間はホイールで拡縮しない（研究画面などを開いていて、ホイールを一覧のスクロールに使うとき）
+var zoom_enabled := true
+
 var _is_panning := false
 
 
@@ -45,7 +48,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and _is_panning:
 		position -= event.relative / zoom.x
 		return
-	if event is InputEventMouseButton:
+	if event is InputEventMouseButton and zoom_enabled:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				change_zoom(-zoom_sensitivity)

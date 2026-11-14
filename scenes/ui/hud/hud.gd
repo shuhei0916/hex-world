@@ -2,6 +2,8 @@ class_name HUD
 extends CanvasLayer
 
 signal slot_selected(scene: PackedScene)
+# 研究画面・アイテム選択パネルが開いた／閉じた
+signal modal_changed
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const MINER_T1_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
@@ -79,7 +81,9 @@ func _ready():
 	HubGoals.unlocks_changed.connect(_refresh_unlock_states)
 	HubGoals.stock_changed.connect(_on_stock_changed)
 	HubGoals.research_changed.connect(_refresh_research_button)
-	research_button.pressed.connect(research_panel.toggle)
+	research_button.pressed.connect(toggle_research_panel)
+	research_panel.visibility_changed.connect(func(): modal_changed.emit())
+	item_picker.visibility_changed.connect(func(): modal_changed.emit())
 	_refresh_research_button()
 	_refresh_unlock_states()
 	_refresh_stock_label()
@@ -111,6 +115,28 @@ func _process(_delta: float) -> void:
 		_refresh_hover_info()
 
 
+# 研究画面を開閉する。開くときは盤面の操作をやめる:
+# 選んでいたピースを解除し、ピースの説明・ホバー情報・アイテム選択パネルを消す
+# （研究画面と右上の説明パネルが重なって読みにくくなるのを防ぐ）。
+func toggle_research_panel() -> void:
+	if not research_panel.visible:
+		item_picker.close()
+		_hovered_piece = null
+		deselect()
+		info_panel.clear()
+	research_panel.toggle()
+
+
+# 研究画面かアイテム選択パネルが開いているか（開いている間は盤面を操作させない）
+func is_modal_open() -> bool:
+	return research_panel.visible or item_picker.visible
+
+
+func close_modals() -> void:
+	research_panel.close()
+	item_picker.close()
+
+
 # 搬出チェストが取り出すアイテムを選ぶパネルを開く（搬出チェスト以外では何もしない）
 func open_item_picker(piece: Piece) -> void:
 	item_picker.open(piece)
@@ -118,7 +144,8 @@ func open_item_picker(piece: Piece) -> void:
 
 # 設置済みピースにマウスが乗ったら、そのピースの状態を情報パネルに出す。null で解除。
 func show_hovered_piece(piece: Piece) -> void:
-	_hovered_piece = piece
+	# 研究画面を開いている間は、説明パネルを出さない
+	_hovered_piece = null if research_panel.visible else piece
 	_refresh_hover_info()
 
 
@@ -255,6 +282,8 @@ func on_slot_pressed(index: int):
 		slot_selected.emit(null)
 		return
 
+	# ピースを選んだら研究画面は閉じる（説明パネルと重ならないように）
+	research_panel.close()
 	_reset_other_variant_indices(index)
 	var btn = slot_buttons[index]
 	if btn.button_pressed:

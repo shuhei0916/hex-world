@@ -404,3 +404,75 @@ class TestChestSlots:
 		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(2, 0))
 		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 0)))
 		assert_false(hud.item_picker.visible)
+
+
+class TestResearchPanelFocus:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+	const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
+
+	var hud: HUD
+	var chunk: Chunk
+	var smelter: Piece
+
+	func before_each():
+		HubGoals.reset()
+		HubGoals.creative_mode = true
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.place_piece(SMELTER, Hex.new(0, 0))
+		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+
+	func after_each():
+		HubGoals.reset()
+
+	func _select_slot(index: int) -> void:
+		hud.slot_buttons[index].button_pressed = true
+		hud.on_slot_pressed(index)
+
+	func test_研究画面を開くと選んでいたピースが解除され説明パネルが消える():
+		_select_slot(1)
+		watch_signals(hud)
+		hud.toggle_research_panel()
+		assert_true(hud.research_panel.visible)
+		assert_eq(hud.get_active_index(), -1)
+		assert_false(hud.info_panel.visible)
+		assert_signal_emitted_with_parameters(hud, "slot_selected", [null])
+
+	func test_研究画面を開くとホバー中のピースの情報も消える():
+		hud.show_hovered_piece(smelter)
+		hud.toggle_research_panel()
+		hud._process(0.1)
+		assert_false(hud.info_panel.visible)
+
+	func test_研究画面を開いている間はピースにホバーしても情報を出さない():
+		hud.toggle_research_panel()
+		hud.show_hovered_piece(smelter)
+		assert_false(hud.info_panel.visible)
+
+	func test_研究画面を開いている間にピースを選ぶと研究画面が閉じる():
+		hud.toggle_research_panel()
+		_select_slot(1)
+		assert_false(hud.research_panel.visible)
+		assert_true(hud.info_panel.visible)
+
+	func test_研究画面を開くとアイテム選択パネルは閉じる():
+		chunk.place_piece(preload("res://scenes/components/piece/chest_out.tscn"), Hex.new(3, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(3, 0)))
+		hud.toggle_research_panel()
+		assert_false(hud.item_picker.visible)
+
+	func test_パネルが開いているかどうかが分かる():
+		assert_false(hud.is_modal_open())
+		hud.toggle_research_panel()
+		assert_true(hud.is_modal_open())
+		hud.toggle_research_panel()
+		assert_false(hud.is_modal_open())
+
+	func test_パネルの開閉が通知される():
+		watch_signals(hud)
+		hud.toggle_research_panel()
+		assert_signal_emitted(hud, "modal_changed")
