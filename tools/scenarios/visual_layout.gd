@@ -9,7 +9,7 @@ const MINER = preload("res://scenes/components/piece/miner_t1.tscn")
 const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
 const SENDER = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER = preload("res://scenes/components/piece/receiver.tscn")
-const CAMERA_ZOOM := 0.8
+const CAMERA_ZOOM := 0.55
 
 
 func run(scene: Node) -> void:

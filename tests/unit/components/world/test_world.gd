@@ -318,8 +318,9 @@ class TestNeighborView:
 		world = World.new()
 		add_child_autofree(world)
 
-	func _expected_position(chunk: Chunk, delta: Hex) -> Vector2:
-		return chunk.hex_to_pixel(ChunkTopology.chunk_offset(delta, chunk.grid_radius))
+	# 画面上の位置（World の座標）
+	func _screen_pos(chunk: Chunk, hex: Hex) -> Vector2:
+		return chunk.position + chunk.hex_to_pixel(hex)
 
 	func test_アクティブなchunkは原点にそのままの色で描かれる():
 		world.create_chunk(Hex.new(0, 0))
@@ -333,8 +334,26 @@ class TestNeighborView:
 		var neighbor = world.create_chunk(Hex.new(1, 0))
 		world.set_active_chunk(Hex.new(0, 0))
 		assert_true(neighbor.visible)
-		assert_eq(neighbor.position, _expected_position(neighbor, Hex.new(1, 0)))
+		assert_ne(neighbor.position, Vector2.ZERO)
 		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
+
+	func test_隣のchunkとの間には境界の辺に垂直な溝がタイル数個分空く():
+		world.setup_planet(Planet.new(2, 1))
+		world.set_active_chunk(Hex.new(0, 0))
+		var active = world.get_active_chunk()
+		var spacing = active.hex_to_pixel(Hex.new(1, 0)).length()
+		for edge_hex in active.get_outer_hexes():
+			var edge_dir = active.get_edge_direction(edge_hex)
+			if edge_dir == -1:
+				continue
+			var chunk_hex = Hex.direction(ChunkTopology.to_world_direction(edge_dir))
+			var neighbor = world.get_chunk(chunk_hex)
+			var across = ChunkTopology.mirror_hex(edge_hex, edge_dir)
+			var gap = _screen_pos(neighbor, across) - _screen_pos(active, edge_hex)
+			var normal = active.hex_to_pixel(Hex.direction(edge_dir)).normalized()
+			# 境界をはさんで向かい合うマスは、本来の隣(1マス)から溝のぶんだけ真っすぐ離れる
+			assert_almost_eq(gap.length(), spacing * (1.0 + World.GAP_TILES), 0.01, str(edge_hex))
+			assert_almost_eq(gap.normalized().dot(normal), 1.0, 0.0001, str(edge_hex))
 
 	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
 		var floor_color = HexTile.new().normal_color
@@ -355,11 +374,12 @@ class TestNeighborView:
 		var origin = world.create_chunk(Hex.new(0, 0))
 		var east = world.create_chunk(Hex.new(1, 0))
 		world.set_active_chunk(Hex.new(0, 0))
+		var east_position = east.position
 		world.set_active_chunk(Hex.new(1, 0))
 		assert_eq(east.position, Vector2.ZERO)
 		assert_eq(east.modulate, Color.WHITE)
 		assert_true(origin.visible)
-		assert_eq(origin.position, _expected_position(origin, Hex.new(-1, 0)))
+		assert_true(origin.position.is_equal_approx(-east_position), "向きが逆になる")
 		assert_eq(origin.modulate, World.NEIGHBOR_MODULATE)
 
 	func test_隣のchunkの一覧を返す():

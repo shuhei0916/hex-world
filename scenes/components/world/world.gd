@@ -6,6 +6,8 @@ const DEPOSIT_SIZE := 5
 # ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）。
 # 暗くしすぎると床のタイルが背景(0.13)に溶けて見えなくなる
 const NEIGHBOR_MODULATE := Color(0.78, 0.78, 0.8, 1.0)
+# 隣の chunk との間に空ける溝の幅（タイル何個分か）。境界がひと目で分かるようにする
+const GAP_TILES := 2.0
 
 # planet チェストが共有する、惑星全体で1つの倉庫
 var planet_storage := SharedStorage.new()
@@ -213,6 +215,17 @@ func get_neighbor_hexes() -> Array[Hex]:
 	return _neighbor_hexes.duplicate()
 
 
+# 隣の chunk を描く位置。敷き詰めた位置から、境界の辺に垂直な向きへ溝の幅だけ離す。
+# （中心どうしを結ぶ向きに離すと、敷き詰めのねじれのぶん境界に沿って斜めにずれる）
+func _neighbor_position(active: Chunk, chunk_delta: Hex) -> Vector2:
+	var offset = ChunkTopology.chunk_offset(chunk_delta, active.grid_radius)
+	var tiled = active.hex_to_pixel(offset)
+	var world_dir = range(6).filter(func(d): return Hex.equals(Hex.direction(d), chunk_delta))[0]
+	var edge_dir = (world_dir + 5) % 6  # to_world_direction の逆
+	var normal = active.hex_to_pixel(Hex.direction(edge_dir))
+	return tiled + normal * GAP_TILES
+
+
 # 画面上の位置（World の座標）にある施設。アクティブな chunk と、周りに描いている隣の chunk を探す
 func get_piece_at_position(pos: Vector2) -> Piece:
 	var hexes: Array[Hex] = []
@@ -245,9 +258,8 @@ func _layout_visible_chunks() -> void:
 	active.modulate = Color.WHITE
 	for hex in _neighbor_hexes:
 		var chunk = get_chunk(hex)
-		var offset = ChunkTopology.chunk_offset(Hex.subtract(hex, _active_hex), active.grid_radius)
 		chunk.visible = true
-		chunk.position = active.hex_to_pixel(offset)
+		chunk.position = _neighbor_position(active, Hex.subtract(hex, _active_hex))
 		chunk.modulate = NEIGHBOR_MODULATE
 
 
