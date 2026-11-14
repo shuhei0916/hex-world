@@ -25,6 +25,7 @@ static func capture(world: World, goals: Node) -> Dictionary:
 		},
 		"chunks": [],
 		"planet_storage": world.planet_storage.get_contents(),
+		"region_storages": world.get_region_storage_contents(),
 	}
 	var planet = world.get_planet()
 	if planet:
@@ -55,6 +56,10 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 		var planet: Dictionary = data["planet"]
 		world.setup_planet(Planet.new(int(planet["radius"]), int(planet["seed"])))
 	world.planet_storage.load_contents(data.get("planet_storage", {}))
+	var region_storages: Dictionary = data.get("region_storages", {})
+	for region_id in region_storages:
+		# JSON を経るとキーは文字列になる
+		world.get_region_storage(int(region_id)).load_contents(region_storages[region_id])
 	for chunk_data in data.get("chunks", []):
 		_apply_chunk(world, chunk_data, goals)
 	if data.has("active_chunk"):

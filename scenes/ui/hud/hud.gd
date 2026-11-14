@@ -19,10 +19,12 @@ const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
 const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 const CHEST_OUT_SCENE = preload("res://scenes/components/piece/chest_out.tscn")
+const BIOME_CHEST_IN_SCENE = preload("res://scenes/components/piece/biome_chest_in.tscn")
+const BIOME_CHEST_OUT_SCENE = preload("res://scenes/components/piece/biome_chest_out.tscn")
 const PLANET_CHEST_IN_SCENE = preload("res://scenes/components/piece/planet_chest_in.tscn")
 const PLANET_CHEST_OUT_SCENE = preload("res://scenes/components/piece/planet_chest_out.tscn")
 # チェストのスロットは、切り替えで共有範囲を選ぶ（機械のスロットは T1/T2）
-const CHEST_VARIANT_LABELS: Array[String] = ["Chunk", "Planet"]
+const CHEST_VARIANT_LABELS: Array[String] = ["Chunk", "Biome", "Planet"]
 const CHEST_SLOTS := [9, 10]
 const RESEARCH_BUTTON_TEXT := "研究 [E]"
 var _slot_variants: Array = [
@@ -35,8 +37,8 @@ var _slot_variants: Array = [
 	[PAINTER_SCENE],
 	[SENDER_SCENE],
 	[RECEIVER_SCENE],
-	[CHEST_IN_SCENE, PLANET_CHEST_IN_SCENE],
-	[CHEST_OUT_SCENE, PLANET_CHEST_OUT_SCENE],
+	[CHEST_IN_SCENE, BIOME_CHEST_IN_SCENE, PLANET_CHEST_IN_SCENE],
+	[CHEST_OUT_SCENE, BIOME_CHEST_OUT_SCENE, PLANET_CHEST_OUT_SCENE],
 ]
 var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 

@@ -74,9 +74,9 @@ class TestDefinitions:
 		assert_ne(planet_cost, chunk_cost)
 		assert_false(BuildCost.of_scene(PLANET_OUT).is_empty())
 
-	func test_planetチェストの研究にはchunkチェストの研究が前提():
+	func test_planetチェストの研究にはバイオームチェストの研究が前提():
 		var def = Research.get_def("unlock_planet_chest")
-		assert_true("unlock_chunk_chest" in def["requires"])
+		assert_true("unlock_biome_chest" in def["requires"])
 		assert_gt(def["level"], Research.get_def("unlock_chunk_chest")["level"])
 
 	func test_planetチェストは研究するまで解放されない():
@@ -135,7 +135,7 @@ class TestToolbarVariants:
 		HubGoals.researched["unlock_planet_chest"] = true
 		_select(SLOT_IN)
 		var texts = hud.variant_panel.button_row.get_children().map(func(b): return b.text)
-		assert_eq(texts, ["Chunk", "Planet"])
+		assert_eq(texts, ["Chunk", "Biome", "Planet"])
 
 	func test_未研究の切り替え先はボタンが押せない():
 		_select(SLOT_IN)

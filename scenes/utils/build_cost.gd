@@ -19,6 +19,8 @@ const COSTS = {
 	PIECE_DIR + "chest_in.tscn": {"iron_plate": 10},
 	PIECE_DIR + "chest_out.tscn": {"iron_plate": 10},
 	# 共有範囲が広いチェストほど高い
+	PIECE_DIR + "biome_chest_in.tscn": {"screw": 10},
+	PIECE_DIR + "biome_chest_out.tscn": {"screw": 10},
 	PIECE_DIR + "planet_chest_in.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "planet_chest_out.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "miner_t2.tscn": {"iron_plate": 10},

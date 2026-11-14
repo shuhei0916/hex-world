@@ -11,6 +11,8 @@ var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
 var _active_hex = null
 var _planet: Planet = null
+# バイオームチェストが共有する倉庫。地域（Planet の region）ごとに1つ {地域番号: SharedStorage}
+var _region_storages: Dictionary = {}
 
 
 # planet を設定する。chunk の実体は初めてアクティブにしたときに生成する（遅延生成）。
@@ -32,7 +34,7 @@ func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
 	add_child(chunk)
 	_chunks[key] = chunk
 	_chunk_hexes.append(chunk_hex)
-	chunk.storage_resolver = _resolve_storage
+	chunk.storage_resolver = _resolve_storage.bind(chunk_hex)
 	chunk.piece_placed.connect(_on_piece_placed)
 	chunk.piece_removed.connect(_rewire_all_senders)
 	if generate_deposits:
@@ -40,11 +42,31 @@ func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
 	return chunk
 
 
-# chunk より広い共有範囲の倉庫を返す
-func _resolve_storage(scope: String) -> SharedStorage:
+# chunk_hex の chunk から見た、chunk より広い共有範囲の倉庫を返す。
+# 該当する倉庫が無ければ null（その場合チェストは chunk の倉庫を使う）。
+func _resolve_storage(scope: String, chunk_hex: Hex) -> SharedStorage:
 	if scope == SharedStorage.SCOPE_PLANET:
 		return planet_storage
+	if scope == SharedStorage.SCOPE_BIOME and _planet and _planet.has_chunk(chunk_hex):
+		return get_region_storage(_planet.get_region_id(chunk_hex))
 	return null
+
+
+# 地域の倉庫（初めて使うときに作る）
+func get_region_storage(region_id: int) -> SharedStorage:
+	if not _region_storages.has(region_id):
+		_region_storages[region_id] = SharedStorage.new()
+	return _region_storages[region_id]
+
+
+# 中身のある地域の倉庫 {地域番号: 中身}（セーブ用）
+func get_region_storage_contents() -> Dictionary:
+	var result := {}
+	for region_id in _region_storages:
+		var contents = _region_storages[region_id].get_contents()
+		if not contents.is_empty():
+			result[region_id] = contents
+	return result
 
 
 func _generate_biome_deposits(chunk_hex: Hex, chunk: Chunk) -> void:

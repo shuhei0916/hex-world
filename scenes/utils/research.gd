@@ -92,13 +92,22 @@ const DEFS = {
 		"requires": ["belt_speed_1"],
 		"effect": {BELT_SPEED: 2.0},
 	},
+	"unlock_biome_chest":
+	{
+		"name": "Biome チェスト",
+		"description": "同じバイオームのひと続きの地域の中で中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
+		"cost": {"screw": 20},
+		"level": 6,
+		"requires": ["unlock_chunk_chest"],
+		"effect": {UNLOCK: "unlock_biome_chest"},
+	},
 	"unlock_planet_chest":
 	{
 		"name": "Planet チェスト",
 		"description": "惑星のどの chunk に置いても中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
 		"cost": {"steel": 30, "copper_ingot": 30},
 		"level": 8,
-		"requires": ["unlock_chunk_chest"],
+		"requires": ["unlock_biome_chest"],
 		"effect": {UNLOCK: "unlock_planet_chest"},
 	},
 }
