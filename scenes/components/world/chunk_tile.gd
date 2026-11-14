@@ -1,7 +1,7 @@
 class_name ChunkTile
 extends Node2D
 
-## ワールドマップの chunk 1つ分のタイル。ローカルの床のマス（HexTile）と同じ形・陰影の
+## ワールドマップの chunk 1つ分のタイル。ローカルの床のマス（HexTile）と同じ形の
 ## flat-top 版の画像で描く。マスに対する画像の大きさ（＝すき間の幅）もローカルとそろえる。
 
 const TILE_SIZE := 80.0

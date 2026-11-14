@@ -1,8 +1,7 @@
 extends SceneTree
 
 ## 角の丸い六角形の画像を作る（タイル用。白で描き、色は modulate で乗せる）。
-## ローカルの床用の pointy-top と、ワールドマップ用の flat-top の2枚を同じ形・同じ陰影で作る
-## （画像を回すと上からの陰影が横向きになるため、向きごとに作る）。
+## ローカルの床用の pointy-top と、ワールドマップ用の flat-top の2枚を同じ形で作る。
 ## 元の HexagonPointedTop.png と同じ 256x256 のキャンバスで、平らな辺の位置をそろえるので、
 ## Sprite2D の scale はそのまま差し替えられる。
 ##   godot --headless --script res://tools/generate_rounded_hex.gd
@@ -11,9 +10,6 @@ const SIZE := 256
 const HexTileScript = preload("res://scenes/components/hex_tile/hex_tile.gd")
 const CIRCUMRADIUS := HexTileScript.TEXTURE_CIRCUMRADIUS
 const CORNER_RADIUS := HexTileScript.TEXTURE_CORNER_RADIUS
-# 上をわずかに明るく、下をわずかに暗くして、ぷっくりした感じを出す
-const TOP_SHADE := 1.0
-const BOTTOM_SHADE := 0.86
 const OUTPUT := "res://assets/HexagonRounded.png"
 const FLAT_OUTPUT := "res://assets/HexagonRoundedFlat.png"
 
@@ -34,8 +30,7 @@ func _save(path: String, flat_top: bool) -> void:
 			var shape_p := Vector2(p.y, p.x) if flat_top else p
 			var d := _rounded_hex_distance(shape_p, inradius, CORNER_RADIUS)
 			var alpha := clampf(0.5 - d, 0.0, 1.0)
-			var shade := lerpf(TOP_SHADE, BOTTOM_SHADE, (p.y + CIRCUMRADIUS) / (2.0 * CIRCUMRADIUS))
-			img.set_pixel(x, y, Color(shade, shade, shade, alpha))
+			img.set_pixel(x, y, Color(1, 1, 1, alpha))
 	img.save_png(ProjectSettings.globalize_path(path))
 	print("saved ", path)
 
