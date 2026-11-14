@@ -17,6 +17,8 @@ const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
 const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
+const CHEST_OUT_SCENE = preload("res://scenes/components/piece/chest_out.tscn")
 const RESEARCH_BUTTON_TEXT := "研究 [E]"
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
@@ -28,8 +30,10 @@ var _slot_variants: Array = [
 	[PAINTER_SCENE],
 	[SENDER_SCENE],
 	[RECEIVER_SCENE],
+	[CHEST_IN_SCENE],
+	[CHEST_OUT_SCENE],
 ]
-var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -41,6 +45,8 @@ var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.PAINTER,
 	PieceData.Type.SENDER,
 	PieceData.Type.RECEIVER,
+	PieceData.Type.CHEST,
+	PieceData.Type.CHEST_OUT,
 ]
 
 # マウスが乗っている設置済みピース（撤去されて無効になることがあるので型は付けない）
@@ -51,6 +57,7 @@ var _hovered_piece = null
 @onready var stock_label: Label = %StockLabel
 @onready var research_button: Button = %ResearchButton
 @onready var research_panel: ResearchPanel = %ResearchPanel
+@onready var item_picker: ItemPicker = %ItemPicker
 @onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
 @onready var variant_panel: VariantPanel = $SidePanels/VariantPanel
 @onready var _button_group: ButtonGroup = (
@@ -95,6 +102,11 @@ func _refresh_stock_label() -> void:
 func _process(_delta: float) -> void:
 	if _hovered_piece != null:
 		_refresh_hover_info()
+
+
+# 搬出チェストが取り出すアイテムを選ぶパネルを開く（搬出チェスト以外では何もしない）
+func open_item_picker(piece: Piece) -> void:
+	item_picker.open(piece)
 
 
 # 設置済みピースにマウスが乗ったら、そのピースの状態を情報パネルに出す。null で解除。

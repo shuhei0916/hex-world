@@ -13,6 +13,7 @@ enum Type {
 	HUB,
 	SENDER,
 	RECEIVER,
+	CHEST_OUT,
 }
 
 # 各 Type に対応するアンロック報酬キー。"" は常時アンロック。
@@ -20,7 +21,8 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.CONVEYOR: "",
 	Type.MINER: "",
 	Type.HUB: "",
-	Type.CHEST: "",
+	Type.CHEST: "unlock_chunk_chest",
+	Type.CHEST_OUT: "unlock_chunk_chest",
 	Type.SMELTER: "unlock_smelter",
 	Type.ASSEMBLER: "unlock_assembler",
 	Type.CUTTER: "unlock_cutter_and_splitter",

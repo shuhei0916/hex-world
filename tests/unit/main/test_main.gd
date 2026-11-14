@@ -4,6 +4,7 @@ extends GutTest
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_main_save.json"
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
+const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
 
 var main: Main
 
@@ -395,3 +396,36 @@ func test_研究でコンベアを速くすると情報パネルのスピード�
 	main.hud.slot_buttons[0].button_pressed = true
 	main.hud.on_slot_pressed(0)
 	assert_eq(main.hud.info_panel.rate_label.text, "スピード: 180/分")
+
+
+func _left_click(pressed: bool) -> InputEventMouseButton:
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	return event
+
+
+func test_何も選んでいない状態で搬出チェストをクリックするとアイテム選択パネルが開く():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._handle_local_click(_left_click(true))
+	assert_true(main.hud.item_picker.visible)
+
+
+func test_設置するピースを選んでいるときは搬出チェストをクリックしてもパネルが開かない():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
+	main.hud.slot_buttons[0].button_pressed = true
+	main.hud.on_slot_pressed(0)
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._handle_local_click(_left_click(true))
+	assert_false(main.hud.item_picker.visible)
+
+
+func test_コンベアをクリックしてもアイテム選択パネルは開かない():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._handle_local_click(_left_click(true))
+	assert_false(main.hud.item_picker.visible)

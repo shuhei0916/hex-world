@@ -326,3 +326,81 @@ class TestResearchEntry:
 		HubGoals.add_stock("iron_ingot", 20)
 		HubGoals.research("unlock_assembler")
 		assert_eq(hud.research_button.text, "研究 [E]")
+
+
+class TestChestSlots:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+	const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
+
+	var hud: HUD
+	var chunk: Chunk
+	var chest: Piece
+
+	func before_each():
+		HubGoals.reset()
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.place_piece(CHEST_OUT, Hex.new(0, 0))
+		chest = chunk.get_piece_at_hex(Hex.new(0, 0))
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_ツールバーに搬入チェストと搬出チェストのスロットがある():
+		assert_eq(hud.slot_buttons.size(), 11)
+		assert_eq(
+			hud.get_scene_for_slot(9).resource_path, "res://scenes/components/piece/chest_in.tscn"
+		)
+		assert_eq(
+			hud.get_scene_for_slot(10).resource_path, "res://scenes/components/piece/chest_out.tscn"
+		)
+
+	func test_チェストのスロットは研究するまで使えない():
+		assert_true(hud.slot_buttons[9].disabled)
+		assert_true(hud.slot_buttons[10].disabled)
+
+	func test_チェストを研究するとスロットが使えるようになる():
+		HubGoals.researched = {"unlock_chunk_chest": true}
+		HubGoals.unlocks_changed.emit()
+		assert_false(hud.slot_buttons[9].disabled)
+		assert_false(hud.slot_buttons[10].disabled)
+
+	func test_チェストのスロットを押すとそのピースが選ばれる():
+		HubGoals.researched = {"unlock_chunk_chest": true}
+		HubGoals.unlocks_changed.emit()
+		watch_signals(hud)
+		hud.slot_buttons[10].button_pressed = true
+		hud.slot_buttons[10].pressed.emit()
+		assert_signal_emitted_with_parameters(hud, "slot_selected", [hud.get_scene_for_slot(10)])
+
+	func test_アイテム選択パネルは最初は閉じている():
+		assert_false(hud.item_picker.visible)
+
+	func test_搬出チェストに対してアイテム選択パネルを開ける():
+		hud.open_item_picker(chest)
+		assert_true(hud.item_picker.visible)
+
+	func test_アイテムを選ぶと搬出チェストに設定されパネルが閉じる():
+		hud.open_item_picker(chest)
+		hud.item_picker.get_button("coal").pressed.emit()
+		assert_eq(chest.get_node("ChestOutput").selected_item, "coal")
+		assert_false(hud.item_picker.visible)
+
+	func test_選択なしを選ぶと取り出しを止められる():
+		chest.get_node("ChestOutput").select_item("coal")
+		hud.open_item_picker(chest)
+		hud.item_picker.get_button("").pressed.emit()
+		assert_eq(chest.get_node("ChestOutput").selected_item, "")
+
+	func test_アイテム選択パネルにはすべてのアイテムが並ぶ():
+		for id in ItemDB.all_ids():
+			assert_not_null(hud.item_picker.get_button(id), id)
+
+	func test_搬出チェスト以外にはアイテム選択パネルを開かない():
+		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(2, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 0)))
+		assert_false(hud.item_picker.visible)

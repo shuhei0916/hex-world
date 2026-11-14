@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://7v027spx4ub5" path="res://scenes/ui/hud/piece_info_panel.tscn" id="20_infopanel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/variant_panel.tscn" id="21_vp"]
 [ext_resource type="Script" path="res://scenes/ui/research_panel/research_panel.gd" id="22_research"]
+[ext_resource type="Script" path="res://scenes/ui/item_picker/item_picker.gd" id="23_picker"]
 [ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/belt.png" id="3_belt"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/miner.png" id="5_miner"]
@@ -232,6 +233,36 @@ text = "受"
 button_group = ExtResource("2_qao66")
 shortcut = SubResource("Shortcut_slot9")
 
+[node name="Slot10" type="Button" parent="ToolBar"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+toggle_mode = true
+text = "箱入"
+button_group = ExtResource("2_qao66")
+
+[node name="Slot11" type="Button" parent="ToolBar"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+toggle_mode = true
+text = "箱出"
+button_group = ExtResource("2_qao66")
+
+[node name="ItemPicker" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -160.0
+offset_right = 280.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("23_picker")
+
 [node name="SidePanels" type="VBoxContainer" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
@@ -257,3 +288,5 @@ layout_mode = 2
 [connection signal="pressed" from="ToolBar/Slot7" to="." method="on_slot_pressed" binds= [6]]
 [connection signal="pressed" from="ToolBar/Slot8" to="." method="on_slot_pressed" binds= [7]]
 [connection signal="pressed" from="ToolBar/Slot9" to="." method="on_slot_pressed" binds= [8]]
+[connection signal="pressed" from="ToolBar/Slot10" to="." method="on_slot_pressed" binds= [9]]
+[connection signal="pressed" from="ToolBar/Slot11" to="." method="on_slot_pressed" binds= [10]]

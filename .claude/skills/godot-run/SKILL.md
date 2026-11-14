@@ -88,6 +88,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 
 - `build_cost.gd`: 在庫不足で置けない → ハブに納品 → 設置で在庫が減る → 撤去で全額戻る、の流れを出力する
 - `research_flow.gd`: ハブに納品してレベルを上げ、研究でピースを解放し、コンベア高速化が実際の速さに効くかを出力する
+- `chunk_chest.gd`: 離れた搬入チェストから搬出チェストへ、コンベア無しでアイテムが渡ってハブに届くかを出力する（搬出側はクリック→選択パネルで選ぶ）
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 

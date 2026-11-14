@@ -40,7 +40,15 @@ static func describe(piece: Piece) -> String:
 	var lines: Array[String] = []
 	var hub = piece.get_node_or_null("Hub")
 	var conveyor = piece.get_node_or_null("ConveyorLogic")
-	if hub:
+	var chest_input = piece.get_node_or_null("ChestInput")
+	var chest_output = piece.get_node_or_null("ChestOutput")
+	if chest_input:
+		lines.append("倉庫: %s" % _storage_text(chest_input.get_storage()))
+	elif chest_output:
+		lines.append(_chest_output_text(chest_output))
+		if not piece.has_connected_piece():
+			lines.append(_no_target_text(piece))
+	elif hub:
 		lines.append(
 			"目標: %s %d/%d" % [_item_name(hub.goal_item), hub.received_count, hub.goal_count]
 		)
@@ -69,6 +77,29 @@ static func rate_text(piece: Piece) -> String:
 			roundi(crafter.get_max_items_per_minute())
 		]
 	)
+
+
+# 共有倉庫の中身。上限に達したアイテムには（満杯）を付ける
+static func _storage_text(storage: SharedStorage) -> String:
+	var contents = storage.get_contents() if storage else {}
+	if contents.is_empty():
+		return "空"
+	var parts: Array[String] = []
+	for item_id in contents:
+		var text = "%s %d" % [_item_name(item_id), contents[item_id]]
+		if not storage.can_add(item_id):
+			text += "（満杯）"
+		parts.append(text)
+	return "、".join(parts)
+
+
+static func _chest_output_text(chest_output: Node) -> String:
+	var item = chest_output.selected_item
+	if item == "":
+		return "取り出すアイテム: 未選択（クリックして選ぶ）"
+	var storage = chest_output.get_storage()
+	var remaining = storage.get_count(item) if storage else 0
+	return "取り出すアイテム: %s（倉庫に %d）" % [_item_name(item), remaining]
 
 
 static func _state_text(piece: Piece) -> String:

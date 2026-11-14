@@ -171,3 +171,38 @@ class TestDescription:
 	func test_つながっていないSenderは接続先がないと表示する():
 		var sender = _place(SENDER, Hex.new(5, -2))
 		assert_string_contains(PieceStatus.describe(sender), "接続先の Receiver がない")
+
+
+class TestChestDescription:
+	extends "res://tests/unit/utils/test_piece_status.gd"
+
+	const CHEST_IN = preload("res://scenes/components/piece/chest_in.tscn")
+	const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
+
+	func test_搬入チェストは共有倉庫の中身を表示する():
+		var chest = _place(CHEST_IN, Hex.new(0, 0))
+		chunk.storage.add("iron_ore", 12)
+		assert_string_contains(PieceStatus.describe(chest), "倉庫: Iron Ore 12")
+
+	func test_空の共有倉庫は空と表示する():
+		var chest = _place(CHEST_IN, Hex.new(0, 0))
+		assert_string_contains(PieceStatus.describe(chest), "倉庫: 空")
+
+	func test_上限に達したアイテムは満杯と表示する():
+		var chest = _place(CHEST_IN, Hex.new(0, 0))
+		chunk.storage.add("iron_ore", SharedStorage.CAPACITY_PER_ITEM)
+		assert_string_contains(PieceStatus.describe(chest), "Iron Ore 100（満杯）")
+
+	func test_アイテムを選んでいない搬出チェストは選び方を表示する():
+		var chest = _place(CHEST_OUT, Hex.new(0, 0))
+		assert_string_contains(PieceStatus.describe(chest), "取り出すアイテム: 未選択（クリックして選ぶ）")
+
+	func test_搬出チェストは選んだアイテムと倉庫の残りを表示する():
+		var chest = _place(CHEST_OUT, Hex.new(0, 0))
+		chunk.storage.add("coal", 7)
+		chest.get_node("ChestOutput").select_item("coal")
+		assert_string_contains(PieceStatus.describe(chest), "取り出すアイテム: Coal（倉庫に 7）")
+
+	func test_搬出先の無い搬出チェストはその旨を表示する():
+		var chest = _place(CHEST_OUT, Hex.new(0, 0))
+		assert_string_contains(PieceStatus.describe(chest), "搬出先がない")

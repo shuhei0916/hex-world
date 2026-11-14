@@ -19,6 +19,8 @@ signal piece_removed
 		_update_grid_visuals()
 
 var layout: Layout
+# この chunk のチェストが共有する倉庫
+var storage := SharedStorage.new()
 
 var _hex_grid = preload("res://scenes/components/chunk/hex_grid.gd").new()
 var _registry = preload("res://scenes/components/chunk/piece_registry.gd").new()
@@ -75,6 +77,10 @@ func place_piece(
 	add_child(piece)
 	piece.setup(rotation)
 	piece.input_direction = input_direction
+	# チェストには、この chunk の共有倉庫を渡す
+	for child in piece.get_children():
+		if child.has_method("set_storage"):
+			child.set_storage(storage)
 
 	var occupied_hexes: Array[Hex] = []
 	for offset in piece.get_hex_shape():
@@ -109,6 +115,10 @@ func remove_piece_at(target_hex: Hex) -> bool:
 	_registry.unregister(piece, hexes_to_remove)
 	_neighbor_manager.update_connections_around(piece, hexes_to_remove)
 
+	# 手元にアイテムを持つ部品（搬出チェストなど）に、片付ける機会を与える
+	for child in piece.get_children():
+		if child.has_method("on_piece_removed"):
+			child.on_piece_removed()
 	piece.queue_free()
 	piece_removed.emit()
 	return true

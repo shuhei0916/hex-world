@@ -57,5 +57,10 @@ func register_item(item: ItemDefinition):
 	_items[item.id] = item
 
 
+# 登録済みのアイテムの id（登録順）
+func all_ids() -> Array:
+	return _items.keys()
+
+
 func get_item(id: String) -> ItemDefinition:
 	return _items.get(id)

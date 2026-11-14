@@ -56,6 +56,15 @@ const DEFS = {
 		"requires": [],
 		"effect": {UNLOCK: "unlock_cutter_and_splitter"},
 	},
+	"unlock_chunk_chest":
+	{
+		"name": "Chunk チェスト",
+		"description": "同じ chunk の中で中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
+		"cost": {"iron_plate": 20},
+		"level": 4,
+		"requires": [],
+		"effect": {UNLOCK: "unlock_chunk_chest"},
+	},
 	"mining_speed_2":
 	{
 		"name": "採掘高速化 II",

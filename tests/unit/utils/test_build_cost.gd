@@ -50,3 +50,9 @@ func test_コストに使うアイテムはすべて定義済み():
 func test_コストを表示用の文章にできる():
 	assert_eq(BuildCost.to_text({"iron_ore": 5}), "Iron Ore 5")
 	assert_eq(BuildCost.to_text({}), "なし")
+
+
+func test_チェストはコンベアより高い():
+	for path in ["chest_in.tscn", "chest_out.tscn"]:
+		var cost = BuildCost.COSTS.get(BuildCost.PIECE_DIR + path, {})
+		assert_false(cost.is_empty(), path)

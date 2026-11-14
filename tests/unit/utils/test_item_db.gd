@@ -42,3 +42,8 @@ func test_銅と鋼材から作る中間アイテムがアイコン付きで登�
 		assert_not_null(item_def, id)
 		if item_def:
 			assert_not_null(item_def.icon, id)
+
+
+func test_登録済みのアイテムのidを一覧できる():
+	assert_true("iron_ore" in ItemDB.all_ids())
+	assert_true("circuit" in ItemDB.all_ids())

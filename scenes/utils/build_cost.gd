@@ -15,6 +15,9 @@ const COSTS = {
 	PIECE_DIR + "painter.tscn": {"iron_rod": 5},
 	PIECE_DIR + "sender.tscn": {"iron_ingot": 5},
 	PIECE_DIR + "receiver.tscn": {"iron_ingot": 5},
+	# チェストはコンベア（無料）より高くして、何でもチェストで済ませられないようにする
+	PIECE_DIR + "chest_in.tscn": {"iron_plate": 10},
+	PIECE_DIR + "chest_out.tscn": {"iron_plate": 10},
 	PIECE_DIR + "miner_t2.tscn": {"iron_plate": 10},
 	PIECE_DIR + "smelter_t2.tscn": {"iron_plate": 10},
 	PIECE_DIR + "assembler_t2.tscn": {"iron_rod": 10},

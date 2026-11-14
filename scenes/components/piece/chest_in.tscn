@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" path="res://scenes/components/piece/chest_input.gd" id="2_input"]
+
+[node name="Piece" type="Node2D"]
+script = ExtResource("1_piece")
+piece_name = "Chunk Chest (搬入)"
+piece_description = "入れたアイテムを、同じ chunk のチェストと共有する倉庫にしまう。"
+piece_type = 7
+piece_shape = Array[Vector2i]([Vector2i(0, 0)])
+piece_color = Color(0.72, 0.53, 0.26, 1)
+
+[node name="ChestInput" type="Node" parent="."]
+script = ExtResource("2_input")

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## ゲームの進行状況を Dictionary（JSON にできる形）へ取り出し、そこから復元する。
 ## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、
-## ハブ目標の進み具合、ハブに貯めた在庫。
+## ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
 ## ベルト上や機械の中にあるアイテムは保存しない（ロード後は空の状態から動き出す）。
 
 const VERSION := 1
@@ -100,6 +100,7 @@ static func _capture_chunk(chunk_hex: Hex, chunk: Chunk) -> Dictionary:
 		"hex": _hex_to_array(chunk_hex),
 		"grid_radius": chunk.grid_radius,
 		"resources": resources,
+		"storage": chunk.storage.get_contents(),
 		"pieces": pieces,
 	}
 
@@ -114,6 +115,9 @@ static func _capture_piece(chunk: Chunk, piece: Piece) -> Dictionary:
 	var hub = piece.get_node_or_null("Hub")
 	if hub:
 		result["received"] = hub.received_count
+	var chest_output = piece.get_node_or_null("ChestOutput")
+	if chest_output:
+		result["chest_item"] = chest_output.selected_item
 	return result
 
 
@@ -123,6 +127,7 @@ static func _apply_chunk(world: World, chunk_data: Dictionary, goals: Node) -> v
 	var grid_radius = int(chunk_data.get("grid_radius", chunk.grid_radius))
 	if grid_radius != chunk.grid_radius:
 		chunk.create_hex_grid(grid_radius)
+	chunk.storage.load_contents(chunk_data.get("storage", {}))
 	# Miner は設置時に足元の鉱床を見るため、ピースより先に鉱床を戻す
 	for entry in chunk_data.get("resources", []):
 		chunk.mark_resource_hex(Hex.new(int(entry[0]), int(entry[1])), entry[2])
@@ -138,7 +143,11 @@ static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> v
 	chunk.place_piece(
 		scene, hex, int(piece_data.get("rotation", 0)), int(piece_data.get("input_direction", -1))
 	)
-	var hub = chunk.get_piece_at_hex(hex).get_node_or_null("Hub")
+	var piece = chunk.get_piece_at_hex(hex)
+	var chest_output = piece.get_node_or_null("ChestOutput")
+	if chest_output:
+		chest_output.selected_item = piece_data.get("chest_item", "")
+	var hub = piece.get_node_or_null("Hub")
 	if hub:
 		var goal = goals.get_current_goal()
 		hub.setup(goal["goal_item"], goal["required"])

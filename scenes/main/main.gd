@@ -206,6 +206,8 @@ func _handle_world_map_chunk_selected(hex: Hex) -> void:
 
 func _handle_local_click(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed and _open_item_picker_at_cursor():
+			return
 		if event.pressed:
 			piece_placer.start_drag()
 			piece_placer.place_current_piece()
@@ -219,3 +221,14 @@ func _handle_local_click(event: InputEventMouseButton) -> void:
 				piece_placer.start_delete_drag()
 		else:
 			piece_placer.stop_delete_drag()
+
+
+# 設置するピースを選んでいない状態で搬出チェストをクリックしたら、取り出すアイテムを選ぶ
+func _open_item_picker_at_cursor() -> bool:
+	if hud.get_active_index() != -1 or piece_placer.current_hovered_hex == null:
+		return false
+	var piece = world.get_active_chunk().get_piece_at_hex(piece_placer.current_hovered_hex)
+	if piece == null or piece.get_node_or_null("ChestOutput") == null:
+		return false
+	hud.open_item_picker(piece)
+	return true

@@ -215,3 +215,39 @@ class TestFile:
 
 	func test_存在しないファイルは空のデータとして扱う():
 		assert_eq(SaveGame.read(TEST_PATH), {})
+
+
+class TestChestSave:
+	extends "res://tests/unit/utils/test_save_game.gd"
+
+	const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
+
+	var chunk: Chunk
+
+	func before_each():
+		super()
+		chunk = world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+
+	func test_chunkの共有倉庫の中身が復元される():
+		chunk.storage.add("iron_ore", 12)
+		chunk.storage.add("coal", 3)
+		var restored = _roundtrip().get_active_chunk()
+		assert_eq(restored.storage.get_count("iron_ore"), 12)
+		assert_eq(restored.storage.get_count("coal"), 3)
+
+	func test_搬出チェストで選んだアイテムが復元される():
+		chunk.place_piece(CHEST_OUT, Hex.new(2, 0))
+		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("coal")
+		var restored = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(2, 0))
+		assert_eq(restored.get_node("ChestOutput").selected_item, "coal")
+
+	func test_復元した搬出チェストは復元した共有倉庫から取り出す():
+		chunk.storage.add("coal", 3)
+		chunk.place_piece(CHEST_OUT, Hex.new(2, 0))
+		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("coal")
+		var restored_chunk = _roundtrip().get_active_chunk()
+		var chest = restored_chunk.get_piece_at_hex(Hex.new(2, 0))
+		chest.tick(0.1)
+		assert_eq(restored_chunk.storage.get_count("coal"), 2)
+		assert_eq(chest.get_item_count("coal"), 1)
