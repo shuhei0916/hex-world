@@ -1,4 +1,4 @@
-# gdlint:disable=max-public-methods
+# gdlint:disable=max-public-methods,duplicated-load
 extends GutTest
 
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
@@ -169,3 +169,70 @@ func test_スロットはバリアントリストを持ちget_scene_for_slotは�
 func test_set_chunk_coordinateで左上ラベルにチャンク座標が表示される():
 	hud.set_chunk_coordinate(Hex.new(1, 0))
 	assert_eq(hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
+
+
+class TestHoveredPiece:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+	const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
+
+	var hud: HUD
+	var chunk: Chunk
+	var smelter: Piece
+
+	func before_each():
+		HubGoals.reset()
+		HubGoals.creative_mode = true
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.place_piece(SMELTER, Hex.new(0, 0))
+		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_設置済みピースにホバーすると名前と状態が表示される():
+		hud.show_hovered_piece(smelter)
+		assert_true(hud.info_panel.visible)
+		assert_eq(hud.info_panel.name_label.text, smelter.piece_name)
+		assert_string_contains(hud.info_panel.description_label.text, "材料待ち")
+
+	func test_ホバー中の機械は実績と最大速度が表示される():
+		hud.show_hovered_piece(smelter)
+		assert_eq(hud.info_panel.rate_label.text, "実績: 0/分（最大 15/分）")
+
+	func test_ホバーが外れると情報パネルが消える():
+		hud.show_hovered_piece(smelter)
+		hud.show_hovered_piece(null)
+		assert_false(hud.info_panel.visible)
+
+	func test_ホバーしたままでも状態の変化が表示に反映される():
+		hud.show_hovered_piece(smelter)
+		smelter.add_item("iron_ore", 1)
+		smelter.tick(0.5)
+		hud._process(0.1)
+		assert_string_contains(hud.info_panel.description_label.text, "稼働中")
+
+	func test_設置するピースを選んでいる間は選んだピースの説明を優先する():
+		hud.slot_buttons[1].button_pressed = true
+		hud.on_slot_pressed(1)
+		hud.show_hovered_piece(smelter)
+		hud._process(0.1)
+		assert_eq(hud.info_panel.name_label.text, "Miner")
+
+	func test_ピースの選択を解除するとホバー中のピースの情報に戻る():
+		hud.slot_buttons[1].button_pressed = true
+		hud.on_slot_pressed(1)
+		hud.show_hovered_piece(smelter)
+		hud.deselect()
+		assert_eq(hud.info_panel.name_label.text, smelter.piece_name)
+
+	func test_ホバー中のピースが撤去されると情報パネルが消える():
+		hud.show_hovered_piece(smelter)
+		chunk.remove_piece_at(Hex.new(0, 0))
+		await get_tree().process_frame
+		hud._process(0.1)
+		assert_false(hud.info_panel.visible)

@@ -42,6 +42,9 @@ var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.RECEIVER,
 ]
 
+# マウスが乗っている設置済みピース（撤去されて無効になることがあるので型は付けない）
+var _hovered_piece = null
+
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
 @onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
@@ -57,6 +60,33 @@ func _ready():
 	HubGoals.level_up.connect(_on_level_up)
 	HubGoals.unlocks_changed.connect(_refresh_unlock_states)
 	_refresh_unlock_states()
+
+
+# ホバー中のピースの状態は刻々と変わるので、毎フレーム表示を更新する
+func _process(_delta: float) -> void:
+	if _hovered_piece != null:
+		_refresh_hover_info()
+
+
+# 設置済みピースにマウスが乗ったら、そのピースの状態を情報パネルに出す。null で解除。
+func show_hovered_piece(piece: Piece) -> void:
+	_hovered_piece = piece
+	_refresh_hover_info()
+
+
+func _refresh_hover_info() -> void:
+	# 設置するピースを選んでいる間は、選んだピースの説明を優先する
+	if get_active_index() != -1:
+		return
+	if not is_instance_valid(_hovered_piece) or _hovered_piece.is_queued_for_deletion():
+		_hovered_piece = null
+		info_panel.clear()
+		return
+	info_panel.show_info(
+		_hovered_piece.piece_name,
+		PieceStatus.describe(_hovered_piece),
+		PieceStatus.rate_text(_hovered_piece)
+	)
 
 
 func _on_level_up(_new_level: int, _reward: String):
@@ -75,7 +105,7 @@ func _refresh_unlock_states():
 
 func _on_slot_selected_for_info(scene: PackedScene):
 	if scene == null:
-		info_panel.clear()
+		_refresh_hover_info()
 		return
 	var piece = scene.instantiate()
 	info_panel.show_info(piece.piece_name, piece.piece_description, _rate_text_for_piece(piece))

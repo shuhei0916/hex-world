@@ -10,6 +10,8 @@ extends Node
 
 # 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
 const CRAFTING_START_PROGRESS = 0.001
+# 実績レートを数える時間幅（秒）。直近この時間内の完成数から 個/分 を出す
+const RATE_WINDOW := 30.0
 
 @export var craft_time_multiplier: float = 1.0
 
@@ -22,6 +24,8 @@ var input_capacity: int = 0
 var output_container: Node
 
 var _input_slots: Dictionary = {}  # {item_name: count}
+var _clock: float = 0.0  # 設置からの経過時間（実績レートの計測用）
+var _completion_times: Array[float] = []
 
 @onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
 
@@ -116,7 +120,35 @@ func start_crafting():
 	processing_progress = CRAFTING_START_PROGRESS
 
 
+# レシピに対して足りていない材料の一覧
+func get_missing_inputs() -> Array:
+	var missing := []
+	if current_recipe:
+		for item_name in current_recipe.inputs:
+			if get_item_count(item_name) < current_recipe.inputs[item_name]:
+				missing.append(item_name)
+	return missing
+
+
+# 止まらずに動き続けた場合の生産速度（個/分）。鉱床の濃さと機械の倍率を含む。
+func get_max_items_per_minute() -> float:
+	if not current_recipe or _effective_craft_time() <= 0.0:
+		return 0.0
+	return _sum_quantities(current_recipe.outputs) * 60.0 / _effective_craft_time()
+
+
+# 直近 RATE_WINDOW 秒の実際の生産速度（個/分）。材料待ちや搬出詰まりで止まると下がる。
+func get_measured_items_per_minute() -> float:
+	if not current_recipe or _completion_times.is_empty():
+		return 0.0
+	var span = RATE_WINDOW if _clock >= RATE_WINDOW else maxf(_clock, 1.0)
+	return _completion_times.size() * _sum_quantities(current_recipe.outputs) * 60.0 / span
+
+
 func tick(delta: float):
+	_clock += delta
+	while not _completion_times.is_empty() and _completion_times[0] < _clock - RATE_WINDOW:
+		_completion_times.pop_front()
 	if not current_recipe:
 		if _progress_bar:
 			_progress_bar.visible = false
@@ -173,3 +205,4 @@ func _complete_crafting():
 		for item_name in current_recipe.outputs:
 			output_container.add_item(item_name, current_recipe.outputs[item_name])
 	processing_progress = 0.0
+	_completion_times.append(_clock)

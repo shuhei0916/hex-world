@@ -343,3 +343,28 @@ func test_最初からやり直すとセーブデータと進行度が消える(
 	main.discard_progress()
 	assert_false(SaveGame.exists())
 	assert_eq(HubGoals.level, 1)
+
+
+func test_設置済みピースの上にマウスを置くとそのピースの情報が表示される():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	assert_true(main.hud.info_panel.visible)
+	assert_eq(main.hud.info_panel.name_label.text, "Conveyor")
+
+
+func test_何も無いマスにマウスを移すとピースの情報が消える():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(3, -2)))
+	assert_false(main.hud.info_panel.visible)
+
+
+func test_ワールドマップに切り替えるとピースの情報が消える():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._toggle_mode()
+	main._toggle_mode()
+	assert_false(main.hud.info_panel.visible)

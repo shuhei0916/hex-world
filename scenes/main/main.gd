@@ -126,6 +126,7 @@ func _activate_chunk(chunk_hex: Hex) -> void:
 
 
 func _enter_world_map_mode():
+	hud.show_hovered_piece(null)
 	world.visible = false
 	hud.visible = false
 	piece_placer.visible = false
@@ -164,12 +165,17 @@ func _handle_mouse_motion(event):
 	if not event is InputEventMouseMotion:
 		return
 	if is_local_mode():
-		var local_mouse_pos = make_input_local(event).position
-		piece_placer.update_hover(local_mouse_pos)
+		_hover_local(make_input_local(event).position)
 	else:
 		var local_pos = make_input_local(event).position
 		var view_pos = world_map_view.to_local(to_global(local_pos))
 		world_map_view.set_hovered_chunk(world_map_view.chunk_at_local_pos(view_pos))
+
+
+func _hover_local(local_mouse_pos: Vector2) -> void:
+	piece_placer.update_hover(local_mouse_pos)
+	var chunk = world.get_active_chunk()
+	hud.show_hovered_piece(chunk.get_piece_at_hex(piece_placer.current_hovered_hex))
 
 
 func _handle_mouse_click(event):

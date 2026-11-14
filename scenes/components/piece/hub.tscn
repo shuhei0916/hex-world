@@ -5,6 +5,7 @@
 
 [node name="Piece" type="Node2D" unique_id=355228485]
 script = ExtResource("1_piece")
+piece_name = "Hub"
 piece_type = 8
 piece_shape = Array[Vector2i]([Vector2i(0, 0)])
 piece_color = Color(1, 0.419608, 0.419608, 1)
