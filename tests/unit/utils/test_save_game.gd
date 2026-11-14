@@ -251,3 +251,27 @@ class TestChestSave:
 		chest.tick(0.1)
 		assert_eq(restored_chunk.storage.get_count("coal"), 2)
 		assert_eq(chest.get_item_count("coal"), 1)
+
+
+class TestPlanetChestSave:
+	extends "res://tests/unit/utils/test_save_game.gd"
+
+	const PLANET_OUT = preload("res://scenes/components/piece/planet_chest_out.tscn")
+
+	func before_each():
+		super()
+		world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+
+	func test_惑星の共有倉庫の中身が復元される():
+		world.planet_storage.add("copper_ore", 9)
+		assert_eq(_roundtrip().planet_storage.get_count("copper_ore"), 9)
+
+	func test_復元したplanetチェストは復元した惑星の倉庫から取り出す():
+		world.planet_storage.add("copper_ore", 9)
+		var chunk = world.get_active_chunk()
+		chunk.place_piece(PLANET_OUT, Hex.new(2, 0))
+		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("copper_ore")
+		var restored = _roundtrip()
+		restored.get_active_chunk().get_piece_at_hex(Hex.new(2, 0)).tick(0.1)
+		assert_eq(restored.planet_storage.get_count("copper_ore"), 8)

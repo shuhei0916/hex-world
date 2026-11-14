@@ -55,6 +55,8 @@ func test_スロット切り替え時にバリアントインデックスが0に
 
 
 func test_最後のバリアントの次はインデックス0に戻る():
+	# 未解放の切り替え先は飛ばされるので、Smelter を解放済みにしておく
+	HubGoals.gained_rewards["unlock_smelter"] = true
 	hud._slot_variants[2] = [SMELTER_SCENE, MINER_SCENE]
 	hud._variant_indices[2] = 1
 	_select_slot(2)

@@ -21,6 +21,8 @@ signal piece_removed
 var layout: Layout
 # この chunk のチェストが共有する倉庫
 var storage := SharedStorage.new()
+# chunk より広い範囲の倉庫を返す関数 (scope) -> SharedStorage。World が設定する
+var storage_resolver: Callable
 
 var _hex_grid = preload("res://scenes/components/chunk/hex_grid.gd").new()
 var _registry = preload("res://scenes/components/chunk/piece_registry.gd").new()
@@ -80,7 +82,7 @@ func place_piece(
 	# チェストには、この chunk の共有倉庫を渡す
 	for child in piece.get_children():
 		if child.has_method("set_storage"):
-			child.set_storage(storage)
+			child.set_storage(get_storage_for(child.scope))
 
 	var occupied_hexes: Array[Hex] = []
 	for offset in piece.get_hex_shape():
@@ -92,6 +94,14 @@ func place_piece(
 	_neighbor_manager.update_connections_around(piece)
 	_apply_mining_constraint(piece, occupied_hexes)
 	piece_placed.emit(piece)
+
+
+# 共有範囲に対応する倉庫。World につながっていない chunk では、すべて自分の倉庫になる。
+func get_storage_for(scope: String) -> SharedStorage:
+	if scope == SharedStorage.SCOPE_CHUNK or not storage_resolver.is_valid():
+		return storage
+	var resolved = storage_resolver.call(scope)
+	return resolved if resolved else storage
 
 
 func remove_piece_at(target_hex: Hex) -> bool:

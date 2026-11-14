@@ -4,6 +4,9 @@ extends Node
 ## 搬入チェストの受け入れ口。届いたアイテムを共有倉庫（SharedStorage）へ入れる。
 ## 倉庫は設置時に Chunk から渡される。
 
+# どの範囲で中身を共有するか（SharedStorage.SCOPE_*）。シーン側で設定する
+@export var scope: String = SharedStorage.SCOPE_CHUNK
+
 var _storage: SharedStorage
 
 

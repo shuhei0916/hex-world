@@ -2,11 +2,17 @@ class_name SharedStorage
 extends RefCounted
 
 ## チェストが共有する倉庫。同じ倉庫につながるチェスト同士は、離れていても中身を共有する。
-## chunk チェストでは chunk ごとに1つ（Chunk.storage）。
+## どの倉庫につながるかはチェストの共有範囲（scope）で決まる:
+##   chunk  … chunk ごとに1つ（Chunk.storage）
+##   planet … 惑星全体で1つ（World.planet_storage）
 ## 設置や研究に使う「ハブの在庫」（HubGoals.stock）とは別物。
 
 # 1種類あたりの上限。作りすぎたら搬入側が止まるようにする
 const CAPACITY_PER_ITEM := 100
+const SCOPE_CHUNK := "chunk"
+const SCOPE_PLANET := "planet"
+# ホバー表示での倉庫の呼び名
+const SCOPE_NAMES = {SCOPE_CHUNK: "chunk の倉庫", SCOPE_PLANET: "惑星の倉庫"}
 
 var _contents: Dictionary = {}  # {item_id: 個数}
 

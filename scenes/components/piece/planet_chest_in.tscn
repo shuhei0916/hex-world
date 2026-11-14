@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/components/piece/piece.gd" id="1_piece"]
+[ext_resource type="Script" path="res://scenes/components/piece/chest_input.gd" id="2_input"]
+
+[node name="Piece" type="Node2D"]
+script = ExtResource("1_piece")
+piece_name = "Planet Chest (搬入)"
+piece_description = "入れたアイテムを、惑星じゅうの planet チェストと共有する倉庫にしまう。"
+piece_type = 12
+piece_shape = Array[Vector2i]([Vector2i(0, 0)])
+piece_color = Color(0.45, 0.4, 0.75, 1)
+
+[node name="ChestInput" type="Node" parent="."]
+script = ExtResource("2_input")
+scope = "planet"

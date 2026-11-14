@@ -14,6 +14,8 @@ enum Type {
 	SENDER,
 	RECEIVER,
 	CHEST_OUT,
+	PLANET_CHEST,
+	PLANET_CHEST_OUT,
 }
 
 # 各 Type に対応するアンロック報酬キー。"" は常時アンロック。
@@ -23,6 +25,8 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.HUB: "",
 	Type.CHEST: "unlock_chunk_chest",
 	Type.CHEST_OUT: "unlock_chunk_chest",
+	Type.PLANET_CHEST: "unlock_planet_chest",
+	Type.PLANET_CHEST_OUT: "unlock_planet_chest",
 	Type.SMELTER: "unlock_smelter",
 	Type.ASSEMBLER: "unlock_assembler",
 	Type.CUTTER: "unlock_cutter_and_splitter",

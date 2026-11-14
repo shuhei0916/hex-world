@@ -18,6 +18,9 @@ const COSTS = {
 	# チェストはコンベア（無料）より高くして、何でもチェストで済ませられないようにする
 	PIECE_DIR + "chest_in.tscn": {"iron_plate": 10},
 	PIECE_DIR + "chest_out.tscn": {"iron_plate": 10},
+	# 共有範囲が広いチェストほど高い
+	PIECE_DIR + "planet_chest_in.tscn": {"steel": 10, "copper_ingot": 10},
+	PIECE_DIR + "planet_chest_out.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "miner_t2.tscn": {"iron_plate": 10},
 	PIECE_DIR + "smelter_t2.tscn": {"iron_plate": 10},
 	PIECE_DIR + "assembler_t2.tscn": {"iron_rod": 10},

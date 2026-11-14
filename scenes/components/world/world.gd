@@ -4,6 +4,9 @@ extends Node2D
 # 1 chunk あたりの鉱床のマス数
 const DEPOSIT_SIZE := 5
 
+# planet チェストが共有する、惑星全体で1つの倉庫
+var planet_storage := SharedStorage.new()
+
 var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
 var _active_hex = null
@@ -29,11 +32,19 @@ func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
 	add_child(chunk)
 	_chunks[key] = chunk
 	_chunk_hexes.append(chunk_hex)
+	chunk.storage_resolver = _resolve_storage
 	chunk.piece_placed.connect(_on_piece_placed)
 	chunk.piece_removed.connect(_rewire_all_senders)
 	if generate_deposits:
 		_generate_biome_deposits(chunk_hex, chunk)
 	return chunk
+
+
+# chunk より広い共有範囲の倉庫を返す
+func _resolve_storage(scope: String) -> SharedStorage:
+	if scope == SharedStorage.SCOPE_PLANET:
+		return planet_storage
+	return null
 
 
 func _generate_biome_deposits(chunk_hex: Hex, chunk: Chunk) -> void:

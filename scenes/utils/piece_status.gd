@@ -43,7 +43,8 @@ static func describe(piece: Piece) -> String:
 	var chest_input = piece.get_node_or_null("ChestInput")
 	var chest_output = piece.get_node_or_null("ChestOutput")
 	if chest_input:
-		lines.append("倉庫: %s" % _storage_text(chest_input.get_storage()))
+		var storage_name = SharedStorage.SCOPE_NAMES.get(chest_input.scope, "倉庫")
+		lines.append("%s: %s" % [storage_name, _storage_text(chest_input.get_storage())])
 	elif chest_output:
 		lines.append(_chest_output_text(chest_output))
 		if not piece.has_connected_piece():

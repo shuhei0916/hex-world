@@ -5,6 +5,9 @@ extends Node
 ## 兄弟の ItemEjector に渡して隣のピースへ流す。倉庫は設置時に Chunk から渡される。
 ## 手元（ItemEjector）に持つのは1個だけなので、搬出先が詰まれば取り出しも止まる。
 
+# どの範囲で中身を共有するか（SharedStorage.SCOPE_*）。シーン側で設定する
+@export var scope: String = SharedStorage.SCOPE_CHUNK
+
 # 取り出すアイテム。空文字は未選択（何も取り出さない）
 var selected_item: String = ""
 

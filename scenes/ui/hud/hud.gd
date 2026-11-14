@@ -19,6 +19,11 @@ const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
 const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 const CHEST_OUT_SCENE = preload("res://scenes/components/piece/chest_out.tscn")
+const PLANET_CHEST_IN_SCENE = preload("res://scenes/components/piece/planet_chest_in.tscn")
+const PLANET_CHEST_OUT_SCENE = preload("res://scenes/components/piece/planet_chest_out.tscn")
+# チェストのスロットは、切り替えで共有範囲を選ぶ（機械のスロットは T1/T2）
+const CHEST_VARIANT_LABELS: Array[String] = ["Chunk", "Planet"]
+const CHEST_SLOTS := [9, 10]
 const RESEARCH_BUTTON_TEXT := "研究 [E]"
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
@@ -30,8 +35,8 @@ var _slot_variants: Array = [
 	[PAINTER_SCENE],
 	[SENDER_SCENE],
 	[RECEIVER_SCENE],
-	[CHEST_IN_SCENE],
-	[CHEST_OUT_SCENE],
+	[CHEST_IN_SCENE, PLANET_CHEST_IN_SCENE],
+	[CHEST_OUT_SCENE, PLANET_CHEST_OUT_SCENE],
 ]
 var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -189,14 +194,34 @@ func _refresh_variant_row(slot_index: int) -> void:
 		variant_panel.clear()
 		return
 	var labels: Array[String] = []
+	var locked: Array = []
 	for i in variants.size():
-		labels.append("T%d" % (i + 1))
+		labels.append(_variant_label(slot_index, i))
+		if not _is_scene_unlocked(variants[i]):
+			locked.append(i)
 	variant_panel.show_variants(
-		labels, _variant_indices[slot_index], func(vi: int): _select_variant(slot_index, vi)
+		labels, _variant_indices[slot_index], func(vi: int): _select_variant(slot_index, vi), locked
 	)
 
 
+func _variant_label(slot_index: int, variant_index: int) -> String:
+	if slot_index in CHEST_SLOTS:
+		return CHEST_VARIANT_LABELS[variant_index]
+	return "T%d" % (variant_index + 1)
+
+
+# 切り替え先のピースが解放済みか（同じスロットでも、上位のチェストは別の研究で解放する）
+func _is_scene_unlocked(scene: PackedScene) -> bool:
+	var piece = scene.instantiate()
+	var unlocked = PieceData.is_unlocked(piece.piece_type)
+	piece.free()
+	return unlocked
+
+
 func _select_variant(slot_index: int, variant_index: int) -> void:
+	if not _is_scene_unlocked(_slot_variants[slot_index][variant_index]):
+		_refresh_variant_row(slot_index)
+		return
 	_variant_indices[slot_index] = variant_index
 	slot_selected.emit(get_scene_for_slot(slot_index))
 
@@ -261,7 +286,13 @@ func cycle_variant() -> void:
 	var variants: Array = _slot_variants[index]
 	if variants.size() <= 1:
 		return
-	_variant_indices[index] = (_variant_indices[index] + 1) % variants.size()
+	# 未研究の切り替え先は飛ばして、次に使えるものへ進む
+	var next = _variant_indices[index]
+	for _step in variants.size():
+		next = (next + 1) % variants.size()
+		if _is_scene_unlocked(variants[next]):
+			break
+	_variant_indices[index] = next
 	_refresh_variant_row(index)
 	slot_selected.emit(get_scene_for_slot(index))
 
