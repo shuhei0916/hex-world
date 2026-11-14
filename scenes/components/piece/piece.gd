@@ -85,6 +85,7 @@ func setup(rotation: int = 0):
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
 	if crafter:
 		crafter.set_available_recipes(recipes)
+		crafter.is_miner = piece_type == PieceData.Type.MINER
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
 	_refresh_output_arrow()

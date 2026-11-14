@@ -160,8 +160,19 @@ class TestHubProgress:
 		goals.advance_level()
 		_roundtrip()
 		assert_eq(goals.level, 3)
-		assert_true(goals.is_reward_unlocked("unlock_assembler"))
+		assert_true(goals.is_reward_unlocked("unlock_smelter"))
 		assert_false(goals.is_reward_unlocked("unlock_mixer"))
+
+	func test_研究済みの研究とその効果が復元される():
+		goals.level = 3
+		goals.add_stock("iron_ingot", 100)
+		goals.research("unlock_assembler")
+		goals.research("belt_speed_1")
+		_roundtrip()
+		assert_true(goals.is_researched("belt_speed_1"))
+		assert_true(goals.is_reward_unlocked("unlock_assembler"))
+		assert_eq(goals.get_belt_speed(), 1.5)
+		assert_false(goals.is_researched("mining_speed_1"))
 
 	func test_在庫が復元される():
 		goals.add_stock("iron_ore", 12)

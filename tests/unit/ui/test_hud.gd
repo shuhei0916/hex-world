@@ -289,3 +289,40 @@ class TestStockAndCost:
 		_select_slot(2)
 		HubGoals.add_stock("iron_ore", 5)
 		assert_false(hud.info_panel.description_label.text.contains("在庫不足"))
+
+
+class TestResearchEntry:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+
+	var hud: HUD
+
+	func before_each():
+		HubGoals.reset()
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_研究パネルは最初は閉じている():
+		assert_false(hud.research_panel.visible)
+
+	func test_研究ボタンを押すと研究パネルが開く():
+		hud.research_button.pressed.emit()
+		assert_true(hud.research_panel.visible)
+
+	func test_研究できるものが無いときボタンには件数を出さない():
+		assert_eq(hud.research_button.text, "研究 [E]")
+
+	func test_研究できるものがあるとボタンに件数が出る():
+		HubGoals.level = 3
+		HubGoals.add_stock("iron_ingot", 20)
+		assert_eq(hud.research_button.text, "研究 [E] (2)")
+
+	func test_研究すると件数が減る():
+		HubGoals.level = 3
+		HubGoals.add_stock("iron_ingot", 20)
+		HubGoals.research("unlock_assembler")
+		assert_eq(hud.research_button.text, "研究 [E]")

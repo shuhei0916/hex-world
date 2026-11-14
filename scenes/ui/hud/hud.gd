@@ -17,6 +17,7 @@ const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
 const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
 const SENDER_SCENE = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER_SCENE = preload("res://scenes/components/piece/receiver.tscn")
+const RESEARCH_BUTTON_TEXT := "研究 [E]"
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
 	[MINER_T1_SCENE, MINER_T2_SCENE],
@@ -48,6 +49,8 @@ var _hovered_piece = null
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
 @onready var stock_label: Label = %StockLabel
+@onready var research_button: Button = %ResearchButton
+@onready var research_panel: ResearchPanel = %ResearchPanel
 @onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
 @onready var variant_panel: VariantPanel = $SidePanels/VariantPanel
 @onready var _button_group: ButtonGroup = (
@@ -61,12 +64,16 @@ func _ready():
 	HubGoals.level_up.connect(_on_level_up)
 	HubGoals.unlocks_changed.connect(_refresh_unlock_states)
 	HubGoals.stock_changed.connect(_on_stock_changed)
+	HubGoals.research_changed.connect(_refresh_research_button)
+	research_button.pressed.connect(research_panel.toggle)
+	_refresh_research_button()
 	_refresh_unlock_states()
 	_refresh_stock_label()
 
 
 func _on_stock_changed() -> void:
 	_refresh_stock_label()
+	_refresh_research_button()
 	# 選んでいるピースの「在庫不足」の表示を最新にする
 	var scene = get_scene_for_slot(get_active_index())
 	if scene:
@@ -113,6 +120,18 @@ func _refresh_hover_info() -> void:
 
 func _on_level_up(_new_level: int, _reward: String):
 	_refresh_unlock_states()
+	_refresh_research_button()
+
+
+# いま研究できるものがあれば、その件数をボタンに出して気づけるようにする
+func _refresh_research_button() -> void:
+	var available := 0
+	for id in Research.all_ids():
+		if HubGoals.research_state(id) == Research.State.AVAILABLE:
+			available += 1
+	research_button.text = RESEARCH_BUTTON_TEXT
+	if available > 0:
+		research_button.text += " (%d)" % available
 
 
 func _refresh_unlock_states():
@@ -187,7 +206,7 @@ func _items_per_minute_for_piece(piece: Node) -> float:
 		var multiplier: float = crafter.craft_time_multiplier if crafter else 1.0
 		return recipes[0].items_per_minute() / multiplier
 	if piece_type == PieceData.Type.CONVEYOR:
-		return 60.0 / TransferBuffer.TRANSFER_TIME
+		return 60.0 / TransferBuffer.TRANSFER_TIME * HubGoals.get_belt_speed()
 	return 0.0
 
 

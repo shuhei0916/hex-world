@@ -20,6 +20,8 @@ var available_recipes: Array[Recipe] = []
 var processing_progress: float = 0.0
 var output_multiplier: int = 1
 var input_capacity: int = 0
+# 採掘機かどうか（研究の採掘高速化が効く）。Piece が設置時に設定する
+var is_miner: bool = false
 
 var output_container: Node
 
@@ -173,7 +175,8 @@ func tick(delta: float):
 
 # output_multiplier は生産個数ではなく速度に作用する（鉱床が濃いほど速く加工）。
 func _effective_craft_time() -> float:
-	return current_recipe.craft_time / output_multiplier * craft_time_multiplier
+	var research_speed = HubGoals.get_mining_speed() if is_miner else 1.0
+	return current_recipe.craft_time / output_multiplier * craft_time_multiplier / research_speed
 
 
 func _can_start_crafting() -> bool:

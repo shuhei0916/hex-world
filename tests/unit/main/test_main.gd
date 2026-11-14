@@ -368,3 +368,30 @@ func test_ワールドマップに切り替えるとピースの情報が消え�
 	main._toggle_mode()
 	main._toggle_mode()
 	assert_false(main.hud.info_panel.visible)
+
+
+func _make_key_event(keycode: Key) -> InputEventKey:
+	var event = InputEventKey.new()
+	event.keycode = keycode
+	event.pressed = true
+	return event
+
+
+func test_Eキーで研究パネルが開閉する():
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_true(main.hud.research_panel.visible)
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_false(main.hud.research_panel.visible)
+
+
+func test_ワールドマップではEキーで研究パネルが開かない():
+	main._toggle_mode()
+	main._handle_key_input(_make_key_event(KEY_E))
+	assert_false(main.hud.research_panel.visible)
+
+
+func test_研究でコンベアを速くすると情報パネルのスピードに反映される():
+	HubGoals.researched = {"belt_speed_1": true}
+	main.hud.slot_buttons[0].button_pressed = true
+	main.hud.on_slot_pressed(0)
+	assert_eq(main.hud.info_panel.rate_label.text, "スピード: 180/分")

@@ -99,6 +99,8 @@ func _handle_key_input(event):
 			piece_placer.rotate_current_piece()
 		elif event.keycode == KEY_T and is_local_mode():
 			hud.cycle_variant()
+		elif event.keycode == KEY_E and is_local_mode():
+			hud.research_panel.toggle()
 
 
 func _toggle_mode():

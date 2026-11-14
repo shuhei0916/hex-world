@@ -63,6 +63,8 @@ func get_target_direction() -> int:
 
 
 func tick(delta: float):
+	# 研究のコンベア高速化は、時間の進みを速めることで反映する
+	delta *= HubGoals.get_belt_speed()
 	var limit = TransferBuffer.TRANSFER_TIME
 	if _is_branching() and _locked_direction < 0:
 		# 中心に達するタイミングで行き先を確定する。確定できなければ中心で待つ

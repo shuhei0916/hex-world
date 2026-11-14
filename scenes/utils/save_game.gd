@@ -21,6 +21,7 @@ static func capture(world: World, goals: Node) -> Dictionary:
 			"level": goals.level,
 			"rewards": goals.gained_rewards.keys(),
 			"stock": goals.stock.duplicate(),
+			"researched": goals.researched.keys(),
 		},
 		"chunks": [],
 	}
@@ -42,6 +43,9 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 	goals.gained_rewards = {}
 	for reward in hub_goals.get("rewards", []):
 		goals.gained_rewards[reward] = true
+	goals.researched = {}
+	for id in hub_goals.get("researched", []):
+		goals.researched[id] = true
 	goals.stock = {}
 	var saved_stock: Dictionary = hub_goals.get("stock", {})
 	for item_id in saved_stock:
