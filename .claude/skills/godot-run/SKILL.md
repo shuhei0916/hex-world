@@ -87,6 +87,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `biome_production.gd`: 山岳・森林 chunk の鉱床に Miner を置いて新資源の採掘を確かめ、銅インゴット・鋼材が実際の tick で加工されるかを出力する（約9秒待つ）
 
 - `build_cost.gd`: 在庫不足で置けない → ハブに納品 → 設置で在庫が減る → 撤去で全額戻る、の流れを出力する
+- `research_flow.gd`: ハブに納品してレベルを上げ、研究でピースを解放し、コンベア高速化が実際の速さに効くかを出力する
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 

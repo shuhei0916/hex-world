@@ -75,6 +75,23 @@ class RecipeDB:
 			PieceData.Type.MIXER
 		)
 
+		# Cutter: Copper Wire (3.0s) — 銅インゴットから
+		register_recipe(
+			Recipe.new("copper_wire", {"copper_ingot": 1}, {"copper_wire": 1}, 3.0),
+			PieceData.Type.CUTTER
+		)
+
+		# Assembler: Steel Beam (4.0s) — 鋼材から
+		register_recipe(
+			Recipe.new("steel_beam", {"steel": 1}, {"steel_beam": 1}, 4.0), PieceData.Type.ASSEMBLER
+		)
+
+		# Mixer: Circuit (6.0s) — 銅線と鉄板から（山岳と平原の両方の資源が要る）
+		register_recipe(
+			Recipe.new("circuit", {"copper_wire": 1, "iron_plate": 1}, {"circuit": 1}, 6.0),
+			PieceData.Type.MIXER
+		)
+
 	static func register_recipe(
 		recipe: Recipe, piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 	):

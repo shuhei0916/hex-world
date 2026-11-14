@@ -107,6 +107,18 @@ class TestHubGoalsBiomeLevels:
 		hub_goals.advance_level()
 		assert_eq(hub_goals.get_current_goal()["goal_item"], "steel")
 
+	func test_鋼材のあとは銅線_鉄骨_回路の順に目標になる():
+		_advance_to("steel")
+		for expected in ["copper_wire", "steel_beam", "circuit"]:
+			hub_goals.advance_level()
+			assert_eq(hub_goals.get_current_goal()["goal_item"], expected)
+
+	func test_すべての目標アイテムは定義済みで_作るレシピか採掘で手に入る():
+		for level in hub_goals.LEVELS:
+			var item = level["goal_item"]
+			assert_not_null(ItemDB.get_item(item), item)
+			assert_not_null(Recipe.RecipeDB.get_recipe(item), "%s のレシピ" % item)
+
 
 class TestHubGoalsStock:
 	extends GutTest

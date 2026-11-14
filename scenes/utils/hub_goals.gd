@@ -15,6 +15,10 @@ const LEVELS = [
 	# ここからは平原以外のバイオームの資源を運び込まないと達成できない
 	{"goal_item": "copper_ingot", "required": 30, "reward": ""},
 	{"goal_item": "steel", "required": 20, "reward": ""},
+	# 複数のバイオームの資源を組み合わせる中間アイテム
+	{"goal_item": "copper_wire", "required": 40, "reward": ""},
+	{"goal_item": "steel_beam", "required": 30, "reward": ""},
+	{"goal_item": "circuit", "required": 30, "reward": ""},
 ]
 
 var level: int = 1

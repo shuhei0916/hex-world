@@ -34,3 +34,11 @@ func test_新資源から作るアイテムがアイコン付きで登録され�
 		assert_not_null(item_def, id)
 		if item_def:
 			assert_not_null(item_def.icon, id)
+
+
+func test_銅と鋼材から作る中間アイテムがアイコン付きで登録されている():
+	for id in ["copper_wire", "steel_beam", "circuit"]:
+		var item_def = ItemDB.get_item(id)
+		assert_not_null(item_def, id)
+		if item_def:
+			assert_not_null(item_def.icon, id)

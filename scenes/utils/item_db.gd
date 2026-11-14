@@ -43,6 +43,14 @@ func _register_defaults():
 		)
 	)
 	register_item(ItemDefinition.new("steel", "Steel", load("res://assets/items/steel.png")))
+	# 銅・鋼材から作る中間アイテム（アイコンは既存アイコンの色替え・仮）
+	register_item(
+		ItemDefinition.new("copper_wire", "Copper Wire", load("res://assets/items/copper_wire.png"))
+	)
+	register_item(
+		ItemDefinition.new("steel_beam", "Steel Beam", load("res://assets/items/steel_beam.png"))
+	)
+	register_item(ItemDefinition.new("circuit", "Circuit", load("res://assets/items/circuit.png")))
 
 
 func register_item(item: ItemDefinition):

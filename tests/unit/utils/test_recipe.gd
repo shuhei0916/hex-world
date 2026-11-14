@@ -88,3 +88,42 @@ func test_ミキサーは鉄インゴットと石炭から鋼材を作れる():
 		func(r): return r.inputs == {"iron_ingot": 1, "coal": 1} and r.outputs == {"steel": 1}
 	)
 	assert_eq(found.size(), 1)
+
+
+func _has_recipe(piece_type: PieceData.Type, inputs: Dictionary, output: String) -> bool:
+	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
+	return recipes.any(func(r): return r.inputs == inputs and r.outputs == {output: 1})
+
+
+func test_Cutterは銅インゴットから銅線を作れる():
+	assert_true(_has_recipe(PieceData.Type.CUTTER, {"copper_ingot": 1}, "copper_wire"))
+
+
+func test_Assemblerは鋼材から鉄骨を作れる():
+	assert_true(_has_recipe(PieceData.Type.ASSEMBLER, {"steel": 1}, "steel_beam"))
+
+
+func test_Mixerは銅線と鉄板から回路を作れる():
+	assert_true(_has_recipe(PieceData.Type.MIXER, {"copper_wire": 1, "iron_plate": 1}, "circuit"))
+
+
+func test_既存の機械の最初のレシピは変わらない():
+	# 設置直後の既定レシピ（情報パネルのスピード表示の基準）を変えない
+	assert_eq(Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.CUTTER)[0].id, "iron_rod")
+	assert_eq(Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.ASSEMBLER)[0].id, "iron_plate")
+	assert_eq(Recipe.RecipeDB.get_recipes_by_type(PieceData.Type.MIXER)[0].id, "screw")
+
+
+func test_同じ機械のレシピ同士で材料が重ならない():
+	# 機械は届いた材料からレシピを選ぶので、材料が重なるとどちらを作るか決まらない
+	for piece_type in [
+		PieceData.Type.SMELTER,
+		PieceData.Type.ASSEMBLER,
+		PieceData.Type.CUTTER,
+		PieceData.Type.MIXER
+	]:
+		var seen = {}
+		for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):
+			for item in recipe.inputs:
+				assert_false(seen.has(item), "%s が複数のレシピの材料になっている" % item)
+				seen[item] = true
