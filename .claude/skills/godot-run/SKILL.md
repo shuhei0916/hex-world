@@ -94,6 +94,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `neighbor_view.gd`: 原点 chunk の辺の Sender と隣の chunk の Receiver の画面上の距離（1マス＋溝の幅）、隣の施設のホバー情報、隣の chunk に置けないことを出力する
 - `visual_layout.gd`: 見た目確認用の配置（Smelter に流し込むコンベアと出ていくコンベア、境界の Sender と隣の Receiver）。カメラを引いて隣の chunk も映す
 - `visual_zoom_smelter.gd`: visual_layout の配置で Smelter の周りを拡大する
+- `visual_gap.gd`: 溝の幅の見比べ用。環境変数 `GAP_STEPS`（1〜3）で World.gap_steps を変えて引いて映す
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 

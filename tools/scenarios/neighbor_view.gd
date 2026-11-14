@@ -1,7 +1,7 @@
 extends RefCounted
 
 ## 隣接 chunk の描画の確認。原点 chunk の東の辺に Sender、その先の chunk の対応位置に
-## Receiver を置き、画面上の距離（マス1つ分＋溝の幅 World.GAP_TILES）と、ホバー情報を出力する。
+## Receiver を置き、画面上の距離（マス1つ分＋溝の幅 World.gap_steps）と、ホバー情報を出力する。
 
 const SENDER = preload("res://scenes/components/piece/sender.tscn")
 const RECEIVER = preload("res://scenes/components/piece/receiver.tscn")

@@ -337,11 +337,10 @@ class TestNeighborView:
 		assert_ne(neighbor.position, Vector2.ZERO)
 		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
 
-	func test_隣のchunkとの間には境界の辺に垂直な溝がタイル数個分空く():
+	func test_隣のchunkとは溝をはさんで辺の対応位置どうしが真正面に向かい合う():
 		world.setup_planet(Planet.new(2, 1))
 		world.set_active_chunk(Hex.new(0, 0))
 		var active = world.get_active_chunk()
-		var spacing = active.hex_to_pixel(Hex.new(1, 0)).length()
 		for edge_hex in active.get_outer_hexes():
 			var edge_dir = active.get_edge_direction(edge_hex)
 			if edge_dir == -1:
@@ -350,10 +349,8 @@ class TestNeighborView:
 			var neighbor = world.get_chunk(chunk_hex)
 			var across = ChunkTopology.mirror_hex(edge_hex, edge_dir)
 			var gap = _screen_pos(neighbor, across) - _screen_pos(active, edge_hex)
-			var normal = active.hex_to_pixel(Hex.direction(edge_dir)).normalized()
-			# 境界をはさんで向かい合うマスは、本来の隣(1マス)から溝のぶんだけ真っすぐ離れる
-			assert_almost_eq(gap.length(), spacing * (1.0 + World.GAP_TILES), 0.01, str(edge_hex))
-			assert_almost_eq(gap.normalized().dot(normal), 1.0, 0.0001, str(edge_hex))
+			var step = active.hex_to_pixel(Hex.hex_diagonals[edge_dir])
+			assert_true(gap.is_equal_approx(step * World.gap_steps), str(edge_hex))
 
 	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
 		var floor_color = HexTile.new().normal_color

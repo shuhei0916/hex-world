@@ -22,15 +22,15 @@ static func mirror_hex(hex: Hex, edge_dir: int) -> Hex:
 			return Hex.new(negated.r, negated.q, negated.s)
 
 
-# 隣の chunk の、この chunk の座標系で見たずらし量。chunk_delta は惑星マップ上の座標の差。
-# 辺 d の向こうの chunk（惑星マップでは to_world_direction(d) の向き）は (2R+1, -R) を
-# d 回だけ左回りに回した位置にある。六角形の chunk はこのずれ方で隙間なく敷き詰められ、
-# mirror_hex の対応位置が境界をはさんで隣り合うマスになる。
-static func chunk_offset(chunk_delta: Hex, grid_radius: int) -> Hex:
-	var edge_offsets: Array[Hex] = [Hex.new(2 * grid_radius + 1, -grid_radius)]
-	for _i in range(5):
-		edge_offsets.append(Hex.rotate_left(edge_offsets[-1]))
+# 惑星マップ上で chunk_delta だけ離れた chunk の、この chunk の座標系で見たずらし量。
+# 辺 d の向こうの chunk（惑星マップでは to_world_direction(d) の向き）は、辺に垂直な
+# 斜め方向 hex_diagonals[d] へ (半径 + gap_steps) 回ずらした位置に置く。
+# 辺の対応位置（mirror_hex）どうしは hex_diagonals[d] を gap_steps 回ぶん離れて真正面に向かい合い、
+# その間が溝になる。6つの隣はワールドマップと同じ正六角形に並ぶ。
+static func chunk_offset(chunk_delta: Hex, grid_radius: int, gap_steps: int) -> Hex:
+	var step = grid_radius + gap_steps
 	# 惑星マップの方向 (1,0) は辺 5、(0,1) は辺 4 の向こうに当たる
 	return Hex.add(
-		Hex.scale(edge_offsets[5], chunk_delta.q), Hex.scale(edge_offsets[4], chunk_delta.r)
+		Hex.scale(Hex.hex_diagonals[5], step * chunk_delta.q),
+		Hex.scale(Hex.hex_diagonals[4], step * chunk_delta.r)
 	)
