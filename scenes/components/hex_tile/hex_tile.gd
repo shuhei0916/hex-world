@@ -5,6 +5,14 @@ extends Node2D
 # HexTile - 個別の六角形タイル表示
 # Unity版のhexPrefab相当
 
+# マスの画像（pointy-top）。ワールドマップの chunk のタイルは同じ形・陰影の flat-top 版で描く
+const TEXTURE = preload("res://assets/HexagonRounded.png")
+const FLAT_TEXTURE = preload("res://assets/HexagonRoundedFlat.png")
+# 画像の中の六角形の形（tools/generate_rounded_hex.gd がこの値で画像を作る）。
+# 丸める前の頂点までの距離と、角の丸みの半径（どちらも画像のピクセル単位）
+const TEXTURE_CIRCUMRADIUS := 128.0
+const TEXTURE_CORNER_RADIUS := 26.0
+
 var hex_coordinate: Hex
 var is_highlighted: bool = false
 var normal_color: Color = Color("#3D3D3D")

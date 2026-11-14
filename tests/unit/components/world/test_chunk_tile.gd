@@ -58,3 +58,40 @@ class TestChunkTile:
 		tile.set_hovered(false)
 		tile.set_active(true)
 		assert_gt(tile.get_current_color().v, hovered.v)
+
+
+class TestChunkTileSprite:
+	extends GutTest
+
+	const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
+
+	var tile
+
+	func before_each():
+		tile = ChunkTile.new()
+		add_child_autofree(tile)
+		tile.setup(Hex.new(0, 0), Color("#404040"))
+
+	func _local_sprite() -> Sprite2D:
+		var hex_tile = HEX_TILE_SCENE.instantiate()
+		autofree(hex_tile)
+		return hex_tile.get_node("Sprite2D")
+
+	func test_ローカルの床のマスと同じデザインのflat_top版の画像で描く():
+		assert_eq(tile.get_sprite().texture, HexTile.FLAT_TEXTURE)
+
+	func test_床のマスの画像はHexTileの画像である():
+		assert_eq(_local_sprite().texture, HexTile.TEXTURE)
+
+	func test_画像は回さない_回すと上からの陰影が横向きになる():
+		assert_eq(tile.get_sprite().rotation, 0.0)
+
+	func test_マスに対する画像の大きさの比はローカルの床と同じ():
+		var local_ratio = _local_sprite().scale.x / Layout.make_default().size.x
+		assert_almost_eq(tile.get_sprite().scale.x / ChunkTile.TILE_SIZE, local_ratio, 0.0001)
+
+	func test_画像は今の色で塗られる():
+		tile.set_hovered(true)
+		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
+		tile.set_active(true)
+		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
