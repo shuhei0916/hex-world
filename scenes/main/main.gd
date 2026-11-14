@@ -4,6 +4,10 @@ extends Node2D
 const PLANET_RADIUS := 4
 # 新しいゲームは毎回同じ惑星で始める（シードの選択は未実装）
 const PLANET_SEED := 2026
+# ローカル画面でこれより引くとワールドマップへ移る。ワールドマップでローカル画面の
+# この倍率に相当するところまで寄せるとローカル画面へ入る（差をつけて行き来のちらつきを防ぐ）
+const LOCAL_TO_MAP_ZOOM := 0.45
+const MAP_TO_LOCAL_ZOOM := 0.6
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
@@ -82,6 +86,62 @@ func _on_hud_modal_changed() -> void:
 
 func _on_pause_menu_quit_requested() -> void:
 	get_tree().quit()
+
+
+func _process(_delta: float) -> void:
+	update_navigation()
+
+
+# カメラの位置と倍率に合わせて、今いる chunk とローカル画面／ワールドマップを切り替える
+func update_navigation() -> void:
+	if is_local_mode():
+		_follow_camera_chunk()
+		if camera.zoom.x < LOCAL_TO_MAP_ZOOM:
+			_zoom_out_to_world_map()
+	elif camera.zoom.x * _map_to_local_scale() > MAP_TO_LOCAL_ZOOM:
+		_zoom_in_to_local()
+
+
+# ワールドマップの長さをローカル画面の長さに直す倍率
+func _map_to_local_scale() -> float:
+	return world_map_view.get_tile_spacing() / world.get_chunk_spacing()
+
+
+# パンで隣の chunk の中心の方が近くなったら、その chunk を今いる chunk にする。
+# 新しい chunk は原点に来るので、カメラも同じだけずらして見え方を保つ
+func _follow_camera_chunk() -> void:
+	if piece_placer.is_dragging or piece_placer.is_delete_dragging:
+		return
+	var nearest = world.get_nearest_visible_chunk(camera.position)
+	if nearest == null or Hex.equals(nearest, world.get_active_hex()):
+		return
+	var offset = world.get_chunk(nearest).position
+	_activate_chunk(nearest)
+	camera.position -= offset
+
+
+# 見え方を保ったままワールドマップへ移る
+func _zoom_out_to_world_map() -> void:
+	var local_position = camera.position
+	var local_zoom = camera.zoom.x
+	_enter_world_map_mode()
+	var scale = _map_to_local_scale()
+	var tile = world_map_view.get_tile_position(world.get_active_hex())
+	camera.position = world_map_view.to_global(tile + local_position * scale)
+	camera.zoom = Vector2.ONE * (local_zoom / scale)
+
+
+# 画面中央の chunk のローカル画面へ、見え方を保ったまま入る
+func _zoom_in_to_local() -> void:
+	var map_position = world_map_view.to_local(camera.position)
+	var chunk_hex = world_map_view.chunk_at_local_pos(map_position)
+	if chunk_hex == null:
+		return
+	var scale = _map_to_local_scale()
+	var map_zoom = camera.zoom.x
+	_handle_world_map_chunk_selected(chunk_hex)
+	camera.position = (map_position - world_map_view.get_tile_position(chunk_hex)) / scale
+	camera.zoom = Vector2.ONE * (map_zoom * scale)
 
 
 func is_local_mode() -> bool:

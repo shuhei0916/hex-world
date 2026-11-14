@@ -3,7 +3,8 @@ extends Camera2D
 
 @export var min_zoom: float = 0.1
 @export var max_zoom: float = 5.0
-@export var zoom_sensitivity: float = 0.1
+# ホイール1回で倍率を何割変えるか。足し引きではなく掛け算にして、どの倍率でも同じ効きにする
+@export var zoom_sensitivity: float = 0.15
 @export var move_speed: float = 500.0
 
 # false の間はホイールで拡縮しない（研究画面などを開いていて、ホイールを一覧のスクロールに使うとき）
@@ -56,7 +57,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				change_zoom(zoom_sensitivity)
 
 
+# amount > 0 で (1 + amount) 倍に寄せ、amount < 0 で (1 - amount) 分の1に引く
+# （寄せてから同じだけ引くと元の倍率に戻る）
 func change_zoom(amount: float) -> void:
-	var new_zoom_val = zoom.x + amount
+	var factor = 1.0 + amount if amount >= 0.0 else 1.0 / (1.0 - amount)
+	var new_zoom_val = zoom.x * factor
 	new_zoom_val = clamp(new_zoom_val, min_zoom, max_zoom)
 	zoom = Vector2(new_zoom_val, new_zoom_val)

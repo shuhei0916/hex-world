@@ -280,6 +280,30 @@ func _neighbor_position(active: Chunk, chunk_delta: Hex) -> Vector2:
 	)
 
 
+# 隣どうしの chunk の中心の距離（画面上のピクセル）。ワールドマップとの縮尺合わせに使う
+func get_chunk_spacing() -> float:
+	var active = get_active_chunk()
+	var radius = active.grid_radius if active else 5
+	var layout = Layout.make_default()
+	return (
+		Layout
+		. hex_to_pixel(layout, ChunkTopology.chunk_offset(Hex.direction(0), radius, gap_steps))
+		. length()
+	)
+
+
+# 描いている chunk のうち、画面上の位置 pos に中心がいちばん近いもの
+func get_nearest_visible_chunk(pos: Vector2):
+	var nearest = null
+	var best := INF
+	for chunk_hex in _visible_chunk_hexes():
+		var distance = pos.distance_to(get_chunk(chunk_hex).position)
+		if distance < best:
+			best = distance
+			nearest = chunk_hex
+	return nearest
+
+
 # 画面上の位置（World の座標）にある施設。アクティブな chunk と、周りに描いている隣の chunk を探す
 func get_piece_at_position(pos: Vector2) -> Piece:
 	for chunk_hex in _visible_chunk_hexes():

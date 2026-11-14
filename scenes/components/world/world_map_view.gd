@@ -110,6 +110,11 @@ func get_tile_count() -> int:
 	return _tiles.size()
 
 
+# 隣どうしのタイルの中心の距離。ローカル画面との縮尺合わせに使う
+func get_tile_spacing() -> float:
+	return Layout.hex_to_pixel(_map_layout, Hex.direction(0)).length()
+
+
 func get_tile_position(chunk_hex: Hex) -> Vector2:
 	var tile = _tiles.get(Hex.to_key(chunk_hex))
 	return tile.position if tile else Vector2.ZERO

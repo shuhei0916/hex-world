@@ -22,6 +22,31 @@ func test_ホイールダウンでズームアウトする():
 	assert_lt(camera.zoom.y, 1.0, "Zoom should decrease (zoom out) immediately")
 
 
+func _wheel(button: MouseButton) -> void:
+	var event = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	camera._unhandled_input(event)
+
+
+func test_ホイール1回の拡縮はどの倍率でも同じ比率になる():
+	# ローカル画面(倍率1前後)でもワールドマップ(倍率2〜3)でも、1回の効きを同じにする
+	camera.zoom = Vector2.ONE
+	_wheel(MOUSE_BUTTON_WHEEL_UP)
+	var ratio_near_one = camera.zoom.x / 1.0
+	camera.zoom = Vector2.ONE * 3.0
+	_wheel(MOUSE_BUTTON_WHEEL_UP)
+	assert_almost_eq(camera.zoom.x / 3.0, ratio_near_one, 0.0001)
+	assert_gt(ratio_near_one, 1.0)
+
+
+func test_寄せてから同じ回数引くと元の倍率に戻る():
+	camera.zoom = Vector2.ONE * 0.7
+	_wheel(MOUSE_BUTTON_WHEEL_UP)
+	_wheel(MOUSE_BUTTON_WHEEL_DOWN)
+	assert_almost_eq(camera.zoom.x, 0.7, 0.0001)
+
+
 func test_最小ズーム値より小さくならない():
 	camera.zoom = Vector2(camera.min_zoom, camera.min_zoom)
 
