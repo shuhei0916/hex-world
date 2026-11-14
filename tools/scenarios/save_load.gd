@@ -60,7 +60,6 @@ func _report(label: String, main: Node) -> void:
 				active.r,
 				HubGoals.level,
 				smelter_locked,
-				main.hud.get_node("ChunkLabel").text if main.hud.has_node("ChunkLabel") else "?",
 				"\n".join(lines)
 			]
 		)

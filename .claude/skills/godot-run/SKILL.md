@@ -86,6 +86,11 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `planet_overview.gd`: planet のバイオーム分布を文字で描き、ワールドマップのホバー表示と未生成 chunk への入場（遅延生成・鉱床）を出力する
 - `biome_production.gd`: 山岳・森林 chunk の鉱床に Miner を置いて新資源の採掘を確かめ、銅インゴット・鋼材が実際の tick で加工されるかを出力する（約9秒待つ）
 
+- `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
+
+動作確認ツールは専用のセーブファイル（`user://tool_session_save.json`）を毎回消してから起動するので、
+本物のセーブデータの影響を受けず、常に新しいゲームの状態から始まる。
+
 ```bash
 dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth=0
 ```
