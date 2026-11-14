@@ -131,3 +131,41 @@ class TestPlanetMap:
 		view.set_hovered_chunk(Hex.new(1, 0))
 		assert_ne(view.get_hover_info_text(), "")
 		assert_eq(view.get_tile_count(), planet.get_chunk_hexes().size())
+
+
+class TestTileMatchesChunkSize:
+	extends GutTest
+
+	## ワールドマップのタイルは、ローカル画面の chunk と同じ縮尺の大きさにし、溝も同じ割合で見せる
+	## （ズームでローカル画面とワールドマップを行き来しても大きさが変わらない）
+
+	var view
+	var world
+	var saved_gap_steps
+
+	func before_each():
+		saved_gap_steps = World.gap_steps
+		world = World.new()
+		add_child_autofree(world)
+		world.create_chunk(Hex.new(0, 0))
+		world.create_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		view = WorldMapView.new()
+		add_child_autofree(view)
+
+	func after_each():
+		World.gap_steps = saved_gap_steps
+
+	func test_タイルの大きさと間隔の比はchunkの大きさと間隔の比と同じ():
+		view.setup(world)
+		var map_ratio = view.get_tile_inradius(Hex.new(1, 0)) / view.get_tile_spacing()
+		var local_ratio = world.get_chunk_inradius() / world.get_chunk_spacing()
+		assert_almost_eq(map_ratio, local_ratio, 0.0001)
+
+	func test_溝を広げるとタイルが小さくなる():
+		World.gap_steps = 1
+		view.setup(world)
+		var narrow = view.get_tile_inradius(Hex.new(0, 0))
+		World.gap_steps = 3
+		view.setup(world)
+		assert_lt(view.get_tile_inradius(Hex.new(0, 0)), narrow)

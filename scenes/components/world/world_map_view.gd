@@ -30,9 +30,12 @@ func setup(world: World) -> void:
 	_hovered_hex = null
 	_planet = world.get_planet()
 
+	# ローカル画面の chunk と同じ縮尺にして、溝も同じ割合で見せる
+	var tile_inradius = get_tile_spacing() * world.get_chunk_inradius() / world.get_chunk_spacing()
 	for hex in world.get_map_hexes():
 		var tile = ChunkTileScript.new()
 		tile.setup(hex, _tile_color(hex))
+		tile.set_inradius(tile_inradius)
 		tile.position = Layout.hex_to_pixel(_map_layout, hex)
 		add_child(tile)
 		_tiles[Hex.to_key(hex)] = tile
@@ -113,6 +116,11 @@ func get_tile_count() -> int:
 # 隣どうしのタイルの中心の距離。ローカル画面との縮尺合わせに使う
 func get_tile_spacing() -> float:
 	return Layout.hex_to_pixel(_map_layout, Hex.direction(0)).length()
+
+
+func get_tile_inradius(chunk_hex: Hex) -> float:
+	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	return tile.get_inradius() if tile else 0.0
 
 
 func get_tile_position(chunk_hex: Hex) -> Vector2:

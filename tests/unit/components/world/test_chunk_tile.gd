@@ -86,12 +86,31 @@ class TestChunkTileSprite:
 	func test_画像は回さない_回すと上からの陰影が横向きになる():
 		assert_eq(tile.get_sprite().rotation, 0.0)
 
-	func test_マスに対する画像の大きさの比はローカルの床と同じ():
-		var local_ratio = _local_sprite().scale.x / Layout.make_default().size.x
-		assert_almost_eq(tile.get_sprite().scale.x / ChunkTile.TILE_SIZE, local_ratio, 0.0001)
+	func test_床のマスの画像の倍率はHexTileの値と同じ():
+		assert_almost_eq(_local_sprite().scale.x, HexTile.SPRITE_SCALE, 0.0001)
 
 	func test_画像は今の色で塗られる():
 		tile.set_hovered(true)
 		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
 		tile.set_active(true)
 		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
+
+
+class TestChunkTileSize:
+	extends GutTest
+
+	var tile
+
+	func before_each():
+		tile = ChunkTile.new()
+		add_child_autofree(tile)
+		tile.setup(Hex.new(0, 0))
+
+	func test_中心から辺までの距離を指定できる():
+		tile.set_inradius(50.0)
+		assert_almost_eq(tile.get_inradius(), 50.0, 0.001)
+
+	func test_画像の辺がその距離に来る大きさで描く():
+		tile.set_inradius(50.0)
+		var image_inradius = HexTile.TEXTURE_CIRCUMRADIUS * sqrt(3.0) * 0.5
+		assert_almost_eq(tile.get_sprite().scale.x * image_inradius, 50.0, 0.001)

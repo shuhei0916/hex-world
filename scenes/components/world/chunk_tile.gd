@@ -2,7 +2,7 @@ class_name ChunkTile
 extends Node2D
 
 ## ワールドマップの chunk 1つ分のタイル。ローカルの床のマス（HexTile）と同じ形の
-## flat-top 版の画像で描く。マスに対する画像の大きさ（＝すき間の幅）もローカルとそろえる。
+## flat-top 版の画像で描く。大きさは WorldMapView がローカル画面の chunk に合わせて決める。
 
 const TILE_SIZE := 80.0
 const NORMAL_COLOR := Color("#2a4a2a")
@@ -13,8 +13,6 @@ const HOVER_LIGHTEN := 0.2
 const ACTIVE_LIGHTEN := 0.4
 # 角の丸みの縁取りを何本の線分で描くか（角1つあたり）
 const CORNER_SEGMENTS := 6
-# ローカルの床のマスの画像の倍率（hex_tile.tscn の Sprite2D と同じ値。テストで一致を確かめる）
-const LOCAL_SPRITE_SCALE := 0.3
 
 var chunk_hex: Hex
 var base_color: Color = NORMAL_COLOR
@@ -27,9 +25,22 @@ var _sprite := Sprite2D.new()
 func _init() -> void:
 	_sprite.name = "Sprite2D"
 	_sprite.texture = HexTile.FLAT_TEXTURE
-	var scale_ratio = LOCAL_SPRITE_SCALE / Layout.make_default().size.x
-	_sprite.scale = Vector2.ONE * scale_ratio * TILE_SIZE
 	add_child(_sprite)
+	set_inradius(TILE_SIZE * sqrt(3.0) * 0.5)
+
+
+# 中心から辺までの距離を指定して、その大きさで描く
+func set_inradius(inradius: float) -> void:
+	_sprite.scale = Vector2.ONE * inradius / _image_inradius()
+	queue_redraw()
+
+
+func get_inradius() -> float:
+	return _sprite.scale.x * _image_inradius()
+
+
+static func _image_inradius() -> float:
+	return HexTile.TEXTURE_CIRCUMRADIUS * sqrt(3.0) * 0.5
 
 
 func get_sprite() -> Sprite2D:

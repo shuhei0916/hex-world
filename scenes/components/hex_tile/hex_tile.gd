@@ -12,6 +12,8 @@ const FLAT_TEXTURE = preload("res://assets/HexagonRoundedFlat.png")
 # 丸める前の頂点までの距離と、角の丸みの半径（どちらも画像のピクセル単位）
 const TEXTURE_CIRCUMRADIUS := 128.0
 const TEXTURE_CORNER_RADIUS := 26.0
+# 画像の倍率（hex_tile.tscn の Sprite2D と同じ値。テストで一致を確かめる）
+const SPRITE_SCALE := 0.3
 
 var hex_coordinate: Hex
 var is_highlighted: bool = false
@@ -21,6 +23,11 @@ var highlight_color: Color = Color(0.55, 0.35, 0.25)
 var _current_color: Color  # 追加: 現在のHexの色 (ピースの色が優先される)
 
 @onready var _sprite: Sprite2D = $Sprite2D
+
+
+# 画面上のマスの画像の、中心から角までの距離（角を丸める前）
+static func visual_circumradius() -> float:
+	return TEXTURE_CIRCUMRADIUS * SPRITE_SCALE
 
 
 func setup_hex(hex: Hex):

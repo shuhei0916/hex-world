@@ -469,3 +469,44 @@ class TestNeighborView:
 		world.create_chunk(Hex.new(0, 0))
 		world.set_active_chunk(Hex.new(0, 0))
 		assert_null(world.get_piece_at_position(Vector2(5000, 5000)))
+
+
+class TestChunkExtent:
+	extends GutTest
+
+	## chunk の見た目の大きさ（中心から辺までの距離）。ワールドマップのタイルの大きさを合わせるのに使う
+
+	var world
+	var saved_gap_steps
+
+	func before_each():
+		saved_gap_steps = World.gap_steps
+		world = World.new()
+		add_child_autofree(world)
+		world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+
+	func after_each():
+		World.gap_steps = saved_gap_steps
+
+	func test_辺のギザギザの間に来る_外周のマスの頂点とくぼみの間():
+		var chunk = world.get_active_chunk()
+		chunk.create_hex_grid(chunk.grid_radius)
+		var normal = (
+			chunk
+			. hex_to_pixel(ChunkTopology.chunk_offset(Hex.direction(0), chunk.grid_radius, 1))
+			. normalized()
+		)
+		var edge_center = 0.0
+		for hex in chunk.get_all_hexes():
+			edge_center = maxf(edge_center, chunk.hex_to_pixel(hex).dot(normal))
+		var cell = HexTile.visual_circumradius()
+		var inradius = world.get_chunk_inradius()
+		assert_gt(inradius, edge_center + cell * 0.5, "くぼみより外")
+		assert_lt(inradius, edge_center + cell, "頂点より内")
+
+	func test_溝の幅を変えてもchunkの大きさは変わらない():
+		World.gap_steps = 1
+		var narrow = world.get_chunk_inradius()
+		World.gap_steps = 3
+		assert_eq(world.get_chunk_inradius(), narrow)
