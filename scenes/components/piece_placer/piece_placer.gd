@@ -4,6 +4,8 @@ extends Node2D
 # ユーザーがいま何を、どの向きで、どこに置こうとしているか」というUI操作のステートマシン
 
 signal conveyor_path_extended
+# 置ける場所なのに設置できなかった（在庫不足）。message は理由を示す文章
+signal placement_denied(message: String)
 
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const BELT_PREVIEW_TEXTURE = preload("res://scenes/components/piece/belt/forward_0.png")
@@ -188,7 +190,11 @@ func _place_piece_at(target_hex: Hex) -> bool:
 	if not chunk.can_place(current_piece_shape, target_hex, _selected_piece_type):
 		return false
 	# 置ける場所だと分かってから支払う（置けないのに在庫だけ減るのを防ぐ）
-	if HubGoals.pay(BuildCost.of_scene(selected_scene)):
+	var cost = BuildCost.of_scene(selected_scene)
+	if not HubGoals.can_afford(cost):
+		placement_denied.emit(BuildCost.shortage_text(cost))
+		return false
+	if HubGoals.pay(cost):
 		var rotation := current_rotation
 		if _is_conveyor:
 			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6

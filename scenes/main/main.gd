@@ -26,6 +26,7 @@ func _ready():
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
 	hud.modal_changed.connect(_on_hud_modal_changed)
+	piece_placer.placement_denied.connect(_on_placement_denied)
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
 
@@ -67,6 +68,11 @@ func _on_pause_menu_new_game_requested() -> void:
 	discard_progress()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+# 在庫不足で設置できなかった理由を、マウスカーソルの近くに出す
+func _on_placement_denied(message: String) -> void:
+	hud.show_cursor_message(message, get_viewport().get_mouse_position())
 
 
 # 研究画面などを開いている間は、ホイールを一覧のスクロールに使うのでマップは拡縮しない

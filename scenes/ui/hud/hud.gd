@@ -29,6 +29,9 @@ const PLANET_CHEST_OUT_SCENE = preload("res://scenes/components/piece/planet_che
 const CHEST_VARIANT_LABELS: Array[String] = ["Chunk", "Biome", "Planet"]
 const CHEST_SLOTS := [9, 10]
 const RESEARCH_BUTTON_TEXT := "研究 [E]"
+# カーソル付近のメッセージ（在庫不足など）を出しておく時間と、カーソルからのずらし幅
+const CURSOR_MESSAGE_SECONDS := 1.5
+const CURSOR_MESSAGE_OFFSET := Vector2(18, 14)
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
 	[MINER_T1_SCENE, MINER_T2_SCENE],
@@ -60,10 +63,12 @@ var _scene_types: Array[PieceData.Type] = [
 
 # マウスが乗っている設置済みピース（撤去されて無効になることがあるので型は付けない）
 var _hovered_piece = null
+var _cursor_message_time_left := 0.0
 
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
-@onready var stock_label: Label = %StockLabel
+@onready var stock_display: StockDisplay = %StockDisplay
+@onready var cursor_message: Label = %CursorMessage
 @onready var research_button: Button = %ResearchButton
 @onready var research_panel: ResearchPanel = %ResearchPanel
 @onready var item_picker: ItemPicker = %ItemPicker
@@ -86,11 +91,9 @@ func _ready():
 	item_picker.visibility_changed.connect(func(): modal_changed.emit())
 	_refresh_research_button()
 	_refresh_unlock_states()
-	_refresh_stock_label()
 
 
 func _on_stock_changed() -> void:
-	_refresh_stock_label()
 	_refresh_research_button()
 	# 選んでいるピースの「在庫不足」の表示を最新にする
 	var scene = get_scene_for_slot(get_active_index())
@@ -98,21 +101,23 @@ func _on_stock_changed() -> void:
 		_show_selected_info(scene)
 
 
-func _refresh_stock_label() -> void:
-	var lines: Array[String] = []
-	for item_id in HubGoals.stock:
-		if HubGoals.get_stock(item_id) > 0:
-			lines.append(BuildCost.to_text({item_id: HubGoals.get_stock(item_id)}))
-	if lines.is_empty():
-		stock_label.text = "在庫: なし"
-	else:
-		stock_label.text = "在庫\n" + "\n".join(lines)
+# カーソルの近くに短いメッセージを出す（在庫不足で設置できなかったときなど）。
+# screen_position は画面上のマウス位置。しばらくすると自動で消える。
+func show_cursor_message(text: String, screen_position: Vector2) -> void:
+	cursor_message.text = text
+	cursor_message.position = screen_position + CURSOR_MESSAGE_OFFSET
+	cursor_message.visible = true
+	_cursor_message_time_left = CURSOR_MESSAGE_SECONDS
 
 
 # ホバー中のピースの状態は刻々と変わるので、毎フレーム表示を更新する
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _hovered_piece != null:
 		_refresh_hover_info()
+	if cursor_message.visible:
+		_cursor_message_time_left -= delta
+		if _cursor_message_time_left <= 0.0:
+			cursor_message.visible = false
 
 
 # 研究画面を開閉する。開くときは盤面の操作をやめる:

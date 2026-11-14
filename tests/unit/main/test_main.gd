@@ -480,3 +480,13 @@ func test_研究画面を開くと設置しようとしていたピースの選�
 	main.piece_placer.select_piece(main.hud.get_scene_for_slot(0))
 	main._handle_key_input(_make_key_event(KEY_E))
 	assert_null(main.piece_placer.selected_scene)
+
+
+func test_在庫不足で置けないとカーソル付近にメッセージが出る():
+	var chunk = main.world.get_active_chunk()
+	main.hud.slot_buttons[2].button_pressed = true
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
+	main._hover_local(chunk.hex_to_pixel(Hex.new(3, -1)))
+	main.piece_placer.place_current_piece()
+	assert_true(main.hud.cursor_message.visible)
+	assert_eq(main.hud.cursor_message.text, "在庫不足: Iron Ore 0/5")

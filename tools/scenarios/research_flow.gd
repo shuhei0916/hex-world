@@ -52,7 +52,7 @@ func _report(label: String, scene: Node) -> void:
 			% [
 				label,
 				HubGoals.level,
-				scene.hud.stock_label.text.replace("\n", " | "),
+				scene.hud.stock_display.get_summary_text(),
 				scene.hud.research_button.text,
 				not scene.hud.slot_buttons[ASSEMBLER_SLOT].disabled,
 			]

@@ -56,3 +56,11 @@ func test_チェストはコンベアより高い():
 	for path in ["chest_in.tscn", "chest_out.tscn"]:
 		var cost = BuildCost.COSTS.get(BuildCost.PIECE_DIR + path, {})
 		assert_false(cost.is_empty(), path)
+
+
+func test_足りない素材だけを手持ちと必要数で文章にできる():
+	HubGoals.reset()
+	HubGoals.add_stock("iron_ore", 2)
+	HubGoals.add_stock("coal", 9)
+	assert_eq(BuildCost.shortage_text({"iron_ore": 5, "coal": 3}), "在庫不足: Iron Ore 2/5")
+	HubGoals.reset()

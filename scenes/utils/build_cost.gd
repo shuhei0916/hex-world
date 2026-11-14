@@ -48,3 +48,15 @@ static func to_text(cost: Dictionary) -> String:
 		var item = ItemDB.get_item(item_id)
 		parts.append("%s %d" % [item.display_name if item else item_id, cost[item_id]])
 	return "、".join(parts)
+
+
+# 足りない素材を「手持ち/必要数」で示す文章。例: 在庫不足: Iron Ore 2/5
+static func shortage_text(cost: Dictionary) -> String:
+	var parts: Array[String] = []
+	for item_id in cost:
+		var owned = HubGoals.get_stock(item_id)
+		if owned < cost[item_id]:
+			var item = ItemDB.get_item(item_id)
+			var item_name = item.display_name if item else item_id
+			parts.append("%s %d/%d" % [item_name, owned, cost[item_id]])
+	return "在庫不足: " + "、".join(parts)

@@ -563,3 +563,23 @@ class TestBuildCost:
 		piece_placer.stop_delete_drag()
 		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 5)
+
+	func test_在庫不足で置けなかったときは理由が通知される():
+		HubGoals.add_stock("iron_ore", 2)
+		watch_signals(piece_placer)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", ["在庫不足: Iron Ore 2/5"]
+		)
+
+	func test_設置できたときは通知されない():
+		HubGoals.add_stock("iron_ore", 5)
+		watch_signals(piece_placer)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+	func test_場所がふさがっていて置けないときは在庫不足とは通知されない():
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		watch_signals(piece_placer)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		assert_signal_not_emitted(piece_placer, "placement_denied")

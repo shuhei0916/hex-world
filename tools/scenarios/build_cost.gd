@@ -36,7 +36,7 @@ func _report(label: String, scene: Node) -> void:
 			"[%s] %s / パネル=%s / ハブ目標=%d/%d"
 			% [
 				label,
-				scene.hud.stock_label.text.replace("\n", " | "),
+				scene.hud.stock_display.get_summary_text(),
 				scene.hud.info_panel.description_label.text.replace("\n", " | "),
 				hub.received_count,
 				hub.goal_count,

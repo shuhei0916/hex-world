@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud/variant_panel.tscn" id="21_vp"]
 [ext_resource type="Script" path="res://scenes/ui/research_panel/research_panel.gd" id="22_research"]
 [ext_resource type="Script" path="res://scenes/ui/item_picker/item_picker.gd" id="23_picker"]
+[ext_resource type="Script" path="res://scenes/ui/hud/stock_display.gd" id="24_stock"]
 [ext_resource type="ButtonGroup" uid="uid://b7chlnq7pgi8v" path="res://scenes/ui/hud/tool_bar_buttons.tres" id="2_qao66"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/belt.png" id="3_belt"]
 [ext_resource type="Texture2D" path="res://scenes/components/piece/icons/miner.png" id="5_miner"]
@@ -94,14 +95,23 @@ offset_right = 220.0
 offset_bottom = 34.0
 theme_override_font_sizes/font_size = 18
 
-[node name="StockLabel" type="Label" parent="."]
+[node name="StockDisplay" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 offset_left = 12.0
 offset_top = 40.0
 offset_right = 220.0
 offset_bottom = 64.0
-theme_override_font_sizes/font_size = 14
-text = "在庫: なし"
+script = ExtResource("24_stock")
+
+[node name="CursorMessage" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 100
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.55, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 16
 
 [node name="ResearchButton" type="Button" parent="."]
 unique_name_in_owner = true

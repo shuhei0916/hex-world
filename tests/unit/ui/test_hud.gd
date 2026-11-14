@@ -259,17 +259,18 @@ class TestStockAndCost:
 		hud.on_slot_pressed(index)
 
 	func test_在庫が無いときはなしと表示する():
-		assert_eq(hud.stock_label.text, "在庫: なし")
+		assert_eq(hud.stock_display.get_summary_text(), "在庫: なし")
 
-	func test_在庫が増えると表示に反映される():
+	func test_在庫が増えるとアイコンと個数の表示に反映される():
 		HubGoals.add_stock("iron_ore", 5)
 		HubGoals.add_stock("coal", 2)
-		assert_eq(hud.stock_label.text, "在庫\nIron Ore 5\nCoal 2")
+		assert_eq(hud.stock_display.get_item_ids(), ["iron_ore", "coal"])
+		assert_eq(hud.stock_display.get_count_text("coal"), "×2")
 
-	func test_使い切ったアイテムは在庫の表示から消える():
-		HubGoals.add_stock("iron_ore", 5)
-		HubGoals.pay({"iron_ore": 5})
-		assert_eq(hud.stock_label.text, "在庫: なし")
+	func test_設置や研究で在庫を消費すると減った数が表示される():
+		HubGoals.add_stock("iron_ore", 20)
+		HubGoals.pay({"iron_ore": 15})
+		assert_eq(hud.stock_display.get_delta_text("iron_ore"), "-15")
 
 	func test_有料のピースを選ぶとコストが表示される():
 		HubGoals.add_stock("iron_ore", 5)
@@ -476,3 +477,42 @@ class TestResearchPanelFocus:
 		watch_signals(hud)
 		hud.toggle_research_panel()
 		assert_signal_emitted(hud, "modal_changed")
+
+
+class TestCursorMessage:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+
+	var hud: HUD
+
+	func before_each():
+		HubGoals.reset()
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_最初はカーソル付近のメッセージは出ていない():
+		assert_false(hud.cursor_message.visible)
+
+	func test_メッセージを出すとカーソルの近くに表示される():
+		hud.show_cursor_message("在庫不足", Vector2(300, 200))
+		assert_true(hud.cursor_message.visible)
+		assert_eq(hud.cursor_message.text, "在庫不足")
+		var offset = hud.cursor_message.position - Vector2(300, 200)
+		assert_lt(offset.length(), 60.0, "カーソルから離れすぎていない")
+		assert_gt(offset.x, 0.0, "カーソルの真上に重ならない")
+
+	func test_メッセージはしばらくすると消える():
+		hud.show_cursor_message("在庫不足", Vector2(300, 200))
+		hud._process(HUD.CURSOR_MESSAGE_SECONDS + 0.1)
+		assert_false(hud.cursor_message.visible)
+
+	func test_表示中にもう一度出すと表示時間が延びる():
+		hud.show_cursor_message("在庫不足", Vector2(300, 200))
+		hud._process(HUD.CURSOR_MESSAGE_SECONDS - 0.1)
+		hud.show_cursor_message("在庫不足", Vector2(310, 200))
+		hud._process(0.3)
+		assert_true(hud.cursor_message.visible)
