@@ -88,9 +88,19 @@ func setup(rotation: int = 0):
 		crafter.is_miner = piece_type == PieceData.Type.MINER
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
+	_ensure_port_visuals()
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	shape_changed.emit()
+
+
+# 施設（ベルト以外）には、出入口を描く PortVisuals を付ける
+func _ensure_port_visuals() -> void:
+	if Engine.is_editor_hint() or _is_belt() or has_node("PortVisuals"):
+		return
+	var ports := PortVisuals.new()
+	ports.name = "PortVisuals"
+	add_child(ports)
 
 
 func set_recipe(recipe: Recipe):
@@ -189,6 +199,11 @@ func _refresh_output_arrow():
 	if ports.size() > 1:
 		_output_arrow2 = make_output_arrow(ports[1])
 		add_child(_output_arrow2)
+	# 出入口を PortVisuals が描く施設では、従来の矢印は重なるので隠す
+	if has_node("PortVisuals"):
+		_output_arrow.visible = false
+		if _output_arrow2:
+			_output_arrow2.visible = false
 
 
 func get_acceptor() -> Node:

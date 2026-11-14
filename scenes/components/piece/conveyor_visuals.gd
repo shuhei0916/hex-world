@@ -7,8 +7,15 @@ const CURVE_SEGMENTS = 12
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
 const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
 const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
-const _ARROW_SPACING := 30.0
+# 1マス（入口の辺から出口の辺まで）に並べる矢印の本数。どのコンベアでも同じ本数にして、
+# 隣のコンベアとの境目で矢印の間隔が変わらないようにする
+const ARROWS_PER_PIECE := 2
 const _ARROW_SIZE := 8.0
+
+# 矢印のアニメーション用の時計。全コンベアで共有する（コンベアごとに持つと、設置した時刻の
+# 違いで矢印の位置がずれ、つながって見えなくなる）。1フレームに1回だけ進める
+static var _shared_clock: float = 0.0
+static var _clock_frame: int = -1
 
 var _path: PackedVector2Array = PackedVector2Array()
 var _paths: Array[PackedVector2Array] = []  # 出力方向ごとの、主入力から出口までのパス
@@ -16,7 +23,6 @@ var _merge_paths: Array[PackedVector2Array] = []  # 主入力以外の入力（�
 var _output_directions: Array = []
 var _input_direction: int = -1  # 主入力。出口へのパスはここから描く
 var _merge_input_directions: Array = []
-var _elapsed: float = 0.0
 
 @onready var _piece: Piece = get_parent()
 @onready var _mover: Node = _find_mover()
@@ -33,6 +39,47 @@ static func sample_bezier(
 		var mt = 1.0 - t
 		pts.append(mt * mt * p0 + 2.0 * mt * t * ctrl + t * t * p2)
 	return pts
+
+
+# 時刻 clock における矢印の位置。1マスの経路の入口を0、出口を1とした割合で返す（小さい順）。
+# 矢印は搬送時間ちょうどで1マスを通り抜けるので、出口を出た矢印が同時に次の入口に現れる。
+static func arrow_fractions(clock: float) -> Array:
+	var gap = 1.0 / ARROWS_PER_PIECE
+	var traveled = clock * HubGoals.get_belt_speed() / TransferBuffer.TRANSFER_TIME
+	var phase = fmod(traveled, gap)
+	var fractions := []
+	for i in ARROWS_PER_PIECE:
+		fractions.append(phase + i * gap)
+	return fractions
+
+
+# path 上に矢印を置く位置と向き [{position, tangent}]。
+# covered: path が1マスの経路のうち入口側からどこまでを占めるか（合流の辺→中心は 0.5）。
+static func arrow_points(path: PackedVector2Array, fractions: Array, covered: float = 1.0) -> Array:
+	var total := 0.0
+	for i in range(path.size() - 1):
+		total += (path[i + 1] - path[i]).length()
+	var points := []
+	if total < 1.0:
+		return points
+	for fraction in fractions:
+		if fraction > covered:
+			continue
+		var target = fraction / covered * total
+		var walked := 0.0
+		for i in range(path.size() - 1):
+			var segment = path[i + 1] - path[i]
+			if target <= walked + segment.length() or i == path.size() - 2:
+				var local_t = clampf((target - walked) / segment.length(), 0.0, 1.0)
+				points.append(
+					{
+						"position": path[i].lerp(path[i + 1], local_t),
+						"tangent": segment.normalized()
+					}
+				)
+				break
+			walked += segment.length()
+	return points
 
 
 func _ready():
@@ -54,7 +101,10 @@ func _find_mover() -> Node:
 
 
 func _process(delta: float):
-	_elapsed += delta
+	var frame = Engine.get_process_frames()
+	if frame != _clock_frame:
+		_clock_frame = frame
+		_shared_clock += delta
 	queue_redraw()
 	update_item_icon()
 
@@ -109,33 +159,26 @@ func refresh_belt():
 	queue_redraw()
 
 
+# いまの時刻での矢印の位置（1マスの経路に対する割合）
+func current_arrow_fractions() -> Array:
+	return arrow_fractions(_shared_clock)
+
+
 func _draw():
-	for path in _merge_paths + _paths:
-		if path.size() < 2:
-			continue
-		draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
-		draw_polyline(path, _BELT_FILL, BELT_WIDTH - 6.0, true)
-		_draw_belt_arrows_on(path)
+	var fractions = current_arrow_fractions()
+	for path in _merge_paths:
+		_draw_belt(path, fractions, 0.5)
+	for path in _paths:
+		_draw_belt(path, fractions, 1.0)
 
 
-func _draw_belt_arrows_on(path: PackedVector2Array):
-	var total_len := _arc_length(path)
-	if total_len < 1.0:
+func _draw_belt(path: PackedVector2Array, fractions: Array, covered: float) -> void:
+	if path.size() < 2:
 		return
-	var anim_offset: float = fmod(
-		_elapsed * total_len / TransferBuffer.TRANSFER_TIME, _ARROW_SPACING
-	)
-	var dist: float = 0.0
-	var next_arrow: float = anim_offset
-	for i in range(path.size() - 1):
-		var seg_len = (path[i + 1] - path[i]).length()
-		while next_arrow <= dist + seg_len:
-			var local_t = (next_arrow - dist) / seg_len
-			var pos = path[i].lerp(path[i + 1], local_t)
-			var tangent = (path[i + 1] - path[i]).normalized()
-			_draw_chevron(pos, tangent)
-			next_arrow += _ARROW_SPACING
-		dist += seg_len
+	draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
+	draw_polyline(path, _BELT_FILL, BELT_WIDTH - 6.0, true)
+	for point in arrow_points(path, fractions, covered):
+		_draw_chevron(point["position"], point["tangent"])
 
 
 func _draw_chevron(pos: Vector2, tangent: Vector2):
@@ -144,13 +187,6 @@ func _draw_chevron(pos: Vector2, tangent: Vector2):
 	var left = pos - tangent * (_ARROW_SIZE * 0.4) + perp * (_ARROW_SIZE * 0.7)
 	var right = pos - tangent * (_ARROW_SIZE * 0.4) - perp * (_ARROW_SIZE * 0.7)
 	draw_colored_polygon(PackedVector2Array([tip, left, right]), _BELT_ARROW)
-
-
-func _arc_length(path: PackedVector2Array) -> float:
-	var total := 0.0
-	for i in range(path.size() - 1):
-		total += (path[i + 1] - path[i]).length()
-	return total
 
 
 # ---- アイテムアイコン --------------------------------------------------------

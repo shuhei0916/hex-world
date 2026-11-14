@@ -1,3 +1,4 @@
+# gdlint:disable=duplicated-load
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
@@ -201,3 +202,80 @@ func test_入力が1つなら合流用のベルトは描かない():
 	visuals.set_input_directions([3])
 	assert_eq(visuals._merge_paths, [])
 	assert_eq(visuals._input_direction, 3)
+
+
+class TestBeltArrowContinuity:
+	extends GutTest
+
+	## ベルトの矢印が、隣り合うコンベアの境目で途切れずに流れて見えるための条件
+
+	func before_each():
+		HubGoals.reset()
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_矢印は1マスに決まった本数が等間隔に並ぶ():
+		var fractions = ConveyorVisuals.arrow_fractions(0.123)
+		assert_eq(fractions.size(), ConveyorVisuals.ARROWS_PER_PIECE)
+		var gap = 1.0 / ConveyorVisuals.ARROWS_PER_PIECE
+		for i in range(1, fractions.size()):
+			assert_almost_eq(fractions[i] - fractions[i - 1], gap, 0.0001)
+
+	func test_矢印の位置は時刻だけで決まり_コンベアごとの設置時刻に左右されない():
+		# 隣り合うコンベアが同じ時計を使うので、出口を出た矢印がそのまま次の入口に現れる
+		assert_eq(ConveyorVisuals.arrow_fractions(4.56), ConveyorVisuals.arrow_fractions(4.56))
+		var conveyor_scene = load("res://scenes/components/piece/conveyor.tscn")
+		var first = conveyor_scene.instantiate()
+		add_child_autofree(first)
+		first.get_node("ConveyorVisuals")._process(5.0)
+		var second = conveyor_scene.instantiate()
+		add_child_autofree(second)
+		assert_eq(
+			first.get_node("ConveyorVisuals").current_arrow_fractions(),
+			second.get_node("ConveyorVisuals").current_arrow_fractions()
+		)
+
+	func test_矢印は1マスを搬送時間ちょうどで通り抜ける():
+		# 矢印の間隔ぶん進む時間 = 搬送時間 / 本数。その時間が経つと同じ並びに戻る
+		var period = TransferBuffer.TRANSFER_TIME / ConveyorVisuals.ARROWS_PER_PIECE
+		var now = ConveyorVisuals.arrow_fractions(1.0)
+		var later = ConveyorVisuals.arrow_fractions(1.0 + period)
+		for i in now.size():
+			assert_almost_eq(later[i], now[i], 0.0001)
+
+	func test_矢印は入口から出口へ向かって進む():
+		var before = ConveyorVisuals.arrow_fractions(1.0)[0]
+		var after = ConveyorVisuals.arrow_fractions(1.01)[0]
+		assert_gt(after, before)
+
+	func test_コンベア高速化を研究すると矢印も速く流れる():
+		var normal = ConveyorVisuals.arrow_fractions(0.05)[0]
+		HubGoals.researched = {"belt_speed_1": true, "belt_speed_2": true}
+		var fast = ConveyorVisuals.arrow_fractions(0.05)[0]
+		assert_almost_eq(fast, normal * 2.0, 0.0001)
+
+	func test_曲がったコンベアでも直進のコンベアでも矢印の本数は同じ():
+		var straight = PackedVector2Array([Vector2(-36, 0), Vector2(0, 0), Vector2(36, 0)])
+		var curved = ConveyorVisuals.sample_bezier(
+			Vector2(-36, 0), Vector2.ZERO, Vector2(18, 31), ConveyorVisuals.CURVE_SEGMENTS
+		)
+		var fractions = ConveyorVisuals.arrow_fractions(0.2)
+		assert_eq(
+			ConveyorVisuals.arrow_points(straight, fractions).size(),
+			ConveyorVisuals.arrow_points(curved, fractions).size()
+		)
+
+	func test_矢印は経路の長さに対する割合の位置に置かれる():
+		var path = PackedVector2Array([Vector2(0, 0), Vector2(100, 0)])
+		var points = ConveyorVisuals.arrow_points(path, [0.25, 0.75])
+		assert_almost_eq(points[0]["position"].x, 25.0, 0.01)
+		assert_almost_eq(points[1]["position"].x, 75.0, 0.01)
+		assert_eq(points[0]["tangent"], Vector2(1, 0))
+
+	func test_合流の半分の経路には_前半にある矢印だけが置かれる():
+		# 合流のベルトは辺から中心まで（1マスの前半）。本線の前半と同じ位置に矢印が来る
+		var stub = PackedVector2Array([Vector2(-50, 0), Vector2(0, 0)])
+		var points = ConveyorVisuals.arrow_points(stub, [0.25, 0.75], 0.5)
+		assert_eq(points.size(), 1)
+		assert_almost_eq(points[0]["position"].x, -25.0, 0.01)
