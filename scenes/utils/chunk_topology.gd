@@ -20,3 +20,17 @@ static func mirror_hex(hex: Hex, edge_dir: int) -> Hex:
 			return Hex.new(negated.s, negated.r, negated.q)
 		_:  # NW/SE の辺 → q, r を入れ替え
 			return Hex.new(negated.r, negated.q, negated.s)
+
+
+# 隣の chunk の、この chunk の座標系で見たずらし量。chunk_delta は惑星マップ上の座標の差。
+# 辺 d の向こうの chunk（惑星マップでは to_world_direction(d) の向き）は (2R+1, -R) を
+# d 回だけ左回りに回した位置にある。六角形の chunk はこのずれ方で隙間なく敷き詰められ、
+# mirror_hex の対応位置が境界をはさんで隣り合うマスになる。
+static func chunk_offset(chunk_delta: Hex, grid_radius: int) -> Hex:
+	var edge_offsets: Array[Hex] = [Hex.new(2 * grid_radius + 1, -grid_radius)]
+	for _i in range(5):
+		edge_offsets.append(Hex.rotate_left(edge_offsets[-1]))
+	# 惑星マップの方向 (1,0) は辺 5、(0,1) は辺 4 の向こうに当たる
+	return Hex.add(
+		Hex.scale(edge_offsets[5], chunk_delta.q), Hex.scale(edge_offsets[4], chunk_delta.r)
+	)

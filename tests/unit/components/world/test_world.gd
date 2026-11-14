@@ -294,14 +294,108 @@ class TestWorldActiveChunk:
 		world.set_active_chunk(Hex.new(0, 0))
 		assert_true(world.get_chunk(Hex.new(0, 0)).visible)
 
-	func test_set_active_chunkで前のアクティブChunkは非表示になる():
+	func test_set_active_chunkで隣でない前のアクティブChunkは非表示になる():
 		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
+		world.create_chunk(Hex.new(2, 0))
 		world.set_active_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(2, 0))
 		assert_false(world.get_chunk(Hex.new(0, 0)).visible)
 
 	func test_get_active_chunkはアクティブなChunkを返す():
 		var chunk = world.create_chunk(Hex.new(0, 0))
 		world.set_active_chunk(Hex.new(0, 0))
 		assert_eq(world.get_active_chunk(), chunk)
+
+
+class TestNeighborView:
+	extends GutTest
+
+	## ローカル画面では、アクティブな chunk の周りに隣の chunk も薄く描く
+
+	var world
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+
+	func _expected_position(chunk: Chunk, delta: Hex) -> Vector2:
+		return chunk.hex_to_pixel(ChunkTopology.chunk_offset(delta, chunk.grid_radius))
+
+	func test_アクティブなchunkは原点にそのままの色で描かれる():
+		world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var chunk = world.get_active_chunk()
+		assert_eq(chunk.position, Vector2.ZERO)
+		assert_eq(chunk.modulate, Color.WHITE)
+
+	func test_隣のchunkは敷き詰めた位置に薄く描かれる():
+		world.create_chunk(Hex.new(0, 0))
+		var neighbor = world.create_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		assert_true(neighbor.visible)
+		assert_eq(neighbor.position, _expected_position(neighbor, Hex.new(1, 0)))
+		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
+
+	func test_隣でないchunkは描かない():
+		world.create_chunk(Hex.new(0, 0))
+		var far = world.create_chunk(Hex.new(2, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		assert_false(far.visible)
+
+	func test_アクティブを切り替えると位置と色が入れ替わる():
+		var origin = world.create_chunk(Hex.new(0, 0))
+		var east = world.create_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(1, 0))
+		assert_eq(east.position, Vector2.ZERO)
+		assert_eq(east.modulate, Color.WHITE)
+		assert_true(origin.visible)
+		assert_eq(origin.position, _expected_position(origin, Hex.new(-1, 0)))
+		assert_eq(origin.modulate, World.NEIGHBOR_MODULATE)
+
+	func test_隣のchunkの一覧を返す():
+		world.create_chunk(Hex.new(0, 0))
+		world.create_chunk(Hex.new(1, 0))
+		world.create_chunk(Hex.new(2, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var hexes = world.get_neighbor_hexes()
+		assert_eq(hexes.size(), 1)
+		assert_true(Hex.equals(hexes[0], Hex.new(1, 0)))
+
+	func test_planetがあれば隣のchunkは見えるように生成される():
+		world.setup_planet(Planet.new(2, 1))
+		world.set_active_chunk(Hex.new(0, 0))
+		assert_eq(world.get_chunk_hexes().size(), 7)
+		for dir in range(6):
+			assert_true(world.get_chunk(Hex.direction(dir)).visible)
+
+	func test_planetの外には隣のchunkを作らない():
+		world.setup_planet(Planet.new(1, 1))
+		world.set_active_chunk(Hex.new(1, 0))
+		for hex in world.get_chunk_hexes():
+			assert_true(world.get_planet().has_chunk(hex), str(hex))
+		assert_eq(world.get_neighbor_hexes().size(), 3)
+
+	func test_画面上の位置から隣のchunkの施設も取得できる():
+		world.create_chunk(Hex.new(0, 0))
+		var neighbor = world.create_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var conveyor = load("res://scenes/components/piece/conveyor.tscn")
+		neighbor.place_piece(conveyor, Hex.new(-2, 1))
+		var pos = neighbor.position + neighbor.hex_to_pixel(Hex.new(-2, 1))
+		assert_eq(world.get_piece_at_position(pos), neighbor.get_piece_at_hex(Hex.new(-2, 1)))
+
+	func test_画面上の位置からアクティブなchunkの施設を取得できる():
+		var chunk = world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var conveyor = load("res://scenes/components/piece/conveyor.tscn")
+		chunk.place_piece(conveyor, Hex.new(1, 0))
+		assert_eq(
+			world.get_piece_at_position(chunk.hex_to_pixel(Hex.new(1, 0))),
+			chunk.get_piece_at_hex(Hex.new(1, 0))
+		)
+
+	func test_何も無い位置ではnull():
+		world.create_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		assert_null(world.get_piece_at_position(Vector2(5000, 5000)))

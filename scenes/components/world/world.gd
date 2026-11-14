@@ -3,6 +3,8 @@ extends Node2D
 
 # 1 chunk あたりの鉱床のマス数
 const DEPOSIT_SIZE := 5
+# ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）
+const NEIGHBOR_MODULATE := Color(0.55, 0.55, 0.6, 1.0)
 
 # planet チェストが共有する、惑星全体で1つの倉庫
 var planet_storage := SharedStorage.new()
@@ -10,6 +12,7 @@ var planet_storage := SharedStorage.new()
 var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
 var _active_hex = null
+var _neighbor_hexes: Array[Hex] = []  # アクティブな chunk の周りに描いている chunk
 var _planet: Planet = null
 # バイオームチェストが共有する倉庫。地域（Planet の region）ごとに1つ {地域番号: SharedStorage}
 var _region_storages: Dictionary = {}
@@ -199,15 +202,52 @@ func set_active_chunk(chunk_hex: Hex):
 		return
 	if get_chunk(chunk_hex) == null:
 		create_chunk(chunk_hex)
-	if _active_hex != null:
-		var prev = get_chunk(_active_hex)
-		if prev:
-			prev.visible = false
 	_active_hex = chunk_hex
-	var chunk = get_chunk(chunk_hex)
-	if chunk:
-		chunk.visible = true
+	_layout_visible_chunks()
 	_update_receiver_hints()
+
+
+# アクティブな chunk の周りに描いている隣の chunk の座標
+func get_neighbor_hexes() -> Array[Hex]:
+	return _neighbor_hexes.duplicate()
+
+
+# 画面上の位置（World の座標）にある施設。アクティブな chunk と、周りに描いている隣の chunk を探す
+func get_piece_at_position(pos: Vector2) -> Piece:
+	var hexes: Array[Hex] = []
+	if _active_hex != null:
+		hexes.append(_active_hex)
+	hexes.append_array(_neighbor_hexes)
+	for chunk_hex in hexes:
+		var chunk = get_chunk(chunk_hex)
+		var hex = Layout.pixel_to_hex_rounded(chunk.layout, pos - chunk.position)
+		if chunk.is_inside_grid(hex):
+			return chunk.get_piece_at_hex(hex)
+	return null
+
+
+# アクティブな chunk を原点に、隣の chunk を敷き詰めた位置に並べて表示する。
+# planet があれば、隣は見えるように生成する（見えた chunk はセーブにも残る）。それ以外は隠す。
+func _layout_visible_chunks() -> void:
+	_neighbor_hexes.clear()
+	for dir in range(6):
+		var hex = Hex.neighbor(_active_hex, dir)
+		if _planet and _planet.has_chunk(hex):
+			create_chunk(hex)
+		if get_chunk(hex) != null:
+			_neighbor_hexes.append(hex)
+	for chunk_hex in _chunk_hexes:
+		get_chunk(chunk_hex).visible = false
+	var active = get_active_chunk()
+	active.visible = true
+	active.position = Vector2.ZERO
+	active.modulate = Color.WHITE
+	for hex in _neighbor_hexes:
+		var chunk = get_chunk(hex)
+		var offset = ChunkTopology.chunk_offset(Hex.subtract(hex, _active_hex), active.grid_radius)
+		chunk.visible = true
+		chunk.position = active.hex_to_pixel(offset)
+		chunk.modulate = NEIGHBOR_MODULATE
 
 
 func _update_receiver_hints():

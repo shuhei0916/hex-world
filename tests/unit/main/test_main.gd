@@ -56,9 +56,9 @@ func test_起動時の初期配置では音が鳴らない():
 	assert_false(main.get_node("SfxPlayer/PlaceBuilding").playing)
 
 
-func test_起動時にplanetが設定され原点chunkだけが生成される():
+func test_起動時にplanetが設定され原点chunkと周りに見える隣のchunkが生成される():
 	assert_eq(main.world.get_planet().radius, Main.PLANET_RADIUS)
-	assert_eq(main.world.get_chunk_hexes().size(), 1)
+	assert_eq(main.world.get_chunk_hexes().size(), 7)
 	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
 
 
@@ -287,7 +287,7 @@ func test_ポーズメニューはHUDより手前に表示される():
 
 
 func test_セーブデータが無ければ新しいゲームとして始まる():
-	assert_eq(main.world.get_chunk_hexes().size(), 1)
+	assert_eq(main.world.get_chunk_hexes().size(), 7, "原点と周りの6つ")
 	assert_eq(main.world.get_active_chunk().get_piece_count(), 1, "ハブだけがある")
 
 
@@ -350,6 +350,14 @@ func test_設置済みピースの上にマウスを置くとそのピースの�
 	var chunk = main.world.get_active_chunk()
 	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
 	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	assert_true(main.hud.info_panel.visible)
+	assert_eq(main.hud.info_panel.name_label.text, "Conveyor")
+
+
+func test_隣のchunkの施設の上にマウスを置いてもその情報が表示される():
+	var neighbor = main.world.get_chunk(Hex.new(1, 0))
+	neighbor.place_piece(CONVEYOR, Hex.new(-2, 1))
+	main._hover_local(neighbor.position + neighbor.hex_to_pixel(Hex.new(-2, 1)))
 	assert_true(main.hud.info_panel.visible)
 	assert_eq(main.hud.info_panel.name_label.text, "Conveyor")
 

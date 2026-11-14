@@ -188,8 +188,8 @@ func _handle_mouse_motion(event):
 
 func _hover_local(local_mouse_pos: Vector2) -> void:
 	piece_placer.update_hover(local_mouse_pos)
-	var chunk = world.get_active_chunk()
-	hud.show_hovered_piece(chunk.get_piece_at_hex(piece_placer.current_hovered_hex))
+	# 周りに描いている隣の chunk の施設も、情報だけは見られるようにする
+	hud.show_hovered_piece(world.get_piece_at_position(local_mouse_pos))
 
 
 func _handle_mouse_click(event):

@@ -64,11 +64,18 @@ class TestPlanetAndChunks:
 		var restored = _roundtrip()
 		assert_true(Hex.equals(restored.get_active_hex(), Hex.new(1, 0)))
 
-	func test_訪れたchunkだけが復元される():
-		world.set_active_chunk(Hex.new(1, 0))
+	func test_訪れたchunkとその隣で見えていたchunkだけが復元される():
 		var restored = _roundtrip()
-		assert_eq(restored.get_chunk_hexes().size(), 2)
+		assert_eq(restored.get_chunk_hexes().size(), 7)
+		assert_not_null(restored.get_chunk(Hex.new(1, 0)))
 		assert_null(restored.get_chunk(Hex.new(2, 0)))
+
+	func test_隣のchunkの鉱床もロードで変わらない():
+		var hex = Hex.new(1, 0)
+		var before = world.get_chunk(hex)
+		var after = _roundtrip().get_chunk(hex)
+		for inner in before.get_all_hexes():
+			assert_eq(after.get_hex_resource(inner), before.get_hex_resource(inner), str(inner))
 
 	func test_鉱床の位置と種類が復元される():
 		var chunk = world.get_active_chunk()
