@@ -163,14 +163,27 @@ class TestHubProgress:
 		assert_true(goals.is_reward_unlocked("unlock_smelter"))
 		assert_false(goals.is_reward_unlocked("unlock_mixer"))
 
+	func test_到達済みのレベルの報酬は_保存データに無くても解放済みになる():
+		# 機械の解放が研究だった頃のセーブデータ: レベルは進んでいるが報酬は記録されていない
+		var data = SaveGame.capture(world, goals)
+		data["hub_goals"]["level"] = 4
+		data["hub_goals"]["rewards"] = ["unlock_smelter"]
+		data["hub_goals"]["researched"] = ["unlock_assembler"]
+		var restored_goals = _new_goals()
+		SaveGame.apply(_new_world(), JSON.parse_string(JSON.stringify(data)), restored_goals)
+		assert_true(restored_goals.is_reward_unlocked("unlock_assembler"))
+		assert_true(restored_goals.is_reward_unlocked("unlock_cutter_and_splitter"))
+		assert_false(restored_goals.is_reward_unlocked("unlock_mixer"))
+
 	func test_研究済みの研究とその効果が復元される():
-		goals.level = 3
+		goals.level = 4
 		goals.add_stock("iron_ingot", 100)
-		goals.research("unlock_assembler")
+		goals.add_stock("iron_plate", 100)
+		goals.research("unlock_chunk_chest")
 		goals.research("belt_speed_1")
 		_roundtrip()
 		assert_true(goals.is_researched("belt_speed_1"))
-		assert_true(goals.is_reward_unlocked("unlock_assembler"))
+		assert_true(goals.is_reward_unlocked("unlock_chunk_chest"))
 		assert_eq(goals.get_belt_speed(), 1.5)
 		assert_false(goals.is_researched("mining_speed_1"))
 

@@ -45,6 +45,12 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 	goals.gained_rewards = {}
 	for reward in hub_goals.get("rewards", []):
 		goals.gained_rewards[reward] = true
+	# 到達済みのレベルの報酬は必ず解放済みにする
+	# （機械の解放が研究だった頃のセーブデータでも、機械が使えなくならないように）
+	for i in mini(goals.level - 1, goals.LEVELS.size()):
+		var reward: String = goals.LEVELS[i]["reward"]
+		if reward != "":
+			goals.gained_rewards[reward] = true
 	goals.researched = {}
 	for id in hub_goals.get("researched", []):
 		goals.researched[id] = true

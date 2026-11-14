@@ -1,7 +1,8 @@
 class_name Research
 extends RefCounted
 
-## 研究の定義。ハブに貯めた在庫を払って、ピースの解放や速度の強化を得る。
+## 研究の定義。ハブに貯めた在庫を払って、速度の強化やチェストの解放を得る。
+## 本筋に必須の機械はここには入れず、ハブのレベルで自動解放する（HubGoals.LEVELS）。
 ## 研究済みかどうかなどの進行状況は HubGoals が持つ（ここは変わらない定義だけ）。
 ##
 ## 各研究の項目:
@@ -29,15 +30,6 @@ const DEFS = {
 		"requires": [],
 		"effect": {MINING_SPEED: 1.5},
 	},
-	"unlock_assembler":
-	{
-		"name": "Assembler",
-		"description": "Assembler を設置できるようになる。",
-		"cost": {"iron_ingot": 10},
-		"level": 3,
-		"requires": [],
-		"effect": {UNLOCK: "unlock_assembler"},
-	},
 	"belt_speed_1":
 	{
 		"name": "コンベア高速化 I",
@@ -46,15 +38,6 @@ const DEFS = {
 		"level": 3,
 		"requires": [],
 		"effect": {BELT_SPEED: 1.5},
-	},
-	"unlock_cutter":
-	{
-		"name": "Cutter",
-		"description": "Cutter を設置できるようになる。",
-		"cost": {"iron_plate": 10},
-		"level": 4,
-		"requires": [],
-		"effect": {UNLOCK: "unlock_cutter_and_splitter"},
 	},
 	"unlock_chunk_chest":
 	{
@@ -73,15 +56,6 @@ const DEFS = {
 		"level": 4,
 		"requires": ["mining_speed_1"],
 		"effect": {MINING_SPEED: 2.0},
-	},
-	"unlock_mixer":
-	{
-		"name": "Mixer と Painter",
-		"description": "Mixer と Painter を設置できるようになる。",
-		"cost": {"iron_rod": 10},
-		"level": 5,
-		"requires": [],
-		"effect": {UNLOCK: "unlock_mixer"},
 	},
 	"belt_speed_2":
 	{

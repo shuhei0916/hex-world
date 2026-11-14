@@ -1,5 +1,5 @@
 extends RefCounted
-## 研究の流れを出力する: ハブに納品してレベルを上げる → 研究で Assembler を解放 →
+## 研究の流れを出力する: ハブに納品してレベルを上げる（機械はレベルで自動解放）→
 ## コンベア高速化を研究して、実ゲームの tick でコンベアが速くなることを確かめる（等速 0.5秒 → 1.5倍で約0.33秒）。
 
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
@@ -17,11 +17,8 @@ func run(scene: Node) -> void:
 
 	scene._handle_key_input(_key(KEY_E))
 	print("E キー → 研究パネル visible=%s" % scene.hud.research_panel.visible)
-	scene.hud.research_panel.get_button("unlock_assembler").pressed.emit()
-	_report("Assembler を研究", scene)
 
 	var before = await _measure_belt_seconds(scene, chunk, Hex.new(3, -3))
-	hub.add_item("iron_ingot", 20)
 	scene.hud.research_panel.get_button("belt_speed_1").pressed.emit()
 	var after = await _measure_belt_seconds(scene, chunk, Hex.new(3, -2))
 	_report("コンベア高速化 I を研究", scene)

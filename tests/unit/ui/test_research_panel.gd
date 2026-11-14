@@ -36,31 +36,31 @@ func test_研究の名前と説明と価格が表示される():
 
 
 func test_レベルが足りない研究はボタンが押せず理由が表示される():
-	assert_true(panel.get_button("unlock_assembler").disabled)
-	assert_eq(panel.get_status_text("unlock_assembler"), "ハブ Lv3 で研究できる")
+	assert_true(panel.get_button("belt_speed_1").disabled)
+	assert_eq(panel.get_status_text("belt_speed_1"), "ハブ Lv3 で研究できる")
 
 
 func test_在庫が足りない研究はボタンが押せない():
 	HubGoals.level = 3
 	HubGoals.level_up.emit(3, "")
-	assert_true(panel.get_button("unlock_assembler").disabled)
-	assert_eq(panel.get_status_text("unlock_assembler"), "在庫不足")
+	assert_true(panel.get_button("belt_speed_1").disabled)
+	assert_eq(panel.get_status_text("belt_speed_1"), "在庫不足")
 
 
 func test_在庫が貯まると開いたままでもボタンが押せるようになる():
 	HubGoals.level = 3
-	HubGoals.add_stock("iron_ingot", 10)
-	assert_false(panel.get_button("unlock_assembler").disabled)
-	assert_eq(panel.get_status_text("unlock_assembler"), "")
+	HubGoals.add_stock("iron_ingot", 20)
+	assert_false(panel.get_button("belt_speed_1").disabled)
+	assert_eq(panel.get_status_text("belt_speed_1"), "")
 
 
 func test_ボタンを押すと研究され_研究済みと表示される():
 	HubGoals.level = 3
-	HubGoals.add_stock("iron_ingot", 10)
-	panel.get_button("unlock_assembler").pressed.emit()
-	assert_true(HubGoals.is_researched("unlock_assembler"))
-	assert_true(panel.get_button("unlock_assembler").disabled)
-	assert_eq(panel.get_status_text("unlock_assembler"), "研究済み")
+	HubGoals.add_stock("iron_ingot", 20)
+	panel.get_button("belt_speed_1").pressed.emit()
+	assert_true(HubGoals.is_researched("belt_speed_1"))
+	assert_true(panel.get_button("belt_speed_1").disabled)
+	assert_eq(panel.get_status_text("belt_speed_1"), "研究済み")
 
 
 func test_前提の研究を済ませると次の研究の表示が変わる():
@@ -73,10 +73,10 @@ func test_前提の研究を済ませると次の研究の表示が変わる():
 
 func test_やり直しで進行度が消えると表示も元に戻る():
 	HubGoals.level = 3
-	HubGoals.add_stock("iron_ingot", 10)
-	panel.get_button("unlock_assembler").pressed.emit()
+	HubGoals.add_stock("iron_ingot", 20)
+	panel.get_button("belt_speed_1").pressed.emit()
 	HubGoals.reset()
-	assert_eq(panel.get_status_text("unlock_assembler"), "ハブ Lv3 で研究できる")
+	assert_eq(panel.get_status_text("belt_speed_1"), "ハブ Lv3 で研究できる")
 
 
 func test_閉じるボタンで閉じる():
@@ -99,23 +99,24 @@ func test_価格には手持ちの数も表示される():
 func test_研究できるものが一覧の先頭に来る():
 	HubGoals.level = 3
 	HubGoals.add_stock("iron_ingot", 20)
-	assert_eq(panel.get_row_order()[0], "unlock_assembler")
-	assert_eq(panel.get_row_order()[1], "belt_speed_1")
+	# 鉄インゴットで研究できるのはコンベア高速化だけ。採掘高速化は在庫不足なのでその次
+	assert_eq(panel.get_row_order()[0], "belt_speed_1")
+	assert_eq(panel.get_row_order()[1], "mining_speed_1")
 
 
 func test_研究済みのものは一覧の末尾へ回る():
 	HubGoals.level = 3
-	HubGoals.add_stock("iron_ingot", 10)
-	panel.get_button("unlock_assembler").pressed.emit()
-	assert_eq(panel.get_row_order()[-1], "unlock_assembler")
+	HubGoals.add_stock("iron_ingot", 20)
+	panel.get_button("belt_speed_1").pressed.emit()
+	assert_eq(panel.get_row_order()[-1], "belt_speed_1")
 
 
 func test_研究済みの行は薄く表示される():
 	HubGoals.level = 3
-	HubGoals.add_stock("iron_ingot", 10)
-	panel.get_button("unlock_assembler").pressed.emit()
-	assert_lt(panel.get_row("unlock_assembler").modulate.a, 1.0)
-	assert_eq(panel.get_row("belt_speed_1").modulate.a, 1.0)
+	HubGoals.add_stock("iron_ingot", 20)
+	panel.get_button("belt_speed_1").pressed.emit()
+	assert_lt(panel.get_row("belt_speed_1").modulate.a, 1.0)
+	assert_eq(panel.get_row("mining_speed_1").modulate.a, 1.0)
 
 
 func test_背景は不透明で後ろのマップが透けない():

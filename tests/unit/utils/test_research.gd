@@ -60,7 +60,7 @@ class TestState:
 	extends "res://tests/unit/utils/test_research.gd"
 
 	func test_必要なレベルに届いていない研究はレベル不足():
-		assert_eq(goals.research_state("unlock_assembler"), Research.State.LOCKED_LEVEL)
+		assert_eq(goals.research_state("belt_speed_1"), Research.State.LOCKED_LEVEL)
 
 	func test_前提の研究が済んでいない研究は前提不足():
 		goals.level = 99
@@ -80,7 +80,7 @@ class TestState:
 		assert_eq(goals.research_state("belt_speed_1"), Research.State.DONE)
 
 	func test_状態ごとに研究できない理由を文章にできる():
-		assert_eq(goals.research_state_text("unlock_assembler"), "ハブ Lv3 で研究できる")
+		assert_eq(goals.research_state_text("belt_speed_1"), "ハブ Lv3 で研究できる")
 		goals.level = 99
 		assert_eq(goals.research_state_text("belt_speed_2"), "先に「コンベア高速化 I」が必要")
 		assert_eq(goals.research_state_text("belt_speed_1"), "在庫不足")
@@ -124,19 +124,32 @@ class TestResearching:
 class TestUnlocks:
 	extends "res://tests/unit/utils/test_research.gd"
 
-	func test_最初のSmelterだけはレベルが上がると自動で解放される():
-		goals.advance_level()
-		assert_true(goals.is_reward_unlocked("unlock_smelter"))
-
-	func test_Assemblerはレベルが上がっただけでは解放されない():
-		for i in 6:
+	func test_機械はハブのレベルが上がると自動で解放される():
+		var expected = [
+			"unlock_smelter", "unlock_assembler", "unlock_cutter_and_splitter", "unlock_mixer"
+		]
+		for reward in expected:
+			assert_false(goals.is_reward_unlocked(reward), reward)
 			goals.advance_level()
-		assert_false(goals.is_reward_unlocked("unlock_assembler"))
+			assert_true(goals.is_reward_unlocked(reward), reward)
 
-	func test_Assemblerは研究すると解放される():
+	func test_機械の解放は研究の一覧に並ばない():
+		var machine_rewards = [
+			"unlock_smelter", "unlock_assembler", "unlock_cutter_and_splitter", "unlock_mixer"
+		]
+		for id in Research.all_ids():
+			var reward = Research.get_def(id)["effect"].get("unlock", "")
+			assert_false(reward in machine_rewards, id)
+
+	func test_チェストはレベルが上がっただけでは解放されない():
+		for i in 10:
+			goals.advance_level()
+		assert_false(goals.is_reward_unlocked("unlock_chunk_chest"))
+
+	func test_チェストは研究すると解放される():
 		watch_signals(goals)
-		assert_true(_research_with_requirements("unlock_assembler"))
-		assert_true(goals.is_reward_unlocked("unlock_assembler"))
+		assert_true(_research_with_requirements("unlock_chunk_chest"))
+		assert_true(goals.is_reward_unlocked("unlock_chunk_chest"))
 		assert_signal_emitted(goals, "unlocks_changed")
 
 	func test_ツールバーのピースはすべて何らかの方法で解放できる():

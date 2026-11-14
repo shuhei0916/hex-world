@@ -7,10 +7,11 @@ signal research_changed
 
 const LEVELS = [
 	{"goal_item": "iron_ore", "required": 10, "reward": "unlock_smelter"},
-	# 最初の Smelter 以外のピースは、レベルに応じて並ぶ研究（Research）で解放する
-	{"goal_item": "iron_ingot", "required": 20, "reward": ""},
-	{"goal_item": "iron_plate", "required": 30, "reward": ""},
-	{"goal_item": "iron_rod", "required": 30, "reward": ""},
+	# 本筋に必須の機械は、目標を納めると自動で解放する。
+	# 取らなくても進める強化とチェストは、研究（Research）で在庫を払って得る。
+	{"goal_item": "iron_ingot", "required": 20, "reward": "unlock_assembler"},
+	{"goal_item": "iron_plate", "required": 30, "reward": "unlock_cutter_and_splitter"},
+	{"goal_item": "iron_rod", "required": 30, "reward": "unlock_mixer"},
 	{"goal_item": "screw", "required": 50, "reward": ""},
 	# ここからは平原以外のバイオームの資源を運び込まないと達成できない
 	{"goal_item": "copper_ingot", "required": 30, "reward": ""},

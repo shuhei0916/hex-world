@@ -319,12 +319,12 @@ class TestResearchEntry:
 	func test_研究できるものがあるとボタンに件数が出る():
 		HubGoals.level = 3
 		HubGoals.add_stock("iron_ingot", 20)
-		assert_eq(hud.research_button.text, "研究 [E] (2)")
+		assert_eq(hud.research_button.text, "研究 [E] (1)")
 
 	func test_研究すると件数が減る():
 		HubGoals.level = 3
 		HubGoals.add_stock("iron_ingot", 20)
-		HubGoals.research("unlock_assembler")
+		HubGoals.research("belt_speed_1")
 		assert_eq(hud.research_button.text, "研究 [E]")
 
 
