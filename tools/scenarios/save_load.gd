@@ -53,10 +53,8 @@ func _report(label: String, main: Node) -> void:
 	var smelter_locked = main.hud.slot_buttons[2].disabled
 	print(
 		(
-			"[%s] active=(%d,%d) level=%d smelter_locked=%s
-%s"
-			% [label, active.q, active.r, HubGoals.level, smelter_locked, "
-".join(lines)]
+			"[%s] active=(%d,%d) level=%d smelter_locked=%s\n%s"
+			% [label, active.q, active.r, HubGoals.level, smelter_locked, "\n".join(lines)]
 		)
 	)
 

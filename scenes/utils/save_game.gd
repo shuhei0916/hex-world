@@ -2,7 +2,8 @@ class_name SaveGame
 extends RefCounted
 
 ## ゲームの進行状況を Dictionary（JSON にできる形）へ取り出し、そこから復元する。
-## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、ハブ目標の進み具合。
+## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、
+## ハブ目標の進み具合、ハブに貯めた在庫。
 ## ベルト上や機械の中にあるアイテムは保存しない（ロード後は空の状態から動き出す）。
 
 const VERSION := 1
@@ -15,7 +16,12 @@ static var path: String = DEFAULT_PATH
 static func capture(world: World, goals: Node) -> Dictionary:
 	var data := {
 		"version": VERSION,
-		"hub_goals": {"level": goals.level, "rewards": goals.gained_rewards.keys()},
+		"hub_goals":
+		{
+			"level": goals.level,
+			"rewards": goals.gained_rewards.keys(),
+			"stock": goals.stock.duplicate(),
+		},
 		"chunks": [],
 	}
 	var planet = world.get_planet()
@@ -36,6 +42,10 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 	goals.gained_rewards = {}
 	for reward in hub_goals.get("rewards", []):
 		goals.gained_rewards[reward] = true
+	goals.stock = {}
+	var saved_stock: Dictionary = hub_goals.get("stock", {})
+	for item_id in saved_stock:
+		goals.stock[item_id] = int(saved_stock[item_id])
 	if data.has("planet"):
 		var planet: Dictionary = data["planet"]
 		world.setup_planet(Planet.new(int(planet["radius"]), int(planet["seed"])))

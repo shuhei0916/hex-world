@@ -53,7 +53,7 @@ func stop_drag():
 func start_delete_drag():
 	is_delete_dragging = true
 	if current_hovered_hex != null:
-		chunk.remove_piece_at(current_hovered_hex)
+		_remove_piece_at(current_hovered_hex)
 
 
 func stop_delete_drag():
@@ -153,7 +153,7 @@ func update_hover(local_mouse_pos: Vector2):
 	current_hovered_hex = hex_coord
 
 	if is_delete_dragging:
-		chunk.remove_piece_at(hex_coord)
+		_remove_piece_at(hex_coord)
 
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
@@ -185,7 +185,10 @@ func _place_piece_at(target_hex: Hex) -> bool:
 		return false
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
-	if chunk.can_place(current_piece_shape, target_hex, _selected_piece_type):
+	if not chunk.can_place(current_piece_shape, target_hex, _selected_piece_type):
+		return false
+	# 置ける場所だと分かってから支払う（置けないのに在庫だけ減るのを防ぐ）
+	if HubGoals.pay(BuildCost.of_scene(selected_scene)):
 		var rotation := current_rotation
 		if _is_conveyor:
 			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6
@@ -194,6 +197,21 @@ func _place_piece_at(target_hex: Hex) -> bool:
 		chunk.place_piece(selected_scene, target_hex, rotation)
 		return true
 	return false
+
+
+# いま選んでいるピースの設置コストを在庫から支払えるか
+func can_afford_selected() -> bool:
+	return HubGoals.can_afford(BuildCost.of_scene(selected_scene))
+
+
+# プレイヤーの操作による撤去。設置コストは全額戻す。
+func _remove_piece_at(hex: Hex) -> void:
+	var piece = chunk.get_piece_at_hex(hex)
+	if piece == null:
+		return
+	var cost = BuildCost.of_piece(piece)
+	if chunk.remove_piece_at(hex):
+		HubGoals.refund(cost)
 
 
 func _add_to_conveyor_path(hex: Hex) -> bool:

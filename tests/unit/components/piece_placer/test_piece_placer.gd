@@ -3,7 +3,8 @@ extends GutTest
 
 const PiecePlacerScene = preload("res://scenes/components/piece_placer/piece_placer.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
+# ドラッグ操作のテストがコストの有無に左右されないよう、無料の t1 を使う
+const MINER_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
 const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
 
 
@@ -482,3 +483,83 @@ class TestConveyorBranching:
 		_drag([Hex.new(-2, 1)])
 		var visuals = chunk.get_piece_at_hex(Hex.new(-2, 1)).get_node("ConveyorVisuals")
 		assert_eq(visuals._input_direction, 2, "1マス置き直した(-2,1)のベルトは分岐元のあるNW(2)から入力を受けて描かれるべき")
+
+
+class TestBuildCost:
+	extends GutTest
+
+	const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		HubGoals.reset()
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.select_piece(SMELTER)
+
+	func after_each():
+		HubGoals.reset()
+
+	func _delete_at(hex: Hex) -> void:
+		piece_placer.start_delete_drag()
+		piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_delete_drag()
+
+	func test_在庫が足りないと有料のピースは設置できない():
+		assert_false(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+
+	func test_在庫が足りれば設置でき在庫からコストが引かれる():
+		HubGoals.add_stock("iron_ore", 7)
+		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_eq(HubGoals.get_stock("iron_ore"), 2)
+
+	func test_置けない場所では在庫が減らない():
+		HubGoals.add_stock("iron_ore", 7)
+		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		assert_false(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_eq(HubGoals.get_stock("iron_ore"), 7)
+
+	func test_無料のコンベアは在庫が無くても設置できる():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+
+	func test_クリエイティブモードでは在庫が無くても設置できる():
+		HubGoals.creative_mode = true
+		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+
+	func test_撤去するとコストが全額戻る():
+		HubGoals.add_stock("iron_ore", 5)
+		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		_delete_at(Hex.new(0, 0))
+		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		assert_eq(HubGoals.get_stock("iron_ore"), 5)
+
+	func test_何も無いマスを撤去しても在庫は増えない():
+		_delete_at(Hex.new(0, 0))
+		assert_eq(HubGoals.get_stock("iron_ore"), 0)
+
+	func test_ハブは撤去できず在庫も変わらない():
+		chunk.place_hub("iron_ore", 10)
+		_delete_at(Hex.new(0, 0))
+		assert_not_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		assert_eq(HubGoals.get_stock("iron_ore"), 0)
+
+	func test_いま選んでいるピースを設置できるか分かる():
+		assert_false(piece_placer.can_afford_selected())
+		HubGoals.add_stock("iron_ore", 5)
+		assert_true(piece_placer.can_afford_selected())
+
+	func test_マウスを動かさずその場で右クリックして撤去してもコストが戻る():
+		HubGoals.add_stock("iron_ore", 5)
+		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.place_current_piece()
+		piece_placer.start_delete_drag()
+		piece_placer.stop_delete_drag()
+		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		assert_eq(HubGoals.get_stock("iron_ore"), 5)

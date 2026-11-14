@@ -106,3 +106,68 @@ class TestHubGoalsBiomeLevels:
 		_advance_to("copper_ingot")
 		hub_goals.advance_level()
 		assert_eq(hub_goals.get_current_goal()["goal_item"], "steel")
+
+
+class TestHubGoalsStock:
+	extends GutTest
+
+	var hub_goals: Node
+
+	func before_each():
+		hub_goals = HUB_GOALS_SCRIPT.new()
+		add_child_autofree(hub_goals)
+
+	func test_最初は在庫が無い():
+		assert_eq(hub_goals.get_stock("iron_ore"), 0)
+
+	func test_在庫に加えた分だけ増える():
+		hub_goals.add_stock("iron_ore", 3)
+		hub_goals.add_stock("iron_ore", 2)
+		assert_eq(hub_goals.get_stock("iron_ore"), 5)
+
+	func test_在庫が足りていれば支払える():
+		hub_goals.add_stock("iron_ore", 5)
+		assert_true(hub_goals.can_afford({"iron_ore": 5}))
+
+	func test_在庫が1種類でも足りなければ支払えない():
+		hub_goals.add_stock("iron_ore", 5)
+		assert_false(hub_goals.can_afford({"iron_ore": 5, "coal": 1}))
+
+	func test_コストが空なら在庫が無くても支払える():
+		assert_true(hub_goals.can_afford({}))
+
+	func test_支払うと在庫が減る():
+		hub_goals.add_stock("iron_ore", 5)
+		assert_true(hub_goals.pay({"iron_ore": 3}))
+		assert_eq(hub_goals.get_stock("iron_ore"), 2)
+
+	func test_足りないときは支払われず在庫も減らない():
+		hub_goals.add_stock("iron_ore", 2)
+		hub_goals.add_stock("coal", 9)
+		assert_false(hub_goals.pay({"iron_ore": 3, "coal": 1}))
+		assert_eq(hub_goals.get_stock("coal"), 9)
+
+	func test_払い戻すと在庫が戻る():
+		hub_goals.refund({"iron_ore": 3})
+		assert_eq(hub_goals.get_stock("iron_ore"), 3)
+
+	func test_クリエイティブモードでは在庫が無くても支払え在庫は減らない():
+		hub_goals.add_stock("iron_ore", 1)
+		hub_goals.creative_mode = true
+		assert_true(hub_goals.pay({"iron_ore": 5}))
+		assert_eq(hub_goals.get_stock("iron_ore"), 1)
+
+	func test_クリエイティブモードでは払い戻しで在庫が増えない():
+		hub_goals.creative_mode = true
+		hub_goals.refund({"iron_ore": 5})
+		assert_eq(hub_goals.get_stock("iron_ore"), 0)
+
+	func test_在庫が変わると通知される():
+		watch_signals(hub_goals)
+		hub_goals.add_stock("iron_ore", 1)
+		assert_signal_emitted(hub_goals, "stock_changed")
+
+	func test_リセットすると在庫が空になる():
+		hub_goals.add_stock("iron_ore", 5)
+		hub_goals.reset()
+		assert_eq(hub_goals.get_stock("iron_ore"), 0)

@@ -47,6 +47,7 @@ var _hovered_piece = null
 
 @onready var toolbar: HBoxContainer = $ToolBar
 @onready var slot_buttons: Array = $ToolBar.get_children()
+@onready var stock_label: Label = %StockLabel
 @onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
 @onready var variant_panel: VariantPanel = $SidePanels/VariantPanel
 @onready var _button_group: ButtonGroup = (
@@ -59,7 +60,28 @@ func _ready():
 	slot_selected.connect(_on_slot_selected_for_info)
 	HubGoals.level_up.connect(_on_level_up)
 	HubGoals.unlocks_changed.connect(_refresh_unlock_states)
+	HubGoals.stock_changed.connect(_on_stock_changed)
 	_refresh_unlock_states()
+	_refresh_stock_label()
+
+
+func _on_stock_changed() -> void:
+	_refresh_stock_label()
+	# 選んでいるピースの「在庫不足」の表示を最新にする
+	var scene = get_scene_for_slot(get_active_index())
+	if scene:
+		_show_selected_info(scene)
+
+
+func _refresh_stock_label() -> void:
+	var lines: Array[String] = []
+	for item_id in HubGoals.stock:
+		if HubGoals.get_stock(item_id) > 0:
+			lines.append(BuildCost.to_text({item_id: HubGoals.get_stock(item_id)}))
+	if lines.is_empty():
+		stock_label.text = "在庫: なし"
+	else:
+		stock_label.text = "在庫\n" + "\n".join(lines)
 
 
 # ホバー中のピースの状態は刻々と変わるので、毎フレーム表示を更新する
@@ -107,11 +129,24 @@ func _on_slot_selected_for_info(scene: PackedScene):
 	if scene == null:
 		_refresh_hover_info()
 		return
-	var piece = scene.instantiate()
-	info_panel.show_info(piece.piece_name, piece.piece_description, _rate_text_for_piece(piece))
-	piece.free()
+	_show_selected_info(scene)
 	var slot_index = get_active_index()
 	_refresh_variant_row(slot_index)
+
+
+func _show_selected_info(scene: PackedScene) -> void:
+	var piece = scene.instantiate()
+	var description = "%s\n%s" % [piece.piece_description, _cost_text(scene)]
+	info_panel.show_info(piece.piece_name, description.strip_edges(), _rate_text_for_piece(piece))
+	piece.free()
+
+
+func _cost_text(scene: PackedScene) -> String:
+	var cost = BuildCost.of_scene(scene)
+	var text = "コスト: %s" % BuildCost.to_text(cost)
+	if not HubGoals.can_afford(cost):
+		text += "（在庫不足）"
+	return text
 
 
 func _refresh_variant_row(slot_index: int) -> void:

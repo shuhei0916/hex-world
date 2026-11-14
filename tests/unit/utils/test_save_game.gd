@@ -163,6 +163,13 @@ class TestHubProgress:
 		assert_true(goals.is_reward_unlocked("unlock_assembler"))
 		assert_false(goals.is_reward_unlocked("unlock_mixer"))
 
+	func test_在庫が復元される():
+		goals.add_stock("iron_ore", 12)
+		goals.add_stock("coal", 3)
+		_roundtrip()
+		assert_eq(goals.get_stock("iron_ore"), 12)
+		assert_eq(goals.get_stock("coal"), 3)
+
 	func test_ハブは復元後のレベルの目標を表示し納品数も引き継ぐ():
 		goals.advance_level()
 		chunk.place_hub("iron_ingot", 20)

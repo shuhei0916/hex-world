@@ -3,7 +3,8 @@ extends Node
 
 ## 納品ゾーン（shapez の hub 相当）。接続元の ItemEjector から届いたアイテムを
 ## 自身が受け入れ口（acceptor）として受け取り、目標アイテムの累計納品数を数える。
-## 容量無限の累計カウンタなので何でも受け入れる（goal 以外は数えず破棄）。
+## 何でも受け入れ、届いたアイテムはすべて在庫（HubGoals の stock）に貯める。
+## 目標アイテムは在庫に貯めたうえで、目標の納品数にも数える。
 
 var goal_item: String = ""
 var goal_count: int = 0
@@ -34,6 +35,7 @@ func can_accept_item(_item_name: String) -> bool:
 
 
 func add_item(item_name: String, amount: int):
+	HubGoals.add_stock(item_name, amount)
 	if item_name == goal_item:
 		add_received(amount)
 

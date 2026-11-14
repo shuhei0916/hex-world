@@ -142,3 +142,28 @@ class TestHubAcceptor:
 	func test_目標外アイテムをadd_itemしてもreceived_countは増えない():
 		hub.add_item("copper", 3)
 		assert_eq(hub.received_count, 0)
+
+
+class TestHubStock:
+	extends GutTest
+
+	var hub: Node
+
+	func before_each():
+		HubGoals.reset()
+		hub = HUB_SCRIPT.new()
+		add_child_autofree(hub)
+		hub.setup("iron_ore", 100)
+
+	func after_each():
+		HubGoals.reset()
+
+	func test_目標のアイテムを納品すると在庫にも貯まる():
+		hub.add_item("iron_ore", 2)
+		assert_eq(HubGoals.get_stock("iron_ore"), 2)
+		assert_eq(hub.received_count, 2)
+
+	func test_目標以外のアイテムも在庫に貯まる():
+		hub.add_item("coal", 3)
+		assert_eq(HubGoals.get_stock("coal"), 3)
+		assert_eq(hub.received_count, 0)

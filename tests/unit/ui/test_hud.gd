@@ -236,3 +236,56 @@ class TestHoveredPiece:
 		await get_tree().process_frame
 		hud._process(0.1)
 		assert_false(hud.info_panel.visible)
+
+
+class TestStockAndCost:
+	extends GutTest
+
+	const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+
+	var hud: HUD
+
+	func before_each():
+		HubGoals.reset()
+		HubGoals.gained_rewards = {"unlock_smelter": true}
+		hud = HUDScene.instantiate()
+		add_child_autofree(hud)
+
+	func after_each():
+		HubGoals.reset()
+
+	func _select_slot(index: int) -> void:
+		hud.slot_buttons[index].button_pressed = true
+		hud.on_slot_pressed(index)
+
+	func test_在庫が無いときはなしと表示する():
+		assert_eq(hud.stock_label.text, "在庫: なし")
+
+	func test_在庫が増えると表示に反映される():
+		HubGoals.add_stock("iron_ore", 5)
+		HubGoals.add_stock("coal", 2)
+		assert_eq(hud.stock_label.text, "在庫\nIron Ore 5\nCoal 2")
+
+	func test_使い切ったアイテムは在庫の表示から消える():
+		HubGoals.add_stock("iron_ore", 5)
+		HubGoals.pay({"iron_ore": 5})
+		assert_eq(hud.stock_label.text, "在庫: なし")
+
+	func test_有料のピースを選ぶとコストが表示される():
+		HubGoals.add_stock("iron_ore", 5)
+		_select_slot(2)
+		assert_string_contains(hud.info_panel.description_label.text, "コスト: Iron Ore 5")
+		assert_false(hud.info_panel.description_label.text.contains("在庫不足"))
+
+	func test_在庫が足りないピースを選ぶと在庫不足と表示される():
+		_select_slot(2)
+		assert_string_contains(hud.info_panel.description_label.text, "コスト: Iron Ore 5（在庫不足）")
+
+	func test_無料のピースを選ぶとコストなしと表示される():
+		_select_slot(0)
+		assert_string_contains(hud.info_panel.description_label.text, "コスト: なし")
+
+	func test_選んだまま在庫が増えると在庫不足の表示が消える():
+		_select_slot(2)
+		HubGoals.add_stock("iron_ore", 5)
+		assert_false(hud.info_panel.description_label.text.contains("在庫不足"))
