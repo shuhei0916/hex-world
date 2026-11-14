@@ -5,7 +5,7 @@ description: hex-world の Godot をヘッドレスで動かす手順。GUT テ�
 
 # godot-run
 
-Godot はすべて **ヘッドレス** で実行する（ウィンドウを開かない）。スクリーンショットは撮らない。
+Godot は原則 **ヘッドレス** で実行する（ウィンドウを開かない）。描画の見た目（重なり順・色・はみ出し）の確認が必要なときだけ、後述の `screenshot.sh` で描画ありで起動して撮影する。
 スクリプトはどれも Bash で、プロジェクトルートを自動で解決するのでどこから実行してもよい。
 
 ## Godot の場所
@@ -92,6 +92,8 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `planet_chest.gd`: 離れた山岳の chunk の planet 搬入チェストから、原点の chunk の搬出チェスト経由でハブに届くかを出力する
 - `biome_chest.gd`: バイオームチェストが同じ地域の chunk からは届き、別の地域の chunk からは届かないことを出力する
 - `neighbor_view.gd`: 原点 chunk の辺の Sender と隣の chunk の Receiver の画面位置が隣り合うか、隣の施設のホバー情報、隣の chunk に置けないことを出力する
+- `visual_layout.gd`: 見た目確認用の配置（Smelter に流し込むコンベアと出ていくコンベア、境界の Sender と隣の Receiver）。カメラを引いて隣の chunk も映す
+- `visual_zoom_smelter.gd`: visual_layout の配置で Smelter の周りを拡大する
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 
@@ -102,10 +104,19 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth=0
 ```
 
+### スクリーンショット（描画の確認）
+
+```bash
+.claude/skills/godot-run/scripts/screenshot.sh   "--do=script:res://tools/scenarios/visual_zoom_smelter.gd;shot:<scratchpad の絶対パス>/a.png" --depth=0
+```
+
+- 引数は dump_tree.sh と同じで、`shot:<絶対パス.png>` ステップで画面を保存する（Read で画像を見られる）。
+- ウィンドウが一瞬開く。解像度は環境変数 `RESOLUTION`（既定 1280x720）。
+- 本物のセーブには触れない（dump_tree.sh と同じく、ツール用のセーブを使う）。
+
 ### 注意
 
 - 動的に生成したノードは `@Node2D@371` のような自動名になる。番号は構成が変わるとずれるので、
   一度 `--depth` 付きで出力して名前を確かめてから `moveto:` / `clickon:` に使う。
-- ヘッドレスでは描画されない。`_draw()` の実際の見た目やピクセル単位の隙間は確認できない。
-  そうした確認が必要な場合はユーザーに伝えて方法を相談する。
+- ヘッドレスでは描画されない。`_draw()` の実際の見た目やピクセル単位の隙間は screenshot.sh で確認する。
 - ツール本体は `res://tools/dump_scene_tree.gd`。足りない機能はそちらに追加する。

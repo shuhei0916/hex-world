@@ -43,6 +43,12 @@ class TestGeometry:
 		assert_gt(segment[0].length(), 0.0, "マスの中心からは始めない（施設の色を残す）")
 		assert_almost_eq(segment[1].distance_to(edge_mid), PortVisuals.OVERLAP, 0.01)
 
+	func test_口のベルトの内側の端は施設のタイルに隠れる():
+		# タイルの画像は辺のすき間ぶん小さい。口はすき間だけが見え、施設に差し込まれて見える
+		var segment = PortVisuals.stub_segment(Hex.new(0, 0), 0)
+		assert_lt(segment[0].length(), PortVisuals.TILE_INRADIUS)
+		assert_gt(segment[0].length(), PortVisuals.TILE_INRADIUS * 0.5)
+
 	func test_口のベルトは隣のマスへ少しだけはみ出して_すき間を作らない():
 		var layout = Layout.make_default()
 		var segment = PortVisuals.stub_segment(Hex.new(0, 0), 0)
@@ -90,9 +96,15 @@ class TestOutputs:
 	func test_出力を持たない施設には出口が無い():
 		assert_eq(_ports_of(_place(CHEST_IN, Hex.new(0, 0))).get_output_stubs(), [])
 
-	func test_出入口は施設のタイルより手前に描かれる():
+	func test_口のベルトは施設のタイルの下に描かれ_施設を覆わない():
 		var smelter = _place(SMELTER, Hex.new(0, 0))
-		assert_gt(_ports_of(smelter).z_index, 10)
+		assert_lt(_ports_of(smelter).z_index, PortVisuals.PIECE_TILE_Z)
+		assert_gt(_ports_of(smelter).z_index, ConveyorVisuals.Z_INDEX, "コンベアよりは手前")
+
+	func test_向きの印は施設のタイルより手前に描かれる():
+		var smelter = _place(SMELTER, Hex.new(0, 0))
+		var markers = _ports_of(smelter).get_node("PortMarkers")
+		assert_gt(markers.z_index, PortVisuals.PIECE_TILE_Z)
 
 	func test_出入口を描く施設では従来の出力矢印を隠す():
 		var smelter = _place(SMELTER, Hex.new(0, 0))

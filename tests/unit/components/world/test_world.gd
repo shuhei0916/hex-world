@@ -336,6 +336,15 @@ class TestNeighborView:
 		assert_eq(neighbor.position, _expected_position(neighbor, Hex.new(1, 0)))
 		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
 
+	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
+		var floor_color = HexTile.new().normal_color
+		var dimmed = floor_color * World.NEIGHBOR_MODULATE
+		var background = ProjectSettings.get_setting(
+			"rendering/environment/defaults/default_clear_color"
+		)
+		assert_gt(dimmed.get_luminance() - background.get_luminance(), 0.04, "背景に溶けない")
+		assert_lt(dimmed.get_luminance(), floor_color.get_luminance() - 0.03, "アクティブと区別できる")
+
 	func test_隣でないchunkは描かない():
 		world.create_chunk(Hex.new(0, 0))
 		var far = world.create_chunk(Hex.new(2, 0))

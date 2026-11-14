@@ -18,6 +18,7 @@ extends SceneTree
 ##                             wait:10          指定フレーム待つ
 ##                             call:World/get_chunk_hexes  ノードのメソッドを呼び結果を表示
 ##                             script:res://tools/scenarios/x.gd  シナリオの run(scene) を実行（await 可）
+##                             shot:C:/path/to/out.png  画面を PNG に保存（描画ありで起動したときだけ。screenshot.sh 参照）
 ##   --root=<NodePath>       出力するサブツリーの起点（シーンルートからの相対パス）
 ##   --depth=<n>             出力する最大深さ（既定: 無制限）
 ##   --props=<a,b,...>       追加で出力するプロパティ（そのプロパティを持つノードのみ）
@@ -110,6 +111,8 @@ func _run_step(step: String) -> void:
 			_call_method(value)
 		"script":
 			await _run_scenario(value)
+		"shot":
+			await _save_screenshot(value)
 		_:
 			printerr("不明なステップ: %s" % step)
 	print("[step] %s" % step)
@@ -180,6 +183,20 @@ func _send_mouse_button(pos: Vector2, button: MouseButton, pressed: bool) -> voi
 	ev.pressed = pressed
 	Input.parse_input_event(ev)
 	Input.flush_buffered_events()
+
+
+## 画面を PNG に保存する。--headless では描画されないので、screenshot.sh から描画ありで起動する
+func _save_screenshot(path: String) -> void:
+	# 描画が画面に反映されるまで数フレーム待つ
+	for i in 3:
+		await process_frame
+	await RenderingServer.frame_post_draw
+	var image := root.get_texture().get_image()
+	if image == null or image.is_empty():
+		printerr("画面を取得できません（--headless では撮れない）")
+		return
+	var err := image.save_png(path)
+	print("screenshot: %s (%s)" % [path, "ok" if err == OK else error_string(err)])
 
 
 ## カメラ等のキャンバス変換を含めた、ノード原点のビューポート座標

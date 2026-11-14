@@ -2,6 +2,8 @@ class_name ConveyorVisuals
 extends Node2D
 
 const BELT_WIDTH = 40.0
+# 地面(0)より手前、施設のタイル(10)より奥
+const Z_INDEX := 6
 const CURVE_SEGMENTS = 12
 
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
@@ -83,7 +85,7 @@ static func arrow_points(path: PackedVector2Array, fractions: Array, covered: fl
 
 
 func _ready():
-	z_index = 6
+	z_index = Z_INDEX
 	z_as_relative = false
 	_item_icon.z_index = 7
 	_item_icon.z_as_relative = false
@@ -182,11 +184,31 @@ func _draw_belt(path: PackedVector2Array, fractions: Array, covered: float) -> v
 
 
 func _draw_chevron(pos: Vector2, tangent: Vector2):
+	var polygon = chevron_polygon(pos, tangent)
+	if polygon.size() >= 3:
+		draw_colored_polygon(polygon, _BELT_ARROW)
+
+
+# 矢印の三角形を、このコンベアのマスの内側に切り取ったもの（マスの外に出る部分が無ければそのまま）。
+# 辺にかかった矢印の残りは隣のコンベアが描くので、境目でつながって見え、行き止まりでははみ出さない。
+static func chevron_polygon(pos: Vector2, tangent: Vector2) -> PackedVector2Array:
 	var perp = tangent.rotated(PI * 0.5)
 	var tip = pos + tangent * _ARROW_SIZE
 	var left = pos - tangent * (_ARROW_SIZE * 0.4) + perp * (_ARROW_SIZE * 0.7)
 	var right = pos - tangent * (_ARROW_SIZE * 0.4) - perp * (_ARROW_SIZE * 0.7)
-	draw_colored_polygon(PackedVector2Array([tip, left, right]), _BELT_ARROW)
+	var triangle = PackedVector2Array([tip, left, right])
+	var clipped = Geometry2D.intersect_polygons(triangle, _cell_polygon())
+	return clipped[0] if not clipped.is_empty() else PackedVector2Array()
+
+
+# このピースのマス（pointy-top の六角形）の角
+static func _cell_polygon() -> PackedVector2Array:
+	var size = Layout.make_default().size.x
+	var corners := PackedVector2Array()
+	for i in 6:
+		var angle = deg_to_rad(60.0 * i - 30.0)
+		corners.append(Vector2(cos(angle), sin(angle)) * size)
+	return corners
 
 
 # ---- アイテムアイコン --------------------------------------------------------

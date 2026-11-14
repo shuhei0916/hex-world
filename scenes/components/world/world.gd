@@ -3,8 +3,9 @@ extends Node2D
 
 # 1 chunk あたりの鉱床のマス数
 const DEPOSIT_SIZE := 5
-# ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）
-const NEIGHBOR_MODULATE := Color(0.55, 0.55, 0.6, 1.0)
+# ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）。
+# 暗くしすぎると床のタイルが背景(0.13)に溶けて見えなくなる
+const NEIGHBOR_MODULATE := Color(0.78, 0.78, 0.8, 1.0)
 
 # planet チェストが共有する、惑星全体で1つの倉庫
 var planet_storage := SharedStorage.new()

@@ -279,3 +279,33 @@ class TestBeltArrowContinuity:
 		var points = ConveyorVisuals.arrow_points(stub, [0.25, 0.75], 0.5)
 		assert_eq(points.size(), 1)
 		assert_almost_eq(points[0]["position"].x, -25.0, 0.01)
+
+	func _inside_cell(point: Vector2) -> bool:
+		# pointy-top の六角形のマス。辺の中点までの距離（内接円の半径）を超えない
+		var inradius = (
+			Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[0]).length() * 0.5
+		)
+		for dir in 6:
+			var normal = (
+				Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[dir]).normalized()
+			)
+			if point.dot(normal) > inradius + 0.01:
+				return false
+		return true
+
+	func test_出口の辺にかかった矢印はマスの外へはみ出さない():
+		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[0]) * 0.5
+		var polygon = ConveyorVisuals.chevron_polygon(edge_mid, Vector2(1, 0))
+		assert_gt(polygon.size(), 0, "マスの中にある部分は描く")
+		for point in polygon:
+			assert_true(_inside_cell(point), str(point))
+
+	func test_入口の辺にかかった矢印もマスの外へはみ出さない():
+		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[3]) * 0.5
+		var polygon = ConveyorVisuals.chevron_polygon(edge_mid, Vector2(1, 0))
+		for point in polygon:
+			assert_true(_inside_cell(point), str(point))
+
+	func test_マスの中ほどの矢印は欠けずに三角形のまま():
+		var polygon = ConveyorVisuals.chevron_polygon(Vector2.ZERO, Vector2(1, 0))
+		assert_eq(polygon.size(), 3)
