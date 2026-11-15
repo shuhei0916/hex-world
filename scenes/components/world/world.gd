@@ -6,6 +6,8 @@ const DEPOSIT_SIZE := 5
 # ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）。
 # 暗くしすぎると床のタイルが背景(0.13)に溶けて見えなくなる
 const NEIGHBOR_MODULATE := Color(0.78, 0.78, 0.8, 1.0)
+# まだ所有していない隣の chunk の色。鉱床が見分けられる程度に、さらに暗くする
+const UNOWNED_MODULATE := Color(0.42, 0.42, 0.46, 1.0)
 # 橋の帯の曲線を何本の線分で描くか
 const BRIDGE_PATH_SEGMENTS := 16
 
@@ -15,6 +17,8 @@ static var gap_steps := 2
 
 # planet チェストが共有する、惑星全体で1つの倉庫
 var planet_storage := SharedStorage.new()
+# どの chunk を所有しているか。入って工場を作れるのは所有している chunk だけ
+var territory := Territory.new()
 
 var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
@@ -29,11 +33,13 @@ func _ready() -> void:
 	var overlay := BridgeOverlay.new()
 	overlay.name = "BridgeOverlay"
 	add_child(overlay)
+	territory.changed.connect(_on_territory_changed)
 
 
 # planet を設定する。chunk の実体は初めてアクティブにしたときに生成する（遅延生成）。
 func setup_planet(planet: Planet) -> void:
 	_planet = planet
+	territory.planet = planet
 
 
 func get_planet() -> Planet:
@@ -302,10 +308,13 @@ func get_chunk_spacing() -> float:
 
 
 # 描いている chunk のうち、画面上の位置 pos に中心がいちばん近いもの
-func get_nearest_visible_chunk(pos: Vector2):
+# owned_only なら、所有している chunk だけから選ぶ
+func get_nearest_visible_chunk(pos: Vector2, owned_only := false):
 	var nearest = null
 	var best := INF
 	for chunk_hex in _visible_chunk_hexes():
+		if owned_only and not territory.is_owned(chunk_hex):
+			continue
 		var distance = pos.distance_to(get_chunk(chunk_hex).position)
 		if distance < best:
 			best = distance
@@ -343,7 +352,13 @@ func _layout_visible_chunks() -> void:
 		var chunk = get_chunk(hex)
 		chunk.visible = true
 		chunk.position = _neighbor_position(active, Hex.subtract(hex, _active_hex))
-		chunk.modulate = NEIGHBOR_MODULATE
+		chunk.modulate = NEIGHBOR_MODULATE if territory.is_owned(hex) else UNOWNED_MODULATE
+
+
+# 解放した隣の chunk を明るく描き直す
+func _on_territory_changed() -> void:
+	if _active_hex != null:
+		_layout_visible_chunks()
 
 
 # 描いている chunk で、橋の着地点（向かいのマスで空いているところ）を光らせる

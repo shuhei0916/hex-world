@@ -361,6 +361,9 @@ class TestNeighborView:
 	func before_each():
 		world = World.new()
 		add_child_autofree(world)
+		# 所有している chunk どうしの見え方を確かめる（所有していない隣は TestOwnership）
+		world.territory.claim(Hex.new(0, 0))
+		world.territory.claim(Hex.new(1, 0))
 
 	# 画面上の位置（World の座標）
 	func _screen_pos(chunk: Chunk, hex: Hex) -> Vector2:
@@ -510,3 +513,69 @@ class TestChunkExtent:
 		var narrow = world.get_chunk_inradius()
 		World.gap_steps = 3
 		assert_eq(world.get_chunk_inradius(), narrow)
+
+
+class TestOwnership:
+	extends GutTest
+
+	## 所有している chunk にだけ入れる。所有している chunk の隣は、戦って解放できる。
+
+	var world
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		world.setup_planet(Planet.new(3, 77))
+
+	func test_はじめはどのchunkも所有していない():
+		assert_false(world.territory.is_owned(Hex.new(0, 0)))
+
+	func test_claimするとそのchunkを所有する():
+		world.territory.claim(Hex.new(0, 0))
+		assert_true(world.territory.is_owned(Hex.new(0, 0)))
+		assert_false(world.territory.is_owned(Hex.new(1, 0)))
+
+	func test_所有しているchunkの隣は挑戦できる():
+		world.territory.claim(Hex.new(0, 0))
+		assert_true(world.territory.can_challenge(Hex.new(1, 0)))
+
+	func test_所有しているchunkから離れたchunkは挑戦できない():
+		world.territory.claim(Hex.new(0, 0))
+		assert_false(world.territory.can_challenge(Hex.new(2, 0)))
+
+	func test_所有しているchunkは挑戦できない():
+		world.territory.claim(Hex.new(0, 0))
+		assert_false(world.territory.can_challenge(Hex.new(0, 0)))
+
+	func test_planetの外は挑戦できない():
+		world.territory.claim(Hex.new(3, 0))
+		assert_false(world.territory.can_challenge(Hex.new(4, 0)))
+
+	func test_所有しているchunkの一覧を返す():
+		world.territory.claim(Hex.new(0, 0))
+		world.territory.claim(Hex.new(1, 0))
+		world.territory.claim(Hex.new(1, 0))
+		assert_eq(world.territory.get_owned_hexes().size(), 2)
+
+	func test_ローカル画面では所有していない隣のchunkを所有している隣より暗く描く():
+		world.territory.claim(Hex.new(0, 0))
+		world.territory.claim(Hex.new(1, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var owned = world.get_chunk(Hex.new(1, 0)).modulate
+		var unowned = world.get_chunk(Hex.new(0, 1)).modulate
+		assert_lt(unowned.v, owned.v)
+
+	func test_解放した隣のchunkは描き直すと明るくなる():
+		world.territory.claim(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var before = world.get_chunk(Hex.new(1, 0)).modulate
+		world.territory.claim(Hex.new(1, 0))
+		assert_gt(world.get_chunk(Hex.new(1, 0)).modulate.v, before.v)
+
+	func test_画面の位置にいちばん近い所有chunkを返す_所有していない隣は選ばない():
+		world.territory.claim(Hex.new(0, 0))
+		world.set_active_chunk(Hex.new(0, 0))
+		var east = world.get_chunk(Hex.new(1, 0)).position
+		assert_true(Hex.equals(world.get_nearest_visible_chunk(east, true), Hex.new(0, 0)))
+		world.territory.claim(Hex.new(1, 0))
+		assert_true(Hex.equals(world.get_nearest_visible_chunk(east, true), Hex.new(1, 0)))

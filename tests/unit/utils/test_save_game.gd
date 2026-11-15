@@ -69,6 +69,23 @@ class TestPlanetAndChunks:
 		assert_not_null(restored.get_chunk(Hex.new(1, 0)))
 		assert_null(restored.get_chunk(Hex.new(2, 0)))
 
+	func test_所有しているchunkが復元される():
+		world.territory.claim(Hex.new(0, 0))
+		world.territory.claim(Hex.new(1, 0))
+		var restored = _roundtrip()
+		assert_true(restored.territory.is_owned(Hex.new(0, 0)))
+		assert_true(restored.territory.is_owned(Hex.new(1, 0)))
+		assert_false(restored.territory.is_owned(Hex.new(0, 1)))
+
+	func test_所有の記録が無い旧セーブでは_生成済みのchunkをすべて所有とする():
+		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
+		data.erase("owned_chunks")
+		var restored = _new_world()
+		SaveGame.apply(restored, data, _new_goals())
+		assert_true(restored.territory.is_owned(Hex.new(0, 0)))
+		assert_true(restored.territory.is_owned(Hex.new(1, 0)))
+		assert_false(restored.territory.is_owned(Hex.new(2, 0)))
+
 	func test_隣のchunkの鉱床もロードで変わらない():
 		var hex = Hex.new(1, 0)
 		var before = world.get_chunk(hex)

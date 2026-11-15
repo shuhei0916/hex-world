@@ -3,7 +3,7 @@ extends RefCounted
 
 ## ゲームの進行状況を Dictionary（JSON にできる形）へ取り出し、そこから復元する。
 ## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、
-## ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
+## 所有している chunk、ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
 ## ベルト上や機械の中にあるアイテムは保存しない（ロード後は空の状態から動き出す）。
 
 const VERSION := 1
@@ -44,6 +44,7 @@ static func capture(world: World, goals: Node) -> Dictionary:
 		data["active_chunk"] = _hex_to_array(active)
 	for chunk_hex in world.get_chunk_hexes():
 		data["chunks"].append(_capture_chunk(chunk_hex, world.get_chunk(chunk_hex)))
+	data["owned_chunks"] = world.territory.get_owned_hexes().map(_hex_to_array)
 	return data
 
 
@@ -77,6 +78,10 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 		world.get_region_storage(int(region_id)).load_contents(region_storages[region_id])
 	for chunk_data in data.get("chunks", []):
 		_apply_chunk(world, chunk_data, goals)
+	# 所有の仕組みが無かった頃のセーブでは、それまでに見えていた chunk をすべて所有とする
+	var owned: Array = data.get("owned_chunks", world.get_chunk_hexes().map(_hex_to_array))
+	for values in owned:
+		world.territory.claim(_array_to_hex(values))
 	if data.has("active_chunk"):
 		world.set_active_chunk(_array_to_hex(data["active_chunk"]))
 

@@ -102,6 +102,9 @@ class TestPlanetMap:
 		add_child_autofree(world)
 		planet = Planet.new(2, 1)
 		world.setup_planet(planet)
+		# 所有している chunk の見え方を確かめる（所有していない chunk は TestFog）
+		for hex in planet.get_chunk_hexes():
+			world.territory.claim(hex)
 		view = WorldMapView.new()
 		add_child_autofree(view)
 		view.setup(world)
@@ -131,6 +134,60 @@ class TestPlanetMap:
 		view.set_hovered_chunk(Hex.new(1, 0))
 		assert_ne(view.get_hover_info_text(), "")
 		assert_eq(view.get_tile_count(), planet.get_chunk_hexes().size())
+
+
+class TestFog:
+	extends GutTest
+
+	## 所有していない chunk は霧に隠す。所有している chunk の隣だけは、
+	## 何が採れるかを見せて、戦って解放できることを示す
+
+	var owned := Hex.new(0, 0)
+	var frontier := Hex.new(1, 0)
+	var far := Hex.new(2, 0)
+	var view
+	var world
+	var planet: Planet
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		planet = Planet.new(2, 1)
+		world.setup_planet(planet)
+		world.territory.claim(owned)
+		view = WorldMapView.new()
+		add_child_autofree(view)
+		view.setup(world)
+
+	func test_所有しているchunkはバイオーム色で塗られる():
+		assert_eq(view.get_tile_color(owned), planet.get_biome(owned).map_color)
+
+	func test_挑戦できるchunkはバイオーム色を暗くした色で塗られる():
+		var biome_color = planet.get_biome(frontier).map_color
+		assert_eq(view.get_tile_color(frontier), biome_color.darkened(WorldMapView.FRONTIER_DARKEN))
+
+	func test_離れたchunkはバイオームに関係なく霧の色で塗られる():
+		assert_eq(view.get_tile_color(far), WorldMapView.FOG_COLOR)
+
+	func test_挑戦できるchunkにホバーすると採れる資源と戦って解放できることを表示する():
+		view.set_hovered_chunk(frontier)
+		var text = view.get_hover_info_text()
+		assert_string_contains(text, planet.get_biome(frontier).display_name)
+		assert_string_contains(text, "戦って解放")
+
+	func test_所有しているchunkのホバーには戦って解放と出さない():
+		view.set_hovered_chunk(owned)
+		assert_false(view.get_hover_info_text().contains("戦って解放"))
+
+	func test_霧のchunkにホバーしてもバイオームは明かさない():
+		view.set_hovered_chunk(far)
+		assert_eq(view.get_hover_info_text(), "未踏")
+
+	func test_解放したあとsetupし直すと霧が晴れる():
+		world.territory.claim(frontier)
+		view.setup(world)
+		assert_eq(view.get_tile_color(frontier), planet.get_biome(frontier).map_color)
+		assert_ne(view.get_tile_color(far), WorldMapView.FOG_COLOR, "隣になった chunk が見える")
 
 
 class TestTileMatchesChunkSize:
