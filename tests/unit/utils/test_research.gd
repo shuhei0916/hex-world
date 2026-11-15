@@ -126,7 +126,7 @@ class TestUnlocks:
 
 	func test_機械はハブのレベルが上がると自動で解放される():
 		var expected = [
-			"unlock_smelter", "unlock_assembler", "unlock_cutter_and_splitter", "unlock_mixer"
+			"unlock_smelter", "unlock_cutter_and_splitter", "unlock_assembler", "unlock_mixer"
 		]
 		for reward in expected:
 			assert_false(goals.is_reward_unlocked(reward), reward)

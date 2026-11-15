@@ -9,9 +9,9 @@ const PIECE_DIR := "res://scenes/components/piece/"
 
 const COSTS = {
 	PIECE_DIR + "smelter_t1.tscn": {"iron_ore": 5},
-	PIECE_DIR + "assembler_t1.tscn": {"iron_ingot": 5},
-	PIECE_DIR + "cutter_t1.tscn": {"iron_plate": 5},
-	PIECE_DIR + "mixer_t1.tscn": {"iron_rod": 5},
+	PIECE_DIR + "assembler_t1.tscn": {"iron_plate": 5},
+	PIECE_DIR + "cutter_t1.tscn": {"iron_ingot": 5},
+	PIECE_DIR + "mixer_t1.tscn": {"gear": 5},
 	PIECE_DIR + "bridge.tscn": {"iron_ingot": 10},
 	# チェストはコンベア（無料）より高くして、何でもチェストで済ませられないようにする
 	PIECE_DIR + "chest_in.tscn": {"iron_plate": 10},
@@ -23,9 +23,9 @@ const COSTS = {
 	PIECE_DIR + "planet_chest_out.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "miner_t2.tscn": {"iron_plate": 10},
 	PIECE_DIR + "smelter_t2.tscn": {"iron_plate": 10},
-	PIECE_DIR + "assembler_t2.tscn": {"iron_rod": 10},
+	PIECE_DIR + "assembler_t2.tscn": {"gear": 10},
 	PIECE_DIR + "cutter_t2.tscn": {"screw": 10},
-	PIECE_DIR + "mixer_t2.tscn": {"screw": 10},
+	PIECE_DIR + "mixer_t2.tscn": {"gear": 10},
 }
 
 

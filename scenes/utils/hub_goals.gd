@@ -6,20 +6,23 @@ signal stock_changed
 signal research_changed
 
 const LEVELS = [
-	{"goal_item": "iron_ore", "required": 10, "reward": "unlock_smelter"},
 	# 本筋に必須の機械は、目標を納めると自動で解放する。
 	# 取らなくても進める強化とチェストは、研究（Research）で在庫を払って得る。
-	{"goal_item": "iron_ingot", "required": 20, "reward": "unlock_assembler"},
-	{"goal_item": "iron_plate", "required": 30, "reward": "unlock_cutter_and_splitter"},
-	{"goal_item": "iron_rod", "required": 30, "reward": "unlock_mixer"},
-	{"goal_item": "screw", "required": 50, "reward": ""},
-	# ここからは平原以外のバイオームの資源を運び込まないと達成できない
-	{"goal_item": "copper_ingot", "required": 30, "reward": ""},
-	{"goal_item": "steel", "required": 20, "reward": ""},
-	# 複数のバイオームの資源を組み合わせる中間アイテム
+	# 段階1: 平原（鉄）だけで達成できる
+	{"goal_item": "iron_ore", "required": 10, "reward": "unlock_smelter"},
+	{"goal_item": "iron_ingot", "required": 20, "reward": "unlock_cutter_and_splitter"},
+	{"goal_item": "iron_plate", "required": 30, "reward": "unlock_assembler"},
+	{"goal_item": "gear", "required": 20, "reward": "unlock_mixer"},
+	# 段階2: 2つのバイオームの資源を組み合わせる
 	{"goal_item": "copper_wire", "required": 40, "reward": ""},
-	{"goal_item": "steel_beam", "required": 30, "reward": ""},
+	{"goal_item": "steel", "required": 20, "reward": ""},
 	{"goal_item": "circuit", "required": 30, "reward": ""},
+	{"goal_item": "motor", "required": 20, "reward": ""},
+	{"goal_item": "glass", "required": 30, "reward": ""},
+	# 段階3: 3〜4つのバイオームの資源を組み合わせる。最終目標は探査機
+	{"goal_item": "sensor", "required": 20, "reward": ""},
+	{"goal_item": "engine", "required": 20, "reward": ""},
+	{"goal_item": "probe", "required": 5, "reward": ""},
 ]
 
 var level: int = 1

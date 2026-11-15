@@ -6,6 +6,7 @@ extends RefCounted
 const PLAINS := "plains"
 const MOUNTAINS := "mountains"
 const FOREST := "forest"
+const DESERT := "desert"
 
 static var _biomes: Dictionary = {}
 
@@ -29,6 +30,7 @@ static func _ensure_defaults() -> void:
 		Biome.new(PLAINS, "平原", Color("#5a8c3a"), "iron_ore"),
 		Biome.new(MOUNTAINS, "山岳", Color("#8c6a4a"), "copper_ore"),
 		Biome.new(FOREST, "森林", Color("#2a5a3a"), "coal"),
+		Biome.new(DESERT, "砂丘", Color("#c2a35e"), "sand"),
 	]:
 		_biomes[biome.id] = biome
 

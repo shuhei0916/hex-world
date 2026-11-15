@@ -6,6 +6,14 @@ const MINER_T2 = preload("res://scenes/components/piece/miner_t2.tscn")
 const SMELTER_T1 = preload("res://scenes/components/piece/smelter_t1.tscn")
 const HUB = preload("res://scenes/components/piece/hub.tscn")
 
+const MACHINE_TYPES = [
+	PieceData.Type.MINER,
+	PieceData.Type.SMELTER,
+	PieceData.Type.CUTTER,
+	PieceData.Type.ASSEMBLER,
+	PieceData.Type.MIXER,
+]
+
 
 func test_コンベアは無料():
 	assert_eq(BuildCost.of_scene(CONVEYOR), {})
@@ -64,3 +72,50 @@ func test_足りない素材だけを手持ちと必要数で文章にできる(
 	HubGoals.add_stock("coal", 9)
 	assert_eq(BuildCost.shortage_text({"iron_ore": 5, "coal": 3}), "在庫不足: Iron Ore 2/5")
 	HubGoals.reset()
+
+
+func test_t1の機械の設置コストは_その機械が解放された時点で作れる物で払える():
+	# t2 は t1 と同時に解放されるが、しばらく後に買う前提の値段にしてある
+	for scene_path in BuildCost.COSTS:
+		if "_t2" in scene_path:
+			continue
+		var piece = load(scene_path).instantiate()
+		var piece_type = piece.piece_type
+		piece.free()
+		if not piece_type in MACHINE_TYPES:
+			continue
+		var machines = _machines_unlocked_with(piece_type)
+		for item in BuildCost.COSTS[scene_path]:
+			var needed = _machines_needed(item)
+			var missing = needed.filter(func(t): return not machines.has(t))
+			assert_eq(missing, [], "%s のコスト %s" % [scene_path.get_file(), item])
+
+
+# その機械を解放したレベルまでに解放されている機械（採掘機は最初から）
+func _machines_unlocked_with(piece_type: int) -> Dictionary:
+	var unlocked = {PieceData.Type.MINER: true}
+	var reward = PieceData.UNLOCK_REWARDS.get(piece_type, "")
+	if reward == "":
+		return unlocked
+	for level in HubGoals.LEVELS:
+		for t in PieceData.UNLOCK_REWARDS:
+			if level["reward"] != "" and PieceData.UNLOCK_REWARDS[t] == level["reward"]:
+				unlocked[t] = true
+		if level["reward"] == reward:
+			# 解放されたばかりの機械自身はまだ置けないので、コストには使えない
+			unlocked.erase(piece_type)
+			return unlocked
+	return unlocked
+
+
+func _machines_needed(item: String) -> Array:
+	for piece_type in PieceData.Type.values():
+		for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):
+			if recipe.outputs.has(item):
+				var result = [piece_type]
+				for input in recipe.inputs:
+					for t in _machines_needed(input):
+						if not t in result:
+							result.append(t)
+				return result
+	return []

@@ -8,10 +8,21 @@ func test_アイテム定義を取得できる():
 	assert_not_null(item_def.icon, "Item should have an icon")
 
 
-func test_iron_rodがItemDBに登録されている():
-	var item_def = ItemDB.get_item("iron_rod")
-	assert_not_null(item_def, "iron_rod が登録されているべき")
-	assert_eq(item_def.id, "iron_rod")
+func test_鉄棒は廃止した():
+	# Cutter で鉄インゴットから作る鉄板と材料が重なるため。ネジは鉄板から作る
+	assert_null(ItemDB.get_item("iron_rod"))
+
+
+func test_レシピに出てくるアイテムはすべて記号的なアイコン付きで登録されている():
+	for piece_type in PieceData.Type.values():
+		for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):
+			for id in recipe.inputs.keys() + recipe.outputs.keys():
+				var item_def = ItemDB.get_item(id)
+				assert_not_null(item_def, id)
+				if item_def and item_def.icon:
+					assert_eq(item_def.icon.resource_path.get_extension(), "svg", id)
+				elif item_def:
+					fail_test("%s にアイコンが無い" % id)
 
 
 func test_存在しないアイテムはnullを返す():

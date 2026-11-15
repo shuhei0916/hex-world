@@ -13,8 +13,19 @@ func test_森林バイオームでは石炭が採れる():
 	assert_eq(Biome.get_biome(Biome.FOREST).resource_type, "coal")
 
 
+func test_砂丘バイオームでは砂が採れる():
+	assert_eq(Biome.get_biome(Biome.DESERT).resource_type, "sand")
+	assert_eq(Biome.get_biome(Biome.DESERT).display_name, "砂丘")
+
+
 func test_全バイオームのidを列挙できる():
-	assert_eq(Biome.all_ids(), [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST])
+	assert_eq(Biome.all_ids(), [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST, Biome.DESERT])
+
+
+func test_どのバイオームの資源もアイテムとして登録されている():
+	for biome_id in Biome.all_ids():
+		var resource_type = Biome.get_biome(biome_id).resource_type
+		assert_not_null(ItemDB.get_item(resource_type), resource_type)
 
 
 func test_バイオームごとにマップ上の色が異なる():

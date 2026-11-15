@@ -97,21 +97,51 @@ class TestHubGoalsBiomeLevels:
 				return
 			hub_goals.advance_level()
 
-	func test_ネジの次は銅インゴットが目標になる():
-		_advance_to("screw")
-		hub_goals.advance_level()
-		assert_eq(hub_goals.get_current_goal()["goal_item"], "copper_ingot")
+	func test_目標はdocs_recipe_planの順に並ぶ():
+		var expected = [
+			["iron_ore", "unlock_smelter"],
+			["iron_ingot", "unlock_cutter_and_splitter"],
+			["iron_plate", "unlock_assembler"],
+			["gear", "unlock_mixer"],
+			["copper_wire", ""],
+			["steel", ""],
+			["circuit", ""],
+			["motor", ""],
+			["glass", ""],
+			["sensor", ""],
+			["engine", ""],
+			["probe", ""],
+		]
+		var actual = hub_goals.LEVELS.map(func(l): return [l["goal_item"], l["reward"]])
+		assert_eq(actual, expected)
 
-	func test_銅インゴットの次は鋼材が目標になる():
-		_advance_to("copper_ingot")
-		hub_goals.advance_level()
-		assert_eq(hub_goals.get_current_goal()["goal_item"], "steel")
+	func test_どの目標もそれまでに解放された機械だけで作れる():
+		var unlocked = {PieceData.Type.MINER: true}
+		for level in hub_goals.LEVELS:
+			var missing = _machines_needed(level["goal_item"]).filter(
+				func(t): return not unlocked.has(t)
+			)
+			assert_eq(missing, [], "%s を作る機械" % level["goal_item"])
+			for piece_type in PieceData.UNLOCK_REWARDS:
+				if (
+					PieceData.UNLOCK_REWARDS[piece_type] == level["reward"]
+					and level["reward"] != ""
+				):
+					unlocked[piece_type] = true
 
-	func test_鋼材のあとは銅線_鉄骨_回路の順に目標になる():
-		_advance_to("steel")
-		for expected in ["copper_wire", "steel_beam", "circuit"]:
-			hub_goals.advance_level()
-			assert_eq(hub_goals.get_current_goal()["goal_item"], expected)
+	# アイテムを作るのに使う機械の種類（材料をさかのぼって集める）
+	func _machines_needed(item: String) -> Array:
+		var result = []
+		for piece_type in PieceData.Type.values():
+			for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):
+				if recipe.outputs.has(item):
+					result.append(piece_type)
+					for input in recipe.inputs:
+						for t in _machines_needed(input):
+							if not t in result:
+								result.append(t)
+					return result
+		return result
 
 	func test_すべての目標アイテムは定義済みで_作るレシピか採掘で手に入る():
 		for level in hub_goals.LEVELS:

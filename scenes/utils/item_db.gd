@@ -20,37 +20,32 @@ func _ready():
 
 
 func _register_defaults():
-	register_item(
-		ItemDefinition.new("iron_ore", "Iron Ore", load("res://assets/items/iron_ore.png"))
-	)
-	register_item(
-		ItemDefinition.new("iron_ingot", "Iron Ingot", load("res://assets/items/iron_ingot.png"))
-	)
-	register_item(
-		ItemDefinition.new("iron_plate", "Iron Plate", load("res://assets/items/iron_plate.png"))
-	)
-	register_item(
-		ItemDefinition.new("iron_rod", "Iron Rod", load("res://assets/items/Iron_Rod.png.webp"))
-	)
-	register_item(ItemDefinition.new("screw", "Screw", load("res://assets/items/Screw.png.webp")))
-	register_item(
-		ItemDefinition.new("copper_ore", "Copper Ore", load("res://assets/items/copper_ore.png"))
-	)
-	register_item(ItemDefinition.new("coal", "Coal", load("res://assets/items/coal.png")))
-	register_item(
-		ItemDefinition.new(
-			"copper_ingot", "Copper Ingot", load("res://assets/items/copper_ingot.png")
-		)
-	)
-	register_item(ItemDefinition.new("steel", "Steel", load("res://assets/items/steel.png")))
-	# 銅・鋼材から作る中間アイテム（アイコンは既存アイコンの色替え・仮）
-	register_item(
-		ItemDefinition.new("copper_wire", "Copper Wire", load("res://assets/items/copper_wire.png"))
-	)
-	register_item(
-		ItemDefinition.new("steel_beam", "Steel Beam", load("res://assets/items/steel_beam.png"))
-	)
-	register_item(ItemDefinition.new("circuit", "Circuit", load("res://assets/items/circuit.png")))
+	# [id, 表示名]。アイコンは tools/generate_item_icons.py が作る記号的な線画（assets/items/<id>.svg）。
+	# 並びは docs/recipe_plan.md の段階順（原料 → 段階1 → 段階2 → 段階3）
+	for entry in [
+		["iron_ore", "Iron Ore"],
+		["copper_ore", "Copper Ore"],
+		["coal", "Coal"],
+		["sand", "Sand"],
+		["iron_ingot", "Iron Ingot"],
+		["iron_plate", "Iron Plate"],
+		["screw", "Screw"],
+		["gear", "Gear"],
+		["copper_ingot", "Copper Ingot"],
+		["copper_wire", "Copper Wire"],
+		["glass", "Glass"],
+		["steel", "Steel"],
+		["steel_beam", "Steel Beam"],
+		["circuit", "Circuit"],
+		["motor", "Motor"],
+		["lens", "Lens"],
+		["frame", "Frame"],
+		["sensor", "Sensor"],
+		["engine", "Engine"],
+		["probe", "Probe"],
+	]:
+		var icon = load("res://assets/items/%s.svg" % entry[0])
+		register_item(ItemDefinition.new(entry[0], entry[1], icon))
 
 
 func register_item(item: ItemDefinition):

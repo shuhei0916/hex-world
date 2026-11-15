@@ -6,6 +6,7 @@ const RESOURCE_COLORS = {
 	"iron_ore": Color("#8B6914"),
 	"copper_ore": Color("#b8562a"),
 	"coal": Color("#1e1e1e"),
+	"sand": Color("#c9ad6a"),
 }
 
 var _resources: Dictionary = {}

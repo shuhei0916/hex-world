@@ -36,61 +36,37 @@ class RecipeDB:
 
 	static func _register_defaults():
 		# Miner: 足元の鉱床の資源を採掘する (1.0s)。先頭の iron_ore が配置直後の既定レシピ
-		for resource_type in ["iron_ore", "copper_ore", "coal"]:
+		for resource_type in ["iron_ore", "copper_ore", "coal", "sand"]:
 			register_recipe(
 				Recipe.new(resource_type, {}, {resource_type: 1}, 1.0), PieceData.Type.MINER
 			)
 
-		# Smelter: Iron Ingot (2.0s)
-		register_recipe(
-			Recipe.new("iron_ingot", {"iron_ore": 1}, {"iron_ingot": 1}, 2.0),
-			PieceData.Type.SMELTER
-		)
-
-		# Smelter: Copper Ingot (2.0s) — 山岳バイオームの銅鉱石から
-		register_recipe(
-			Recipe.new("copper_ingot", {"copper_ore": 1}, {"copper_ingot": 1}, 2.0),
-			PieceData.Type.SMELTER
-		)
-
-		# Assembler: Iron Plate (3.0s)
-		register_recipe(
-			Recipe.new("iron_plate", {"iron_ingot": 1}, {"iron_plate": 1}, 3.0),
-			PieceData.Type.ASSEMBLER
-		)
-
-		# Cutter: Iron Rod (4.0s)
-		register_recipe(
-			Recipe.new("iron_rod", {"iron_ingot": 1}, {"iron_rod": 1}, 4.0), PieceData.Type.CUTTER
-		)
-
-		# Mixer: Screw (6.0s)
-		register_recipe(
-			Recipe.new("screw", {"iron_rod": 1}, {"screw": 1}, 6.0), PieceData.Type.MIXER
-		)
-
-		# Mixer: Steel (4.0s) — 森林バイオームの石炭と鉄インゴットから
-		register_recipe(
-			Recipe.new("steel", {"iron_ingot": 1, "coal": 1}, {"steel": 1}, 4.0),
-			PieceData.Type.MIXER
-		)
-
-		# Cutter: Copper Wire (3.0s) — 銅インゴットから
-		register_recipe(
-			Recipe.new("copper_wire", {"copper_ingot": 1}, {"copper_wire": 1}, 3.0),
-			PieceData.Type.CUTTER
-		)
-
-		# Assembler: Steel Beam (4.0s) — 鋼材から
-		register_recipe(
-			Recipe.new("steel_beam", {"steel": 1}, {"steel_beam": 1}, 4.0), PieceData.Type.ASSEMBLER
-		)
-
-		# Mixer: Circuit (6.0s) — 銅線と鉄板から（山岳と平原の両方の資源が要る）
-		register_recipe(
-			Recipe.new("circuit", {"copper_wire": 1, "iron_plate": 1}, {"circuit": 1}, 6.0),
-			PieceData.Type.MIXER
-		)
+		# docs/recipe_plan.md のレシピ表。[機械, 材料, 出力, 秒]
+		# 機械は届いた材料からレシピを選ぶので、同じ機械のレシピ同士で材料が重ならないように配る
+		for row in [
+			# Smelter（1入力）: 溶かす
+			[PieceData.Type.SMELTER, {"iron_ore": 1}, {"iron_ingot": 1}, 2.0],
+			[PieceData.Type.SMELTER, {"copper_ore": 1}, {"copper_ingot": 1}, 2.0],
+			[PieceData.Type.SMELTER, {"sand": 2}, {"glass": 1}, 3.0],
+			# Cutter（1入力）: 1つの素材の形を変える
+			[PieceData.Type.CUTTER, {"iron_ingot": 1}, {"iron_plate": 1}, 3.0],
+			[PieceData.Type.CUTTER, {"iron_plate": 1}, {"screw": 2}, 3.0],
+			[PieceData.Type.CUTTER, {"copper_ingot": 1}, {"copper_wire": 2}, 3.0],
+			[PieceData.Type.CUTTER, {"steel": 1}, {"steel_beam": 1}, 4.0],
+			[PieceData.Type.CUTTER, {"glass": 1}, {"lens": 1}, 4.0],
+			# Mixer（2入力）: 混ぜる・組み合わせる
+			[PieceData.Type.MIXER, {"iron_ingot": 1, "coal": 1}, {"steel": 1}, 4.0],
+			[PieceData.Type.MIXER, {"copper_wire": 2, "iron_plate": 1}, {"circuit": 1}, 6.0],
+			[PieceData.Type.MIXER, {"steel_beam": 2, "screw": 2}, {"frame": 1}, 6.0],
+			[PieceData.Type.MIXER, {"lens": 1, "circuit": 1}, {"sensor": 1}, 8.0],
+			# Assembler（2入力）: 部品を組み立てる
+			[PieceData.Type.ASSEMBLER, {"iron_plate": 1, "screw": 2}, {"gear": 1}, 4.0],
+			[PieceData.Type.ASSEMBLER, {"gear": 1, "copper_wire": 2}, {"motor": 1}, 6.0],
+			[PieceData.Type.ASSEMBLER, {"frame": 1, "motor": 1}, {"engine": 1}, 8.0],
+			[PieceData.Type.ASSEMBLER, {"sensor": 1, "engine": 1}, {"probe": 1}, 12.0],
+		]:
+			var output: String = row[2].keys()[0]
+			register_recipe(Recipe.new(output, row[1], row[2], row[3]), row[0])
 
 	static func register_recipe(
 		recipe: Recipe, piece_type: PieceData.Type = PieceData.Type.CONVEYOR
