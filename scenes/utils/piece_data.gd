@@ -6,7 +6,7 @@ enum Type {
 	SMELTER,
 	CUTTER,
 	MIXER,
-	PAINTER,
+	RETIRED_PAINTER,  # 廃止（レシピが無かった）。後ろの番号を変えないための欠番
 	MINER,
 	ASSEMBLER,
 	CHEST,
@@ -35,7 +35,6 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.ASSEMBLER: "unlock_assembler",
 	Type.CUTTER: "unlock_cutter_and_splitter",
 	Type.MIXER: "unlock_mixer",
-	Type.PAINTER: "unlock_mixer",
 	Type.BRIDGE: "",
 }
 

@@ -13,7 +13,10 @@ const RENAMED_SCENES := {
 	"res://scenes/components/piece/sender.tscn": "res://scenes/components/piece/bridge.tscn",
 }
 # 廃止したピース。旧セーブにあっても置かない（Receiver は橋が直接受け取り先へ渡すので不要）
-const RETIRED_SCENES := ["res://scenes/components/piece/receiver.tscn"]
+const RETIRED_SCENES := [
+	"res://scenes/components/piece/receiver.tscn",
+	"res://scenes/components/piece/painter.tscn",
+]
 
 # 実際に読み書きするファイル。テストや動作確認ツールが本物のセーブを触らないよう差し替えられる。
 static var path: String = DEFAULT_PATH

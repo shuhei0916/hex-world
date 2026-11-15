@@ -146,6 +146,16 @@ class TestPieces:
 		assert_not_null(landing)
 		assert_eq(bridge.get_connected_pieces(), [landing])
 
+	func test_旧セーブのPainterは取り除かれる():
+		chunk.create_hex_grid(2)
+		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
+		data["chunks"][0]["pieces"].append(
+			{"scene": "res://scenes/components/piece/painter.tscn", "hex": [0, 0], "rotation": 0}
+		)
+		var restored = _new_world()
+		SaveGame.apply(restored, data, _new_goals())
+		assert_null(restored.get_chunk(Hex.new(0, 0)).get_piece_at_hex(Hex.new(0, 0)))
+
 	func test_旧セーブのSenderは橋として読み込まれ_Receiverは取り除かれる():
 		chunk.create_hex_grid(2)
 		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))

@@ -19,9 +19,19 @@ func after_each():
 	HubGoals.creative_mode = false
 
 
-func test_スロット8は橋である():
-	assert_eq(_get_slot_piece_type(7), PieceData.Type.BRIDGE)
-	assert_eq(hud.slot_buttons[7].text, "橋")
+func test_スロット7は橋である():
+	assert_eq(_get_slot_piece_type(6), PieceData.Type.BRIDGE)
+	assert_eq(hud.slot_buttons[6].text, "橋")
+
+
+func test_橋のスロットはキー7で選べる():
+	var key = (hud.slot_buttons[6] as Button).shortcut.events[0] as InputEventKey
+	assert_eq(key.keycode, KEY_7)
+
+
+func test_Painterは廃止したのでツールバーにない():
+	for i in hud.slot_buttons.size():
+		assert_ne(hud.get_scene_for_slot(i).resource_path.get_file(), "painter.tscn")
 
 
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
@@ -145,10 +155,7 @@ func test_コンベアスロット選択で情報パネルに搬送速度が表�
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():
-	# Painter（レシピ未定義＝生産速度なし）は速度行を出さない
-	# HubGoals経由でアンロックしてから選択する
-	HubGoals.gained_rewards["unlock_mixer"] = true
-	hud._refresh_unlock_states()
+	# 橋（レシピなし＝生産速度なし）は速度行を出さない
 	var btn = hud.toolbar.get_child(6) as Button
 	btn.button_pressed = true
 	hud.on_slot_pressed(6)
@@ -349,31 +356,31 @@ class TestChestSlots:
 		HubGoals.reset()
 
 	func test_ツールバーに搬入チェストと搬出チェストのスロットがある():
-		assert_eq(hud.slot_buttons.size(), 10)
+		assert_eq(hud.slot_buttons.size(), 9)
 		assert_eq(
-			hud.get_scene_for_slot(8).resource_path, "res://scenes/components/piece/chest_in.tscn"
+			hud.get_scene_for_slot(7).resource_path, "res://scenes/components/piece/chest_in.tscn"
 		)
 		assert_eq(
-			hud.get_scene_for_slot(9).resource_path, "res://scenes/components/piece/chest_out.tscn"
+			hud.get_scene_for_slot(8).resource_path, "res://scenes/components/piece/chest_out.tscn"
 		)
 
 	func test_チェストのスロットは研究するまで使えない():
+		assert_true(hud.slot_buttons[7].disabled)
 		assert_true(hud.slot_buttons[8].disabled)
-		assert_true(hud.slot_buttons[9].disabled)
 
 	func test_チェストを研究するとスロットが使えるようになる():
 		HubGoals.researched = {"unlock_chunk_chest": true}
 		HubGoals.unlocks_changed.emit()
+		assert_false(hud.slot_buttons[7].disabled)
 		assert_false(hud.slot_buttons[8].disabled)
-		assert_false(hud.slot_buttons[9].disabled)
 
 	func test_チェストのスロットを押すとそのピースが選ばれる():
 		HubGoals.researched = {"unlock_chunk_chest": true}
 		HubGoals.unlocks_changed.emit()
 		watch_signals(hud)
-		hud.slot_buttons[9].button_pressed = true
-		hud.slot_buttons[9].pressed.emit()
-		assert_signal_emitted_with_parameters(hud, "slot_selected", [hud.get_scene_for_slot(9)])
+		hud.slot_buttons[8].button_pressed = true
+		hud.slot_buttons[8].pressed.emit()
+		assert_signal_emitted_with_parameters(hud, "slot_selected", [hud.get_scene_for_slot(8)])
 
 	func test_アイテム選択パネルは最初は閉じている():
 		assert_false(hud.item_picker.visible)

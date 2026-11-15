@@ -16,7 +16,6 @@ const CUTTER_T1_SCENE = preload("res://scenes/components/piece/cutter_t1.tscn")
 const CUTTER_T2_SCENE = preload("res://scenes/components/piece/cutter_t2.tscn")
 const MIXER_T1_SCENE = preload("res://scenes/components/piece/mixer_t1.tscn")
 const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
-const PAINTER_SCENE = preload("res://scenes/components/piece/painter.tscn")
 const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
 const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 const CHEST_OUT_SCENE = preload("res://scenes/components/piece/chest_out.tscn")
@@ -26,7 +25,7 @@ const PLANET_CHEST_IN_SCENE = preload("res://scenes/components/piece/planet_ches
 const PLANET_CHEST_OUT_SCENE = preload("res://scenes/components/piece/planet_chest_out.tscn")
 # チェストのスロットは、切り替えで共有範囲を選ぶ（機械のスロットは T1/T2）
 const CHEST_VARIANT_LABELS: Array[String] = ["Chunk", "Biome", "Planet"]
-const CHEST_SLOTS := [8, 9]
+const CHEST_SLOTS := [7, 8]
 const RESEARCH_BUTTON_TEXT := "研究 [E]"
 # カーソル付近のメッセージ（在庫不足など）を出しておく時間と、カーソルからのずらし幅
 const CURSOR_MESSAGE_SECONDS := 1.5
@@ -38,12 +37,11 @@ var _slot_variants: Array = [
 	[ASSEMBLER_T1_SCENE, ASSEMBLER_T2_SCENE],
 	[CUTTER_T1_SCENE, CUTTER_T2_SCENE],
 	[MIXER_T1_SCENE, MIXER_T2_SCENE],
-	[PAINTER_SCENE],
 	[BRIDGE_SCENE],
 	[CHEST_IN_SCENE, BIOME_CHEST_IN_SCENE, PLANET_CHEST_IN_SCENE],
 	[CHEST_OUT_SCENE, BIOME_CHEST_OUT_SCENE, PLANET_CHEST_OUT_SCENE],
 ]
-var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -52,7 +50,6 @@ var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.ASSEMBLER,
 	PieceData.Type.CUTTER,
 	PieceData.Type.MIXER,
-	PieceData.Type.PAINTER,
 	PieceData.Type.BRIDGE,
 	PieceData.Type.CHEST,
 	PieceData.Type.CHEST_OUT,

@@ -7,7 +7,7 @@ func test_PieceTypeエニュームが存在する():
 	assert_true(PieceData.Type.SMELTER == 1)
 	assert_true(PieceData.Type.CUTTER == 2)
 	assert_true(PieceData.Type.MIXER == 3)
-	assert_true(PieceData.Type.PAINTER == 4)
+	assert_true(PieceData.Type.RETIRED_PAINTER == 4)
 	assert_true(PieceData.Type.MINER == 5)
 	assert_true(PieceData.Type.ASSEMBLER == 6)
 	assert_true(PieceData.Type.CHEST == 7)
