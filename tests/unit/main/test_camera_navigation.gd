@@ -15,6 +15,8 @@ func before_each():
 	HubGoals.reset()
 	main = MainScene.instantiate()
 	add_child_autofree(main)
+	# 東隣は解放済みとして、所有している chunk どうしの行き来を確かめる
+	main.world.territory.claim(Hex.new(1, 0))
 
 
 func after_each():
@@ -46,6 +48,12 @@ func test_切り替えても画面の見え方は変わらない():
 
 func test_今いるchunkの中心の方が近いうちは切り替えない():
 	main.camera.position = _east().position * 0.4
+	main.update_navigation()
+	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+
+
+func test_所有していない隣のchunkの方に近づいても切り替えない():
+	main.camera.position = main.world.get_chunk(Hex.new(0, 1)).position * 0.6
 	main.update_navigation()
 	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
 

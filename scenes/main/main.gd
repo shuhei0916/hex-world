@@ -11,6 +11,8 @@ const MAP_TO_LOCAL_ZOOM := 0.6
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
+# いま戦って解放しようとしている chunk。戦闘中でなければ null
+var _battle_chunk_hex = null
 
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
@@ -20,6 +22,7 @@ var _local_camera_position := Vector2.ZERO
 @onready var debug_overlay: DebugOverlay = $DebugOverlay
 @onready var camera: CameraController = $CameraController
 @onready var pause_menu: PauseMenu = $PauseMenu
+@onready var battle_overlay: BattleOverlay = $BattleOverlay
 
 
 func _ready():
@@ -33,6 +36,7 @@ func _ready():
 	piece_placer.placement_denied.connect(_on_placement_denied)
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
+	battle_overlay.closed.connect(_on_battle_closed)
 
 
 func _start_new_game() -> void:
@@ -40,6 +44,7 @@ func _start_new_game() -> void:
 	var initial_chunk = world.create_chunk(Hex.new(0, 0))
 	var goal = HubGoals.get_current_goal()
 	initial_chunk.place_hub(goal["goal_item"], goal["required"])
+	world.territory.claim(Hex.new(0, 0))
 	world.set_active_chunk(Hex.new(0, 0))
 
 
@@ -94,6 +99,8 @@ func _process(_delta: float) -> void:
 
 # カメラの位置と倍率に合わせて、今いる chunk とローカル画面／ワールドマップを切り替える
 func update_navigation() -> void:
+	if battle_overlay.is_open():
+		return
 	if is_local_mode():
 		_follow_camera_chunk()
 		if camera.zoom.x < LOCAL_TO_MAP_ZOOM:
@@ -107,12 +114,12 @@ func _map_to_local_scale() -> float:
 	return world_map_view.get_tile_spacing() / world.get_chunk_spacing()
 
 
-# パンで隣の chunk の中心の方が近くなったら、その chunk を今いる chunk にする。
-# 新しい chunk は原点に来るので、カメラも同じだけずらして見え方を保つ
+# パンで隣の chunk の中心の方が近くなったら、その chunk を今いる chunk にする
+# （所有している chunk だけ）。新しい chunk は原点に来るので、カメラも同じだけずらして見え方を保つ
 func _follow_camera_chunk() -> void:
 	if piece_placer.is_dragging or piece_placer.is_delete_dragging:
 		return
-	var nearest = world.get_nearest_visible_chunk(camera.position)
+	var nearest = world.get_nearest_visible_chunk(camera.position, true)
 	if nearest == null or Hex.equals(nearest, world.get_active_hex()):
 		return
 	var offset = world.get_chunk(nearest).position
@@ -131,11 +138,11 @@ func _zoom_out_to_world_map() -> void:
 	camera.zoom = Vector2.ONE * (local_zoom / scale)
 
 
-# 画面中央の chunk のローカル画面へ、見え方を保ったまま入る
+# 画面中央の chunk のローカル画面へ、見え方を保ったまま入る（所有している chunk だけ）
 func _zoom_in_to_local() -> void:
 	var map_position = world_map_view.to_local(camera.position)
 	var chunk_hex = world_map_view.chunk_at_local_pos(map_position)
-	if chunk_hex == null:
+	if chunk_hex == null or not world.territory.is_owned(chunk_hex):
 		return
 	var scale = _map_to_local_scale()
 	var map_zoom = camera.zoom.x
@@ -153,6 +160,9 @@ func _on_hud_slot_selected(scene: PackedScene):
 
 
 func _unhandled_input(event):
+	# 戦闘中の操作は戦闘画面が受け取る
+	if battle_overlay.is_open():
+		return
 	_handle_key_input(event)
 	_handle_mouse_motion(event)
 	_handle_mouse_click(event)
@@ -205,15 +215,20 @@ func _enter_world_map_mode():
 	hud.visible = false
 	piece_placer.visible = false
 	world_map_view.visible = true
-	world_map_view.setup(world)
-	if world.get_active_hex() != null:
-		world_map_view.set_active_chunk(world.get_active_hex())
-	world_map_view.refresh_connections(world.get_connected_chunk_pairs())
+	_refresh_world_map()
 	_local_camera_position = camera.position
 	if world.get_active_hex() != null:
 		var tile_pos = world_map_view.get_tile_position(world.get_active_hex())
 		camera.position = world_map_view.to_global(tile_pos)
 	_refresh_debug_overlay()
+
+
+# ワールドマップのタイル（霧・今いる chunk の印）と接続の矢印を、いまの状態で作り直す
+func _refresh_world_map() -> void:
+	world_map_view.setup(world)
+	if world.get_active_hex() != null:
+		world_map_view.set_active_chunk(world.get_active_hex())
+	world_map_view.refresh_connections(world.get_connected_chunk_pairs())
 
 
 func _enter_local_mode():
@@ -267,9 +282,41 @@ func _handle_world_map_click(event: InputEventMouseButton) -> void:
 		var view_pos = world_map_view.to_local(to_global(local_pos))
 		var hex = world_map_view.chunk_at_local_pos(view_pos)
 		if hex != null:
-			_handle_world_map_chunk_selected(hex)
+			select_world_map_chunk(hex)
 
 
+# ワールドマップで chunk を選ぶ。所有していれば入り、その隣なら戦って解放する。霧の中は選べない
+func select_world_map_chunk(hex: Hex) -> void:
+	if world.territory.is_owned(hex):
+		_handle_world_map_chunk_selected(hex)
+	elif world.territory.can_challenge(hex):
+		start_battle(hex)
+
+
+# chunk を解放するための戦闘を始める。戦闘中も工場は動き続ける
+func start_battle(chunk_hex: Hex) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_battle_chunk_hex = chunk_hex
+	_set_camera_enabled(false)
+	battle_overlay.open(ChunkBattle.create(chunk_hex, rng))
+
+
+func _on_battle_closed(won: bool) -> void:
+	_set_camera_enabled(true)
+	if won:
+		world.territory.claim(_battle_chunk_hex)
+		_refresh_world_map()
+	_battle_chunk_hex = null
+
+
+# 戦闘中は、裏の地図がキーやホイールで動かないようにする
+func _set_camera_enabled(enabled: bool) -> void:
+	camera.set_process(enabled)
+	camera.set_process_unhandled_input(enabled)
+
+
+# chunk のローカル画面へ入る（所有しているかは呼び出し側で確かめる）
 func _handle_world_map_chunk_selected(hex: Hex) -> void:
 	_activate_chunk(hex)
 	world_map_view.set_active_chunk(hex)

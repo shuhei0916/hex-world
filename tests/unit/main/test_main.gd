@@ -496,3 +496,89 @@ func test_在庫不足で置けないとカーソル付近にメッセージが�
 	main.piece_placer.place_current_piece()
 	assert_true(main.hud.cursor_message.visible)
 	assert_eq(main.hud.cursor_message.text, "在庫不足: Iron Ore 0/5")
+
+
+# ---- 所有と戦闘 --------------------------------------------------------------
+
+
+# いまの戦闘の敵をすべて取り除いて勝たせる
+func _win_battle() -> void:
+	var scene = main.battle_overlay.battle_scene
+	for enemy in scene.battle.enemies():
+		scene.battle.field.remove_unit(enemy)
+	scene.refresh()
+
+
+func test_新しいゲームでは原点のchunkだけを所有している():
+	assert_true(main.world.territory.is_owned(Hex.new(0, 0)))
+	assert_eq(main.world.territory.get_owned_hexes().size(), 1)
+
+
+func test_ワールドマップで所有しているchunkを選ぶとそのchunkに入る():
+	main.world.territory.claim(Hex.new(1, 0))
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(1, 0))
+	assert_true(main.is_local_mode())
+	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(1, 0)))
+
+
+func test_ワールドマップで所有しているchunkの隣を選ぶと戦闘が始まる():
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(1, 0))
+	assert_true(main.battle_overlay.is_open())
+	assert_false(main.is_local_mode())
+	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+
+
+func test_ワールドマップで霧のchunkを選んでも何も起きない():
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(2, 0))
+	assert_false(main.battle_overlay.is_open())
+	assert_false(main.is_local_mode())
+
+
+func test_戦闘に勝って結果を閉じるとそのchunkを所有し地図の霧が晴れる():
+	var hex = Hex.new(1, 0)
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(hex)
+	_win_battle()
+	main.battle_overlay.confirm_result()
+	assert_true(main.world.territory.is_owned(hex))
+	var biome_color = main.world.get_planet().get_biome(hex).map_color
+	assert_eq(main.world_map_view.get_tile_color(hex), biome_color)
+	assert_true(main.world_map_view.get_tile_active(Hex.new(0, 0)), "今いる chunk の印は残る")
+
+
+func test_戦闘から撤退するとそのchunkは所有しない():
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(1, 0))
+	main.battle_overlay.retreat()
+	assert_false(main.world.territory.is_owned(Hex.new(1, 0)))
+	assert_false(main.battle_overlay.is_open())
+
+
+func test_戦闘中はスペースを押してもローカル画面に切り替わらない():
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(1, 0))
+	main._unhandled_input(_make_space_event())
+	assert_false(main.is_local_mode())
+
+
+func test_戦闘中はカメラを動かせず_終わると動かせる():
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Hex.new(1, 0))
+	assert_false(main.camera.is_processing_unhandled_input())
+	assert_false(main.camera.is_processing())
+	main.battle_overlay.retreat()
+	assert_true(main.camera.is_processing_unhandled_input())
+	assert_true(main.camera.is_processing())
+
+
+func test_ワールドマップで寄せても所有していないchunkには入らない():
+	main._toggle_mode()
+	var view = main.world_map_view
+	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
+	main.camera.position = view.to_global(view.get_tile_position(Hex.new(1, 0)))
+	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
+	main.update_navigation()
+	assert_false(main.is_local_mode())
