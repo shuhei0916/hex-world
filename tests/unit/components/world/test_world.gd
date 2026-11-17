@@ -657,6 +657,16 @@ class TestPlayer:
 		assert_gt(world.player.position.y, before.y)
 		assert_eq(world.player.chunk_hex, Vector2i(0, 0))
 
+	func test_ハブの斜めの辺に当たっても_辺に沿って滑って進む():
+		# ハブ（原点）の左下で、体の上の端がハブの斜めの辺にかかる高さから右へ押す
+		var hub_piece = load("res://scenes/components/piece/hub.tscn")
+		world.get_chunk(Vector2i(0, 0)).place_piece(hub_piece, Vector2i(0, 0))
+		world.place_player(Vector2i(0, 0), Vector2i(-1, 1))
+		world.move_player_to(_center(Vector2i(-1, 1)) + Vector2(0, -10))
+		for i in range(40):
+			world.move_player_by(Vector2(4, 0))
+		assert_gt(world.player.position.x, _center(Vector2i(0, 1)).x, "ハブの下を通り抜ける")
+
 	func test_chunkの端から外へは出られない():
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
 		world.place_player(Vector2i(0, 0), Vector2i(chunk.grid_radius, 0))

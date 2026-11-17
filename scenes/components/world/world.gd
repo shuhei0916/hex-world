@@ -9,6 +9,8 @@ const DEPOSIT_SIZE := 5
 const NEIGHBOR_MODULATE := Color(0.78, 0.78, 0.8, 1.0)
 # まだ所有していない隣の chunk の色。鉱床が見分けられる程度に、さらに暗くする
 const UNOWNED_MODULATE := Color(0.42, 0.42, 0.46, 1.0)
+# キャラクターが壁に当たったとき、押した向きから何度傾けた向きへ滑るかを試す（近い順）
+const SLIDE_ANGLES := [30.0, 60.0]
 # 橋の帯の曲線を何本の線分で描くか
 const BRIDGE_PATH_SEGMENTS := 16
 
@@ -60,13 +62,20 @@ func move_player_to(pos: Vector2) -> void:
 
 
 # キャラクターを motion（chunk の中のピクセル）だけ動かす。動けたら true。
-# 通れないマスや chunk の外にかかる位置へは入らず、斜めに押して壁に当たったら、
-# 横だけ・縦だけの動きを試して、通れる向きに沿って滑る
+# 通れないマスや chunk の外にかかる位置へは入らない。壁に当たったら、押した向きを少しずつ傾けた
+# 向き（傾けた分だけ短くする）や、横だけ・縦だけの動きを試して、壁に沿って滑る。
+# マスの辺は斜め（30度・90度・150度）なので、横・縦だけでなく30度・60度ずつ傾けた向きも試す
 func move_player_by(motion: Vector2) -> bool:
 	if player == null or motion == Vector2.ZERO:
 		return false
 	var chunk: Chunk = get_chunk(player.chunk_hex)
-	for step in [motion, Vector2(motion.x, 0), Vector2(0, motion.y)]:
+	var steps: Array[Vector2] = [motion]
+	for degrees in SLIDE_ANGLES:
+		var angle = deg_to_rad(degrees)
+		for sign in [1.0, -1.0]:
+			steps.append(motion.rotated(angle * sign) * cos(angle))
+	steps.append_array([Vector2(motion.x, 0), Vector2(0, motion.y)])
+	for step in steps:
 		if step != Vector2.ZERO and PlayerCharacter.can_stand_at(chunk, player.position + step):
 			player.position += step
 			_update_player_view()

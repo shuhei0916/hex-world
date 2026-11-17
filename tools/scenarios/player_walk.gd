@@ -19,6 +19,13 @@ func run(scene: Node) -> void:
 	world.place_player(Vector2i(0, 0), Vector2i(2, 0))
 	await _hold(tree, KEY_A, 0.5)
 	print("ハブの東2マスから A を 0.5 秒（ハブは通れない）: ", _describe(scene))
+	# ハブの左下で、体の上の端がハブの斜めの辺にかかる高さから D（斜めの辺に沿って滑ってハブの下を抜ける）
+	var chunk: Chunk = world.get_active_chunk()
+	world.place_player(Vector2i(0, 0), Vector2i(-1, 1))
+	world.move_player_to(chunk.hex_to_pixel(Vector2i(-1, 1)) + Vector2(0, -10))
+	print("ハブの左下に寄せた: ", _describe(scene))
+	await _hold(tree, KEY_D, 0.6)
+	print("そこから D を 0.6 秒: ", _describe(scene))
 
 
 func _hold(tree: SceneTree, keycode: Key, seconds: float) -> void:
