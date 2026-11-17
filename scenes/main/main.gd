@@ -14,6 +14,8 @@ const BATTLE_CAMERA_POSITION := Vector2(0, 40)
 const BATTLE_CAMERA_ZOOM := 0.8
 # 戦闘中に引ける限界。戦闘中は地図へ出られないので、地図に切り替わる倍率の手前で止める
 const BATTLE_MIN_ZOOM := 0.5
+# WASD を押し続けたとき、キャラクターが次の1歩を踏むまでの秒数
+const STEP_INTERVAL := 0.15
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
@@ -21,6 +23,13 @@ var _local_camera_position := Vector2.ZERO
 var _battle_chunk_hex = null
 # 戦闘を始める前の状態。負けたり撤退したりしたら、ここへ戻る
 var _pre_battle := {}
+# いまの戦闘。勝ったとき、主人公が戦い終えたマスにキャラクターを立たせるのに使う
+var _battle_turn: SkillTurn = null
+# 次の1歩を踏めるようになるまでの残り秒数
+var _walk_cooldown := 0.0
+# 前の1歩の方向。上下だけを押したときに、斜めの2方向を交互に選ぶのに使う
+var _last_walk_direction := -1
+var _camera_tween: Tween
 
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
@@ -41,6 +50,7 @@ func _ready():
 	if world.player == null:
 		var active_hex = world.get_active_hex()
 		world.place_player(active_hex, PlayerCharacter.spawn_hex(world.get_chunk(active_hex)))
+	_refresh_camera_keyboard()
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
@@ -107,16 +117,71 @@ func _on_pause_menu_quit_requested() -> void:
 	get_tree().quit()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	update_navigation()
+	update_walk(_read_walk_input(), delta)
 
 
-# カメラの位置と倍率に合わせて、今いる chunk とローカル画面／ワールドマップを切り替える
+func _read_walk_input() -> Vector2:
+	var input := Vector2.ZERO
+	if Input.is_key_pressed(KEY_W):
+		input.y -= 1
+	if Input.is_key_pressed(KEY_S):
+		input.y += 1
+	if Input.is_key_pressed(KEY_A):
+		input.x -= 1
+	if Input.is_key_pressed(KEY_D):
+		input.x += 1
+	return input
+
+
+# 押している方向 input へキャラクターを歩かせる。押し始めはすぐに、押し続けると
+# STEP_INTERVAL ごとに1歩。建築の画面でだけ歩き、ワールドマップ・戦闘中・研究画面などでは歩かない
+func update_walk(input: Vector2, delta: float) -> void:
+	_walk_cooldown -= delta
+	if input == Vector2.ZERO:
+		_walk_cooldown = 0.0
+		return
+	if not _can_walk() or _walk_cooldown > 0.0:
+		return
+	var direction = PlayerCharacter.direction_for_input(input, _last_walk_direction)
+	var moved = world.move_player(direction)
+	if not moved:
+		# 上下だけを押していて片方の斜めがふさがっていれば、もう片方の斜めへ（端に沿って進める）
+		var other = PlayerCharacter.direction_for_input(input, direction)
+		if other != direction:
+			direction = other
+			moved = world.move_player(direction)
+	if moved:
+		_last_walk_direction = direction
+		_walk_cooldown = STEP_INTERVAL
+		_follow_player()
+
+
+func _can_walk() -> bool:
+	return is_local_mode() and not battle_overlay.is_open() and not hud.is_modal_open()
+
+
+# カメラをキャラクターの立っているマスへ、歩く速さに合わせてすべらせる
+func _follow_player() -> void:
+	if _camera_tween and _camera_tween.is_valid():
+		_camera_tween.kill()
+	_camera_tween = create_tween()
+	_camera_tween.tween_property(
+		camera, "position", world.get_player_position(), PlayerView.SLIDE_SECONDS
+	)
+
+
+# WASD は、キャラクターが歩く建築の画面ではカメラを動かさず、ワールドマップと戦闘中はカメラを動かす
+func _refresh_camera_keyboard() -> void:
+	camera.keyboard_move_enabled = not is_local_mode() or battle_overlay.is_open()
+
+
+# カメラの倍率に合わせて、ローカル画面／ワールドマップを切り替える
 func update_navigation() -> void:
 	if battle_overlay.is_open():
 		return
 	if is_local_mode():
-		_follow_camera_chunk()
 		if camera.zoom.x < LOCAL_TO_MAP_ZOOM:
 			_zoom_out_to_world_map()
 	elif camera.zoom.x * _map_to_local_scale() > MAP_TO_LOCAL_ZOOM:
@@ -126,19 +191,6 @@ func update_navigation() -> void:
 # ワールドマップの長さをローカル画面の長さに直す倍率
 func _map_to_local_scale() -> float:
 	return world_map_view.get_tile_spacing() / world.get_chunk_spacing()
-
-
-# パンで隣の chunk の中心の方が近くなったら、その chunk を今いる chunk にする
-# （所有している chunk だけ）。新しい chunk は原点に来るので、カメラも同じだけずらして見え方を保つ
-func _follow_camera_chunk() -> void:
-	if piece_placer.is_dragging or piece_placer.is_delete_dragging:
-		return
-	var nearest = world.get_nearest_visible_chunk(camera.position, true)
-	if nearest == null or nearest == world.get_active_hex():
-		return
-	var offset = world.get_chunk(nearest).position
-	_activate_chunk(nearest)
-	camera.position -= offset
 
 
 # 見え方を保ったままワールドマップへ移る
@@ -152,16 +204,12 @@ func _zoom_out_to_world_map() -> void:
 	camera.zoom = Vector2.ONE * (local_zoom / scale)
 
 
-# 画面中央の chunk のローカル画面へ、見え方を保ったまま入る（所有している chunk だけ）
+# キャラクターのいる chunk のローカル画面へ、倍率を保ったまま入る。カメラはキャラクターに合わせる
 func _zoom_in_to_local() -> void:
-	var map_position = world_map_view.to_local(camera.position)
-	var chunk_hex = world_map_view.chunk_at_local_pos(map_position)
-	if chunk_hex == null or not world.territory.is_owned(chunk_hex):
-		return
-	var scale = _map_to_local_scale()
 	var map_zoom = camera.zoom.x
-	_handle_world_map_chunk_selected(chunk_hex)
-	camera.position = (map_position - world_map_view.get_tile_position(chunk_hex)) / scale
+	var scale = _map_to_local_scale()
+	_handle_world_map_chunk_selected(world.player.chunk_hex)
+	camera.position = world.get_player_position()
 	camera.zoom = Vector2.ONE * (map_zoom * scale)
 
 
@@ -230,6 +278,7 @@ func _enter_world_map_mode():
 	piece_placer.visible = false
 	world_map_view.visible = true
 	_refresh_world_map()
+	_refresh_camera_keyboard()
 	_local_camera_position = camera.position
 	if world.get_active_hex() != null:
 		var tile_pos = world_map_view.get_tile_position(world.get_active_hex())
@@ -251,6 +300,7 @@ func _enter_local_mode():
 	piece_placer.visible = true
 	world_map_view.visible = false
 	camera.position = _local_camera_position
+	_refresh_camera_keyboard()
 	_refresh_debug_overlay()
 
 
@@ -299,10 +349,11 @@ func _handle_world_map_click(event: InputEventMouseButton) -> void:
 			select_world_map_chunk(hex)
 
 
-# ワールドマップで chunk を選ぶ。所有していれば入り、その隣なら戦って解放する。霧の中は選べない
+# ワールドマップで chunk を選ぶ。所有していればキャラクターのいる chunk の画面に戻り
+# （chunk の間は歩いて移るので、地図からは飛ばない）、その隣なら戦って解放する。霧の中は選べない
 func select_world_map_chunk(hex: Vector2i) -> void:
 	if world.territory.is_owned(hex):
-		_handle_world_map_chunk_selected(hex)
+		_handle_world_map_chunk_selected(world.player.chunk_hex)
 	elif world.territory.can_challenge(hex):
 		start_battle(hex)
 
@@ -325,7 +376,9 @@ func start_battle(chunk_hex: Vector2i) -> void:
 	camera.position = BATTLE_CAMERA_POSITION
 	camera.zoom = Vector2.ONE * BATTLE_CAMERA_ZOOM
 	camera.min_zoom = BATTLE_MIN_ZOOM
-	battle_overlay.open(ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng), world)
+	_battle_turn = ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng)
+	battle_overlay.open(_battle_turn, world)
+	_refresh_camera_keyboard()
 
 
 # 勝ったらその chunk を所有し、同じ画面のまま建築に移る。
@@ -334,6 +387,7 @@ func _on_battle_closed(won: bool) -> void:
 	camera.min_zoom = _pre_battle["camera_min_zoom"]
 	if won:
 		world.territory.claim(_battle_chunk_hex)
+		world.place_player(_battle_chunk_hex, _battle_turn.battle.player.position)
 		_set_build_ui_visible(true)
 	else:
 		_activate_chunk(_pre_battle["active_hex"])
@@ -342,7 +396,9 @@ func _on_battle_closed(won: bool) -> void:
 		camera.zoom = _pre_battle["camera_zoom"]
 		_local_camera_position = _pre_battle["local_camera_position"]
 	_battle_chunk_hex = null
+	_battle_turn = null
 	_pre_battle = {}
+	_refresh_camera_keyboard()
 
 
 # 建築のための表示（ツールバーなどの HUD と、設置するピースのプレビュー）を出す・隠す

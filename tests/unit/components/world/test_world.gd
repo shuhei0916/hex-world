@@ -572,14 +572,6 @@ class TestOwnership:
 		world.territory.claim(Vector2i(1, 0))
 		assert_gt(world.get_chunk(Vector2i(1, 0)).modulate.v, before.v)
 
-	func test_画面の位置にいちばん近い所有chunkを返す_所有していない隣は選ばない():
-		world.territory.claim(Vector2i(0, 0))
-		world.set_active_chunk(Vector2i(0, 0))
-		var east = world.get_chunk(Vector2i(1, 0)).position
-		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(0, 0))
-		world.territory.claim(Vector2i(1, 0))
-		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(1, 0))
-
 
 class TestPlayer:
 	extends GutTest
@@ -628,3 +620,32 @@ class TestPlayer:
 	func test_施設より手前に描く():
 		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
 		assert_gt(_view().z_index, 0)
+
+	# ---- 歩く ----
+
+	func test_隣の通れるマスへ歩ける():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_true(world.move_player(0))
+		assert_eq(world.player.hex, Vector2i(2, 0))
+
+	func test_通れないマスへは歩かない():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		chunk.place_piece(load("res://scenes/components/piece/smelter_t1.tscn"), Vector2i(2, 0))
+		assert_false(world.move_player(0))
+		assert_eq(world.player.hex, Vector2i(1, 0))
+
+	func test_chunkの端から外へは歩かない():
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		world.place_player(Vector2i(0, 0), Vector2i(chunk.grid_radius, 0))
+		assert_false(world.move_player(0))
+		assert_eq(world.player.chunk_hex, Vector2i(0, 0))
+
+	func test_歩いた先のマスへ表示がすべるように動く():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		world.move_player(0)
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		assert_eq(world.get_player_position(), chunk.hex_to_pixel(Vector2i(2, 0)))
+		assert_ne(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)), "すぐには着かない")
+		await wait_seconds(0.3)
+		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)))

@@ -1,6 +1,6 @@
 extends GutTest
 
-## パンで隣の chunk に移ると、その chunk が「今いる chunk」になる。
+## 今いる chunk はキャラクターの立っている chunk で、カメラを動かしても変わらない。
 ## 一定より引くとワールドマップへ、ワールドマップで寄せるとローカル画面へ、見え方を保ったまま移る。
 
 const MainScene = preload("res://scenes/main/main.tscn")
@@ -30,40 +30,11 @@ func _east() -> Chunk:
 	return main.world.get_chunk(Vector2i(1, 0))
 
 
-func test_カメラの中心が隣のchunkの方に近づくとそのchunkが今いるchunkになる():
-	var east_position = _east().position
-	main.camera.position = east_position * 0.6
-	main.update_navigation()
-	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
-	assert_eq(main.piece_placer.chunk, _east(), "設置先もその chunk になる")
-
-
-func test_切り替えても画面の見え方は変わらない():
-	var east_position = _east().position
-	main.camera.position = east_position * 0.6
-	main.update_navigation()
-	# 新しく今いる chunk は原点に来るので、カメラも同じだけずらす
-	assert_true(main.camera.position.is_equal_approx(east_position * 0.6 - east_position))
-
-
-func test_今いるchunkの中心の方が近いうちは切り替えない():
-	main.camera.position = _east().position * 0.4
-	main.update_navigation()
-	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
-
-
-func test_所有していない隣のchunkの方に近づいても切り替えない():
-	main.camera.position = main.world.get_chunk(Vector2i(0, 1)).position * 0.6
-	main.update_navigation()
-	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
-
-
-func test_設置のドラッグ中は切り替えない():
-	main.piece_placer.start_drag()
+func test_カメラを隣のchunkの方へ動かしても今いるchunkは変わらない():
+	# 今いる chunk はキャラクターの立っている chunk で決まる
 	main.camera.position = _east().position * 0.6
 	main.update_navigation()
 	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
-	main.piece_placer.stop_drag()
 
 
 func test_一定より引くとワールドマップに切り替わる():
@@ -92,7 +63,7 @@ func test_引いていなければワールドマップに切り替わらない(
 	assert_true(main.is_local_mode())
 
 
-func test_ワールドマップで寄せると画面中央のchunkのローカル画面に入る():
+func test_ワールドマップで寄せるとキャラクターのいるchunkのローカル画面に入る():
 	main._toggle_mode()
 	var view = main.world_map_view
 	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
@@ -101,8 +72,8 @@ func test_ワールドマップで寄せると画面中央のchunkのローカ�
 	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
 	main.update_navigation()
 	assert_true(main.is_local_mode())
-	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
-	assert_true(main.camera.position.is_equal_approx(Vector2.ZERO))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
 	assert_almost_eq(main.camera.zoom.x, Main.MAP_TO_LOCAL_ZOOM + 0.01, 0.0001)
 
 

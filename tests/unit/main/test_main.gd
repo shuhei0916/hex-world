@@ -514,12 +514,13 @@ func test_新しいゲームでは原点のchunkだけを所有している():
 	assert_eq(main.world.territory.get_owned_hexes().size(), 1)
 
 
-func test_ワールドマップで所有しているchunkを選ぶとそのchunkに入る():
+func test_ワールドマップで所有しているchunkを選ぶと_キャラクターのいるchunkに戻る():
+	# chunk の間はキャラクターが歩いて移るので、地図から別の chunk へは飛ばない
 	main.world.territory.claim(Vector2i(1, 0))
 	main._handle_key_input(_make_space_event())
 	main.select_world_map_chunk(Vector2i(1, 0))
 	assert_true(main.is_local_mode())
-	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 
 
 # ワールドマップで東隣の chunk を選んで戦闘を始める
@@ -578,6 +579,23 @@ func test_戦闘に勝って結果を閉じるとそのchunkを所有し_その�
 	assert_true(main.hud.visible)
 	assert_true(main.piece_placer.visible)
 	assert_eq(main.piece_placer.chunk, main.world.get_chunk(hex))
+
+
+func test_戦闘に勝つとキャラクターは戦い終えたマスに立つ():
+	var hex = _start_battle_on_east()
+	var end_hex = main.battle_overlay.battle_scene.battle.player.position
+	_win_battle()
+	main.battle_overlay.confirm_result()
+	assert_eq(main.world.player.chunk_hex, hex)
+	assert_eq(main.world.player.hex, end_hex)
+
+
+func test_戦闘から撤退するとキャラクターは元の場所に残る():
+	var before_hex = main.world.player.hex
+	_start_battle_on_east()
+	main.battle_overlay.retreat()
+	assert_eq(main.world.player.chunk_hex, Vector2i(0, 0))
+	assert_eq(main.world.player.hex, before_hex)
 
 
 func test_戦闘に勝ったあと地図を開くと霧が晴れている():
@@ -685,16 +703,6 @@ func test_戦闘中にセーブしても_今いるchunkは戦闘前のchunkと�
 	var other = _start_another_main()
 	assert_true(other.world.get_active_hex() == Vector2i(0, 0))
 	assert_false(other.world.territory.is_owned(Vector2i(1, 0)))
-
-
-func test_ワールドマップで寄せても所有していないchunkには入らない():
-	main._toggle_mode()
-	var view = main.world_map_view
-	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
-	main.camera.position = view.to_global(view.get_tile_position(Vector2i(1, 0)))
-	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
-	main.update_navigation()
-	assert_false(main.is_local_mode())
 
 
 class TestPlayerSpawn:

@@ -97,7 +97,8 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `visual_zoom_smelter.gd`: visual_layout の配置で Smelter の周りを拡大する
 - `visual_gap.gd`: 溝の幅の見比べ用。環境変数 `GAP_STEPS`（1〜3）で World.gap_steps を変えて引いて映す
 - `visual_bridge.gd`: 受け取り先のある橋（アイテムを流し続ける）と無い橋を並べて拡大する
-- `camera_navigation.gd`: 東へ少しずつパンして今いる chunk が切り替わる様子と、ホイールで引いてワールドマップへ、寄せてローカル画面へ戻る様子を出力する
+- `camera_navigation.gd`: 東へ少しずつパンしても今いる chunk が切り替わらない様子と、ホイールで引いてワールドマップへ、寄せてキャラクターのいる chunk のローカル画面へ戻る様子を出力する
+- `player_walk.gd`: 実際のキー入力で WASD を押し続け、キャラクターが1マスずつ歩く・上だけでまっすぐ上へ進む・ハブは通れない・カメラが追う、を出力する
 - `visual_zoom_transition.gd`: 環境変数 `ZOOM` の倍率まで引いて撮る。Main.LOCAL_TO_MAP_ZOOM の上下で撮ってローカル画面とワールドマップの切り替わりを見比べる
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
 - `chunk_battle.gd`: ワールドマップの霧と、実際のクリックで「霧は選べない → 隣を選ぶとその chunk の上で戦闘が始まる → スキルで移動 → 勝ってそのまま建築 → 次に挑んで撤退すると地図に戻る」の流れを出力する

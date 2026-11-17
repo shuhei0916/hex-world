@@ -9,6 +9,8 @@ extends Camera2D
 
 # false の間はホイールで拡縮しない（研究画面などを開いていて、ホイールを一覧のスクロールに使うとき）
 var zoom_enabled := true
+# false の間は WASD で動かない（ローカル画面では WASD でキャラクターが歩く）
+var keyboard_move_enabled := true
 
 var _is_panning := false
 
@@ -18,6 +20,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not keyboard_move_enabled:
+		return
 	var direction = _get_input_direction()
 	position += _calc_move_delta(direction, delta)
 

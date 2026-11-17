@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 class_name World
 extends Node2D
 
@@ -47,13 +48,32 @@ func place_player(chunk_hex: Vector2i, hex: Vector2i) -> void:
 	_update_player_view()
 
 
+# キャラクターを direction（0〜5）の隣のマスへ1歩歩かせる。歩けたら true。
+# 通れないマスや chunk の外へは歩かない
+func move_player(direction: int) -> bool:
+	if player == null:
+		return false
+	var target = Hex.neighbor(player.hex, direction)
+	if not PlayerCharacter.can_enter(get_chunk(player.chunk_hex), target):
+		return false
+	player.hex = target
+	if _player_view.visible:
+		_player_view.slide_to(get_player_position())
+	return true
+
+
+# キャラクターの立っているマスの中心の、画面上の位置（World の座標）
+func get_player_position() -> Vector2:
+	var chunk: Chunk = get_chunk(player.chunk_hex)
+	return chunk.position + chunk.hex_to_pixel(player.hex)
+
+
 # キャラクターを、立っている chunk の描かれている位置に合わせて描く。描かれていなければ隠す
 func _update_player_view() -> void:
 	if player == null or not _visible_chunk_hexes().has(player.chunk_hex):
 		_player_view.visible = false
 		return
-	var chunk: Chunk = get_chunk(player.chunk_hex)
-	_player_view.position = chunk.position + chunk.hex_to_pixel(player.hex)
+	_player_view.jump_to(get_player_position())
 	_player_view.visible = true
 
 
@@ -326,21 +346,6 @@ func get_chunk_spacing() -> float:
 		. hex_to_pixel(layout, ChunkTopology.chunk_offset(Hex.direction(0), radius, gap_steps))
 		. length()
 	)
-
-
-# 描いている chunk のうち、画面上の位置 pos に中心がいちばん近いもの
-# owned_only なら、所有している chunk だけから選ぶ
-func get_nearest_visible_chunk(pos: Vector2, owned_only := false):
-	var nearest = null
-	var best := INF
-	for chunk_hex in _visible_chunk_hexes():
-		if owned_only and not territory.is_owned(chunk_hex):
-			continue
-		var distance = pos.distance_to(get_chunk(chunk_hex).position)
-		if distance < best:
-			best = distance
-			nearest = chunk_hex
-	return nearest
 
 
 # 画面上の位置（World の座標）にある施設。アクティブな chunk と、周りに描いている隣の chunk を探す

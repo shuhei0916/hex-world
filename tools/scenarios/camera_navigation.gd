@@ -1,6 +1,6 @@
 extends RefCounted
 
-## カメラによる移動の確認。東へ少しずつパンして今いる chunk が切り替わる様子と、
+## カメラによる移動の確認。東へ少しずつパンしても今いる chunk が切り替わらない様子と、
 ## ホイールで引いてワールドマップへ、寄せてローカル画面へ戻る様子を出力する。
 
 
@@ -42,7 +42,7 @@ func run(scene: Node) -> void:
 		if scene.is_local_mode():
 			print(
 				(
-					"倍率 %.2f でローカルへ: 今いる chunk %s カメラ %s"
+					"倍率 %.2f でローカルへ: 今いる chunk %s カメラ %s（キャラクターの位置に合う）"
 					% [camera.zoom.x, world.get_active_hex(), camera.position.round()]
 				)
 			)
