@@ -8,9 +8,12 @@ const PLANET_SEED := 2026
 # この倍率に相当するところまで寄せるとローカル画面へ入る（差をつけて行き来のちらつきを防ぐ）
 const LOCAL_TO_MAP_ZOOM := 0.45
 const MAP_TO_LOCAL_ZOOM := 0.6
-# 戦闘中のカメラ。chunk 全体が、画面の下に並ぶスキルのボタンに隠れずに映る
+# 戦闘を始めたときのカメラ。chunk 全体が、画面の下に並ぶスキルのボタンに隠れずに映る。
+# そこからは建築のときと同じ操作で動かせる
 const BATTLE_CAMERA_POSITION := Vector2(0, 40)
 const BATTLE_CAMERA_ZOOM := 0.8
+# 戦闘中に引ける限界。戦闘中は地図へ出られないので、地図に切り替わる倍率の手前で止める
+const BATTLE_MIN_ZOOM := 0.5
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
@@ -311,19 +314,20 @@ func start_battle(chunk_hex: Vector2i) -> void:
 		"camera_position": camera.position,
 		"camera_zoom": camera.zoom,
 		"local_camera_position": _local_camera_position,
+		"camera_min_zoom": camera.min_zoom,
 	}
 	_handle_world_map_chunk_selected(chunk_hex)
 	_set_build_ui_visible(false)
 	camera.position = BATTLE_CAMERA_POSITION
 	camera.zoom = Vector2.ONE * BATTLE_CAMERA_ZOOM
-	_set_camera_enabled(false)
+	camera.min_zoom = BATTLE_MIN_ZOOM
 	battle_overlay.open(ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng), world)
 
 
 # 勝ったらその chunk を所有し、同じ画面のまま建築に移る。
 # 負けたり撤退したりしたら、戦闘前に見ていたワールドマップへ戻る
 func _on_battle_closed(won: bool) -> void:
-	_set_camera_enabled(true)
+	camera.min_zoom = _pre_battle["camera_min_zoom"]
 	if won:
 		world.territory.claim(_battle_chunk_hex)
 		_set_build_ui_visible(true)
@@ -344,12 +348,6 @@ func _set_build_ui_visible(shown: bool) -> void:
 		hud.show_hovered_piece(null)
 	hud.visible = shown
 	piece_placer.visible = shown
-
-
-# 戦闘中は、裏の地図がキーやホイールで動かないようにする
-func _set_camera_enabled(enabled: bool) -> void:
-	camera.set_process(enabled)
-	camera.set_process_unhandled_input(enabled)
 
 
 # chunk のローカル画面へ入る（所有しているかは呼び出し側で確かめる）

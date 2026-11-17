@@ -627,13 +627,56 @@ func test_戦闘中はスペースを押しても地図に切り替わらない(
 	assert_true(main.battle_overlay.is_open())
 
 
-func test_戦闘中はカメラを動かせず_終わると動かせる():
+func _wheel_event(button: MouseButton) -> InputEventMouseButton:
+	var event = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	return event
+
+
+func test_戦闘中もカメラを動かせる():
 	_start_battle_on_east()
-	assert_false(main.camera.is_processing_unhandled_input())
-	assert_false(main.camera.is_processing())
+	assert_true(main.camera.is_processing_unhandled_input(), "ホイールと中ボタンドラッグ")
+	assert_true(main.camera.is_processing(), "キーでの移動")
+	main.camera._unhandled_input(_wheel_event(MOUSE_BUTTON_WHEEL_UP))
+	assert_gt(main.camera.zoom.x, Main.BATTLE_CAMERA_ZOOM)
+
+
+func test_戦闘中にカメラを動かしても_戦っているchunkのままで戦闘は続く():
+	var hex = _start_battle_on_east()
+	# 所有している西隣（原点）の chunk の中心までパンする
+	main.camera.position = main.world.get_chunk(Vector2i(0, 0)).position
+	main.update_navigation()
+	assert_true(main.world.get_active_hex() == hex)
+	assert_true(main.battle_overlay.is_open())
+
+
+func test_戦闘中はいくら引いても地図には切り替わらない():
+	_start_battle_on_east()
+	for i in range(30):
+		main.camera._unhandled_input(_wheel_event(MOUSE_BUTTON_WHEEL_DOWN))
+	main.update_navigation()
+	assert_almost_eq(main.camera.zoom.x, Main.BATTLE_MIN_ZOOM, 0.0001)
+	assert_gt(Main.BATTLE_MIN_ZOOM, Main.LOCAL_TO_MAP_ZOOM)
+	assert_true(main.is_local_mode())
+
+
+func test_戦闘中に引けるだけ引いて勝っても_そのまま建築の画面に残る():
+	var hex = _start_battle_on_east()
+	for i in range(30):
+		main.camera._unhandled_input(_wheel_event(MOUSE_BUTTON_WHEEL_DOWN))
+	_win_battle()
+	main.battle_overlay.confirm_result()
+	main.update_navigation()
+	assert_true(main.is_local_mode())
+	assert_true(main.world.get_active_hex() == hex)
+
+
+func test_戦闘が終わると_地図に切り替わるところまで引けるようになる():
+	var min_zoom_before = main.camera.min_zoom
+	_start_battle_on_east()
 	main.battle_overlay.retreat()
-	assert_true(main.camera.is_processing_unhandled_input())
-	assert_true(main.camera.is_processing())
+	assert_eq(main.camera.min_zoom, min_zoom_before)
 
 
 func test_戦闘中にセーブしても_今いるchunkは戦闘前のchunkとして保存する():
