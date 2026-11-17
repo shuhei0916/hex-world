@@ -5,8 +5,8 @@ const BattleSceneScene := preload("res://scenes/ui/battle/battle_scene.tscn")
 var field: Battlefield
 var player: Unit
 var enemy: Unit
-var move_card: Card
-var attack_card: Card
+var move_skill: Skill
+var attack_skill: Skill
 var scene: BattleScene
 
 
@@ -16,21 +16,21 @@ func before_each():
 	enemy = Unit.new(Unit.Team.ENEMY, 5, 2)
 	field.place_unit(player, Vector2i(0, 0))
 	field.place_unit(enemy, Vector2i(1, 0))
-	move_card = Card.new("歩く", Card.Kind.MOVE, 2)
-	attack_card = Card.new("斬る", Card.Kind.ATTACK, 3)
-	var cards: Array[Card] = [move_card, attack_card, Card.new("歩く", Card.Kind.MOVE, 2)]
+	move_skill = Skill.new("歩く", Skill.Kind.MOVE, 2)
+	attack_skill = Skill.new("斬る", Skill.Kind.ATTACK, 3)
+	var skills: Array[Skill] = [move_skill, attack_skill]
 	scene = BattleSceneScene.instantiate()
-	scene.card_turn = CardTurn.new(Battle.new(field), Deck.new(cards, RandomNumberGenerator.new()))
+	scene.skill_turn = SkillTurn.new(Battle.new(field), skills)
 	add_child_autofree(scene)
 
 
 func _move_to(hex: Vector2i) -> void:
-	scene.select_card(move_card)
+	scene.select_skill(move_skill)
 	scene.click_hex(hex)
 
 
 func _attack(hex: Vector2i) -> void:
-	scene.select_card(attack_card)
+	scene.select_skill(attack_skill)
 	scene.click_hex(hex)
 
 
@@ -61,7 +61,7 @@ func test_移動のアニメーションが終わると表示は移動先にあ�
 func test_アニメーション中のクリックは無視する():
 	_move_to(Vector2i(0, 2))
 
-	scene.select_card(scene.card_turn.deck.hand[0])
+	scene.select_skill(move_skill)
 	scene.click_hex(Vector2i(0, 1))
 	await wait_for_signal(scene.animations_finished, 3)
 

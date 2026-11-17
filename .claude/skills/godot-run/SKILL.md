@@ -99,7 +99,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `camera_navigation.gd`: 東へ少しずつパンして今いる chunk が切り替わる様子と、ホイールで引いてワールドマップへ、寄せてローカル画面へ戻る様子を出力する
 - `visual_zoom_transition.gd`: 環境変数 `ZOOM` の倍率まで引いて撮る。Main.LOCAL_TO_MAP_ZOOM の上下で撮ってローカル画面とワールドマップの切り替わりを見比べる
 - `hover_info.gd`: Miner・Smelter・コンベア・ハブにホバーしたときの情報パネルの内容を出力する
-- `chunk_battle.gd`: ワールドマップの霧と、実際のクリックで「霧は選べない → 隣で戦闘が始まる → カードで移動 → 勝って解放 → 入る」の流れを出力する
+- `chunk_battle.gd`: ワールドマップの霧と、実際のクリックで「霧は選べない → 隣で戦闘が始まる → スキルで移動 → 勝って解放 → 入る」の流れを出力する
 - `visual_chunk_battle.gd`: 見た目確認用。環境変数 `BATTLE_VIEW`（map / battle / result）で、霧のある地図・戦闘画面・勝利の結果を映す
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 

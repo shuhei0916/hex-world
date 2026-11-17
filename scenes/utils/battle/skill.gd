@@ -1,6 +1,6 @@
-class_name Card
+class_name Skill
 extends RefCounted
-## 手札から使う1枚のカード。使うとマスを対象にした行動になる。
+## 主人公が戦闘で使うスキル。使うとマスを対象にした行動になる。
 
 enum Kind { MOVE, ATTACK, BLOCK }
 
@@ -16,13 +16,16 @@ var kind: Kind
 var value: int
 ## 使うのに必要なマナ。
 var cost: int
+## 使ってから、もう一度使えるようになるまでに終えるターンの数。0 なら同じターンに何度でも使える。
+var cooldown: int
 
 
-func _init(p_title: String, p_kind: Kind, p_value: int, p_cost := 1) -> void:
+func _init(p_title: String, p_kind: Kind, p_value: int, p_cost := 1, p_cooldown := 0) -> void:
 	title = p_title
 	kind = p_kind
 	value = p_value
 	cost = p_cost
+	cooldown = p_cooldown
 
 
 func description() -> String:
@@ -34,7 +37,7 @@ func needs_target() -> bool:
 	return kind != Kind.BLOCK
 
 
-## actor が hex を対象にこのカードを使うときの行動を返す。対象にならなければ null。
+## actor が hex を対象にこのスキルを使うときの行動を返す。対象にならなければ null。
 func create_action(actor: Unit, field: Battlefield, hex: Vector2i) -> BattleAction:
 	if kind == Kind.MOVE:
 		return MoveAction.new(actor, hex, value)

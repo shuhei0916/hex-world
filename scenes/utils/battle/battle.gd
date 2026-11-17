@@ -40,7 +40,7 @@ func perform(action: BattleAction) -> bool:
 	return true
 
 
-## 行動ポイントを使わずに行動を実行する。カードなど別の対価で行う行動に使う。
+## 行動ポイントを使わずに行動を実行する。スキルなど別の対価で行う行動に使う。
 func execute(action: BattleAction) -> bool:
 	if action == null or outcome() != Outcome.ONGOING or action.actor != acting_unit:
 		return false

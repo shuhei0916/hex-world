@@ -3,7 +3,7 @@ extends GutTest
 ## chunk を解放するための1戦。原点から遠い chunk ほど敵が手ごわい。
 
 
-func _create(chunk_hex: Hex) -> CardTurn:
+func _create(chunk_hex: Hex) -> SkillTurn:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
 	return ChunkBattle.create(chunk_hex, rng)
@@ -31,7 +31,7 @@ func test_主人公は毎回HPが満タンで始まる():
 	assert_eq(player.hp, ChunkBattle.PLAYER_MAX_HP)
 
 
-func test_初期デッキから手札を引いた状態で始まる():
-	var card_turn := _create(Hex.new(1, 0))
+func test_最初のスキルを持って始まる():
+	var skill_turn := _create(Hex.new(1, 0))
 
-	assert_eq(card_turn.deck.hand.size(), CardTurn.HAND_SIZE)
+	assert_eq(skill_turn.skills.size(), SkillLibrary.starter_skills().size())

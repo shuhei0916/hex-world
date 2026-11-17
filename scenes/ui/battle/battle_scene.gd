@@ -1,6 +1,6 @@
 class_name BattleScene
 extends Node2D
-## 1戦を表示し、手札のカードとクリックを主人公の行動に変える。
+## 1戦を表示し、選んだスキルとクリックを主人公の行動に変える。
 
 ## 行動のアニメーションをすべて再生し終えた。
 signal animations_finished
@@ -12,9 +12,10 @@ const HEX_SIZE := 40.0
 const STEP_TIME := 0.12
 
 ## 表示する戦闘の、主人公の手番。シーンツリーに入れる前に必ず入れておく。
-var card_turn: CardTurn
+var skill_turn: SkillTurn
 var battle: Battle
-var selected_card: Card
+## いま選んでいるスキル。マスをクリックするとそこに使う。選んでいなければ null。
+var selected_skill: Skill
 ## false にすると行動の結果をアニメーションなしですぐ表示する。
 var animations_enabled := true
 ## アニメーションの再生中。このあいだは操作を受け付けない。
@@ -32,11 +33,11 @@ var _finish_notified := false
 @onready var _turn_label: Label = $Hud/TurnLabel
 @onready var _intent_label: Label = $Hud/IntentLabel
 @onready var _end_turn_button: Button = $Hud/EndTurnButton
-@onready var _hand: HBoxContainer = $Hud/Hand
+@onready var _skill_bar: HBoxContainer = $Hud/SkillBar
 
 
 func _ready() -> void:
-	battle = card_turn.battle
+	battle = skill_turn.battle
 	_board.hex_size = HEX_SIZE
 	_end_turn_button.pressed.connect(end_turn)
 	battle.unit_moved.connect(_on_unit_moved)
@@ -48,20 +49,23 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		hover_hex(BattleHex.from_pixel(get_local_mouse_position(), HEX_SIZE))
-	elif (
-		event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
-	):
-		click_hex(BattleHex.from_pixel(get_local_mouse_position(), HEX_SIZE))
+	elif event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			click_hex(BattleHex.from_pixel(get_local_mouse_position(), HEX_SIZE))
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			cancel_selection()
 	elif event.is_action_pressed("ui_accept"):
 		end_turn()
 
 
-## マスを選んだときの操作。選んでいるカードをそのマスに使う。
+## マスを選んだときの操作。選んでいるスキルをそのマスに使う。
+## 使ったあともまだ使えるスキルは、続けて使えるよう選んだままにする。
 func click_hex(hex: Vector2i) -> void:
 	if is_animating:
 		return
-	if selected_card != null and card_turn.play(selected_card, hex):
-		selected_card = null
+	if selected_skill != null and skill_turn.use(selected_skill, hex):
+		if not skill_turn.can_use(selected_skill):
+			selected_skill = null
 	_show_result()
 
 
@@ -73,18 +77,26 @@ func hover_hex(hex: Vector2i) -> void:
 	_board.queue_redraw()
 
 
-## 手札のカードを選ぶ。選んでいるカードをもう一度選ぶと選択を外す。
-## マスを選ぶ必要のないカードは、選んだ時点で使う。
-func select_card(card: Card) -> void:
+## スキルを選ぶ。選んでいるスキルをもう一度選ぶと選択を外す。
+## マスを選ぶ必要のないスキルは、選んだ時点で使う。
+func select_skill(skill: Skill) -> void:
 	if is_animating:
 		return
-	if not card.needs_target():
-		selected_card = null
-		card_turn.play(card, battle.player.position)
+	if not skill.needs_target():
+		selected_skill = null
+		skill_turn.use(skill, battle.player.position)
 		_show_result()
 		return
-	var selectable := card.cost <= card_turn.energy
-	selected_card = card if selectable and selected_card != card else null
+	var selectable := skill_turn.can_use(skill)
+	selected_skill = skill if selectable and selected_skill != skill else null
+	refresh()
+
+
+## スキルの選択を外す。
+func cancel_selection() -> void:
+	if is_animating:
+		return
+	selected_skill = null
 	refresh()
 
 
@@ -92,8 +104,8 @@ func end_turn() -> void:
 	if is_animating:
 		return
 	if battle.outcome() == Battle.Outcome.ONGOING:
-		selected_card = null
-		card_turn.end_turn()
+		selected_skill = null
+		skill_turn.end_turn()
 	_show_result()
 
 
@@ -128,7 +140,7 @@ func _show_result() -> void:
 	_board.reachable.clear()
 	_refresh_intent()
 	_board.queue_redraw()
-	_refresh_hand(false)
+	_refresh_skill_bar(false)
 	_end_turn_button.disabled = true
 	while not _animations.is_empty():
 		await _animations.pop_front().call()
@@ -192,16 +204,8 @@ func refresh() -> void:
 		_board.reachable = battle.field.reachable(battle.player.position, _move_range())
 	_refresh_intent()
 	_board.queue_redraw()
-	_refresh_hand(ongoing)
-	_energy_label.text = (
-		"マナ: %d / %d (山札 %d / 捨て札 %d)"
-		% [
-			card_turn.energy,
-			CardTurn.ENERGY_PER_TURN,
-			card_turn.deck.draw_pile.size(),
-			card_turn.deck.discard_pile.size(),
-		]
-	)
+	_refresh_skill_bar(ongoing)
+	_energy_label.text = "マナ: %d / %d" % [skill_turn.energy, SkillTurn.ENERGY_PER_TURN]
 	_turn_label.text = "ターン %d" % battle.turn
 	_end_turn_button.disabled = not ongoing
 	if not ongoing and not _finish_notified:
@@ -238,27 +242,36 @@ func _describe(plan: EnemyPlan, enemy: Unit) -> String:
 	return attack if plan.attacks else "動かない"
 
 
-## いま主人公が歩ける歩数。選んでいる移動カードの歩数になる。
+## いま主人公が歩ける歩数。選んでいる移動スキルの歩数になる。
 func _move_range() -> int:
-	if selected_card != null and selected_card.kind == Card.Kind.MOVE:
-		return selected_card.value
+	if selected_skill != null and selected_skill.kind == Skill.Kind.MOVE:
+		return selected_skill.value
 	return 0
 
 
-func _refresh_hand(ongoing: bool) -> void:
-	for button in _hand.get_children():
-		_hand.remove_child(button)
+## スキルのボタンを、使えるスキルの順に並べ直す。enabled が false ならどれも押せない。
+func _refresh_skill_bar(enabled: bool) -> void:
+	for button in _skill_bar.get_children():
+		_skill_bar.remove_child(button)
 		button.queue_free()
-	for card in card_turn.deck.hand:
+	for skill in skill_turn.skills:
 		var button := Button.new()
-		button.text = "%s (%d)\n%s" % [card.title, card.cost, card.description()]
+		button.text = "%s (%d)\n%s" % [skill.title, skill.cost, _status_of(skill)]
 		button.custom_minimum_size = Vector2(110.0, 72.0)
 		button.focus_mode = Control.FOCUS_NONE
 		button.toggle_mode = true
-		button.button_pressed = card == selected_card
-		button.disabled = not ongoing or card.cost > card_turn.energy
-		button.pressed.connect(select_card.bind(card))
-		_hand.add_child(button)
+		button.button_pressed = skill == selected_skill
+		button.disabled = not enabled or not skill_turn.can_use(skill)
+		button.pressed.connect(select_skill.bind(skill))
+		_skill_bar.add_child(button)
+
+
+## スキルのボタンに書く2行目。クールダウン中は使えるまでのターン数、そうでなければ効果。
+func _status_of(skill: Skill) -> String:
+	var cooldown_left := skill_turn.cooldown_left(skill)
+	if cooldown_left > 0:
+		return "あと%dターン" % cooldown_left
+	return skill.description()
 
 
 func _sync_unit_views() -> void:

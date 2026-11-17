@@ -2,7 +2,8 @@ extends RefCounted
 
 # ワールドマップの霧と、隣の chunk を戦って解放する流れを確かめる。
 # 実際のマウス入力で: 霧のタイルをクリック（何も起きない）→ 隣のタイルをクリック（戦闘が始まる）
-# → 移動カードを選んで盤面をクリック（主人公が動く）→ 敵を取り除いて勝利 → 結果を閉じて解放、
+# → 移動スキルを選んで盤面をクリック（主人公が動く。選んだまま続けて使える）
+# → 敵を取り除いて勝利 → 結果を閉じて解放、
 # 解放した chunk をクリックして入る、までを出力する。
 
 
@@ -10,6 +11,8 @@ func run(scene: Node) -> void:
 	var view: WorldMapView = scene.world_map_view
 	var east = Hex.new(1, 0)
 	var far = Hex.new(2, 0)
+	# ヘッドレスの画面は 64x64 で、戦闘のボタンが盤面に重なってクリックを受けてしまうので広げる
+	scene.get_window().size = Vector2i(1280, 720)
 	scene._enter_world_map_mode()
 	await scene.get_tree().process_frame
 	for hex in [Hex.new(0, 0), east, far]:
@@ -32,31 +35,46 @@ func run(scene: Node) -> void:
 	var battle: Battle = battle_scene.battle
 	print(
 		(
-			"[battle] stage=%d enemies=%d player_hp=%d hand=%s"
+			"[battle] stage=%d enemies=%d player_hp=%d skills=%s"
 			% [
 				ChunkBattle.stage_for(east),
 				battle.enemies().size(),
 				battle.player.hp,
-				battle_scene.card_turn.deck.hand.map(func(card): return card.title),
+				_bar_texts(battle_scene),
 			]
 		)
 	)
 
-	var move_card = _first_move_card(battle_scene)
-	if move_card == null:
-		print("[move] 手札に移動カードが無い（この乱数では確かめられない）")
-	else:
+	# スキルのボタンを押して選び、盤面を2回クリックして続けて歩く
+	# （ヘッドレスの画面は 64x64 でボタンが画面の外に出るので、ボタンはシグナルで押す）
+	var walk: Skill = battle_scene.skill_turn.skills[0]
+	_press(battle_scene, 0)
+	print("[select] selected=%s" % [_selected_title(battle_scene)])
+	for i in range(2):
 		var from = battle.player.position
-		battle_scene.select_card(move_card)
-		var target = _reachable_target(battle, move_card.value)
+		var target = _reachable_target(battle, walk.value)
 		var screen = battle_scene.position + BattleHex.to_pixel(target, BattleScene.HEX_SIZE)
 		await _click(scene, screen)
 		print(
 			(
-				"[move] %s -> click %s -> player at %s (energy %d)"
-				% [from, target, battle.player.position, battle_scene.card_turn.energy]
+				"[move] %s -> click %s -> player at %s (energy %d, selected=%s)"
+				% [
+					from,
+					target,
+					battle.player.position,
+					battle_scene.skill_turn.energy,
+					_selected_title(battle_scene),
+				]
 			)
 		)
+
+	# クールダウンのあるスキル（走る）を使うと、しばらく押せなくなる
+	_press(battle_scene, 3)
+	var dash_target = _reachable_target(battle, battle_scene.skill_turn.skills[3].value)
+	await _click(
+		scene, battle_scene.position + BattleHex.to_pixel(dash_target, BattleScene.HEX_SIZE)
+	)
+	print("[cooldown] player at %s skills=%s" % [battle.player.position, _bar_texts(battle_scene)])
 
 	var camera_before = scene.camera.position
 	Input.action_press("ui_accept")
@@ -104,11 +122,18 @@ func _tile_screen_pos(scene: Node, hex: Hex) -> Vector2:
 	return scene.get_viewport().get_canvas_transform() * world_pos
 
 
-func _first_move_card(battle_scene: BattleScene) -> Card:
-	for card in battle_scene.card_turn.deck.hand:
-		if card.kind == Card.Kind.MOVE and card.cost <= battle_scene.card_turn.energy:
-			return card
-	return null
+func _selected_title(battle_scene: BattleScene) -> String:
+	return battle_scene.selected_skill.title if battle_scene.selected_skill != null else "なし"
+
+
+func _bar_texts(battle_scene: BattleScene) -> Array:
+	return battle_scene.get_node("Hud/SkillBar").get_children().map(
+		func(button): return button.text.replace("\n", " / ")
+	)
+
+
+func _press(battle_scene: BattleScene, index: int) -> void:
+	battle_scene.get_node("Hud/SkillBar").get_child(index).pressed.emit()
 
 
 # いちばん遠くまで歩けるマス

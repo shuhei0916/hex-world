@@ -9,10 +9,10 @@ const BattleSceneScene := preload("res://scenes/ui/battle/battle_scene.tscn")
 const BACKGROUND_COLOR := Color("#14161b")
 const VICTORY_TEXT := "勝利！ この chunk を解放した"
 const DEFEAT_TEXT := "敗北… 何度でも挑める"
-## 戦闘画面の手札などの表示（BattleScene の Hud）より手前に出す
+## 戦闘画面のスキルなどの表示（BattleScene の Hud）より手前に出す
 const UI_LAYER_OFFSET := 2
-## 画面の下に並ぶ手札の高さ。盤面はこの上の領域の中央に置く
-const HAND_AREA_HEIGHT := 96.0
+## 画面の下に並ぶスキルの高さ。盤面はこの上の領域の中央に置く
+const SKILL_BAR_HEIGHT := 96.0
 const RESULT_PANEL_COLOR := Color("#1e222c")
 
 ## いま表示している戦闘の画面。閉じているあいだは null。
@@ -51,12 +51,12 @@ func is_open() -> bool:
 	return battle_scene != null
 
 
-## card_turn の戦闘を表示する。
-func open(card_turn: CardTurn) -> void:
+## skill_turn の戦闘を表示する。
+func open(skill_turn: SkillTurn) -> void:
 	_remove_battle_scene()
 	_won = false
 	battle_scene = BattleSceneScene.instantiate()
-	battle_scene.card_turn = card_turn
+	battle_scene.skill_turn = skill_turn
 	battle_scene.animations_enabled = animations_enabled
 	battle_scene.battle_finished.connect(_on_battle_finished)
 	_holder.add_child(battle_scene)
@@ -112,7 +112,7 @@ func _center_battle_scene() -> void:
 	if battle_scene == null:
 		return
 	var size := get_viewport().get_visible_rect().size
-	battle_scene.position = Vector2(size.x / 2.0, (size.y - HAND_AREA_HEIGHT) / 2.0)
+	battle_scene.position = Vector2(size.x / 2.0, (size.y - SKILL_BAR_HEIGHT) / 2.0)
 
 
 ## CanvasLayer を隠しても子の CanvasLayer は隠れないので、合わせて切り替える。
