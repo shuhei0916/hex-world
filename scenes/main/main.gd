@@ -14,8 +14,10 @@ const BATTLE_CAMERA_POSITION := Vector2(0, 40)
 const BATTLE_CAMERA_ZOOM := 0.8
 # 戦闘中に引ける限界。戦闘中は地図へ出られないので、地図に切り替わる倍率の手前で止める
 const BATTLE_MIN_ZOOM := 0.5
-# WASD を押し続けたとき、キャラクターが次の1歩を踏むまでの秒数
-const STEP_INTERVAL := 0.15
+# キャラクターの歩く速さ（ピクセル/秒）。マス3つ半ほど
+const WALK_SPEED := 260.0
+# 隣の chunk へ渡ったとき、カメラが渡った先のキャラクターへすべる秒数
+const CROSS_CAMERA_SECONDS := 0.2
 # chunk の端に立って押すと、辺の向こうの隣の chunk へ渡るキー
 const CROSS_KEY := KEY_F
 # どこからも届かないマス（キャラクターのいない chunk の建築できる範囲の中心にする）
@@ -29,10 +31,6 @@ var _battle_chunk_hex = null
 var _pre_battle := {}
 # いまの戦闘。勝ったとき、主人公が戦い終えたマスにキャラクターを立たせるのに使う
 var _battle_turn: SkillTurn = null
-# 次の1歩を踏めるようになるまでの残り秒数
-var _walk_cooldown := 0.0
-# 前の1歩の方向。上下だけを押したときに、斜めの2方向を交互に選ぶのに使う
-var _last_walk_direction := -1
 var _camera_tween: Tween
 
 @onready var hud: HUD = $HUD
@@ -141,27 +139,14 @@ func _read_walk_input() -> Vector2:
 	return input
 
 
-# 押している方向 input へキャラクターを歩かせる。押し始めはすぐに、押し続けると
-# STEP_INTERVAL ごとに1歩。建築の画面でだけ歩き、ワールドマップ・戦闘中・研究画面などでは歩かない
+# 押している方向 input へ、WALK_SPEED の速さでキャラクターを歩かせ、カメラで追う。
+# 建築の画面でだけ歩き、ワールドマップ・戦闘中・研究画面などでは歩かない
 func update_walk(input: Vector2, delta: float) -> void:
-	_walk_cooldown -= delta
-	if input == Vector2.ZERO:
-		_walk_cooldown = 0.0
+	if input == Vector2.ZERO or not _can_walk():
 		return
-	if not _can_walk() or _walk_cooldown > 0.0:
-		return
-	var direction = PlayerCharacter.direction_for_input(input, _last_walk_direction)
-	var moved = world.move_player(direction)
-	if not moved:
-		# 上下だけを押していて片方の斜めがふさがっていれば、もう片方の斜めへ（端に沿って進める）
-		var other = PlayerCharacter.direction_for_input(input, direction)
-		if other != direction:
-			direction = other
-			moved = world.move_player(direction)
-	if moved:
-		_last_walk_direction = direction
-		_walk_cooldown = STEP_INTERVAL
-		_follow_player()
+	if world.move_player_by(input.normalized() * WALK_SPEED * delta):
+		_stop_camera_tween()
+		camera.position = world.get_player_position()
 
 
 # キャラクターが chunk の辺に立っていれば、辺の向こうの隣の chunk へ渡る。
@@ -211,14 +196,18 @@ func _can_walk() -> bool:
 	return is_local_mode() and not battle_overlay.is_open() and not hud.is_modal_open()
 
 
-# カメラをキャラクターの立っているマスへ、歩く速さに合わせてすべらせる
+# カメラをキャラクターの位置へすべらせる（隣の chunk へ渡ったとき）
 func _follow_player() -> void:
-	if _camera_tween and _camera_tween.is_valid():
-		_camera_tween.kill()
+	_stop_camera_tween()
 	_camera_tween = create_tween()
 	_camera_tween.tween_property(
-		camera, "position", world.get_player_position(), PlayerView.SLIDE_SECONDS
+		camera, "position", world.get_player_position(), CROSS_CAMERA_SECONDS
 	)
+
+
+func _stop_camera_tween() -> void:
+	if _camera_tween and _camera_tween.is_valid():
+		_camera_tween.kill()
 
 
 # WASD は、キャラクターが歩く建築の画面ではカメラを動かさず、ワールドマップと戦闘中はカメラを動かす

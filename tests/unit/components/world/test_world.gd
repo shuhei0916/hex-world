@@ -622,33 +622,47 @@ class TestPlayer:
 		assert_gt(_view().z_index, 0)
 
 	# ---- 歩く ----
+	# マスに縛られず、押した向きへ自由に動く。通れないところでは、通れる向きに沿って滑る。
 
-	func test_隣の通れるマスへ歩ける():
-		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
-		assert_true(world.move_player(0))
-		assert_eq(world.player.hex, Vector2i(2, 0))
+	func _center(hex: Vector2i) -> Vector2:
+		return world.get_chunk(Vector2i(0, 0)).hex_to_pixel(hex)
 
-	func test_通れないマスへは歩かない():
+	func test_押した向きへ自由に動く():
+		world.place_player(Vector2i(0, 0), Vector2i(2, 0))
+		assert_true(world.move_player_by(Vector2(10, 4)))
+		assert_eq(world.player.position, _center(Vector2i(2, 0)) + Vector2(10, 4))
+
+	func test_表示もすぐにその位置へ動く():
+		world.place_player(Vector2i(0, 0), Vector2i(2, 0))
+		world.move_player_by(Vector2(10, 4))
+		assert_eq(_view().position, world.get_player_position())
+		assert_eq(world.get_player_position(), _center(Vector2i(2, 0)) + Vector2(10, 4))
+
+	func test_機械には入れない():
 		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
 		chunk.place_piece(load("res://scenes/components/piece/smelter_t1.tscn"), Vector2i(2, 0))
-		assert_false(world.move_player(0))
+		for i in range(20):
+			world.move_player_by(Vector2(5, 0))
 		assert_eq(world.player.hex, Vector2i(1, 0))
 
-	func test_chunkの端から外へは歩かない():
+	func test_斜めに押して壁に当たると_通れる向きに沿って滑る():
+		# 東の端に立ち、右下へ押す。右へは出られないが、下へは進む
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
-		world.place_player(Vector2i(0, 0), Vector2i(chunk.grid_radius, 0))
-		assert_false(world.move_player(0))
+		var edge = Vector2i(chunk.grid_radius, -2)
+		world.place_player(Vector2i(0, 0), edge)
+		var before = world.player.position
+		for i in range(5):
+			world.move_player_by(Vector2(5, 5))
+		assert_gt(world.player.position.y, before.y)
 		assert_eq(world.player.chunk_hex, Vector2i(0, 0))
 
-	func test_歩いた先のマスへ表示がすべるように動く():
-		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
-		world.move_player(0)
+	func test_chunkの端から外へは出られない():
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
-		assert_eq(world.get_player_position(), chunk.hex_to_pixel(Vector2i(2, 0)))
-		assert_ne(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)), "すぐには着かない")
-		await wait_seconds(0.3)
-		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)))
+		world.place_player(Vector2i(0, 0), Vector2i(chunk.grid_radius, 0))
+		for i in range(20):
+			world.move_player_by(Vector2(5, 0))
+		assert_eq(world.player.hex, Vector2i(chunk.grid_radius, 0))
 
 	# ---- chunk の間を渡る ----
 	# 辺のマスに立つと、その辺の向こうの chunk の、向かい合うマスへ渡れる。

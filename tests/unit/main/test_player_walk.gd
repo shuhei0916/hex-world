@@ -1,7 +1,7 @@
 extends GutTest
 
-## ローカル画面では WASD でキャラクターが1マスずつ歩き、カメラがキャラクターを追う。
-## 押し続けると一定の間隔で歩き続ける。WASD でカメラは動かない（ワールドマップでは動く）。
+## ローカル画面では WASD でキャラクターがマスに縛られず自由に歩き、カメラがキャラクターを追う。
+## WASD でカメラは動かない（ワールドマップと戦闘中は動く。戦闘ではマス単位で動く）。
 
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_player_walk_save.json"
@@ -33,48 +33,54 @@ func _player_hex() -> Vector2i:
 	return main.world.player.hex
 
 
-func test_右を押すと東へ1歩歩く():
-	main.update_walk(RIGHT, 0.016)
+func _player_position() -> Vector2:
+	return main.world.player.position
+
+
+func test_押している間_その向きへ一定の速さでなめらかに動く():
+	var start = _player_position()
+	main.update_walk(RIGHT, 0.1)
+	assert_almost_eq(_player_position().x - start.x, Main.WALK_SPEED * 0.1, 0.001)
+	assert_eq(_player_position().y, start.y)
+
+
+func test_斜めに押しても速さは変わらない():
+	var start = _player_position()
+	main.update_walk(Vector2(1, 1), 0.1)
+	assert_almost_eq(_player_position().distance_to(start), Main.WALK_SPEED * 0.1, 0.001)
+
+
+func test_マスの境目を越えるまでは立っているマスは変わらない():
+	main.update_walk(RIGHT, 0.05)
+	assert_eq(_player_hex(), Vector2i(1, 0))
+	main.update_walk(RIGHT, 0.3)
 	assert_eq(_player_hex(), Vector2i(2, 0))
 
 
-func test_押し続けても一定の間隔を空けて歩く():
-	main.update_walk(RIGHT, 0.016)
-	main.update_walk(RIGHT, 0.016)
-	assert_eq(_player_hex(), Vector2i(2, 0), "間隔が空くまでは次の1歩を踏まない")
-	main.update_walk(RIGHT, Main.STEP_INTERVAL)
-	assert_eq(_player_hex(), Vector2i(3, 0))
-
-
-func test_離して押し直すとすぐに歩く():
-	main.update_walk(RIGHT, 0.016)
-	main.update_walk(Vector2.ZERO, 0.016)
-	main.update_walk(RIGHT, 0.016)
-	assert_eq(_player_hex(), Vector2i(3, 0))
-
-
-func test_カメラがキャラクターを追う():
-	main.update_walk(RIGHT, 0.016)
-	await wait_seconds(0.3)
+func test_カメラは歩いている間キャラクターを追う():
+	main.update_walk(RIGHT, 0.1)
 	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
 
 
 func test_ワールドマップでは歩かない():
 	main._toggle_mode()
-	main.update_walk(RIGHT, 0.016)
-	assert_eq(_player_hex(), Vector2i(1, 0))
+	var start = _player_position()
+	main.update_walk(RIGHT, 0.1)
+	assert_eq(_player_position(), start)
 
 
 func test_研究画面を開いている間は歩かない():
 	main.hud.toggle_research_panel()
-	main.update_walk(RIGHT, 0.016)
-	assert_eq(_player_hex(), Vector2i(1, 0))
+	var start = _player_position()
+	main.update_walk(RIGHT, 0.1)
+	assert_eq(_player_position(), start)
 
 
 func test_戦闘中は歩かない():
 	main.start_battle(Vector2i(1, 0))
-	main.update_walk(RIGHT, 0.016)
-	assert_eq(_player_hex(), Vector2i(1, 0))
+	var start = _player_position()
+	main.update_walk(RIGHT, 0.1)
+	assert_eq(_player_position(), start)
 
 
 func test_ローカル画面ではWASDでカメラを動かさない():
@@ -89,14 +95,6 @@ func test_ワールドマップではWASDでカメラを動かす():
 func test_戦闘中はWASDでカメラを動かす():
 	main.start_battle(Vector2i(1, 0))
 	assert_true(main.camera.keyboard_move_enabled)
-
-
-func test_上だけを押して片方の斜めがふさがっていれば_もう片方の斜めへ歩く():
-	# 東の端では北東が chunk の外なので、北西へ歩いて端に沿って上へ進む
-	var radius = main.world.get_active_chunk().grid_radius
-	main.world.place_player(Vector2i(0, 0), Vector2i(radius, -1))
-	main.update_walk(Vector2(0, -1), 0.016)
-	assert_eq(_player_hex(), Vector2i(radius, -2))
 
 
 # ---- 渡れる場所の案内 ----
@@ -141,6 +139,6 @@ func test_建築はキャラクターの近くだけ():
 
 
 func test_歩くと建築できる範囲もついてくる():
-	main.update_walk(RIGHT, 0.016)
+	main.update_walk(RIGHT, 0.4)
 	main._process(0.0)
 	assert_eq(main.piece_placer.reach_center, Vector2i(2, 0))

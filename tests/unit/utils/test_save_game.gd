@@ -355,6 +355,12 @@ class TestPlayerSave:
 		assert_eq(restored.player.chunk_hex, Vector2i(1, 0))
 		assert_eq(restored.player.hex, Vector2i(2, -1))
 
+	func test_マスの中の細かい位置も復元される():
+		world.place_player(Vector2i(0, 0), Vector2i(2, -1))
+		world.player.position += Vector2(7.5, -3.25)
+		var restored = _roundtrip()
+		assert_eq(restored.player.position, world.player.position)
+
 	func test_キャラクターの記録が無い旧セーブではキャラクターを置かない():
 		var restored = _roundtrip()
 		assert_null(restored.player)

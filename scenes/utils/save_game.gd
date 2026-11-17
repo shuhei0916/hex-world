@@ -49,6 +49,7 @@ static func capture(world: World, goals: Node, active_hex = null) -> Dictionary:
 		data["player"] = {
 			"chunk": _hex_to_array(world.player.chunk_hex),
 			"hex": _hex_to_array(world.player.hex),
+			"position": [world.player.position.x, world.player.position.y],
 		}
 	return data
 
@@ -93,6 +94,10 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 	if data.has("player"):
 		var player: Dictionary = data["player"]
 		world.place_player(_array_to_hex(player["chunk"]), _array_to_hex(player["hex"]))
+		# マスの中の細かい位置（無い旧セーブではマスの中心）
+		if player.has("position"):
+			var values: Array = player["position"]
+			world.move_player_to(Vector2(float(values[0]), float(values[1])))
 
 
 static func exists(file_path: String = path) -> bool:

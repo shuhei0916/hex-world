@@ -53,18 +53,25 @@ func place_player(chunk_hex: Vector2i, hex: Vector2i) -> void:
 	_update_player_view()
 
 
-# キャラクターを direction（0〜5）の隣のマスへ1歩歩かせる。歩けたら true。
-# 通れないマスや chunk の外へは歩かない
-func move_player(direction: int) -> bool:
-	if player == null:
+# キャラクターを、立っている chunk の中の位置 pos へそのまま置く（セーブからの復元用）
+func move_player_to(pos: Vector2) -> void:
+	player.position = pos
+	_update_player_view()
+
+
+# キャラクターを motion（chunk の中のピクセル）だけ動かす。動けたら true。
+# 通れないマスや chunk の外にかかる位置へは入らず、斜めに押して壁に当たったら、
+# 横だけ・縦だけの動きを試して、通れる向きに沿って滑る
+func move_player_by(motion: Vector2) -> bool:
+	if player == null or motion == Vector2.ZERO:
 		return false
-	var target = Hex.neighbor(player.hex, direction)
-	if not PlayerCharacter.can_enter(get_chunk(player.chunk_hex), target):
-		return false
-	player.hex = target
-	if _player_view.visible:
-		_player_view.slide_to(get_player_position())
-	return true
+	var chunk: Chunk = get_chunk(player.chunk_hex)
+	for step in [motion, Vector2(motion.x, 0), Vector2(0, motion.y)]:
+		if step != Vector2.ZERO and PlayerCharacter.can_stand_at(chunk, player.position + step):
+			player.position += step
+			_update_player_view()
+			return true
+	return false
 
 
 # キャラクターが今のマスから渡れる先 {chunk_hex, hex}。辺のマスに立っていれば、その辺の向こうの
@@ -99,7 +106,7 @@ func cross_player() -> bool:
 # キャラクターの立っているマスの中心の、画面上の位置（World の座標）
 func get_player_position() -> Vector2:
 	var chunk: Chunk = get_chunk(player.chunk_hex)
-	return chunk.position + chunk.hex_to_pixel(player.hex)
+	return chunk.position + player.position
 
 
 # キャラクターの上に出す操作の案内（空なら出さない）
