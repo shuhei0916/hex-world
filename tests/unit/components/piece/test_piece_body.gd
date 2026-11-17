@@ -1,8 +1,8 @@
 extends GutTest
 
 ## 設置物の本体（shapez の建物のような見た目）。占めるマスを合わせた1つの形を、
-## マスの縁より少し内側に縮め、角を丸めて、薄い灰色の地に濃い線で縁取って描く。
-## 種類は色ではなく、中央のアイコンで示す。
+## マスの縁より少し内側に縮め、角を丸めて、種類ごとの色で塗り濃い線で縁取って描く。
+## 中央には作っている品物などのアイコンを出す。
 
 const ICON = preload("res://assets/items/iron_ingot.svg")
 
@@ -14,22 +14,22 @@ func before_each():
 	add_child_autofree(body)
 
 
-func test_塗る色は種類によらず同じ薄い灰色():
-	body.setup([Vector2i(0, 0)])
+func test_塗る色は渡した種類ごとの色():
+	body.setup([Vector2i(0, 0)], Color.RED)
 
-	assert_eq(body.get_fill_color(), PieceBody.FILL_COLOR)
+	assert_eq(body.get_fill_color(), Color.RED)
 
 
 func test_1マスの本体はマスの内側に収まり_縁から離れている():
 	var hexes: Array[Vector2i] = [Vector2i(0, 0)]
-	body.setup(hexes)
+	body.setup(hexes, Color.RED)
 
 	_assert_inside_with_margin(body.get_outline(), hexes)
 
 
 func test_角は丸めてあり_とがった角まで届かない():
 	var layout := Layout.make_default()
-	body.setup([Vector2i(0, 0)])
+	body.setup([Vector2i(0, 0)], Color.RED)
 
 	var sharp_corner := layout.size.x - PieceBody.INSET / cos(PI / 6)
 	var farthest := 0.0
@@ -41,7 +41,7 @@ func test_角は丸めてあり_とがった角まで届かない():
 
 func test_複数マスの本体は1つの形で_どのマスの中心も含み_縁から離れている():
 	var hexes: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)]
-	body.setup(hexes)
+	body.setup(hexes, Color.RED)
 
 	var outline := body.get_outline()
 	for hex in hexes:
@@ -51,7 +51,7 @@ func test_複数マスの本体は1つの形で_どのマスの中心も含み_�
 
 
 func test_アイコンを渡すと中央に描く():
-	body.setup([Vector2i(0, 0)])
+	body.setup([Vector2i(0, 0)], Color.RED)
 	body.set_icon(ICON)
 
 	assert_eq(body.get_icon(), ICON)
@@ -61,13 +61,13 @@ func test_アイコンを渡すと中央に描く():
 func test_アイコンは形の中心に最も近いマスの中央に置く():
 	# 一列の3マスなら真ん中のマス
 	var hexes: Array[Vector2i] = [Vector2i(-1, 0), Vector2i(0, 0), Vector2i(1, 0)]
-	body.setup(hexes)
+	body.setup(hexes, Color.RED)
 
 	assert_eq(body.get_icon_center(), Vector2.ZERO)
 
 
 func test_アイコンは無しにもできる():
-	body.setup([Vector2i(0, 0)])
+	body.setup([Vector2i(0, 0)], Color.RED)
 	body.set_icon(ICON)
 	body.set_icon(null)
 

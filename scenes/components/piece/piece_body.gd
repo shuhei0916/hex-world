@@ -2,16 +2,14 @@
 class_name PieceBody
 extends Node2D
 ## 設置物の本体（shapez の建物のような見た目）。占めるマスを合わせた1つの形を、
-## マスの縁より INSET だけ内側に縮めて角を丸め、薄い灰色の地を濃い線で縁取って描く。
-## 種類は色ではなく、中央のアイコン（機械なら作っている品物）で示す。
+## マスの縁より INSET だけ内側に縮めて角を丸め、種類ごとの色で塗って濃い線で縁取る。
+## 中央には、機械なら作っている品物のアイコンを出す。
 ## 地面（床や鉱床）はマス全体を塗るので、縁のすき間から地面がのぞく。
 
 ## マスの縁から本体の縁までの距離（ピクセル）
 const INSET := 3.0
 ## 角の丸みの半径
 const CORNER_RADIUS := 9.0
-## 本体の地の色。品目のアイコン（assets/items）やベルトと同じ系統の薄い灰色
-const FILL_COLOR := Color("#cdd3da")
 ## 縁取りの色と太さ。品目のアイコンの線と同じ色
 const OUTLINE_COLOR := Color("#3c4652")
 const OUTLINE_WIDTH := 3.5
@@ -20,12 +18,14 @@ const ICON_SIZE := 40.0
 const ICON_ALPHA := 0.9
 
 var _outline := PackedVector2Array()
+var _fill_color := Color.WHITE
 var _icon: Texture2D = null
 var _icon_center := Vector2.ZERO
 
 
-## hexes（ピースの中の座標）を合わせた形の本体にする。
-func setup(hexes: Array) -> void:
+## hexes（ピースの中の座標）を合わせた形の本体にし、color（種類ごとの色）で塗る。
+func setup(hexes: Array, color: Color) -> void:
+	_fill_color = color
 	var layout := Layout.make_default()
 	_outline = _rounded_inset(HexShape.union_outline(layout, hexes))
 	_icon_center = _center_hex_position(layout, hexes)
@@ -33,7 +33,7 @@ func setup(hexes: Array) -> void:
 
 
 func get_fill_color() -> Color:
-	return FILL_COLOR
+	return _fill_color
 
 
 ## 描いている本体の輪郭（最初の頂点には戻らない）
@@ -88,7 +88,7 @@ static func _rounded_inset(outline: PackedVector2Array) -> PackedVector2Array:
 func _draw() -> void:
 	if _outline.size() < 3:
 		return
-	draw_colored_polygon(_outline, FILL_COLOR)
+	draw_colored_polygon(_outline, _fill_color)
 	var closed := _outline.duplicate()
 	closed.append(_outline[0])
 	draw_polyline(closed, OUTLINE_COLOR, OUTLINE_WIDTH, true)

@@ -16,9 +16,20 @@ func run(scene: Node) -> void:
 	print("鉱床: ", deposits)
 	if deposits.is_empty():
 		return
-	chunk.place_piece(MINER, deposits[0], 0)
-	print("Miner を置けたか: ", chunk.get_piece_at_hex(deposits[0]) != null)
-	scene.camera.position = chunk.hex_to_pixel(deposits[0])
+	# place_piece は置けるかを確かめないので、ハブなどに重ならない鉱床を選ぶ
+	var probe: Piece = MINER.instantiate()
+	var shape := probe.get_hex_shape()
+	probe.free()
+	var target = null
+	for hex in deposits:
+		if chunk.can_place(shape, hex):
+			target = hex
+			break
+	print("Miner を置く鉱床: ", target)
+	if target == null:
+		return
+	chunk.place_piece(MINER, target, 0)
+	scene.camera.position = chunk.hex_to_pixel(target)
 	scene.camera.zoom = Vector2(2.0, 2.0)
 	for i in 10:
 		await scene.get_tree().process_frame

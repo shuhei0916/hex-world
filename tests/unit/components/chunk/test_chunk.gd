@@ -86,12 +86,12 @@ class TestPiecePlacement:
 		assert_false(gm.is_occupied(Vector2i(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
 
-	func test_配置すると本体が1つ生成される():
+	func test_配置するとピースの色で本体が1つ生成される():
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var bodies = piece.get_children().filter(func(c): return c is PieceBody)
 		assert_eq(bodies.size(), 1)
-		assert_eq(bodies[0].get_fill_color(), PieceBody.FILL_COLOR)
+		assert_eq(bodies[0].get_fill_color(), piece.piece_color)
 
 	func test_機械の本体には作っている品物のアイコンが出る():
 		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
