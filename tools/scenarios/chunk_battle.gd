@@ -11,13 +11,13 @@ const CONVEYOR_SLOT := 0
 
 func run(scene: Node) -> void:
 	var view: WorldMapView = scene.world_map_view
-	var east = Hex.new(1, 0)
-	var far = Hex.new(2, 0)
+	var east = Vector2i(1, 0)
+	var far = Vector2i(2, 0)
 	# ヘッドレスの画面は 64x64 で、戦闘のボタンが盤面に重なってクリックを受けてしまうので広げる
 	scene.get_window().size = Vector2i(1280, 720)
 	scene._enter_world_map_mode()
 	await scene.get_tree().process_frame
-	for hex in [Hex.new(0, 0), east, far]:
+	for hex in [Vector2i(0, 0), east, far]:
 		view.set_hovered_chunk(hex)
 		print(
 			(
@@ -56,7 +56,7 @@ func run(scene: Node) -> void:
 			"[overlap] player view at %s, chunk tile at %s"
 			% [
 				player_view.global_position,
-				chunk.to_global(chunk.hex_to_pixel(BattleHex.to_hex(battle.player.position))),
+				chunk.to_global(chunk.hex_to_pixel(battle.player.position)),
 			]
 		)
 	)
@@ -104,7 +104,7 @@ func run(scene: Node) -> void:
 	# 勝ったあと、同じ画面のままコンベアを置ける
 	scene.hud.slot_buttons[CONVEYOR_SLOT].button_pressed = true
 	scene.hud.on_slot_pressed(CONVEYOR_SLOT)
-	var spot = Hex.new(0, 3)
+	var spot = Vector2i(0, 3)
 	scene._hover_local(chunk.hex_to_pixel(spot))
 	scene.piece_placer.place_current_piece()
 	print("[build] piece at %s: %s" % [spot, chunk.get_piece_at_hex(spot) != null])
@@ -134,11 +134,11 @@ func _is_open(scene: Node) -> bool:
 	return scene.battle_overlay.is_open()
 
 
-func _owned(scene: Node, hex: Hex) -> bool:
+func _owned(scene: Node, hex: Vector2i) -> bool:
 	return scene.world.territory.is_owned(hex)
 
 
-func _tile_screen_pos(scene: Node, hex: Hex) -> Vector2:
+func _tile_screen_pos(scene: Node, hex: Vector2i) -> Vector2:
 	var view: WorldMapView = scene.world_map_view
 	var world_pos = view.to_global(view.get_tile_position(hex))
 	return scene.get_viewport().get_canvas_transform() * world_pos
@@ -146,7 +146,7 @@ func _tile_screen_pos(scene: Node, hex: Hex) -> Vector2:
 
 # 戦場のマスの、画面上の位置
 func _hex_screen_pos(scene: Node, battle_scene: BattleScene, hex: Vector2i) -> Vector2:
-	var world_pos = battle_scene.to_global(BattleHex.to_pixel(hex, BattleScene.HEX_SIZE))
+	var world_pos = battle_scene.to_global(Hex.to_pixel(hex, BattleScene.HEX_SIZE))
 	return scene.get_viewport().get_canvas_transform() * world_pos
 
 

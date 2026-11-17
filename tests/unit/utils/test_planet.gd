@@ -10,11 +10,11 @@ class TestChunkLayout:
 
 	func test_半径内のhexはplanetのchunkである():
 		var planet = Planet.new(2, 1)
-		assert_true(planet.has_chunk(Hex.new(2, -1)))
+		assert_true(planet.has_chunk(Vector2i(2, -1)))
 
 	func test_半径外のhexはplanetのchunkではない():
 		var planet = Planet.new(2, 1)
-		assert_false(planet.has_chunk(Hex.new(3, 0)))
+		assert_false(planet.has_chunk(Vector2i(3, 0)))
 
 
 class TestBiomeAssignment:
@@ -27,12 +27,12 @@ class TestBiomeAssignment:
 
 	func test_planet外のhexのバイオームは空文字():
 		var planet = Planet.new(2, 1)
-		assert_eq(planet.get_biome_id(Hex.new(3, 0)), "")
+		assert_eq(planet.get_biome_id(Vector2i(3, 0)), "")
 
 	func test_原点chunkは必ず平原になる():
 		for seed_val in range(10):
 			var planet = Planet.new(4, seed_val)
-			assert_eq(planet.get_biome_id(Hex.new(0, 0)), Biome.PLAINS, "seed=%d" % seed_val)
+			assert_eq(planet.get_biome_id(Vector2i(0, 0)), Biome.PLAINS, "seed=%d" % seed_val)
 
 	func test_同じシードなら同じバイオーム配置になる():
 		assert_eq(_biome_map(Planet.new(4, 42)), _biome_map(Planet.new(4, 42)))
@@ -88,28 +88,28 @@ class TestBiomeAssignment:
 	func _biome_map(planet: Planet) -> Dictionary:
 		var result = {}
 		for hex in planet.get_chunk_hexes():
-			result[Hex.to_key(hex)] = planet.get_biome_id(hex)
+			result[hex] = planet.get_biome_id(hex)
 		return result
 
-	func _region_hexes(planet: Planet, region: int) -> Array[Hex]:
-		var result: Array[Hex] = []
+	func _region_hexes(planet: Planet, region: int) -> Array[Vector2i]:
+		var result: Array[Vector2i] = []
 		for hex in planet.get_chunk_hexes():
 			if planet.get_region_id(hex) == region:
 				result.append(hex)
 		return result
 
-	func _is_connected(hexes: Array[Hex]) -> bool:
+	func _is_connected(hexes: Array[Vector2i]) -> bool:
 		if hexes.is_empty():
 			return false
 		var remaining = {}
 		for hex in hexes:
-			remaining[Hex.to_key(hex)] = hex
-		var stack: Array[Hex] = [hexes[0]]
-		remaining.erase(Hex.to_key(hexes[0]))
+			remaining[hex] = hex
+		var stack: Array[Vector2i] = [hexes[0]]
+		remaining.erase(hexes[0])
 		while not stack.is_empty():
 			var current = stack.pop_back()
 			for dir in range(6):
-				var key = Hex.to_key(Hex.neighbor(current, dir))
+				var key = Hex.neighbor(current, dir)
 				if key in remaining:
 					stack.append(remaining[key])
 					remaining.erase(key)

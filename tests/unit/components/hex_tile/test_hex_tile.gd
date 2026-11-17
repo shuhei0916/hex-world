@@ -7,7 +7,7 @@ var hex_tile: HexTile
 func before_each():
 	hex_tile = HexTileScene.instantiate()
 	add_child_autofree(hex_tile)
-	hex_tile.setup_hex(Hex.new(0, 0))
+	hex_tile.setup_hex(Vector2i(0, 0))
 
 
 func test_床は戦闘の盤面と同じ色で塗る():

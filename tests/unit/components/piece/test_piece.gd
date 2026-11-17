@@ -98,13 +98,13 @@ class TestPieceTransformation:
 	func test_回転前のピースの形状を取得できる():
 		var result = p.get_hex_shape()
 		assert_eq(result.size(), 4)
-		assert_true(Hex.equals(result[0], Hex.new(-1, 0, 1)))
-		assert_true(Hex.equals(result[1], Hex.new(0, 0, 0)))
+		assert_true(result[0] == Vector2i(-1, 0))
+		assert_true(result[1] == Vector2i(0, 0))
 
 	func test_回転後のピースの形状を取得できる():
 		p.rotate_cw()
 		var result = p.get_hex_shape()
-		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
+		assert_true(result[0] == Vector2i(0, -1))
 
 	func test_機械の出力アイテムは出力ポート端に表示される():
 		var s = SMELTER_SCENE.instantiate()
@@ -118,7 +118,7 @@ class TestPieceTransformation:
 		var layout = Layout.make_default()
 		var expected = (
 			Layout.hex_to_pixel(layout, port.hex)
-			+ Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
+			+ Layout.hex_to_pixel(layout, Hex.DIRECTIONS[port.direction]) * 0.5
 		)
 		assert_eq(visual.get_node("ItemIcon").position, expected)
 

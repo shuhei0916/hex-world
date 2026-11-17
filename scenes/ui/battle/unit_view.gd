@@ -34,7 +34,7 @@ func _init() -> void:
 
 ## ユニットの現在の位置とHPを表示に反映する。
 func refresh(hex_size: float) -> void:
-	position = BattleHex.to_pixel(unit.position, hex_size)
+	position = Hex.to_pixel(unit.position, hex_size)
 	modulate = Color.WHITE
 	show_hp(unit.hp)
 	show_block(unit.block)

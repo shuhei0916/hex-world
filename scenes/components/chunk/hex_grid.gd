@@ -2,40 +2,40 @@ class_name HexGrid
 extends RefCounted
 
 # HexGrid - 論理グリッド状態のみを管理する
-# 登録済み座標と占有済み座標を辞書で保持し、クエリと変更を提供する
+# 登録済みのマスと占有済みのマスを集合（値が true の辞書）で持ち、クエリと変更を提供する
 
-var _registered_hexes: Dictionary = {}
-var _occupied_hexes: Dictionary = {}
-
-
-func register_grid_hex(hex: Hex):
-	_registered_hexes[hex_to_key(hex)] = hex
+var _registered_hexes: Dictionary[Vector2i, bool] = {}
+var _occupied_hexes: Dictionary[Vector2i, bool] = {}
 
 
-func is_inside_grid(hex: Hex) -> bool:
-	return _registered_hexes.has(hex_to_key(hex))
+func register_grid_hex(hex: Vector2i):
+	_registered_hexes[hex] = true
 
 
-func is_occupied(hex: Hex) -> bool:
-	return _occupied_hexes.has(hex_to_key(hex))
+func is_inside_grid(hex: Vector2i) -> bool:
+	return _registered_hexes.has(hex)
 
 
-func occupy(hex: Hex):
-	_occupied_hexes[hex_to_key(hex)] = hex
+func is_occupied(hex: Vector2i) -> bool:
+	return _occupied_hexes.has(hex)
 
 
-func unoccupy(hex: Hex):
-	_occupied_hexes.erase(hex_to_key(hex))
+func occupy(hex: Vector2i):
+	_occupied_hexes[hex] = true
 
 
-func occupy_many(hexes: Array[Hex]):
+func unoccupy(hex: Vector2i):
+	_occupied_hexes.erase(hex)
+
+
+func occupy_many(hexes: Array[Vector2i]):
 	for hex in hexes:
 		occupy(hex)
 
 
-func can_place(shape: Array, base_hex: Hex) -> bool:
+func can_place(shape: Array, base_hex: Vector2i) -> bool:
 	for offset in shape:
-		var target = Hex.add(base_hex, offset)
+		var target = base_hex + offset
 		if not is_inside_grid(target):
 			return false
 		if is_occupied(target):
@@ -46,7 +46,3 @@ func can_place(shape: Array, base_hex: Hex) -> bool:
 func clear_grid():
 	_registered_hexes.clear()
 	_occupied_hexes.clear()
-
-
-func hex_to_key(hex: Hex) -> String:
-	return Hex.to_key(hex)

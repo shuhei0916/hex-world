@@ -1,187 +1,190 @@
 extends GutTest
 
+## ヘックスの座標は軸座標（q, r）を Vector2i(q, r) で持つ。
+## 足し算・引き算・比較は Vector2i の演算子をそのまま使い、Hex はヘックスならではの計算だけを持つ。
 
-# 基本構造とデータ型テスト
-class TestHexBasics:
+
+class TestCoordinates:
 	extends GutTest
 
-	func test_hex座標の制約をチェックできる():
-		var valid_hex = Hex.new(1, -2, 1)
-		assert_true(valid_hex.is_valid())
+	func test_3つ目の座標sは_qとrを足して符号を変えたもの():
+		assert_eq(Hex.s(Vector2i(1, 2)), -3)
+		assert_eq(Hex.s(Vector2i(0, 0)), 0)
 
-		var invalid_hex = Hex.new(1, 1, 1)
-		assert_false(invalid_hex.is_valid())
+	func test_座標を左回転できる():
+		assert_eq(Hex.rotate_left(Vector2i(1, -3)), Vector2i(-2, -1))
 
-	func test_vector2を使用できる():
-		var point = Vector2(3.5, -2.1)
-		assert_almost_eq(point.x, 3.5, 0.001)
-		assert_almost_eq(point.y, -2.1, 0.001)
+	func test_座標を右回転できる():
+		assert_eq(Hex.rotate_right(Vector2i(1, -3)), Vector2i(3, -2))
+
+	func test_右に6回まわすと元に戻る():
+		var hex := Vector2i(2, -5)
+		var rotated := hex
+		for i in range(6):
+			rotated = Hex.rotate_right(rotated)
+		assert_eq(rotated, hex)
+
+	func test_ずれを右回りに指定した回数だけ回転できる():
+		assert_eq(Hex.from_offset_rotated(Vector2i(1, -3), 0), Vector2i(1, -3))
+		assert_eq(Hex.from_offset_rotated(Vector2i(1, -3), 1), Vector2i(3, -2))
+		assert_eq(Hex.from_offset_rotated(Vector2i(1, -3), 2), Hex.rotate_right(Vector2i(3, -2)))
 
 
-# 算術演算テスト
-class TestArithmetic:
+class TestDirections:
 	extends GutTest
 
-	func test_hex座標を加算できる():
-		var hex_a = Hex.new(1, -3, 2)
-		var hex_b = Hex.new(3, -7, 4)
-		var expected = Hex.new(4, -10, 6)
-		var result = Hex.add(hex_a, hex_b)
-		assert_true(Hex.equals(result, expected))
+	func test_指定方向のベクトルを取得できる():
+		assert_eq(Hex.direction(2), Vector2i(0, -1))
 
-	func test_hex座標を減算できる():
-		var hex_a = Hex.new(1, -3, 2)
-		var hex_b = Hex.new(3, -7, 4)
-		var expected = Hex.new(-2, 4, -2)
-		var result = Hex.subtract(hex_a, hex_b)
-		assert_true(Hex.equals(result, expected))
+	func test_方向は東から反時計回りに6つ並ぶ():
+		var names = Hex.DIR_NAME_TO_INDEX
+		assert_eq(Hex.direction(names["E"]), Vector2i(1, 0))
+		assert_eq(Hex.direction(names["NE"]), Vector2i(1, -1))
+		assert_eq(Hex.direction(names["NW"]), Vector2i(0, -1))
+		assert_eq(Hex.direction(names["W"]), Vector2i(-1, 0))
+		assert_eq(Hex.direction(names["SW"]), Vector2i(-1, 1))
+		assert_eq(Hex.direction(names["SE"]), Vector2i(0, 1))
 
-	func test_hex座標をスケールできる():
-		var hex_a = Hex.new(2, -3, 1)
-		var k = 3
-		var expected = Hex.new(6, -9, 3)
-		var result = Hex.scale(hex_a, k)
-		assert_true(Hex.equals(result, expected))
+	func test_指定方向の隣のマスを取得できる():
+		assert_eq(Hex.neighbor(Vector2i(1, -2), 2), Vector2i(1, -3))
 
-	func test_同じ座標のhexは等価である():
-		var hex_a = Hex.new(1, -2, 1)
-		var hex_b = Hex.new(1, -2, 1)
-		assert_true(Hex.equals(hex_a, hex_b))
+	func test_指定方向の対角の隣のマスを取得できる():
+		assert_eq(Hex.diagonal_neighbor(Vector2i(1, -2), 3), Vector2i(-1, -1))
 
-	func test_異なる座標のhexは等価ではない():
-		var hex_a = Hex.new(1, -2, 1)
-		var hex_c = Hex.new(2, -3, 1)
-		assert_false(Hex.equals(hex_a, hex_c))
+	func test_隣接する6マスを返す():
+		var neighbors := Hex.neighbors(Vector2i(0, 0))
 
-	func test_hex座標を左回転できる():
-		var hex_a = Hex.new(1, -3, 2)
-		var expected = Hex.new(-2, -1, 3)
-		var result = Hex.rotate_left(hex_a)
-		assert_true(Hex.equals(result, expected))
+		assert_eq(neighbors.size(), 6)
+		for expected in [
+			Vector2i(1, 0),
+			Vector2i(1, -1),
+			Vector2i(0, -1),
+			Vector2i(-1, 0),
+			Vector2i(-1, 1),
+			Vector2i(0, 1),
+		]:
+			assert_has(neighbors, expected)
 
-	func test_hex座標を右回転できる():
-		var hex_a = Hex.new(1, -3, 2)
-		var expected = Hex.new(3, -2, -1)
-		var result = Hex.rotate_right(hex_a)
-		assert_true(Hex.equals(result, expected), "hex_rotate_right should return correct result")
+	func test_隣のマスへの方向の番号を取得できる():
+		var center := Vector2i(0, 0)
+		for i in range(6):
+			assert_eq(Hex.get_direction_to(center, Hex.direction(i)), i)
+
+	func test_隣接していないマスへの方向は無い():
+		assert_eq(Hex.get_direction_to(Vector2i(0, 0), Vector2i(10, 10)), -1)
 
 
-# 方向・隣接システムテスト
-class TestHexDirections:
+class TestDistance:
 	extends GutTest
 
-	func test_指定方向のhexベクトルを取得できる():
-		var expected = Hex.new(0, -1, 1)
-		var result = Hex.direction(2)
-		assert_true(Hex.equals(result, expected))
+	func test_原点からの長さを計算できる():
+		assert_eq(Hex.length(Vector2i(3, -7)), 7)
 
-	func test_指定方向の隣接hexを取得できる():
-		var hex_center = Hex.new(1, -2, 1)
-		var direction = 2
-		var expected = Hex.new(1, -3, 2)
-		var result = Hex.neighbor(hex_center, direction)
-		assert_true(Hex.equals(result, expected))
+	func test_同じマスの距離は0():
+		assert_eq(Hex.distance(Vector2i(2, -1), Vector2i(2, -1)), 0)
 
-	func test_指定方向の対角隣接hexを取得できる():
-		var hex_center = Hex.new(1, -2, 1)
-		var direction = 3
-		var expected = Hex.new(-1, -1, 2)
-		var result = Hex.diagonal_neighbor(hex_center, direction)
-		assert_true(Hex.equals(result, expected))
+	func test_隣接マスの距離は1():
+		for neighbor in Hex.neighbors(Vector2i(3, 4)):
+			assert_eq(Hex.distance(Vector2i(3, 4), neighbor), 1)
 
-	func test_文字列から方向ベクトルを取得できる():
-		var result = Hex.direction_by_name("E")
-		var expected = Hex.new(1, 0, -1)
-		assert_true(Hex.equals(result, expected))
+	func test_離れたマスの距離を返す():
+		assert_eq(Hex.distance(Vector2i(3, -7), Vector2i(0, 0)), 7)
+		assert_eq(Hex.distance(Vector2i(0, 0), Vector2i(3, -1)), 3)
+		assert_eq(Hex.distance(Vector2i(0, 0), Vector2i(2, 2)), 4)
+		assert_eq(Hex.distance(Vector2i(-2, 1), Vector2i(1, -3)), 4)
 
-	func test_2つのHex間の方向インデックスを取得できる():
-		var center = Hex.new(0, 0, 0)
-		var dirs = Hex.DIR_NAME_TO_INDEX
-		assert_eq(Hex.get_direction_to(center, Hex.new(1, 0, -1)), dirs["E"], "東")
-		assert_eq(Hex.get_direction_to(center, Hex.new(1, -1, 0)), dirs["NE"], "北東")
-		assert_eq(Hex.get_direction_to(center, Hex.new(0, -1, 1)), dirs["NW"], "北西")
-		assert_eq(Hex.get_direction_to(center, Hex.new(-1, 0, 1)), dirs["W"], "西")
-		assert_eq(Hex.get_direction_to(center, Hex.new(-1, 1, 0)), dirs["SW"], "南西")
-		assert_eq(Hex.get_direction_to(center, Hex.new(0, 1, -1)), dirs["SE"], "南東")
+	func test_半径0の範囲は中心のみ():
+		assert_eq(Hex.within(Vector2i(2, 3), 0), [Vector2i(2, 3)])
 
-		# 隣接していない場合
-		assert_eq(Hex.get_direction_to(center, Hex.new(10, 10)), -1, "隣接していなければ-1")
+	func test_半径2の範囲は距離2以内の19マス():
+		var center := Vector2i(1, -2)
+
+		var hexes := Hex.within(center, 2)
+
+		assert_eq(hexes.size(), 19)
+		for hex in hexes:
+			assert_lte(Hex.distance(center, hex), 2)
+		assert_has(hexes, center)
+		assert_has(hexes, Vector2i(3, -2))
 
 
-# 距離・補間システムテスト
-class TestHexDistance:
+class TestRoundAndLine:
 	extends GutTest
 
-	func test_hex座標の長さを計算できる():
-		var hex_a = Hex.new(3, -7, 4)
-		var expected = 7
-		var result = Hex.length(hex_a)
-		assert_eq(result, expected)
+	func test_小数の座標をいちばん近いマスに丸められる():
+		assert_eq(Hex.round(Vector2(5.0, -10.0)), Vector2i(5, -10))
+		assert_eq(Hex.round(Vector2(1.1, -0.2)), Vector2i(1, 0))
+		assert_eq(Hex.round(Vector2(0.2, 0.1)), Vector2i(0, 0))
 
-	func test_hex間の距離を計算できる():
-		var hex_a = Hex.new(3, -7, 4)
-		var hex_b = Hex.new(0, 0, 0)
-		var expected = 7
-		var result = Hex.distance(hex_a, hex_b)
-		assert_eq(result, expected)
+	func test_同じマスへの直線はそのマスのみ():
+		assert_eq(Hex.line(Vector2i(1, 1), Vector2i(1, 1)), [Vector2i(1, 1)])
 
-	func test_hex座標を整数に丸められる():
-		var hex_float = Hex.new(5.0, -10.0, 5.0)
-		var expected = Hex.new(5, -10, 5)
-		var result = Hex.round(hex_float)
-		assert_true(Hex.equals(result, expected))
-
-	func test_hex座標を線形補間できる():
-		var hex_a = Hex.new(0, 0, 0)
-		var hex_b = Hex.new(10, -20, 10)
-		var t = 0.5
-		var expected = Hex.new(5.0, -10.0, 5.0)
-		var result = Hex.lerp(hex_a, hex_b, t)
-		assert_almost_eq(result.q, expected.q, 0.001)
-		assert_almost_eq(result.r, expected.r, 0.001)
-		assert_almost_eq(result.s, expected.s, 0.001)
-
-	func test_hex間の線を描画できる():
-		var hex_a = Hex.new(0, 0, 0)
-		var hex_b = Hex.new(1, -5, 4)
-		var result = Hex.linedraw(hex_a, hex_b)
-		var expected = [
-			Hex.new(0, 0, 0),
-			Hex.new(0, -1, 1),
-			Hex.new(0, -2, 2),
-			Hex.new(1, -3, 2),
-			Hex.new(1, -4, 3),
-			Hex.new(1, -5, 4)
-		]
+	func test_軸に沿った直線を返す():
 		assert_eq(
-			result.size(), expected.size(), "hex_linedraw should return correct number of hexes"
+			Hex.line(Vector2i(0, 0), Vector2i(3, 0)),
+			[Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
 		)
-		for i in range(result.size()):
-			assert_true(
-				Hex.equals(result[i], expected[i]),
-				"hex_linedraw point " + str(i) + " should be correct"
-			)
+
+	func test_斜めの直線を返す():
+		assert_eq(
+			Hex.line(Vector2i(0, 0), Vector2i(1, -5)),
+			[
+				Vector2i(0, 0),
+				Vector2i(0, -1),
+				Vector2i(0, -2),
+				Vector2i(1, -3),
+				Vector2i(1, -4),
+				Vector2i(1, -5),
+			]
+		)
+
+	func test_斜めの直線は両端を含み隣接マスでつながる():
+		var from := Vector2i(-2, 1)
+		var to := Vector2i(2, -4)
+
+		var line := Hex.line(from, to)
+
+		assert_eq(line.size(), Hex.distance(from, to) + 1)
+		assert_eq(line.front(), from)
+		assert_eq(line.back(), to)
+		for i in range(1, line.size()):
+			assert_eq(Hex.distance(line[i - 1], line[i]), 1)
 
 
-# 2引数コンストラクタテスト
-class TestHexTwoArgConstructor:
+class TestPixel:
 	extends GutTest
 
-	var test_hex: Hex
+	func test_原点のマスは画面座標の原点になる():
+		assert_eq(Hex.to_pixel(Vector2i(0, 0), 32.0), Vector2.ZERO)
 
-	func before_all():
-		test_hex = Hex.new(1, 2)
+	func test_q方向の隣は横に幅ひとつ分ずれる():
+		var pixel := Hex.to_pixel(Vector2i(1, 0), 32.0)
 
-	func test_2引数コンストラクタでs値が自動計算される():
-		assert_eq(test_hex.s, -3)
+		assert_almost_eq(pixel, Vector2(32.0 * sqrt(3.0), 0.0), Vector2(0.001, 0.001))
 
-	func test_2引数と3引数コンストラクタが同等である():
-		var hex2 = Hex.new(2, -1)
-		var hex3 = Hex.new(2, -1, -1)
-		assert_true(Hex.equals(hex2, hex3))
+	func test_r方向の隣は半マス右の一段下にずれる():
+		var pixel := Hex.to_pixel(Vector2i(0, 1), 32.0)
+
+		assert_almost_eq(pixel, Vector2(16.0 * sqrt(3.0), 48.0), Vector2(0.001, 0.001))
+
+	func test_マスの中心の画面座標は元のマスに戻る():
+		for hex in Hex.within(Vector2i(0, 0), 3):
+			assert_eq(Hex.from_pixel(Hex.to_pixel(hex, 32.0), 32.0), hex)
+
+	func test_中心から少しずれた画面座標も同じマスになる():
+		var center := Hex.to_pixel(Vector2i(2, -1), 32.0)
+
+		assert_eq(Hex.from_pixel(center + Vector2(10.0, -12.0), 32.0), Vector2i(2, -1))
+		assert_eq(Hex.from_pixel(center + Vector2(-20.0, 5.0), 32.0), Vector2i(2, -1))
+
+	func test_画面上の位置は標準のレイアウトの位置と一致する():
+		var layout := Layout.make_default()
+		for hex in [Vector2i(0, 0), Vector2i(3, -1), Vector2i(-2, 5), Vector2i(-4, 2)]:
+			var expected: Vector2 = Layout.hex_to_pixel(layout, hex)
+			var actual := Hex.to_pixel(hex, layout.size.x)
+			assert_almost_eq(actual, expected, Vector2(0.001, 0.001), str(hex))
 
 
-# レイアウト・ピクセル変換テスト
 class TestLayout:
 	extends GutTest
 
@@ -190,21 +193,25 @@ class TestLayout:
 		assert_eq(layout.size, Vector2(42.0, 42.0))
 		assert_eq(layout.origin, Vector2.ZERO)
 
-	func test_hexとピクセル座標を相互変換できる():
-		var h = Hex.new(3, 4, -7)
+	func test_マスとピクセル座標を相互変換できる():
+		var h := Vector2i(3, 4)
 
-		# flat orientation layout
 		var flat = Layout.new(Layout.layout_flat, Vector2(10.0, 15.0), Vector2(35.0, 71.0))
-		var flat_result = Layout.pixel_to_hex_rounded(flat, Layout.hex_to_pixel(flat, h))
-		assert_true(
-			Hex.equals(h, flat_result),
-			"Layout flat orientation roundtrip should preserve hex coordinates"
+		assert_eq(Layout.pixel_to_hex_rounded(flat, Layout.hex_to_pixel(flat, h)), h)
+
+		var pointy = Layout.new(Layout.layout_pointy, Vector2(10.0, 15.0), Vector2(35.0, 71.0))
+		assert_eq(Layout.pixel_to_hex_rounded(pointy, Layout.hex_to_pixel(pointy, h)), h)
+
+	func test_ピクセル座標から小数のマスの座標を求められる():
+		var layout = Layout.make_default()
+		var between = (
+			(
+				Layout.hex_to_pixel(layout, Vector2i(0, 0))
+				+ Layout.hex_to_pixel(layout, Vector2i(1, 0))
+			)
+			* 0.5
 		)
 
-		# pointy orientation layout
-		var pointy = Layout.new(Layout.layout_pointy, Vector2(10.0, 15.0), Vector2(35.0, 71.0))
-		var pointy_result = Layout.pixel_to_hex_rounded(pointy, Layout.hex_to_pixel(pointy, h))
-		assert_true(
-			Hex.equals(h, pointy_result),
-			"Layout pointy orientation roundtrip should preserve hex coordinates"
-		)
+		var fractional: Vector2 = Layout.pixel_to_hex_fractional(layout, between)
+
+		assert_almost_eq(fractional, Vector2(0.5, 0.0), Vector2(0.001, 0.001))

@@ -14,7 +14,7 @@ const FOG_COLOR := Color("#1d2026")
 const FOG_TEXT := "未踏"
 const CHALLENGE_TEXT := "戦って解放"
 
-var _tiles: Dictionary = {}  # Hex.to_key → ChunkTile
+var _tiles: Dictionary = {}  # chunk の座標 → ChunkTile
 var _active_hex = null
 var _hovered_hex = null
 var _map_layout: Layout
@@ -46,7 +46,7 @@ func setup(world: World) -> void:
 		tile.set_inradius(tile_inradius)
 		tile.position = Layout.hex_to_pixel(_map_layout, hex)
 		add_child(tile)
-		_tiles[Hex.to_key(hex)] = tile
+		_tiles[hex] = tile
 
 	_info_label = Label.new()
 	_info_label.size = INFO_LABEL_SIZE
@@ -57,7 +57,7 @@ func setup(world: World) -> void:
 	add_child(_info_label)
 
 
-func _tile_color(hex: Hex) -> Color:
+func _tile_color(hex: Vector2i) -> Color:
 	var biome = _planet.get_biome(hex) if _planet else null
 	if biome == null:
 		return ChunkTileScript.NORMAL_COLOR
@@ -69,7 +69,7 @@ func _tile_color(hex: Hex) -> Color:
 
 
 # 霧に隠れている chunk（所有しておらず、所有している chunk の隣でもない）
-func _is_fogged(hex: Hex) -> bool:
+func _is_fogged(hex: Vector2i) -> bool:
 	return (
 		_planet != null
 		and not _world.territory.is_owned(hex)
@@ -77,27 +77,27 @@ func _is_fogged(hex: Hex) -> bool:
 	)
 
 
-func set_active_chunk(chunk_hex: Hex) -> void:
+func set_active_chunk(chunk_hex: Vector2i) -> void:
 	if _active_hex != null:
-		var prev = _tiles.get(Hex.to_key(_active_hex))
+		var prev = _tiles.get(_active_hex)
 		if prev:
 			prev.set_active(false)
 	_active_hex = chunk_hex
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	var tile = _tiles.get(chunk_hex)
 	if tile:
 		tile.set_active(true)
 
 
 func set_hovered_chunk(chunk_hex) -> void:
 	if _hovered_hex != null:
-		var prev = _tiles.get(Hex.to_key(_hovered_hex))
+		var prev = _tiles.get(_hovered_hex)
 		if prev:
 			prev.set_hovered(false)
 	_hovered_hex = chunk_hex
 	_update_info_label()
 	if chunk_hex == null:
 		return
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	var tile = _tiles.get(chunk_hex)
 	if tile:
 		tile.set_hovered(true)
 
@@ -113,7 +113,7 @@ func _update_info_label() -> void:
 
 
 func _info_text(hex) -> String:
-	var biome = _planet.get_biome(hex) if _planet and hex else null
+	var biome = _planet.get_biome(hex) if _planet and hex != null else null
 	if biome == null:
 		return ""
 	if _is_fogged(hex):
@@ -130,13 +130,13 @@ func get_hover_info_text() -> String:
 	return _info_label.text if _info_label else ""
 
 
-func get_tile_color(chunk_hex: Hex) -> Color:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_color(chunk_hex: Vector2i) -> Color:
+	var tile = _tiles.get(chunk_hex)
 	return tile.get_current_color() if tile else Color.TRANSPARENT
 
 
-func get_tile_hovered(chunk_hex: Hex) -> bool:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_hovered(chunk_hex: Vector2i) -> bool:
+	var tile = _tiles.get(chunk_hex)
 	return tile.is_hovered if tile else false
 
 
@@ -149,18 +149,18 @@ func get_tile_spacing() -> float:
 	return Layout.hex_to_pixel(_map_layout, Hex.direction(0)).length()
 
 
-func get_tile_inradius(chunk_hex: Hex) -> float:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_inradius(chunk_hex: Vector2i) -> float:
+	var tile = _tiles.get(chunk_hex)
 	return tile.get_inradius() if tile else 0.0
 
 
-func get_tile_position(chunk_hex: Hex) -> Vector2:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_position(chunk_hex: Vector2i) -> Vector2:
+	var tile = _tiles.get(chunk_hex)
 	return tile.position if tile else Vector2.ZERO
 
 
-func get_tile_active(chunk_hex: Hex) -> bool:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_active(chunk_hex: Vector2i) -> bool:
+	var tile = _tiles.get(chunk_hex)
 	return tile.is_active if tile else false
 
 
@@ -178,8 +178,8 @@ func refresh_connections(pairs: Array) -> void:
 		arrow.queue_free()
 	_connection_arrows.clear()
 	for pair in pairs:
-		var from_tile = _tiles.get(Hex.to_key(pair[0]))
-		var to_tile = _tiles.get(Hex.to_key(pair[1]))
+		var from_tile = _tiles.get(pair[0])
+		var to_tile = _tiles.get(pair[1])
 		if from_tile == null or to_tile == null:
 			continue
 		var arrow = Sprite2D.new()
@@ -193,7 +193,7 @@ func refresh_connections(pairs: Array) -> void:
 
 func chunk_at_local_pos(local_pos: Vector2):
 	var hex = Layout.pixel_to_hex_rounded(_map_layout, local_pos)
-	var key = Hex.to_key(hex)
+	var key = hex
 	if key in _tiles:
 		return hex
 	return null

@@ -40,12 +40,12 @@ static func make_default() -> Layout:
 	return Layout.new(layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
 
 
-static func hex_to_pixel(layout: Layout, h: Hex) -> Vector2:
+static func hex_to_pixel(layout: Layout, h: Vector2i) -> Vector2:
 	var matrix = layout.orientation
 	var size = layout.size
 	var origin = layout.origin
-	var x = (matrix.f0 * h.q + matrix.f1 * h.r) * size.x
-	var y = (matrix.f2 * h.q + matrix.f3 * h.r) * size.y
+	var x = (matrix.f0 * h.x + matrix.f1 * h.y) * size.x
+	var y = (matrix.f2 * h.x + matrix.f3 * h.y) * size.y
 	return Vector2(x + origin.x, y + origin.y)
 
 
@@ -59,19 +59,20 @@ static func hex_to_pixel(layout: Layout, h: Hex) -> Vector2:
 #     return Hex(q, r, -q - r)
 
 
-static func pixel_to_hex_fractional(layout: Layout, p: Vector2) -> Hex:
+# 小数の軸座標を Vector2(q, r) で返す
+static func pixel_to_hex_fractional(layout: Layout, p: Vector2) -> Vector2:
 	var matrix = layout.orientation
 	var size = layout.size
 	var origin = layout.origin
 	var pt = Vector2((p.x - origin.x) / size.x, (p.y - origin.y) / size.y)
 	var q = matrix.b0 * pt.x + matrix.b1 * pt.y
 	var r = matrix.b2 * pt.x + matrix.b3 * pt.y
-	return Hex.new(q, r, -q - r)
+	return Vector2(q, r)
 
 
 # def pixel_to_hex_rounded(layout, p):
 #     return hex_round(pixel_to_hex_fractional(layout, p))
 
 
-static func pixel_to_hex_rounded(layout: Layout, p: Vector2) -> Hex:
+static func pixel_to_hex_rounded(layout: Layout, p: Vector2) -> Vector2i:
 	return Hex.round(pixel_to_hex_fractional(layout, p))

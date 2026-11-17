@@ -15,16 +15,16 @@ const RUN_SECONDS := 6.0
 func run(scene: Node) -> void:
 	var world: World = scene.world
 	var planet: Planet = world.get_planet()
-	var origin = Hex.new(0, 0)
+	var origin = Vector2i(0, 0)
 	var home: Chunk = world.get_active_chunk()
-	home.place_piece(BIOME_OUT, Hex.new(-2, 0))
-	home.place_piece(CONVEYOR, Hex.new(-1, 0))
-	var chest_out = home.get_piece_at_hex(Hex.new(-2, 0)).get_node("ChestOutput")
+	home.place_piece(BIOME_OUT, Vector2i(-2, 0))
+	home.place_piece(CONVEYOR, Vector2i(-1, 0))
+	var chest_out = home.get_piece_at_hex(Vector2i(-2, 0)).get_node("ChestOutput")
 
 	var same_region = null
 	var other_region = null
 	for hex in planet.get_chunk_hexes():
-		if Hex.equals(hex, origin):
+		if hex == origin:
 			continue
 		if planet.get_region_id(hex) == planet.get_region_id(origin):
 			# 原点から最も遠い chunk を選ぶ（隣でなくても届くことを見る）
@@ -58,12 +58,12 @@ func run(scene: Node) -> void:
 	print("[鉄鉱石を選んで%d秒] %s" % [RUN_SECONDS, _summary(world, same_region, other_region)])
 
 
-func _build_input(scene: Node, chunk_hex: Hex) -> Piece:
+func _build_input(scene: Node, chunk_hex: Vector2i) -> Piece:
 	scene._handle_world_map_chunk_selected(chunk_hex)
 	var chunk: Chunk = scene.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(-4, 3))
-	chunk.place_piece(BIOME_IN, Hex.new(-3, 3))
-	return chunk.get_piece_at_hex(Hex.new(-4, 3))
+	chunk.place_piece(CONVEYOR, Vector2i(-4, 3))
+	chunk.place_piece(BIOME_IN, Vector2i(-3, 3))
+	return chunk.get_piece_at_hex(Vector2i(-4, 3))
 
 
 func _feed(scene: Node, feeders: Dictionary) -> void:
@@ -76,7 +76,7 @@ func _feed(scene: Node, feeders: Dictionary) -> void:
 		elapsed += scene.get_process_delta_time()
 
 
-func _summary(world: World, same_region: Hex, other_region: Hex) -> String:
+func _summary(world: World, same_region: Vector2i, other_region: Vector2i) -> String:
 	var planet = world.get_planet()
 	return (
 		"ハブに届いた: 鉄鉱石=%d 石炭=%d / 原点の地域の倉庫=%s / 別の地域の倉庫=%s"

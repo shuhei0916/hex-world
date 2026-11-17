@@ -14,9 +14,9 @@ const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 var world: World
 var planet: Planet
 # 同じ地域の2つの chunk と、別の地域の chunk
-var hex_a: Hex
-var hex_b: Hex
-var hex_other: Hex
+var hex_a: Vector2i
+var hex_b = null
+var hex_other = null
 
 
 func before_each():
@@ -38,7 +38,7 @@ func _pick_hexes() -> void:
 	hex_b = null
 	hex_other = null
 	for hex in hexes:
-		if Hex.equals(hex, hex_a):
+		if hex == hex_a:
 			continue
 		if planet.get_region_id(hex) == planet.get_region_id(hex_a):
 			if hex_b == null:
@@ -47,10 +47,10 @@ func _pick_hexes() -> void:
 			hex_other = hex
 
 
-func _chest_in(chunk_hex: Hex, scene: PackedScene = BIOME_IN) -> Piece:
+func _chest_in(chunk_hex: Vector2i, scene: PackedScene = BIOME_IN) -> Piece:
 	var chunk = world.create_chunk(chunk_hex)
-	chunk.place_piece(scene, Hex.new(4, 0))
-	return chunk.get_piece_at_hex(Hex.new(4, 0))
+	chunk.place_piece(scene, Vector2i(4, 0))
+	return chunk.get_piece_at_hex(Vector2i(4, 0))
 
 
 func _storage_of(chest: Piece) -> SharedStorage:
@@ -95,13 +95,13 @@ class TestSharing:
 	func test_同じ地域の別のchunkへコンベア無しでアイテムが渡る():
 		_chest_in(hex_a).add_item("coal", 4)
 		var chunk_b = world.create_chunk(hex_b)
-		chunk_b.place_piece(BIOME_OUT, Hex.new(0, 2))
-		chunk_b.place_piece(CONVEYOR, Hex.new(1, 2))
-		var chest_out = chunk_b.get_piece_at_hex(Hex.new(0, 2))
+		chunk_b.place_piece(BIOME_OUT, Vector2i(0, 2))
+		chunk_b.place_piece(CONVEYOR, Vector2i(1, 2))
+		var chest_out = chunk_b.get_piece_at_hex(Vector2i(0, 2))
 		chest_out.get_node("ChestOutput").select_item("coal")
 		for i in 10:
 			chest_out.tick(0.1)
-		assert_eq(chunk_b.get_piece_at_hex(Hex.new(1, 2)).get_item_count("coal"), 1)
+		assert_eq(chunk_b.get_piece_at_hex(Vector2i(1, 2)).get_item_count("coal"), 1)
 
 	func test_ホバー表示でバイオームの倉庫だと分かる():
 		assert_string_contains(PieceStatus.describe(_chest_in(hex_a)), "バイオームの倉庫: 空")
@@ -177,7 +177,7 @@ class TestSave:
 		_chest_in(hex_a).add_item("coal", 4)
 		world.set_active_chunk(hex_a)
 		var restored = _roundtrip()
-		var chest = restored.get_chunk(hex_a).get_piece_at_hex(Hex.new(4, 0))
+		var chest = restored.get_chunk(hex_a).get_piece_at_hex(Vector2i(4, 0))
 		assert_eq(_storage_of(chest).get_count("coal"), 4)
 
 	func test_復元後も同じ地域の別のchunkと共有される():
@@ -185,5 +185,5 @@ class TestSave:
 		_chest_in(hex_b)
 		world.set_active_chunk(hex_a)
 		var restored = _roundtrip()
-		var chest_b = restored.get_chunk(hex_b).get_piece_at_hex(Hex.new(4, 0))
+		var chest_b = restored.get_chunk(hex_b).get_piece_at_hex(Vector2i(4, 0))
 		assert_eq(_storage_of(chest_b).get_count("coal"), 4)

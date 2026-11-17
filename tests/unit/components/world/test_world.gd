@@ -21,17 +21,17 @@ class TestBridgeWiring:
 	func before_each():
 		world = World.new()
 		add_child_autofree(world)
-		chunk_a = world.create_chunk(Hex.new(0, 0))
-		chunk_b = world.create_chunk(Hex.new(1, 0))  # 東隣
+		chunk_a = world.create_chunk(Vector2i(0, 0))
+		chunk_b = world.create_chunk(Vector2i(1, 0))  # 東隣
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
 
 	# SE(5)の辺の橋と、その向かいのマス（worldmap 上の東隣(1,0)の chunk の中）
-	func _bridge_hex() -> Hex:
-		return Hex.new(1, 1, -2)
+	func _bridge_hex() -> Vector2i:
+		return Vector2i(1, 1)
 
-	func _landing_hex() -> Hex:
-		return Hex.new(-1, -1, 2)
+	func _landing_hex() -> Vector2i:
+		return Vector2i(-1, -1)
 
 	func _bridge() -> Piece:
 		return chunk_a.get_piece_at_hex(_bridge_hex())
@@ -57,7 +57,7 @@ class TestBridgeWiring:
 
 	func test_向かいからずれた位置のコンベアにはつながらない():
 		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
-		chunk_b.place_piece(CONVEYOR, Hex.new(-2, 0, 2))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-2, 0))
 		assert_eq(_bridge().get_connected_pieces(), [])
 
 	func test_向かい合う橋どうしはつながらない():
@@ -74,25 +74,25 @@ class TestBridgeWiring:
 		assert_eq(_bridge().get_connected_pieces(), [])
 
 	func test_南東のchunkへも辺の対応位置でつながる():
-		var chunk_c = world.create_chunk(Hex.new(0, 1))  # 南東隣
+		var chunk_c = world.create_chunk(Vector2i(0, 1))  # 南東隣
 		chunk_c.create_hex_grid(2)
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(-1, 2, -1))
-		chunk_c.place_piece(CONVEYOR, Hex.new(1, -2, 1))
-		var bridge = chunk_a.get_piece_at_hex(Hex.new(-1, 2, -1))
-		assert_eq(bridge.get_connected_pieces(), [chunk_c.get_piece_at_hex(Hex.new(1, -2, 1))])
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(-1, 2))
+		chunk_c.place_piece(CONVEYOR, Vector2i(1, -2))
+		var bridge = chunk_a.get_piece_at_hex(Vector2i(-1, 2))
+		assert_eq(bridge.get_connected_pieces(), [chunk_c.get_piece_at_hex(Vector2i(1, -2))])
 
 	func test_点対称位置ではなく辺内の対応位置につながる():
 		# chunk(0,0)のhex(4,1,-5)(SEの辺、q=radius寄りの端)は、
 		# 単純な原点対称(-4,-1,5)ではなく、辺内で対応する位置(-1,-4,5)につながる。
 		chunk_a.grid_radius = 5
 		chunk_b.grid_radius = 5
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(4, 1, -5))
-		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -4, 5))
-		var bridge = chunk_a.get_piece_at_hex(Hex.new(4, 1, -5))
-		assert_eq(bridge.get_connected_pieces(), [chunk_b.get_piece_at_hex(Hex.new(-1, -4, 5))])
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(4, 1))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-1, -4))
+		var bridge = chunk_a.get_piece_at_hex(Vector2i(4, 1))
+		assert_eq(bridge.get_connected_pieces(), [chunk_b.get_piece_at_hex(Vector2i(-1, -4))])
 
 	func test_表示していないchunkのコンベアへもアイテムが届く():
-		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
 		chunk_b.place_piece(CONVEYOR, _landing_hex())
 		_bridge().add_item("iron_ore", 1)
@@ -115,38 +115,38 @@ class TestBridgeLandingHints:
 	func before_each():
 		world = World.new()
 		add_child_autofree(world)
-		chunk_a = world.create_chunk(Hex.new(0, 0))
-		chunk_b = world.create_chunk(Hex.new(1, 0))  # 東隣
+		chunk_a = world.create_chunk(Vector2i(0, 0))
+		chunk_b = world.create_chunk(Vector2i(1, 0))  # 東隣
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
 
 	func test_隣のchunkの橋の向かいのマスが着地点の候補になる():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		var hints = world.get_bridge_landing_hexes(Hex.new(1, 0))
-		assert_eq(hints.map(Hex.to_key), [Hex.to_key(Hex.new(-1, -1, 2))])
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		var hints = world.get_bridge_landing_hexes(Vector2i(1, 0))
+		assert_eq(hints, [Vector2i(-1, -1)])
 
 	func test_隣に描いているchunkでも着地点が光る():
-		world.set_active_chunk(Hex.new(0, 0))
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		assert_true(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
+		world.set_active_chunk(Vector2i(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		assert_true(chunk_b.find_hex_tile(Vector2i(-1, -1)).is_highlighted)
 
 	func test_アクティブなchunkの着地点も光る():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		world.set_active_chunk(Hex.new(1, 0))
-		assert_true(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		world.set_active_chunk(Vector2i(1, 0))
+		assert_true(chunk_b.find_hex_tile(Vector2i(-1, -1)).is_highlighted)
 
 	func test_橋を撤去すると着地点の光が消える():
-		world.set_active_chunk(Hex.new(0, 0))
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		chunk_a.remove_piece_at(Hex.new(1, 1, -2))
-		assert_false(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
+		world.set_active_chunk(Vector2i(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		chunk_a.remove_piece_at(Vector2i(1, 1))
+		assert_false(chunk_b.find_hex_tile(Vector2i(-1, -1)).is_highlighted)
 
 	func test_着地点に何か置くと候補から外れ_光も消える():
-		world.set_active_chunk(Hex.new(0, 0))
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
-		assert_eq(world.get_bridge_landing_hexes(Hex.new(1, 0)), [])
-		assert_false(chunk_b.find_hex_tile(Hex.new(-1, -1, 2)).is_highlighted)
+		world.set_active_chunk(Vector2i(0, 0))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-1, -1))
+		assert_eq(world.get_bridge_landing_hexes(Vector2i(1, 0)), [])
+		assert_false(chunk_b.find_hex_tile(Vector2i(-1, -1)).is_highlighted)
 
 
 class TestBridgeSpans:
@@ -164,29 +164,29 @@ class TestBridgeSpans:
 	func before_each():
 		world = World.new()
 		add_child_autofree(world)
-		chunk_a = world.create_chunk(Hex.new(0, 0))
-		chunk_b = world.create_chunk(Hex.new(1, 0))
+		chunk_a = world.create_chunk(Vector2i(0, 0))
+		chunk_b = world.create_chunk(Vector2i(1, 0))
 		chunk_a.create_hex_grid(2)
 		chunk_b.create_hex_grid(2)
-		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
-	func _screen(chunk: Chunk, hex: Hex) -> Vector2:
+	func _screen(chunk: Chunk, hex: Vector2i) -> Vector2:
 		return chunk.position + chunk.hex_to_pixel(hex)
 
 	func test_橋のマスから向かいのマスまでの帯になる():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
 		var spans = world.get_bridge_spans()
 		assert_eq(spans.size(), 1)
-		assert_true(spans[0]["from"].is_equal_approx(_screen(chunk_a, Hex.new(1, 1, -2))))
-		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_b, Hex.new(-1, -1, 2))))
+		assert_true(spans[0]["from"].is_equal_approx(_screen(chunk_a, Vector2i(1, 1))))
+		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_b, Vector2i(-1, -1))))
 
 	func test_帯は橋の外側の辺の中点から出て_着地点の向かい合う辺の中点に入る():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
 		var path: PackedVector2Array = world.get_bridge_spans()[0]["path"]
-		var edge_dir = chunk_a.get_edge_direction(Hex.new(1, 1, -2))
+		var edge_dir = chunk_a.get_edge_direction(Vector2i(1, 1))
 		var out = chunk_a.hex_to_pixel(Hex.direction(edge_dir)) * 0.5
-		var bridge_center = _screen(chunk_a, Hex.new(1, 1, -2))
-		var landing_center = _screen(chunk_b, Hex.new(-1, -1, 2))
+		var bridge_center = _screen(chunk_a, Vector2i(1, 1))
+		var landing_center = _screen(chunk_b, Vector2i(-1, -1))
 		assert_true(path[0].is_equal_approx(bridge_center + out), "橋の外側の辺の中点")
 		assert_true(path[-1].is_equal_approx(landing_center - out), "着地点の向かい合う辺の中点")
 		# 辺に垂直に出入りする（コンベアの入口とそのままつながる）
@@ -194,24 +194,24 @@ class TestBridgeSpans:
 		assert_almost_eq((path[-1] - path[-2]).normalized().dot(out.normalized()), 1.0, 0.01)
 
 	func test_向かいに受け取り先が無ければつながっていない帯になる():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
 		assert_false(world.get_bridge_spans()[0]["connected"])
 
 	func test_受け取り先があればつながった帯になる():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-1, -1))
 		assert_true(world.get_bridge_spans()[0]["connected"])
 
 	func test_隣のchunkからこちらへ向かう橋も描く():
-		chunk_b.place_piece(BRIDGE_SCENE, Hex.new(-1, -1, 2))
+		chunk_b.place_piece(BRIDGE_SCENE, Vector2i(-1, -1))
 		var spans = world.get_bridge_spans()
 		assert_eq(spans.size(), 1)
-		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_a, Hex.new(1, 1, -2))))
+		assert_true(spans[0]["to"].is_equal_approx(_screen(chunk_a, Vector2i(1, 1))))
 
 	func test_渡している途中のアイテムと進み具合が分かる():
-		chunk_a.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
-		chunk_b.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
-		var bridge = chunk_a.get_piece_at_hex(Hex.new(1, 1, -2))
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-1, -1))
+		var bridge = chunk_a.get_piece_at_hex(Vector2i(1, 1))
 		bridge.add_item("iron_ore", 1)
 		bridge.tick(TransferBuffer.TRANSFER_TIME * 0.5)
 		var span = world.get_bridge_spans()[0]
@@ -219,10 +219,10 @@ class TestBridgeSpans:
 		assert_almost_eq(span["progress"], 0.5, 0.01)
 
 	func test_表示していないchunkどうしの橋は描かない():
-		var far = world.create_chunk(Hex.new(3, 0))
+		var far = world.create_chunk(Vector2i(3, 0))
 		far.create_hex_grid(2)
-		world.create_chunk(Hex.new(4, 0)).create_hex_grid(2)
-		far.place_piece(BRIDGE_SCENE, Hex.new(1, 1, -2))
+		world.create_chunk(Vector2i(4, 0)).create_hex_grid(2)
+		far.place_piece(BRIDGE_SCENE, Vector2i(1, 1))
 		assert_eq(world.get_bridge_spans(), [])
 
 	func test_橋の帯は施設のタイルより奥_床より手前に描く():
@@ -241,28 +241,28 @@ class TestWorldChunkManagement:
 		add_child_autofree(world)
 
 	func test_create_chunkで指定hexにChunkが生成される():
-		var chunk = world.create_chunk(Hex.new(0, 0))
+		var chunk = world.create_chunk(Vector2i(0, 0))
 		assert_not_null(chunk)
 
 	func test_get_chunkで作成済みChunkを取得できる():
-		world.create_chunk(Hex.new(0, 0))
-		assert_not_null(world.get_chunk(Hex.new(0, 0)))
+		world.create_chunk(Vector2i(0, 0))
+		assert_not_null(world.get_chunk(Vector2i(0, 0)))
 
 	func test_get_chunkで存在しないhexはnullを返す():
-		assert_null(world.get_chunk(Hex.new(1, 0)))
+		assert_null(world.get_chunk(Vector2i(1, 0)))
 
 	func test_同じhexへのcreate_chunkは同一Chunkを返す():
-		var a = world.create_chunk(Hex.new(0, 0))
-		var b = world.create_chunk(Hex.new(0, 0))
+		var a = world.create_chunk(Vector2i(0, 0))
+		var b = world.create_chunk(Vector2i(0, 0))
 		assert_eq(a, b)
 
 	func test_create_chunkした直後のChunkはデフォルト非表示():
-		var chunk = world.create_chunk(Hex.new(0, 0))
+		var chunk = world.create_chunk(Vector2i(0, 0))
 		assert_false(chunk.visible)
 
 	func test_create_chunkしたhexはget_chunk_hexesで取得できる():
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(1, 0))
 		var hexes = world.get_chunk_hexes()
 		assert_eq(hexes.size(), 2)
 
@@ -288,25 +288,25 @@ class TestPlanetIntegration:
 	func test_planet未設定ならget_map_hexesは生成済みchunkを返す():
 		var plain_world = World.new()
 		add_child_autofree(plain_world)
-		plain_world.create_chunk(Hex.new(0, 0))
+		plain_world.create_chunk(Vector2i(0, 0))
 		assert_eq(plain_world.get_map_hexes().size(), 1)
 
 	func test_planetのchunkは入るまで生成されない():
-		assert_null(world.get_chunk(Hex.new(1, 0)))
+		assert_null(world.get_chunk(Vector2i(1, 0)))
 		assert_eq(world.get_chunk_hexes().size(), 0)
 
 	func test_未生成のchunkをアクティブにすると生成されて表示される():
-		world.set_active_chunk(Hex.new(1, 0))
-		var chunk = world.get_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Vector2i(1, 0))
+		var chunk = world.get_chunk(Vector2i(1, 0))
 		assert_not_null(chunk)
 		assert_true(chunk.visible)
 		assert_eq(world.get_active_chunk(), chunk)
 
 	func test_planet外のhexはアクティブにできない():
-		world.set_active_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(5, 0))
-		assert_null(world.get_chunk(Hex.new(5, 0)))
-		assert_true(Hex.equals(world.get_active_hex(), Hex.new(0, 0)))
+		world.set_active_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(5, 0))
+		assert_null(world.get_chunk(Vector2i(5, 0)))
+		assert_true(world.get_active_hex() == Vector2i(0, 0))
 
 	func test_生成されたchunkにはバイオームの資源の鉱床がある():
 		for hex in planet.get_chunk_hexes():
@@ -334,20 +334,20 @@ class TestWorldActiveChunk:
 		assert_null(world.get_active_chunk())
 
 	func test_set_active_chunkでそのChunkが表示される():
-		world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
-		assert_true(world.get_chunk(Hex.new(0, 0)).visible)
+		world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		assert_true(world.get_chunk(Vector2i(0, 0)).visible)
 
 	func test_set_active_chunkで隣でない前のアクティブChunkは非表示になる():
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(2, 0))
-		world.set_active_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(2, 0))
-		assert_false(world.get_chunk(Hex.new(0, 0)).visible)
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(2, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(2, 0))
+		assert_false(world.get_chunk(Vector2i(0, 0)).visible)
 
 	func test_get_active_chunkはアクティブなChunkを返す():
-		var chunk = world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		var chunk = world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		assert_eq(world.get_active_chunk(), chunk)
 
 
@@ -362,31 +362,31 @@ class TestNeighborView:
 		world = World.new()
 		add_child_autofree(world)
 		# 所有している chunk どうしの見え方を確かめる（所有していない隣は TestOwnership）
-		world.territory.claim(Hex.new(0, 0))
-		world.territory.claim(Hex.new(1, 0))
+		world.territory.claim(Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
 
 	# 画面上の位置（World の座標）
-	func _screen_pos(chunk: Chunk, hex: Hex) -> Vector2:
+	func _screen_pos(chunk: Chunk, hex: Vector2i) -> Vector2:
 		return chunk.position + chunk.hex_to_pixel(hex)
 
 	func test_アクティブなchunkは原点にそのままの色で描かれる():
-		world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var chunk = world.get_active_chunk()
 		assert_eq(chunk.position, Vector2.ZERO)
 		assert_eq(chunk.modulate, Color.WHITE)
 
 	func test_隣のchunkは敷き詰めた位置に薄く描かれる():
-		world.create_chunk(Hex.new(0, 0))
-		var neighbor = world.create_chunk(Hex.new(1, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		var neighbor = world.create_chunk(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		assert_true(neighbor.visible)
 		assert_ne(neighbor.position, Vector2.ZERO)
 		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
 
 	func test_隣のchunkとは溝をはさんで辺の対応位置どうしが真正面に向かい合う():
 		world.setup_planet(Planet.new(2, 1))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var active = world.get_active_chunk()
 		for edge_hex in active.get_outer_hexes():
 			var edge_dir = active.get_edge_direction(edge_hex)
@@ -396,7 +396,7 @@ class TestNeighborView:
 			var neighbor = world.get_chunk(chunk_hex)
 			var across = ChunkTopology.mirror_hex(edge_hex, edge_dir)
 			var gap = _screen_pos(neighbor, across) - _screen_pos(active, edge_hex)
-			var step = active.hex_to_pixel(Hex.hex_diagonals[edge_dir])
+			var step = active.hex_to_pixel(Hex.DIAGONALS[edge_dir])
 			assert_true(gap.is_equal_approx(step * World.gap_steps), str(edge_hex))
 
 	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
@@ -409,17 +409,17 @@ class TestNeighborView:
 		assert_lt(dimmed.get_luminance(), floor_color.get_luminance() - 0.03, "アクティブと区別できる")
 
 	func test_隣でないchunkは描かない():
-		world.create_chunk(Hex.new(0, 0))
-		var far = world.create_chunk(Hex.new(2, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		var far = world.create_chunk(Vector2i(2, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		assert_false(far.visible)
 
 	func test_アクティブを切り替えると位置と色が入れ替わる():
-		var origin = world.create_chunk(Hex.new(0, 0))
-		var east = world.create_chunk(Hex.new(1, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		var origin = world.create_chunk(Vector2i(0, 0))
+		var east = world.create_chunk(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var east_position = east.position
-		world.set_active_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Vector2i(1, 0))
 		assert_eq(east.position, Vector2.ZERO)
 		assert_eq(east.modulate, Color.WHITE)
 		assert_true(origin.visible)
@@ -427,50 +427,50 @@ class TestNeighborView:
 		assert_eq(origin.modulate, World.NEIGHBOR_MODULATE)
 
 	func test_隣のchunkの一覧を返す():
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
-		world.create_chunk(Hex.new(2, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(1, 0))
+		world.create_chunk(Vector2i(2, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var hexes = world.get_neighbor_hexes()
 		assert_eq(hexes.size(), 1)
-		assert_true(Hex.equals(hexes[0], Hex.new(1, 0)))
+		assert_true(hexes[0] == Vector2i(1, 0))
 
 	func test_planetがあれば隣のchunkは見えるように生成される():
 		world.setup_planet(Planet.new(2, 1))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		assert_eq(world.get_chunk_hexes().size(), 7)
 		for dir in range(6):
 			assert_true(world.get_chunk(Hex.direction(dir)).visible)
 
 	func test_planetの外には隣のchunkを作らない():
 		world.setup_planet(Planet.new(1, 1))
-		world.set_active_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Vector2i(1, 0))
 		for hex in world.get_chunk_hexes():
 			assert_true(world.get_planet().has_chunk(hex), str(hex))
 		assert_eq(world.get_neighbor_hexes().size(), 3)
 
 	func test_画面上の位置から隣のchunkの施設も取得できる():
-		world.create_chunk(Hex.new(0, 0))
-		var neighbor = world.create_chunk(Hex.new(1, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		var neighbor = world.create_chunk(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var conveyor = load("res://scenes/components/piece/conveyor.tscn")
-		neighbor.place_piece(conveyor, Hex.new(-2, 1))
-		var pos = neighbor.position + neighbor.hex_to_pixel(Hex.new(-2, 1))
-		assert_eq(world.get_piece_at_position(pos), neighbor.get_piece_at_hex(Hex.new(-2, 1)))
+		neighbor.place_piece(conveyor, Vector2i(-2, 1))
+		var pos = neighbor.position + neighbor.hex_to_pixel(Vector2i(-2, 1))
+		assert_eq(world.get_piece_at_position(pos), neighbor.get_piece_at_hex(Vector2i(-2, 1)))
 
 	func test_画面上の位置からアクティブなchunkの施設を取得できる():
-		var chunk = world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		var chunk = world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		var conveyor = load("res://scenes/components/piece/conveyor.tscn")
-		chunk.place_piece(conveyor, Hex.new(1, 0))
+		chunk.place_piece(conveyor, Vector2i(1, 0))
 		assert_eq(
-			world.get_piece_at_position(chunk.hex_to_pixel(Hex.new(1, 0))),
-			chunk.get_piece_at_hex(Hex.new(1, 0))
+			world.get_piece_at_position(chunk.hex_to_pixel(Vector2i(1, 0))),
+			chunk.get_piece_at_hex(Vector2i(1, 0))
 		)
 
 	func test_何も無い位置ではnull():
-		world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		assert_null(world.get_piece_at_position(Vector2(5000, 5000)))
 
 
@@ -486,8 +486,8 @@ class TestChunkExtent:
 		saved_gap_steps = World.gap_steps
 		world = World.new()
 		add_child_autofree(world)
-		world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func after_each():
 		World.gap_steps = saved_gap_steps
@@ -528,54 +528,54 @@ class TestOwnership:
 		world.setup_planet(Planet.new(3, 77))
 
 	func test_はじめはどのchunkも所有していない():
-		assert_false(world.territory.is_owned(Hex.new(0, 0)))
+		assert_false(world.territory.is_owned(Vector2i(0, 0)))
 
 	func test_claimするとそのchunkを所有する():
-		world.territory.claim(Hex.new(0, 0))
-		assert_true(world.territory.is_owned(Hex.new(0, 0)))
-		assert_false(world.territory.is_owned(Hex.new(1, 0)))
+		world.territory.claim(Vector2i(0, 0))
+		assert_true(world.territory.is_owned(Vector2i(0, 0)))
+		assert_false(world.territory.is_owned(Vector2i(1, 0)))
 
 	func test_所有しているchunkの隣は挑戦できる():
-		world.territory.claim(Hex.new(0, 0))
-		assert_true(world.territory.can_challenge(Hex.new(1, 0)))
+		world.territory.claim(Vector2i(0, 0))
+		assert_true(world.territory.can_challenge(Vector2i(1, 0)))
 
 	func test_所有しているchunkから離れたchunkは挑戦できない():
-		world.territory.claim(Hex.new(0, 0))
-		assert_false(world.territory.can_challenge(Hex.new(2, 0)))
+		world.territory.claim(Vector2i(0, 0))
+		assert_false(world.territory.can_challenge(Vector2i(2, 0)))
 
 	func test_所有しているchunkは挑戦できない():
-		world.territory.claim(Hex.new(0, 0))
-		assert_false(world.territory.can_challenge(Hex.new(0, 0)))
+		world.territory.claim(Vector2i(0, 0))
+		assert_false(world.territory.can_challenge(Vector2i(0, 0)))
 
 	func test_planetの外は挑戦できない():
-		world.territory.claim(Hex.new(3, 0))
-		assert_false(world.territory.can_challenge(Hex.new(4, 0)))
+		world.territory.claim(Vector2i(3, 0))
+		assert_false(world.territory.can_challenge(Vector2i(4, 0)))
 
 	func test_所有しているchunkの一覧を返す():
-		world.territory.claim(Hex.new(0, 0))
-		world.territory.claim(Hex.new(1, 0))
-		world.territory.claim(Hex.new(1, 0))
+		world.territory.claim(Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
+		world.territory.claim(Vector2i(1, 0))
 		assert_eq(world.territory.get_owned_hexes().size(), 2)
 
 	func test_ローカル画面では所有していない隣のchunkを所有している隣より暗く描く():
-		world.territory.claim(Hex.new(0, 0))
-		world.territory.claim(Hex.new(1, 0))
-		world.set_active_chunk(Hex.new(0, 0))
-		var owned = world.get_chunk(Hex.new(1, 0)).modulate
-		var unowned = world.get_chunk(Hex.new(0, 1)).modulate
+		world.territory.claim(Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		var owned = world.get_chunk(Vector2i(1, 0)).modulate
+		var unowned = world.get_chunk(Vector2i(0, 1)).modulate
 		assert_lt(unowned.v, owned.v)
 
 	func test_解放した隣のchunkは描き直すと明るくなる():
-		world.territory.claim(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
-		var before = world.get_chunk(Hex.new(1, 0)).modulate
-		world.territory.claim(Hex.new(1, 0))
-		assert_gt(world.get_chunk(Hex.new(1, 0)).modulate.v, before.v)
+		world.territory.claim(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		var before = world.get_chunk(Vector2i(1, 0)).modulate
+		world.territory.claim(Vector2i(1, 0))
+		assert_gt(world.get_chunk(Vector2i(1, 0)).modulate.v, before.v)
 
 	func test_画面の位置にいちばん近い所有chunkを返す_所有していない隣は選ばない():
-		world.territory.claim(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
-		var east = world.get_chunk(Hex.new(1, 0)).position
-		assert_true(Hex.equals(world.get_nearest_visible_chunk(east, true), Hex.new(0, 0)))
-		world.territory.claim(Hex.new(1, 0))
-		assert_true(Hex.equals(world.get_nearest_visible_chunk(east, true), Hex.new(1, 0)))
+		world.territory.claim(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		var east = world.get_chunk(Vector2i(1, 0)).position
+		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
+		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(1, 0))

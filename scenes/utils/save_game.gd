@@ -22,7 +22,7 @@ const RETIRED_SCENES := [
 static var path: String = DEFAULT_PATH
 
 
-static func capture(world: World, goals: Node, active_hex: Hex = null) -> Dictionary:
+static func capture(world: World, goals: Node, active_hex = null) -> Dictionary:
 	var data := {
 		"version": VERSION,
 		"hub_goals":
@@ -114,12 +114,12 @@ static func delete(file_path: String = path) -> void:
 		DirAccess.remove_absolute(file_path)
 
 
-static func _capture_chunk(chunk_hex: Hex, chunk: Chunk) -> Dictionary:
+static func _capture_chunk(chunk_hex: Vector2i, chunk: Chunk) -> Dictionary:
 	var resources := []
 	for hex in chunk.get_all_hexes():
 		var resource_type = chunk.get_hex_resource(hex)
 		if resource_type != "":
-			resources.append([hex.q, hex.r, resource_type])
+			resources.append([hex.x, hex.y, resource_type])
 	var pieces := []
 	for piece in chunk.get_all_pieces():
 		pieces.append(_capture_piece(chunk, piece))
@@ -157,7 +157,7 @@ static func _apply_chunk(world: World, chunk_data: Dictionary, goals: Node) -> v
 	chunk.storage.load_contents(chunk_data.get("storage", {}))
 	# Miner は設置時に足元の鉱床を見るため、ピースより先に鉱床を戻す
 	for entry in chunk_data.get("resources", []):
-		chunk.mark_resource_hex(Hex.new(int(entry[0]), int(entry[1])), entry[2])
+		chunk.mark_resource_hex(Vector2i(int(entry[0]), int(entry[1])), entry[2])
 	for piece_data in chunk_data.get("pieces", []):
 		_apply_piece(chunk, piece_data, goals)
 
@@ -185,9 +185,9 @@ static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> v
 		hub.refresh_display()
 
 
-static func _hex_to_array(hex: Hex) -> Array:
-	return [hex.q, hex.r]
+static func _hex_to_array(hex: Vector2i) -> Array:
+	return [hex.x, hex.y]
 
 
-static func _array_to_hex(values: Array) -> Hex:
-	return Hex.new(int(values[0]), int(values[1]))
+static func _array_to_hex(values: Array) -> Vector2i:
+	return Vector2i(int(values[0]), int(values[1]))

@@ -26,9 +26,9 @@ func _draw() -> void:
 		return
 	for hex in reachable:
 		if reachable[hex] > 0:
-			HexShape.draw(self, BattleHex.to_pixel(hex, hex_size), hex_size, true, REACHABLE_COLOR)
+			HexShape.draw(self, Hex.to_pixel(hex, hex_size), hex_size, true, REACHABLE_COLOR)
 	for hex in threatened:
-		var center := BattleHex.to_pixel(hex, hex_size)
+		var center := Hex.to_pixel(hex, hex_size)
 		draw_polyline(HexShape.outline(center, hex_size * 0.82, true), THREAT_COLOR, 2.0)
 	_draw_plan()
 	if hovered != null and field.has_cell(hovered):
@@ -40,15 +40,15 @@ func _draw_plan() -> void:
 		return
 	var points := PackedVector2Array()
 	for hex in plan_path:
-		points.append(BattleHex.to_pixel(hex, hex_size))
+		points.append(Hex.to_pixel(hex, hex_size))
 	if points.size() > 1:
 		draw_polyline(points, PLAN_COLOR, 5.0)
 		draw_circle(points[points.size() - 1], 9.0, PLAN_COLOR)
 	if plan_attacks:
 		draw_colored_polygon(_corners(plan_target, hex_size), Color(THREAT_COLOR, 0.45))
-		var target_point := BattleHex.to_pixel(plan_target, hex_size)
+		var target_point := Hex.to_pixel(plan_target, hex_size)
 		draw_line(points[points.size() - 1], target_point, THREAT_COLOR, 5.0)
 
 
 func _corners(hex: Vector2i, radius: float) -> PackedVector2Array:
-	return HexShape.corners(BattleHex.to_pixel(hex, hex_size), radius, true)
+	return HexShape.corners(Hex.to_pixel(hex, hex_size), radius, true)

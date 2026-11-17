@@ -12,38 +12,38 @@ const RESOURCE_COLORS = {
 var _resources: Dictionary = {}
 
 
-func mark_resource_hex(hex: Hex, resource_type: String) -> void:
-	_resources[Hex.to_key(hex)] = resource_type
+func mark_resource_hex(hex: Vector2i, resource_type: String) -> void:
+	_resources[hex] = resource_type
 
 
-func get_hex_resource(hex: Hex) -> String:
-	return _resources.get(Hex.to_key(hex), "")
+func get_hex_resource(hex: Vector2i) -> String:
+	return _resources.get(hex, "")
 
 
 func generate_ore_deposits(
-	count: int, inner_hexes: Array[Hex], hex_grid, resource_type: String = "iron_ore"
-) -> Array[Hex]:
+	count: int, inner_hexes: Array[Vector2i], hex_grid, resource_type: String = "iron_ore"
+) -> Array[Vector2i]:
 	if inner_hexes.is_empty():
 		return []
 	var inner_set: Dictionary = {}
 	for hex in inner_hexes:
 		if not hex_grid.is_occupied(hex):
-			inner_set[Hex.to_key(hex)] = hex
+			inner_set[hex] = hex
 
-	var inner = inner_hexes.filter(func(h): return Hex.to_key(h) in inner_set)
+	var inner = inner_hexes.filter(func(h): return h in inner_set)
 	if inner.is_empty():
 		return []
 	inner.shuffle()
-	var cluster: Array[Hex] = [inner[0]]
-	var cluster_set: Dictionary = {Hex.to_key(inner[0]): true}
-	var frontier: Array[Hex] = [inner[0]]
+	var cluster: Array[Vector2i] = [inner[0]]
+	var cluster_set: Dictionary = {inner[0]: true}
+	var frontier: Array[Vector2i] = [inner[0]]
 
 	while cluster.size() < count and not frontier.is_empty():
 		frontier.shuffle()
 		var current = frontier.pop_back()
 		for dir in range(6):
 			var neighbor = Hex.neighbor(current, dir)
-			var key = Hex.to_key(neighbor)
+			var key = neighbor
 			if key in inner_set and not (key in cluster_set) and not (key in _resources):
 				cluster.append(neighbor)
 				cluster_set[key] = true
@@ -57,7 +57,7 @@ func generate_ore_deposits(
 
 
 # Miner は足元で最も多い資源を、その鉱床マス数ぶんの倍率で採掘する。鉱床が無ければ停止。
-func apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]) -> void:
+func apply_mining_constraint(piece: Piece, occupied_hexes: Array[Vector2i]) -> void:
 	if piece.piece_type != PieceData.Type.MINER:
 		return
 	var counts: Dictionary = {}

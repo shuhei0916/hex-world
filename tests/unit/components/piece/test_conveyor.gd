@@ -203,90 +203,90 @@ class TestConveyorConnection:
 		gm.create_hex_grid(3)
 
 	func test_出力ポートの先のピースに接続される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
-		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
+		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		assert_true(chest in conveyor.get_connected_pieces())
 
 	func test_tick0_5で接続先ピースへアイテムが搬出される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
-		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
+		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(chest.get_item_count("iron_plate"), 1)
 
 	func test_tick0_4では接続先にアイテムが渡らない():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
-		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
+		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.4)
 		assert_eq(chest.get_item_count("iron_plate"), 0)
 
 	func test_転送後コンベアは空になる():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conveyor.get_item_count("iron_plate"), 0)
 
 	func test_転送後コンベアは再び受け入れ可能になる():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		conveyor.add_item("iron_plate", 1)
 		conveyor.get_node("ConveyorLogic").tick(0.5)
 		assert_true(conveyor.can_accept_item("iron_plate"))
 
 	func test_機械のOutputからコンベアへアイテムがpushされる():
-		gm.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
-		var smelter = gm.get_piece_at_hex(Hex.new(-1, 2))
-		var conveyor = gm.get_piece_at_hex(Hex.new(0, 2))
+		gm.place_piece(SMELTER_SCENE, Vector2i(-1, 2))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 2))
+		var smelter = gm.get_piece_at_hex(Vector2i(-1, 2))
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 2))
 		smelter.add_to_output("iron_ingot", 1)
 		smelter.tick(1.0)  # スライド完了→コンベアへ排出
 		assert_eq(conveyor.get_item_count("iron_ingot"), 1)
 
 	func test_コンベアチェーンでアイテムが1個ずつ流れる():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))
-		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
-		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)  # East → (2,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(2, 0))
+		var conv_a = gm.get_piece_at_hex(Vector2i(0, 0))
+		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_a.add_item("iron_plate", 1)
 		conv_a.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conv_b.get_item_count("iron_plate"), 1)
 
 	func test_接続先が受け入れ不可の間アイテムは保持されたまま消えない():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
-		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
-		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)  # East → (2,0)
+		var conv_a = gm.get_piece_at_hex(Vector2i(0, 0))
+		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_b.add_item("iron_plate", 1)
 		conv_a.add_item("iron_plate", 1)
 		conv_a.get_node("ConveyorLogic").tick(0.5)
 		assert_eq(conv_a.get_item_count("iron_plate"), 1)
 
 	func test_出口が1本のコンベアは詰まっているとき出口の端まで進んで待つ():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)
-		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
-		gm.get_piece_at_hex(Hex.new(1, 0)).add_item("iron_plate", 1)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)
+		var conv_a = gm.get_piece_at_hex(Vector2i(0, 0))
+		gm.get_piece_at_hex(Vector2i(1, 0)).add_item("iron_plate", 1)
 		conv_a.add_item("iron_plate", 1)
 		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(conv_a.get_node("ConveyorLogic").get_progress_ratio(), 1.0, "分岐でなければ端(1.0)で待つべき")
 
 	func test_接続先が受け入れ可能になったらその後のtickで転送される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East → (1,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East → (2,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))
-		var conv_a = gm.get_piece_at_hex(Hex.new(0, 0))
-		var conv_b = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)  # East → (1,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)  # East → (2,0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(2, 0))
+		var conv_a = gm.get_piece_at_hex(Vector2i(0, 0))
+		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_b.add_item("iron_plate", 1)
 		conv_a.add_item("iron_plate", 1)
 		conv_a.get_node("ConveyorLogic").tick(0.5)  # B が保持中なので渡せない
@@ -297,13 +297,13 @@ class TestConveyorConnection:
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン
 		# (1,0)のコンベアは West(3) 側から入力を受け取るべき
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0)  # East 方向
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 4)  # NW 方向
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 0)  # East 方向（接続先）
-		var bend = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)  # East 方向
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 4)  # NW 方向
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 0)  # East 方向（接続先）
+		var bend = gm.get_piece_at_hex(Vector2i(1, 0))
 		var layout = Layout.make_default()
 		var in_edge = bend.get_node("ConveyorVisuals")._path[0]
-		var expected = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
+		var expected = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[3]) * 0.5
 		assert_almost_eq(in_edge.x, expected.x, 0.1)
 
 
@@ -318,10 +318,10 @@ class TestConveyorLogicRoundRobin:
 		gm.create_hex_grid(3)
 
 	func test_ConveyorLogicは接続先が2つのときget_target_directionで次の排出方向を返す():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East（East方向へ続く）
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（自然な分岐）
-		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))  # B: East（East方向へ続く）
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)  # C: NE（自然な分岐）
+		var a = gm.get_piece_at_hex(Vector2i(0, 0))
 		a.add_item("iron_ore", 1)
 		assert_ne(a.get_node("ConveyorLogic").get_target_direction(), -1)
 
@@ -341,14 +341,14 @@ class TestConveyorBranchRouting:
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
 		chunk.create_hex_grid(3)
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)
-		a = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)
+		a = chunk.get_piece_at_hex(Vector2i(0, 0))
 		logic = a.get_node("ConveyorLogic")
 
 	func _piece_in_direction(direction: int) -> Piece:
-		return chunk.get_piece_at_hex(Hex.neighbor(Hex.new(0, 0), direction))
+		return chunk.get_piece_at_hex(Hex.neighbor(Vector2i(0, 0), direction))
 
 	func test_中心を過ぎたあとに出口の空き状況が変わっても行き先の方向は変わらない():
 		a.add_item("iron_ore", 1)
@@ -362,7 +362,7 @@ class TestConveyorBranchRouting:
 		logic.tick(HALF * 1.2)
 		var locked_direction = logic.get_target_direction()
 		# 行き先のコンベアを置き直す（分岐を延長したときと同様に A の接続が更新される）
-		var target_hex = Hex.neighbor(Hex.new(0, 0), locked_direction)
+		var target_hex = Hex.neighbor(Vector2i(0, 0), locked_direction)
 		var rotation = _piece_in_direction(locked_direction).rotation_state
 		chunk.remove_piece_at(target_hex)
 		chunk.place_piece(CONVEYOR_SCENE, target_hex, rotation)
@@ -373,7 +373,7 @@ class TestConveyorBranchRouting:
 		logic.tick(HALF * 1.2)
 		var locked_direction = logic.get_target_direction()
 		var other = _piece_in_direction(1 - locked_direction)  # 行き先は E(0) か NE(1)
-		chunk.remove_piece_at(Hex.neighbor(Hex.new(0, 0), locked_direction))
+		chunk.remove_piece_at(Hex.neighbor(Vector2i(0, 0), locked_direction))
 		logic.tick(HALF)
 		assert_eq(other.get_node("ConveyorLogic").get_held_item(), "iron_ore", "残っている出口へ渡されるべき")
 
@@ -385,7 +385,7 @@ class TestConveyorBranchRouting:
 		assert_eq(logic.get_progress_ratio(), 0.5, "全出口が詰まっているとき中心(0.5)で待つべき")
 
 	func test_中心で待っていたアイテムは出口が空くと進み出して搬出される():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))  # B の下流（B を空けるため）
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(2, 0))  # B の下流（B を空けるため）
 		var b = _piece_in_direction(0)
 		b.add_item("iron_ore", 1)
 		_piece_in_direction(1).add_item("iron_ore", 1)
@@ -403,7 +403,7 @@ class TestConveyorBranchRouting:
 		assert_false(logic.can_accept_item("iron_ore"), "中心で待っている間は2個目を受け入れないべき（アイコンが重なるため）")
 
 	func test_中心で待っていたアイテムの行き先が決まると次のアイテムを再び受け入れる():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(2, 0))  # B の下流（B を空けるため）
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(2, 0))  # B の下流（B を空けるため）
 		var b = _piece_in_direction(0)
 		b.add_item("iron_ore", 1)
 		_piece_in_direction(1).add_item("iron_ore", 1)

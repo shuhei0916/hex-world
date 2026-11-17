@@ -35,7 +35,7 @@ static func generate(
 	field.place_unit(player, start)
 	var spots: Array[Vector2i] = field.cells().filter(
 		func(hex: Vector2i) -> bool:
-			return field.is_walkable(hex) and BattleHex.distance(hex, start) >= MIN_ENEMY_DISTANCE
+			return field.is_walkable(hex) and Hex.distance(hex, start) >= MIN_ENEMY_DISTANCE
 	)
 	# 辞書の並び順に左右されないよう、並べてから混ぜる
 	spots.sort()
@@ -55,7 +55,7 @@ static func _nearest_walkable(field: Battlefield, from: Vector2i) -> Vector2i:
 	for hex in cells:
 		if not field.is_walkable(hex):
 			continue
-		var distance := BattleHex.distance(hex, from)
+		var distance := Hex.distance(hex, from)
 		if best_distance < 0 or distance < best_distance:
 			best = hex
 			best_distance = distance

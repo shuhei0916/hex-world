@@ -46,11 +46,11 @@ func _ready():
 
 func _start_new_game() -> void:
 	world.setup_planet(Planet.new(PLANET_RADIUS, PLANET_SEED))
-	var initial_chunk = world.create_chunk(Hex.new(0, 0))
+	var initial_chunk = world.create_chunk(Vector2i(0, 0))
 	var goal = HubGoals.get_current_goal()
 	initial_chunk.place_hub(goal["goal_item"], goal["required"])
-	world.territory.claim(Hex.new(0, 0))
-	world.set_active_chunk(Hex.new(0, 0))
+	world.territory.claim(Vector2i(0, 0))
+	world.set_active_chunk(Vector2i(0, 0))
 
 
 # セーブデータがあれば復元して true を返す。無い・壊れている場合は false。
@@ -127,7 +127,7 @@ func _follow_camera_chunk() -> void:
 	if piece_placer.is_dragging or piece_placer.is_delete_dragging:
 		return
 	var nearest = world.get_nearest_visible_chunk(camera.position, true)
-	if nearest == null or Hex.equals(nearest, world.get_active_hex()):
+	if nearest == null or nearest == world.get_active_hex():
 		return
 	var offset = world.get_chunk(nearest).position
 	_activate_chunk(nearest)
@@ -199,7 +199,7 @@ func _toggle_mode():
 		_enter_local_mode()
 
 
-func _activate_chunk(chunk_hex: Hex) -> void:
+func _activate_chunk(chunk_hex: Vector2i) -> void:
 	var prev = world.get_active_chunk()
 	if prev:
 		if prev.piece_placed.is_connected(sfx_player.on_piece_placed):
@@ -293,7 +293,7 @@ func _handle_world_map_click(event: InputEventMouseButton) -> void:
 
 
 # ワールドマップで chunk を選ぶ。所有していれば入り、その隣なら戦って解放する。霧の中は選べない
-func select_world_map_chunk(hex: Hex) -> void:
+func select_world_map_chunk(hex: Vector2i) -> void:
 	if world.territory.is_owned(hex):
 		_handle_world_map_chunk_selected(hex)
 	elif world.territory.can_challenge(hex):
@@ -302,7 +302,7 @@ func select_world_map_chunk(hex: Hex) -> void:
 
 # chunk を解放するための戦闘を始める。ワールドマップからその chunk の画面に入り、
 # chunk のマスの上でそのまま戦う。戦闘中も工場は動き続ける
-func start_battle(chunk_hex: Hex) -> void:
+func start_battle(chunk_hex: Vector2i) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_battle_chunk_hex = chunk_hex
@@ -353,7 +353,7 @@ func _set_camera_enabled(enabled: bool) -> void:
 
 
 # chunk のローカル画面へ入る（所有しているかは呼び出し側で確かめる）
-func _handle_world_map_chunk_selected(hex: Hex) -> void:
+func _handle_world_map_chunk_selected(hex: Vector2i) -> void:
 	_activate_chunk(hex)
 	world_map_view.set_active_chunk(hex)
 	_enter_local_mode()

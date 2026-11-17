@@ -16,7 +16,7 @@ func before_each():
 	main = MainScene.instantiate()
 	add_child_autofree(main)
 	# 東隣は解放済みとして、所有している chunk どうしの行き来を確かめる
-	main.world.territory.claim(Hex.new(1, 0))
+	main.world.territory.claim(Vector2i(1, 0))
 
 
 func after_each():
@@ -27,14 +27,14 @@ func after_each():
 
 
 func _east() -> Chunk:
-	return main.world.get_chunk(Hex.new(1, 0))
+	return main.world.get_chunk(Vector2i(1, 0))
 
 
 func test_カメラの中心が隣のchunkの方に近づくとそのchunkが今いるchunkになる():
 	var east_position = _east().position
 	main.camera.position = east_position * 0.6
 	main.update_navigation()
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(1, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
 	assert_eq(main.piece_placer.chunk, _east(), "設置先もその chunk になる")
 
 
@@ -49,20 +49,20 @@ func test_切り替えても画面の見え方は変わらない():
 func test_今いるchunkの中心の方が近いうちは切り替えない():
 	main.camera.position = _east().position * 0.4
 	main.update_navigation()
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 
 
 func test_所有していない隣のchunkの方に近づいても切り替えない():
-	main.camera.position = main.world.get_chunk(Hex.new(0, 1)).position * 0.6
+	main.camera.position = main.world.get_chunk(Vector2i(0, 1)).position * 0.6
 	main.update_navigation()
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 
 
 func test_設置のドラッグ中は切り替えない():
 	main.piece_placer.start_drag()
 	main.camera.position = _east().position * 0.6
 	main.update_navigation()
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 	main.piece_placer.stop_drag()
 
 
@@ -80,8 +80,8 @@ func test_ワールドマップへは見え方を保ったまま移る():
 	main.update_navigation()
 	var view = main.world_map_view
 	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
-	var east_tile = view.to_global(view.get_tile_position(Hex.new(1, 0)))
-	var origin_tile = view.to_global(view.get_tile_position(Hex.new(0, 0)))
+	var east_tile = view.to_global(view.get_tile_position(Vector2i(1, 0)))
+	var origin_tile = view.to_global(view.get_tile_position(Vector2i(0, 0)))
 	assert_true(main.camera.position.is_equal_approx(origin_tile.lerp(east_tile, 0.3)))
 	assert_almost_eq(main.camera.zoom.x, local_zoom / scale, 0.0001)
 
@@ -96,12 +96,12 @@ func test_ワールドマップで寄せると画面中央のchunkのローカ�
 	main._toggle_mode()
 	var view = main.world_map_view
 	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
-	var east_tile = view.to_global(view.get_tile_position(Hex.new(1, 0)))
+	var east_tile = view.to_global(view.get_tile_position(Vector2i(1, 0)))
 	main.camera.position = east_tile
 	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
 	main.update_navigation()
 	assert_true(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(1, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
 	assert_true(main.camera.position.is_equal_approx(Vector2.ZERO))
 	assert_almost_eq(main.camera.zoom.x, Main.MAP_TO_LOCAL_ZOOM + 0.01, 0.0001)
 

@@ -45,7 +45,7 @@ func _board() -> BoardView:
 
 
 func _pixel(hex: Vector2i) -> Vector2:
-	return BattleHex.to_pixel(hex, BattleScene.HEX_SIZE)
+	return Hex.to_pixel(hex, BattleScene.HEX_SIZE)
 
 
 func test_マスの大きさは工場のマスと同じ():
@@ -246,7 +246,7 @@ func test_ターン終了ボタンを押すと敵が行動してマナが回復�
 	assert_string_contains(scene.get_node("Hud/EnergyLabel").text, "マナ: 3 / 3")
 	assert_null(scene.selected_skill)
 	assert_eq(scene.view_of(enemy).position, _pixel(enemy.position))
-	assert_eq(BattleHex.distance(enemy.position, player.position), 1)
+	assert_eq(Hex.distance(enemy.position, player.position), 1)
 
 
 func test_倒した敵の表示は消える():

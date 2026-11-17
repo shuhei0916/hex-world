@@ -35,7 +35,7 @@ func _attack(hex: Vector2i) -> void:
 
 
 func _pixel(hex: Vector2i) -> Vector2:
-	return BattleHex.to_pixel(hex, BattleScene.HEX_SIZE)
+	return Hex.to_pixel(hex, BattleScene.HEX_SIZE)
 
 
 func test_何もしていなければアニメーション中ではない():

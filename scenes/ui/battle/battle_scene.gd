@@ -49,10 +49,10 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		hover_hex(BattleHex.from_pixel(get_local_mouse_position(), HEX_SIZE))
+		hover_hex(Hex.from_pixel(get_local_mouse_position(), HEX_SIZE))
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			click_hex(BattleHex.from_pixel(get_local_mouse_position(), HEX_SIZE))
+			click_hex(Hex.from_pixel(get_local_mouse_position(), HEX_SIZE))
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			cancel_selection()
 	elif event.is_action_pressed("ui_accept"):
@@ -153,7 +153,7 @@ func _show_result() -> void:
 func _animate_move(view: UnitView, path: Array[Vector2i]) -> void:
 	var tween := create_tween()
 	for hex in path.slice(1):
-		tween.tween_property(view, "position", BattleHex.to_pixel(hex, HEX_SIZE), STEP_TIME)
+		tween.tween_property(view, "position", Hex.to_pixel(hex, HEX_SIZE), STEP_TIME)
 	await tween.finished
 
 

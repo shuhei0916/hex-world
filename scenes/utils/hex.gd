@@ -1,145 +1,130 @@
 @tool
 class_name Hex
-extends RefCounted
+## ヘックスの座標の計算をまとめたもの。座標は軸座標（q, r）を Vector2i(q, r) で持つ。
+## 足し算・引き算・比較・辞書のキーには Vector2i をそのまま使う。
+## 3つ目の座標 s は -q - r で決まるので持たず、必要なときに s() で求める。
 
 const DIR_NAME_TO_INDEX = {"E": 0, "NE": 1, "NW": 2, "W": 3, "SW": 4, "SE": 5}
 
-static var hex_directions = [
-	Hex.new(1, 0, -1),  # 東 (E)
-	Hex.new(1, -1, 0),  # 北東 (NE)
-	Hex.new(0, -1, 1),  # 北西 (NW)
-	Hex.new(-1, 0, 1),  # 西 (W)
-	Hex.new(-1, 1, 0),  # 南西 (SW)
-	Hex.new(0, 1, -1)  # 南東 (SE)
+## 隣のマスへの6方向。東から反時計回り。
+const DIRECTIONS: Array[Vector2i] = [
+	Vector2i(1, 0),  # 東 (E)
+	Vector2i(1, -1),  # 北東 (NE)
+	Vector2i(0, -1),  # 北西 (NW)
+	Vector2i(-1, 0),  # 西 (W)
+	Vector2i(-1, 1),  # 南西 (SW)
+	Vector2i(0, 1),  # 南東 (SE)
 ]
 
-static var hex_diagonals = [
-	Hex.new(2, -1, -1),
-	Hex.new(1, -2, 1),
-	Hex.new(-1, -1, 2),
-	Hex.new(-2, 1, 1),
-	Hex.new(-1, 2, -1),
-	Hex.new(1, 1, -2)
+## 頂点の先にあるマスへの6方向。
+const DIAGONALS: Array[Vector2i] = [
+	Vector2i(2, -1),
+	Vector2i(1, -2),
+	Vector2i(-1, -1),
+	Vector2i(-2, 1),
+	Vector2i(-1, 2),
+	Vector2i(1, 1),
 ]
 
-var q
-var r
-var s
+
+## 3つ目の座標。
+static func s(hex: Vector2i) -> int:
+	return -hex.x - hex.y
 
 
-func _init(q_val, r_val, s_val = null):
-	q = q_val
-	r = r_val
-	if s_val == null:
-		s = -q_val - r_val
-	else:
-		s = s_val
+static func rotate_left(hex: Vector2i) -> Vector2i:
+	return Vector2i(-s(hex), -hex.x)
 
 
-func is_valid() -> bool:
-	return (q + r + s) == 0
+static func rotate_right(hex: Vector2i) -> Vector2i:
+	return Vector2i(-hex.y, -s(hex))
 
 
-func _to_string() -> String:
-	return "(%s, %s, %s)" % [q, r, s]
-
-
-static func add(a: Hex, b: Hex) -> Hex:
-	return Hex.new(a.q + b.q, a.r + b.r, a.s + b.s)
-
-
-static func subtract(a: Hex, b: Hex) -> Hex:
-	return Hex.new(a.q - b.q, a.r - b.r, a.s - b.s)
-
-
-static func scale(a: Hex, k: int) -> Hex:
-	return Hex.new(a.q * k, a.r * k, a.s * k)
-
-
-static func equals(a: Hex, b: Hex) -> bool:
-	return a.q == b.q and a.r == b.r and a.s == b.s
-
-
-static func rotate_left(a: Hex) -> Hex:
-	return Hex.new(-a.s, -a.q, -a.r)
-
-
-static func rotate_right(a: Hex) -> Hex:
-	return Hex.new(-a.r, -a.s, -a.q)
-
-
-# Vector2i オフセットから Hex を生成し、右回りに rotation 回だけ回転させて返す。
-# ピース定義（Vector2i 保存）を rotation_state に追従させる際の定型処理。
-static func from_offset_rotated(offset: Vector2i, rotation: int) -> Hex:
-	var hex = Hex.new(offset.x, offset.y, -offset.x - offset.y)
+## offset を右回りに rotation 回だけ回転させて返す。
+## ピースの形の定義を rotation_state に追従させるときに使う。
+static func from_offset_rotated(offset: Vector2i, rotation: int) -> Vector2i:
+	var hex := offset
 	for _i in range(rotation):
 		hex = rotate_right(hex)
 	return hex
 
 
-static func direction(direction_index: int) -> Hex:
-	return hex_directions[direction_index]
+static func direction(direction_index: int) -> Vector2i:
+	return DIRECTIONS[direction_index]
 
 
-static func direction_by_name(name: String) -> Hex:
-	if DIR_NAME_TO_INDEX.has(name):
-		return direction(DIR_NAME_TO_INDEX[name])
-	return null
+static func neighbor(hex: Vector2i, direction_index: int) -> Vector2i:
+	return hex + DIRECTIONS[direction_index]
 
 
-static func neighbor(hex: Hex, direction_index: int) -> Hex:
-	return add(hex, direction(direction_index))
+static func neighbors(hex: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for offset in DIRECTIONS:
+		result.append(hex + offset)
+	return result
 
 
-static func get_direction_to(a: Hex, b: Hex) -> int:
-	for i in range(6):
-		if equals(neighbor(a, i), b):
-			return i
-	return -1
+## a から見て b がどの方向の隣か。隣でなければ -1。
+static func get_direction_to(a: Vector2i, b: Vector2i) -> int:
+	return DIRECTIONS.find(b - a)
 
 
-static func diagonal_neighbor(hex: Hex, direction_index: int) -> Hex:
-	return add(hex, hex_diagonals[direction_index])
+static func diagonal_neighbor(hex: Vector2i, direction_index: int) -> Vector2i:
+	return hex + DIAGONALS[direction_index]
 
 
-static func length(hex: Hex) -> int:
-	return (abs(hex.q) + abs(hex.r) + abs(hex.s)) / 2
+## 原点からの距離。
+static func length(hex: Vector2i) -> int:
+	return maxi(maxi(absi(hex.x), absi(hex.y)), absi(s(hex)))
 
 
-static func distance(a: Hex, b: Hex) -> int:
-	return length(subtract(a, b))
+static func distance(a: Vector2i, b: Vector2i) -> int:
+	return length(b - a)
 
 
-static func round(hex: Hex) -> Hex:
-	var rq = roundi(hex.q)
-	var rr = roundi(hex.r)
-	var rs = roundi(hex.s)
-	var q_diff = abs(rq - hex.q)
-	var r_diff = abs(rr - hex.r)
-	var s_diff = abs(rs - hex.s)
-	if q_diff > r_diff and q_diff > s_diff:
-		rq = -rr - rs
-	elif r_diff > s_diff:
-		rr = -rq - rs
-	else:
-		rs = -rq - rr
-	return Hex.new(rq, rr, rs)
+## center から radius マス以内のマスをすべて返す。
+static func within(center: Vector2i, radius: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for q in range(-radius, radius + 1):
+		for r in range(maxi(-radius, -q - radius), mini(radius, -q + radius) + 1):
+			result.append(center + Vector2i(q, r))
+	return result
 
 
-static func lerp(a: Hex, b: Hex, t: float) -> Hex:
-	return Hex.new(a.q * (1.0 - t) + b.q * t, a.r * (1.0 - t) + b.r * t, a.s * (1.0 - t) + b.s * t)
+## 小数の軸座標を最も近いマスに丸める。
+static func round(fractional: Vector2) -> Vector2i:
+	var q := roundf(fractional.x)
+	var r := roundf(fractional.y)
+	var rounded_s := roundf(-fractional.x - fractional.y)
+	var dq := absf(q - fractional.x)
+	var dr := absf(r - fractional.y)
+	var ds := absf(rounded_s + fractional.x + fractional.y)
+	if dq > dr and dq > ds:
+		q = -r - rounded_s
+	elif dr > ds:
+		r = -q - rounded_s
+	return Vector2i(int(q), int(r))
 
 
-static func to_key(hex: Hex) -> String:
-	return "%d,%d,%d" % [hex.q, hex.r, hex.s]
+## from から to までの直線上のマス。両端を含む。
+static func line(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	var steps := distance(from, to)
+	# マスの境界ちょうどを通るときに丸めがぶれないよう、わずかにずらす
+	var nudge := Vector2(1e-06, 1e-06)
+	var result: Array[Vector2i] = []
+	for i in range(steps + 1):
+		var t := float(i) / steps if steps > 0 else 0.0
+		result.append(Hex.round((Vector2(from) + nudge).lerp(Vector2(to) + nudge, t)))
+	return result
 
 
-static func linedraw(a: Hex, b: Hex) -> Array[Hex]:
-	var dist = distance(a, b)
-	var a_nudge = Hex.new(a.q + 1e-06, a.r + 1e-06, a.s - 2e-06)
-	var b_nudge = Hex.new(b.q + 1e-06, b.r + 1e-06, b.s - 2e-06)
-	var results: Array[Hex] = []
-	var step = 1.0 / max(dist, 1)
-	for i in range(0, dist + 1):
-		results.append(Hex.round(Hex.lerp(a_nudge, b_nudge, step * i)))
-	return results
+## マスの中心の画面座標を返す。頂点が上の向きで、size は中心から頂点までの長さ。
+static func to_pixel(hex: Vector2i, size: float) -> Vector2:
+	return Vector2(size * sqrt(3.0) * (hex.x + hex.y / 2.0), size * 1.5 * hex.y)
+
+
+## 画面座標にあるマスを返す。to_pixel の逆。
+static func from_pixel(pixel: Vector2, size: float) -> Vector2i:
+	var r := pixel.y / (size * 1.5)
+	var q := pixel.x / (size * sqrt(3.0)) - r / 2.0
+	return Hex.round(Vector2(q, r))

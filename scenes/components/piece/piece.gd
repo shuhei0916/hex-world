@@ -143,8 +143,8 @@ func tick(delta: float):
 			child.tick(delta)
 
 
-func get_hex_shape() -> Array[Hex]:
-	var hexes: Array[Hex] = []
+func get_hex_shape() -> Array[Vector2i]:
+	var hexes: Array[Vector2i] = []
 	for v in piece_shape:
 		hexes.append(Hex.from_offset_rotated(v, rotation_state))
 	return hexes

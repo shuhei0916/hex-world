@@ -88,14 +88,14 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 	visuals.set_input_directions(directions)
 
 
-func _is_physically_connected(source: Piece, source_hex: Hex, direction: int) -> bool:
+func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: int) -> bool:
 	var base_hex = _registry.get_base_hex(source)
 	if base_hex == null:
 		return false
 
 	for port in source.get_output_ports():
-		var absolute_port_hex = Hex.add(base_hex, port.hex)
-		if Hex.equals(absolute_port_hex, source_hex) and port.direction == direction:
+		var absolute_port_hex = base_hex + port.hex
+		if absolute_port_hex == source_hex and port.direction == direction:
 			return true
 
 	# コンベア同士の自然な分岐: 隣のコンベアの出力方向が A→C の向きと一致するとき接続
@@ -118,7 +118,7 @@ func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
 	return not ports.is_empty() and ports[0]["direction"] == direction
 
 
-func _get_neighbor_piece(hex: Hex, direction: int) -> Piece:
+func _get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
 	var neighbor_hex = Hex.neighbor(hex, direction)
 	if not _hex_grid.is_inside_grid(neighbor_hex):
 		return null

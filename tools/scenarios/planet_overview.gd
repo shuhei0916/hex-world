@@ -39,9 +39,9 @@ func run(scene: Node) -> void:
 	)
 
 
-func _first_hex_of(planet: Planet, biome_id: String) -> Hex:
+func _first_hex_of(planet: Planet, biome_id: String) -> Variant:
 	for hex in planet.get_chunk_hexes():
-		if planet.get_biome_id(hex) == biome_id and not Hex.equals(hex, Hex.new(0, 0)):
+		if planet.get_biome_id(hex) == biome_id and hex != Vector2i(0, 0):
 			return hex
 	return null
 
@@ -55,9 +55,9 @@ func _print_map(planet: Planet) -> void:
 			# flat-top では y ∝ 2r + q。row = 2r + q を満たす r が整数のときだけ描く
 			var cell = "  "
 			if (row - q) % 2 == 0:
-				var hex = Hex.new(q, (row - q) / 2)
+				var hex = Vector2i(q, (row - q) / 2)
 				if planet.has_chunk(hex):
 					var symbol = SYMBOLS.get(planet.get_biome_id(hex), "?")
-					cell = ("*" if Hex.equals(hex, Hex.new(0, 0)) else " ") + symbol
+					cell = ("*" if hex == Vector2i(0, 0) else " ") + symbol
 			line += cell
 		print(line)

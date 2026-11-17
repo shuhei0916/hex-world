@@ -12,7 +12,7 @@ const ACTIVE_BORDER_WIDTH := 4.0
 const HOVER_LIGHTEN := 0.2
 const ACTIVE_LIGHTEN := 0.4
 
-var chunk_hex: Hex
+var chunk_hex: Vector2i
 var base_color: Color = NORMAL_COLOR
 var is_active: bool = false
 var is_hovered: bool = false
@@ -30,7 +30,7 @@ func get_inradius() -> float:
 	return _inradius
 
 
-func setup(hex: Hex, color: Color = NORMAL_COLOR) -> void:
+func setup(hex: Vector2i, color: Color = NORMAL_COLOR) -> void:
 	chunk_hex = hex
 	base_color = color
 	queue_redraw()

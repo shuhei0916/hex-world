@@ -22,7 +22,7 @@ func can_perform(_battle: Battle) -> bool:
 	return (
 		target.is_alive()
 		and target.team != actor.team
-		and BattleHex.distance(actor.position, target.position) == 1
+		and Hex.distance(actor.position, target.position) == 1
 	)
 
 

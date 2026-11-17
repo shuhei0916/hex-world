@@ -71,7 +71,7 @@ func enemies() -> Array[Unit]:
 func threatened_hexes_by(enemy: Unit) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	for origin in field.reachable(enemy.position, AP_PER_TURN - AttackAction.COST):
-		for hex in BattleHex.neighbors(origin):
+		for hex in Hex.neighbors(origin):
 			var standable := field.is_walkable(hex) or hex == player.position
 			if standable and not result.has(hex):
 				result.append(hex)

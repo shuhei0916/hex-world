@@ -171,7 +171,7 @@ func test_スロットはバリアントリストを持ちget_scene_for_slotは�
 
 
 func test_set_chunk_coordinateで左上ラベルにチャンク座標が表示される():
-	hud.set_chunk_coordinate(Hex.new(1, 0))
+	hud.set_chunk_coordinate(Vector2i(1, 0))
 	assert_eq(hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
@@ -192,8 +192,8 @@ class TestHoveredPiece:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(SMELTER, Hex.new(0, 0))
-		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(SMELTER, Vector2i(0, 0))
+		smelter = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
@@ -236,7 +236,7 @@ class TestHoveredPiece:
 
 	func test_ホバー中のピースが撤去されると情報パネルが消える():
 		hud.show_hovered_piece(smelter)
-		chunk.remove_piece_at(Hex.new(0, 0))
+		chunk.remove_piece_at(Vector2i(0, 0))
 		await get_tree().process_frame
 		hud._process(0.1)
 		assert_false(hud.info_panel.visible)
@@ -349,8 +349,8 @@ class TestChestSlots:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(CHEST_OUT, Hex.new(0, 0))
-		chest = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(CHEST_OUT, Vector2i(0, 0))
+		chest = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
@@ -406,8 +406,8 @@ class TestChestSlots:
 			assert_not_null(hud.item_picker.get_button(id), id)
 
 	func test_搬出チェスト以外にはアイテム選択パネルを開かない():
-		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(2, 0))
-		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 0)))
+		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Vector2i(2, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Vector2i(2, 0)))
 		assert_false(hud.item_picker.visible)
 
 
@@ -428,8 +428,8 @@ class TestResearchPanelFocus:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(SMELTER, Hex.new(0, 0))
-		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(SMELTER, Vector2i(0, 0))
+		smelter = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
@@ -465,8 +465,8 @@ class TestResearchPanelFocus:
 		assert_true(hud.info_panel.visible)
 
 	func test_研究画面を開くとアイテム選択パネルは閉じる():
-		chunk.place_piece(preload("res://scenes/components/piece/chest_out.tscn"), Hex.new(3, 0))
-		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(3, 0)))
+		chunk.place_piece(preload("res://scenes/components/piece/chest_out.tscn"), Vector2i(3, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Vector2i(3, 0)))
 		hud.toggle_research_panel()
 		assert_false(hud.item_picker.visible)
 

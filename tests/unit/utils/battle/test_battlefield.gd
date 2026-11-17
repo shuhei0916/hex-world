@@ -50,12 +50,12 @@ func test_壁を迂回した経路を返す():
 	assert_eq(path.back(), Vector2i(1, 0))
 	assert_gt(path.size(), 3)
 	for i in range(1, path.size()):
-		assert_eq(BattleHex.distance(path[i - 1], path[i]), 1)
+		assert_eq(Hex.distance(path[i - 1], path[i]), 1)
 		assert_true(field.is_walkable(path[i]))
 
 
 func test_到達できないマスへの経路は空():
-	for wall in BattleHex.neighbors(Vector2i(2, 0)):
+	for wall in Hex.neighbors(Vector2i(2, 0)):
 		field.set_terrain(wall, Battlefield.Terrain.WALL)
 
 	assert_eq(field.find_path(Vector2i(0, 0), Vector2i(2, 0)), [])

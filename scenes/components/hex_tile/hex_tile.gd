@@ -5,7 +5,7 @@ extends Node2D
 # HexTile - 個別の六角形タイル表示（床のマス、ピースのマス、設置のプレビュー）
 # 画像は使わず、戦闘の盤面と同じ角のとがった六角形を描く
 
-var hex_coordinate: Hex
+var hex_coordinate: Vector2i
 var is_highlighted: bool = false
 var normal_color: Color = HexStyle.FLOOR_COLOR
 # 橋の着地点（受け取りを置く場所）のヒント用の色
@@ -18,7 +18,7 @@ static func visual_circumradius() -> float:
 	return Layout.make_default().size.x
 
 
-func setup_hex(hex: Hex):
+func setup_hex(hex: Vector2i):
 	hex_coordinate = hex
 	_current_color = normal_color  # 初期色を設定
 	set_highlight(false)

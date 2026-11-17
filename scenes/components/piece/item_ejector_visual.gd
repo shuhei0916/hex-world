@@ -73,6 +73,6 @@ func _slide_endpoints(direction: int) -> Array:
 	for port in _piece.get_output_ports():
 		if port.direction == direction:
 			var hex_center = Layout.hex_to_pixel(layout, port.hex)
-			var edge = Layout.hex_to_pixel(layout, Hex.hex_directions[direction]) * 0.5
+			var edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[direction]) * 0.5
 			return [hex_center, hex_center + edge]
 	return [Vector2.ZERO, Vector2.ZERO]

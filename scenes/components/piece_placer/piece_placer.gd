@@ -15,19 +15,20 @@ const _BELT_TEXTURE_SIZE = 192.0
 var chunk: Chunk
 
 # 内部状態
-var current_piece_shape: Array[Hex] = []
+var current_piece_shape: Array[Vector2i] = []
 var current_rotation: int = 0
-var current_hovered_hex: Hex
+# マウスが乗っているマス。マスの外なら null
+var current_hovered_hex = null
 var is_dragging: bool = false
 var is_delete_dragging: bool = false
 var selected_scene: PackedScene
-var _last_drag_hex: Hex = null
+var _last_drag_hex = null
 var _selected_color: Color
 var _is_conveyor: bool = false
 var _selected_piece_type: int = -1
 var _selected_port_direction: int = -1
 var _selected_port_hex: Vector2i = Vector2i.ZERO
-var _conveyor_drag_path: Array[Hex] = []
+var _conveyor_drag_path: Array[Vector2i] = []
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
@@ -116,11 +117,11 @@ func _draw_preview():
 
 
 # コンベアのカーソルプレビュー: forward ベルト画像を出力方向へ向けて配置する（半透明）。
-func _add_belt_preview(hex_coord: Hex):
+func _add_belt_preview(hex_coord: Vector2i):
 	var direction = _selected_port_direction
 	if _selected_port_direction >= 0:
 		direction = (_selected_port_direction - current_rotation + 6) % 6
-	var travel = Layout.hex_to_pixel(chunk.layout, Hex.hex_directions[direction])
+	var travel = Layout.hex_to_pixel(chunk.layout, Hex.DIRECTIONS[direction])
 	var sprite = Sprite2D.new()
 	sprite.texture = BELT_PREVIEW_TEXTURE
 	sprite.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
@@ -161,7 +162,7 @@ func update_hover(local_mouse_pos: Vector2):
 
 	cursor_preview.position = local_mouse_pos
 
-	if is_dragging and (_last_drag_hex == null or not Hex.equals(hex_coord, _last_drag_hex)):
+	if is_dragging and (_last_drag_hex == null or hex_coord != _last_drag_hex):
 		_place_piece_at(hex_coord)
 		_last_drag_hex = hex_coord
 
@@ -178,11 +179,11 @@ func place_current_piece() -> bool:
 
 
 # テストや外部から座標指定で配置する場合用
-func place_piece_at_hex(target_hex: Hex) -> bool:
+func place_piece_at_hex(target_hex: Vector2i) -> bool:
 	return _place_piece_at(target_hex)
 
 
-func _place_piece_at(target_hex: Hex) -> bool:
+func _place_piece_at(target_hex: Vector2i) -> bool:
 	if current_piece_shape.is_empty() or not selected_scene:
 		return false
 	if _is_conveyor and is_dragging:
@@ -211,7 +212,7 @@ func can_afford_selected() -> bool:
 
 
 # プレイヤーの操作による撤去。設置コストは全額戻す。
-func _remove_piece_at(hex: Hex) -> void:
+func _remove_piece_at(hex: Vector2i) -> void:
 	var piece = chunk.get_piece_at_hex(hex)
 	if piece == null:
 		return
@@ -220,9 +221,9 @@ func _remove_piece_at(hex: Hex) -> void:
 		HubGoals.refund(cost)
 
 
-func _add_to_conveyor_path(hex: Hex) -> bool:
+func _add_to_conveyor_path(hex: Vector2i) -> bool:
 	for h in _conveyor_drag_path:
-		if Hex.equals(h, hex):
+		if h == hex:
 			return false
 	if not chunk.can_place(current_piece_shape, hex) and not _is_replaceable_conveyor(hex):
 		return false
@@ -231,12 +232,12 @@ func _add_to_conveyor_path(hex: Hex) -> bool:
 	return true
 
 
-func _is_replaceable_conveyor(hex: Hex) -> bool:
+func _is_replaceable_conveyor(hex: Vector2i) -> bool:
 	var existing = chunk.get_piece_at_hex(hex)
 	return existing != null and existing.is_replaceable()
 
 
-func _add_ghost_tile(hex: Hex):
+func _add_ghost_tile(hex: Vector2i):
 	var ghost_tile = HexTileScene.instantiate()
 	snap_preview.add_child(ghost_tile)
 	ghost_tile.position = Layout.hex_to_pixel(chunk.layout, hex)
@@ -253,12 +254,10 @@ func _update_conveyor_path_preview():
 		_add_ghost_tile(hex)
 
 
-func _place_conveyor_chain(end_target: Hex = null):
+func _place_conveyor_chain(end_target = null):
 	var last_hex := _conveyor_drag_path[_conveyor_drag_path.size() - 1]
-	var target_is_occupied := (
-		end_target != null
-		and not Hex.equals(end_target, last_hex)
-		and chunk.is_occupied(end_target)
+	var target_is_occupied: bool = (
+		end_target != null and end_target != last_hex and chunk.is_occupied(end_target)
 	)
 
 	for i in range(_conveyor_drag_path.size()):
@@ -290,7 +289,7 @@ func _place_conveyor_chain(end_target: Hex = null):
 		chunk.place_piece(selected_scene, hex, rotation, input_direction)
 
 
-func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> int:
+func _compute_optimal_conveyor_direction(hex: Vector2i, fallback_direction: int) -> int:
 	var feeding_direction := -1
 	for direction in range(6):
 		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
@@ -298,9 +297,9 @@ func _compute_optimal_conveyor_direction(hex: Hex, fallback_direction: int) -> i
 			continue
 		var base = chunk.get_base_hex(neighbor)
 		for port in neighbor.get_output_ports():
-			var abs_port = Hex.add(base, port.hex)
+			var abs_port = base + port.hex
 			var target = Hex.neighbor(abs_port, port.direction)
-			if Hex.equals(target, hex):
+			if target == hex:
 				if feeding_direction != -1:
 					return fallback_direction  # 複数の入力が競合 → fallback
 				feeding_direction = direction
@@ -318,8 +317,8 @@ func rotate_current_piece():
 	_draw_preview()
 
 
-func _get_rotated_piece_shape(original_shape: Array[Hex]) -> Array[Hex]:
-	var rotated_shape: Array[Hex] = []
+func _get_rotated_piece_shape(original_shape: Array[Vector2i]) -> Array[Vector2i]:
+	var rotated_shape: Array[Vector2i] = []
 	for hex_offset in original_shape:
 		rotated_shape.append(Hex.rotate_right(hex_offset))
 	return rotated_shape

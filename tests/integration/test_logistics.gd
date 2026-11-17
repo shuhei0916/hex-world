@@ -23,14 +23,14 @@ class TestPieceLogistics:
 		# SMELTER at (-1,2): occupies (-3,2),(-2,2),(-1,2),(-1,3)
 		#   port at offset (0,0) → absolute (-1,2), direction E → neighbor (0,2)
 		# CONVEYOR at (0,2): シンクとして受領
-		chunk.mark_resource_hex(Hex.new(0, 0), "iron_ore")
-		chunk.place_piece(MINER_SCENE, Hex.new(0, 0))
-		chunk.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
+		chunk.mark_resource_hex(Vector2i(0, 0), "iron_ore")
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		chunk.place_piece(SMELTER_SCENE, Vector2i(-1, 2))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 2))
 
-		var miner = chunk.get_piece_at_hex(Hex.new(0, 0))
-		var smelter = chunk.get_piece_at_hex(Hex.new(-1, 2))
-		var chest = chunk.get_piece_at_hex(Hex.new(0, 2))
+		var miner = chunk.get_piece_at_hex(Vector2i(0, 0))
+		var smelter = chunk.get_piece_at_hex(Vector2i(-1, 2))
+		var chest = chunk.get_piece_at_hex(Vector2i(0, 2))
 
 		miner.tick(1.1)
 		assert_eq(smelter.get_item_count("iron_ore"), 1, "採掘機から炉へ移動するべき")

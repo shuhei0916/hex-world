@@ -11,10 +11,10 @@ extends RefCounted
 func run(scene: Node) -> void:
 	var view_name = OS.get_environment("BATTLE_VIEW")
 	scene._enter_world_map_mode()
-	scene.world_map_view.set_hovered_chunk(Hex.new(1, 0))
+	scene.world_map_view.set_hovered_chunk(Vector2i(1, 0))
 	if view_name not in ["battle", "intent", "result", "built"]:
 		return
-	scene.select_world_map_chunk(Hex.new(1, 0))
+	scene.select_world_map_chunk(Vector2i(1, 0))
 	var battle_scene: BattleScene = scene.battle_overlay.battle_scene
 	battle_scene.animations_enabled = false
 	if view_name == "battle":

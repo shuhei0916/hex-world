@@ -8,7 +8,7 @@ const ASSEMBLER_SLOT := 3
 
 func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
-	var hub = chunk.get_piece_at_hex(Hex.new(0, 0))
+	var hub = chunk.get_piece_at_hex(Vector2i(0, 0))
 	_report("開始時", scene)
 
 	hub.add_item("iron_ore", 10)
@@ -18,9 +18,9 @@ func run(scene: Node) -> void:
 	scene._handle_key_input(_key(KEY_E))
 	print("E キー → 研究パネル visible=%s" % scene.hud.research_panel.visible)
 
-	var before = await _measure_belt_seconds(scene, chunk, Hex.new(3, -3))
+	var before = await _measure_belt_seconds(scene, chunk, Vector2i(3, -3))
 	scene.hud.research_panel.get_button("belt_speed_1").pressed.emit()
-	var after = await _measure_belt_seconds(scene, chunk, Hex.new(3, -2))
+	var after = await _measure_belt_seconds(scene, chunk, Vector2i(3, -2))
 	_report("コンベア高速化 I を研究", scene)
 	print("コンベア1マスを運び切る時間: 研究前 %.2f秒 → 研究後 %.2f秒" % [before, after])
 	for id in Research.all_ids():
@@ -30,7 +30,7 @@ func run(scene: Node) -> void:
 # コンベアを1本置いてアイテムを載せ、端まで運び切るのにかかるゲーム内時間を求める。
 # 画面なしの起動では処理の重いフレームで経過時間の報告がずれるので、
 # フレームごとの進む速さの中央値から換算する。
-func _measure_belt_seconds(scene: Node, chunk: Chunk, hex: Hex) -> float:
+func _measure_belt_seconds(scene: Node, chunk: Chunk, hex: Vector2i) -> float:
 	chunk.place_piece(CONVEYOR, hex)
 	var logic = chunk.get_piece_at_hex(hex).get_node("ConveyorLogic")
 	logic.add_item("iron_ore", 1)

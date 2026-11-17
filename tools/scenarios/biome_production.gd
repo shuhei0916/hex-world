@@ -94,7 +94,7 @@ func _place_anywhere(chunk: Chunk, scene_res: PackedScene) -> Piece:
 	return null
 
 
-func _first_hex_of(planet: Planet, biome_id: String) -> Hex:
+func _first_hex_of(planet: Planet, biome_id: String) -> Variant:
 	for hex in planet.get_chunk_hexes():
 		if planet.get_biome_id(hex) == biome_id:
 			return hex

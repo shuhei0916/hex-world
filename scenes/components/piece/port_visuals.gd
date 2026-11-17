@@ -18,10 +18,10 @@ const MARKER_RATIO := 0.7
 
 
 # 出口の印の中心。hex は施設内の位置、direction は出口のある辺(0-5)
-static func marker_position(hex: Hex, direction: int) -> Vector2:
+static func marker_position(hex: Vector2i, direction: int) -> Vector2:
 	var layout = Layout.make_default()
 	var center = Layout.hex_to_pixel(layout, hex)
-	var to_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[direction]) * 0.5
+	var to_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[direction]) * 0.5
 	return center + to_edge * MARKER_RATIO
 
 
@@ -43,9 +43,9 @@ func _draw() -> void:
 		_draw_marker(stub["hex"], stub["direction"])
 
 
-func _draw_marker(hex: Hex, direction: int) -> void:
+func _draw_marker(hex: Vector2i, direction: int) -> void:
 	var pos = marker_position(hex, direction)
-	var tangent = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[direction])
+	var tangent = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[direction])
 	tangent = tangent.normalized()
 	var perp = tangent.rotated(PI * 0.5)
 	var tip = pos + tangent * MARKER_SIZE

@@ -37,14 +37,14 @@ func test_渡した主人公が戦場に置かれる():
 func test_戦場は渡した半径の六角形になる():
 	var battle := _generate(1, 1)
 
-	assert_eq(battle.field.cells().size(), BattleHex.within(Vector2i.ZERO, RADIUS).size())
+	assert_eq(battle.field.cells().size(), Hex.within(Vector2i.ZERO, RADIUS).size())
 
 
 func test_主人公は戦場の端の近くから始まる():
 	_generate(1, 1)
 
 	assert_eq(player.position, Encounter.player_start(RADIUS))
-	assert_eq(BattleHex.distance(player.position, Vector2i.ZERO), RADIUS - 1)
+	assert_eq(Hex.distance(player.position, Vector2i.ZERO), RADIUS - 1)
 
 
 func test_最初の戦闘は敵が2体():
@@ -66,7 +66,7 @@ func test_最後の戦闘にはHPの高いボスがいる():
 func test_敵は主人公から離れた場所に置かれる():
 	for rng_seed in range(1, 11):
 		for enemy in _generate(3, rng_seed).enemies():
-			assert_gte(BattleHex.distance(enemy.position, player.position), 4)
+			assert_gte(Hex.distance(enemy.position, player.position), 4)
 
 
 func test_壁を渡さなければ壁は無い():
@@ -93,7 +93,7 @@ func test_戦場の外にある壁は無視する():
 
 func test_敵は壁の上には置かれない():
 	var walls: Array[Vector2i] = []
-	for hex in BattleHex.within(Vector2i(2, 0), 2):
+	for hex in Hex.within(Vector2i(2, 0), 2):
 		walls.append(hex)
 
 	for rng_seed in range(1, 11):
@@ -107,7 +107,7 @@ func test_開始位置が壁なら主人公はいちばん近い歩けるマス�
 
 	_generate(1, 1, walls)
 
-	assert_eq(BattleHex.distance(player.position, start), 1)
+	assert_eq(Hex.distance(player.position, start), 1)
 
 
 func test_同じシードなら同じ配置になる():

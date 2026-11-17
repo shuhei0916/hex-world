@@ -11,7 +11,7 @@ var _units: Dictionary[Vector2i, Unit] = {}
 ## 中心から radius マス以内がすべて床の六角形の戦場を作る。
 static func hexagon(radius: int) -> Battlefield:
 	var field := Battlefield.new()
-	for hex in BattleHex.within(Vector2i.ZERO, radius):
+	for hex in Hex.within(Vector2i.ZERO, radius):
 		field.set_terrain(hex, Terrain.FLOOR)
 	return field
 
@@ -92,7 +92,7 @@ func _explore(
 	while not frontier.is_empty() and steps != max_steps:
 		var next_frontier: Array[Vector2i] = []
 		for current in frontier:
-			for neighbor in BattleHex.neighbors(current):
+			for neighbor in Hex.neighbors(current):
 				if came_from.has(neighbor) or not is_walkable(neighbor):
 					continue
 				came_from[neighbor] = current

@@ -40,7 +40,7 @@ func test_HUDのスロット選択でPiecePlacerが更新される():
 
 func test_ピースを設置すると設置音が鳴る():
 	var smelter_scene = main.hud.get_scene_for_slot(3)
-	main.world.get_active_chunk().place_piece(smelter_scene, Hex.new(0, 0))
+	main.world.get_active_chunk().place_piece(smelter_scene, Vector2i(0, 0))
 	assert_true(main.get_node("SfxPlayer/PlaceBuilding").playing)
 
 
@@ -48,7 +48,7 @@ func test_コンベアをドラッグパスに追加すると設置音が鳴る(
 	var conveyor_scene = main.hud.get_scene_for_slot(0)
 	main.piece_placer.select_piece(conveyor_scene)
 	main.piece_placer.start_drag()
-	main.piece_placer.place_piece_at_hex(Hex.new(1, 0))
+	main.piece_placer.place_piece_at_hex(Vector2i(1, 0))
 	assert_true(main.get_node("SfxPlayer/PlaceBelt").playing)
 
 
@@ -59,12 +59,12 @@ func test_起動時の初期配置では音が鳴らない():
 func test_起動時にplanetが設定され原点chunkと周りに見える隣のchunkが生成される():
 	assert_eq(main.world.get_planet().radius, Main.PLANET_RADIUS)
 	assert_eq(main.world.get_chunk_hexes().size(), 7)
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 
 
 func test_原点chunkにはハブと鉄鉱石の鉱床がある():
 	var chunk = main.world.get_active_chunk()
-	assert_eq(chunk.get_piece_at_hex(Hex.new(0, 0)).piece_type, PieceData.Type.HUB)
+	assert_eq(chunk.get_piece_at_hex(Vector2i(0, 0)).piece_type, PieceData.Type.HUB)
 	var ore_count = 0
 	for hex in chunk.get_all_hexes():
 		if chunk.get_hex_resource(hex) == "iron_ore":
@@ -201,36 +201,36 @@ func test_F2表示中にローカルへ戻るとヘックス座標ラベルに�
 
 func test_チャンク切替でHUDの座標ラベルが更新される():
 	main._handle_key_input(_make_space_event())
-	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main._handle_world_map_chunk_selected(Vector2i(1, 0))
 	assert_eq(main.hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
 func test_ワールドマップ表示時に接続済みチャンクペアの矢印が表示される():
 	var bridge_scene = main.hud.get_scene_for_slot(6)
-	main.world.get_active_chunk().place_piece(bridge_scene, Hex.new(4, 1, -5))
-	var chunk_b = main.world.create_chunk(Hex.new(1, 0))
-	chunk_b.place_piece(CONVEYOR, Hex.new(-1, -4, 5))
+	main.world.get_active_chunk().place_piece(bridge_scene, Vector2i(4, 1))
+	var chunk_b = main.world.create_chunk(Vector2i(1, 0))
+	chunk_b.place_piece(CONVEYOR, Vector2i(-1, -4))
 	main._handle_key_input(_make_space_event())
 	assert_eq(main.world_map_view.get_connection_arrow_count(), 1)
 
 
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():
 	main._handle_key_input(_make_space_event())
-	main._handle_world_map_chunk_selected(Hex.new(0, 0))
+	main._handle_world_map_chunk_selected(Vector2i(0, 0))
 	assert_true(main.is_local_mode())
 
 
 func test_クリックしたチャンクがアクティブになる():
 	main._handle_key_input(_make_space_event())
-	main._handle_world_map_chunk_selected(Hex.new(1, 0))
-	assert_eq(main.world.get_active_chunk(), main.world.get_chunk(Hex.new(1, 0)))
+	main._handle_world_map_chunk_selected(Vector2i(1, 0))
+	assert_eq(main.world.get_active_chunk(), main.world.get_chunk(Vector2i(1, 0)))
 
 
 func test_ワールドマップ再入時に現在アクティブなチャンクが強調される():
 	main._handle_key_input(_make_space_event())
-	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main._handle_world_map_chunk_selected(Vector2i(1, 0))
 	main._handle_key_input(_make_space_event())
-	assert_true(main.world_map_view.get_tile_active(Hex.new(1, 0)))
+	assert_true(main.world_map_view.get_tile_active(Vector2i(1, 0)))
 
 
 func _make_mouse_motion_event(pos: Vector2) -> InputEventMouseMotion:
@@ -241,9 +241,9 @@ func _make_mouse_motion_event(pos: Vector2) -> InputEventMouseMotion:
 
 func test_ワールドマップモードでマウス移動するとホバー先タイルが更新される():
 	main._handle_key_input(_make_space_event())
-	var pos = main.world_map_view.get_tile_position(Hex.new(1, 0))
+	var pos = main.world_map_view.get_tile_position(Vector2i(1, 0))
 	main._handle_mouse_motion(_make_mouse_motion_event(pos))
-	assert_true(main.world_map_view.get_tile_hovered(Hex.new(1, 0)))
+	assert_true(main.world_map_view.get_tile_hovered(Vector2i(1, 0)))
 
 
 func test_ワールドマップにはplanetの全chunkが表示される():
@@ -254,17 +254,17 @@ func test_ワールドマップにはplanetの全chunkが表示される():
 
 func test_未生成のchunkを選ぶとそのchunkに入れる():
 	main._handle_key_input(_make_space_event())
-	main._handle_world_map_chunk_selected(Hex.new(-2, 1))
+	main._handle_world_map_chunk_selected(Vector2i(-2, 1))
 	assert_true(main.is_local_mode())
-	assert_not_null(main.world.get_chunk(Hex.new(-2, 1)))
-	assert_eq(main.piece_placer.chunk, main.world.get_chunk(Hex.new(-2, 1)))
+	assert_not_null(main.world.get_chunk(Vector2i(-2, 1)))
+	assert_eq(main.piece_placer.chunk, main.world.get_chunk(Vector2i(-2, 1)))
 
 
 func test_ワールドマップに入るとカメラがアクティブchunkのタイルへ移る():
-	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main._handle_world_map_chunk_selected(Vector2i(1, 0))
 	main._handle_key_input(_make_space_event())
 	var expected = main.world_map_view.to_global(
-		main.world_map_view.get_tile_position(Hex.new(1, 0))
+		main.world_map_view.get_tile_position(Vector2i(1, 0))
 	)
 	assert_eq(main.camera.position, expected)
 
@@ -290,25 +290,25 @@ func test_セーブデータが無ければ新しいゲームとして始まる(
 
 
 func test_セーブすると次の起動で設置したピースが復元される():
-	main.world.get_active_chunk().place_piece(CONVEYOR, Hex.new(2, 1), 4)
+	main.world.get_active_chunk().place_piece(CONVEYOR, Vector2i(2, 1), 4)
 	main.save_game()
-	var piece = _start_another_main().world.get_active_chunk().get_piece_at_hex(Hex.new(2, 1))
+	var piece = _start_another_main().world.get_active_chunk().get_piece_at_hex(Vector2i(2, 1))
 	assert_not_null(piece)
 	assert_eq(piece.rotation_state, 4)
 
 
 func test_ロードしてもハブは1つだけ():
 	main.save_game()
-	var chunk = _start_another_main().world.get_chunk(Hex.new(0, 0))
+	var chunk = _start_another_main().world.get_chunk(Vector2i(0, 0))
 	var hubs = chunk.get_all_pieces().filter(func(p): return p.piece_type == PieceData.Type.HUB)
 	assert_eq(hubs.size(), 1)
 
 
 func test_ロードすると最後にいたchunkから再開しピース設置先もそのchunkになる():
-	main._handle_world_map_chunk_selected(Hex.new(1, 0))
+	main._handle_world_map_chunk_selected(Vector2i(1, 0))
 	main.save_game()
 	var other = _start_another_main()
-	assert_true(Hex.equals(other.world.get_active_hex(), Hex.new(1, 0)))
+	assert_true(other.world.get_active_hex() == Vector2i(1, 0))
 	assert_eq(other.piece_placer.chunk, other.world.get_active_chunk())
 
 
@@ -346,32 +346,32 @@ func test_最初からやり直すとセーブデータと進行度が消える(
 
 func test_設置済みピースの上にマウスを置くとそのピースの情報が表示される():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	assert_true(main.hud.info_panel.visible)
 	assert_eq(main.hud.info_panel.name_label.text, "Conveyor")
 
 
 func test_隣のchunkの施設の上にマウスを置いてもその情報が表示される():
-	var neighbor = main.world.get_chunk(Hex.new(1, 0))
-	neighbor.place_piece(CONVEYOR, Hex.new(-2, 1))
-	main._hover_local(neighbor.position + neighbor.hex_to_pixel(Hex.new(-2, 1)))
+	var neighbor = main.world.get_chunk(Vector2i(1, 0))
+	neighbor.place_piece(CONVEYOR, Vector2i(-2, 1))
+	main._hover_local(neighbor.position + neighbor.hex_to_pixel(Vector2i(-2, 1)))
 	assert_true(main.hud.info_panel.visible)
 	assert_eq(main.hud.info_panel.name_label.text, "Conveyor")
 
 
 func test_何も無いマスにマウスを移すとピースの情報が消える():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(3, -2)))
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(3, -2)))
 	assert_false(main.hud.info_panel.visible)
 
 
 func test_ワールドマップに切り替えるとピースの情報が消える():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._toggle_mode()
 	main._toggle_mode()
 	assert_false(main.hud.info_panel.visible)
@@ -413,26 +413,26 @@ func _left_click(pressed: bool) -> InputEventMouseButton:
 
 func test_何も選んでいない状態で搬出チェストをクリックするとアイテム選択パネルが開く():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	chunk.place_piece(CHEST_OUT, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_true(main.hud.item_picker.visible)
 
 
 func test_設置するピースを選んでいるときは搬出チェストをクリックしてもパネルが開かない():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
+	chunk.place_piece(CHEST_OUT, Vector2i(2, 1))
 	main.hud.slot_buttons[0].button_pressed = true
 	main.hud.on_slot_pressed(0)
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_false(main.hud.item_picker.visible)
 
 
 func test_コンベアをクリックしてもアイテム選択パネルは開かない():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_false(main.hud.item_picker.visible)
 
@@ -453,8 +453,8 @@ func test_研究画面を開いている間はホイールでマップを拡縮�
 
 func test_アイテム選択パネルを開いている間もホイールでマップを拡縮できない():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CHEST_OUT, Hex.new(2, 1))
-	main.hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	chunk.place_piece(CHEST_OUT, Vector2i(2, 1))
+	main.hud.open_item_picker(chunk.get_piece_at_hex(Vector2i(2, 1)))
 	assert_false(main.camera.zoom_enabled)
 	main.hud.item_picker.get_button("coal").pressed.emit()
 	assert_true(main.camera.zoom_enabled)
@@ -463,20 +463,20 @@ func test_アイテム選択パネルを開いている間もホイールでマ�
 func test_研究画面を開いている間に盤面を左クリックしても設置されず研究画面が閉じる():
 	var chunk = main.world.get_active_chunk()
 	main._handle_key_input(_make_key_event(KEY_E))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_false(main.hud.research_panel.visible)
-	assert_null(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	assert_null(chunk.get_piece_at_hex(Vector2i(2, 1)))
 	assert_false(main.piece_placer.is_dragging)
 
 
 func test_研究画面を開いている間に盤面を右クリックしてもピースは撤去されない():
 	var chunk = main.world.get_active_chunk()
-	chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(2, 1)))
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_key_input(_make_key_event(KEY_E))
 	main._handle_local_click(_right_click(true))
-	assert_not_null(chunk.get_piece_at_hex(Hex.new(2, 1)))
+	assert_not_null(chunk.get_piece_at_hex(Vector2i(2, 1)))
 	assert_false(main.hud.research_panel.visible)
 
 
@@ -492,7 +492,7 @@ func test_在庫不足で置けないとカーソル付近にメッセージが�
 	var chunk = main.world.get_active_chunk()
 	main.hud.slot_buttons[2].button_pressed = true
 	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
-	main._hover_local(chunk.hex_to_pixel(Hex.new(3, -1)))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(3, -1)))
 	main.piece_placer.place_current_piece()
 	assert_true(main.hud.cursor_message.visible)
 	assert_eq(main.hud.cursor_message.text, "在庫不足: Iron Ore 0/5")
@@ -510,21 +510,21 @@ func _win_battle() -> void:
 
 
 func test_新しいゲームでは原点のchunkだけを所有している():
-	assert_true(main.world.territory.is_owned(Hex.new(0, 0)))
+	assert_true(main.world.territory.is_owned(Vector2i(0, 0)))
 	assert_eq(main.world.territory.get_owned_hexes().size(), 1)
 
 
 func test_ワールドマップで所有しているchunkを選ぶとそのchunkに入る():
-	main.world.territory.claim(Hex.new(1, 0))
+	main.world.territory.claim(Vector2i(1, 0))
 	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(Hex.new(1, 0))
+	main.select_world_map_chunk(Vector2i(1, 0))
 	assert_true(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(1, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(1, 0))
 
 
 # ワールドマップで東隣の chunk を選んで戦闘を始める
-func _start_battle_on_east() -> Hex:
-	var hex = Hex.new(1, 0)
+func _start_battle_on_east() -> Vector2i:
+	var hex = Vector2i(1, 0)
 	main._handle_key_input(_make_space_event())
 	main.select_world_map_chunk(hex)
 	return hex
@@ -534,7 +534,7 @@ func test_ワールドマップで所有しているchunkの隣を選ぶと_そ�
 	var hex = _start_battle_on_east()
 	assert_true(main.battle_overlay.is_open())
 	assert_true(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), hex))
+	assert_true(main.world.get_active_hex() == hex)
 	assert_eq(main.battle_overlay.battle_scene.get_parent(), main.world)
 
 
@@ -563,7 +563,7 @@ func test_戦闘中は盤面全体が見える位置と倍率にカメラを合�
 
 func test_ワールドマップで霧のchunkを選んでも何も起きない():
 	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(Hex.new(2, 0))
+	main.select_world_map_chunk(Vector2i(2, 0))
 	assert_false(main.battle_overlay.is_open())
 	assert_false(main.is_local_mode())
 
@@ -574,7 +574,7 @@ func test_戦闘に勝って結果を閉じるとそのchunkを所有し_その�
 	main.battle_overlay.confirm_result()
 	assert_true(main.world.territory.is_owned(hex))
 	assert_true(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), hex))
+	assert_true(main.world.get_active_hex() == hex)
 	assert_true(main.hud.visible)
 	assert_true(main.piece_placer.visible)
 	assert_eq(main.piece_placer.chunk, main.world.get_chunk(hex))
@@ -597,8 +597,8 @@ func test_戦闘から撤退するとそのchunkは所有せず_元のchunkの�
 	assert_false(main.world.territory.is_owned(hex))
 	assert_false(main.battle_overlay.is_open())
 	assert_false(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
-	assert_true(main.world_map_view.get_tile_active(Hex.new(0, 0)))
+	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
+	assert_true(main.world_map_view.get_tile_active(Vector2i(0, 0)))
 
 
 func test_戦闘から撤退するとカメラは戦闘前の地図の位置と倍率に戻る():
@@ -606,7 +606,7 @@ func test_戦闘から撤退するとカメラは戦闘前の地図の位置と�
 	main.camera.zoom = Vector2.ONE * 0.5
 	main.camera.position += Vector2(30, 10)
 	var position_before = main.camera.position
-	main.select_world_map_chunk(Hex.new(1, 0))
+	main.select_world_map_chunk(Vector2i(1, 0))
 	main.battle_overlay.retreat()
 	assert_eq(main.camera.position, position_before)
 	assert_eq(main.camera.zoom, Vector2.ONE * 0.5)
@@ -640,15 +640,15 @@ func test_戦闘中にセーブしても_今いるchunkは戦闘前のchunkと�
 	_start_battle_on_east()
 	main.save_game()
 	var other = _start_another_main()
-	assert_true(Hex.equals(other.world.get_active_hex(), Hex.new(0, 0)))
-	assert_false(other.world.territory.is_owned(Hex.new(1, 0)))
+	assert_true(other.world.get_active_hex() == Vector2i(0, 0))
+	assert_false(other.world.territory.is_owned(Vector2i(1, 0)))
 
 
 func test_ワールドマップで寄せても所有していないchunkには入らない():
 	main._toggle_mode()
 	var view = main.world_map_view
 	var scale = view.get_tile_spacing() / main.world.get_chunk_spacing()
-	main.camera.position = view.to_global(view.get_tile_position(Hex.new(1, 0)))
+	main.camera.position = view.to_global(view.get_tile_position(Vector2i(1, 0)))
 	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
 	main.update_navigation()
 	assert_false(main.is_local_mode())

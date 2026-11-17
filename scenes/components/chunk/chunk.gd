@@ -5,7 +5,7 @@ extends Node2D
 
 # Chunk - グリッドの外部API・ピース管理・隣接判定を管理する
 
-signal grid_updated(hexes: Array[Hex])
+signal grid_updated(hexes: Array[Vector2i])
 signal piece_placed(piece: Piece)
 signal piece_removed
 
@@ -28,7 +28,7 @@ var _hex_grid = preload("res://scenes/components/chunk/hex_grid.gd").new()
 var _registry = preload("res://scenes/components/chunk/piece_registry.gd").new()
 var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.gd").new()
 var _renderer: GridRenderer
-var _drawn_hexes: Array[Hex] = []
+var _drawn_hexes: Array[Vector2i] = []
 var _resources = preload("res://scenes/components/chunk/chunk_resources.gd").new()
 var _hint_hexes: Array = []
 
@@ -45,23 +45,23 @@ func _ready():
 	_update_grid_visuals()
 
 
-func register_grid_hex(hex: Hex):
+func register_grid_hex(hex: Vector2i):
 	_hex_grid.register_grid_hex(hex)
 
 
-func is_inside_grid(hex: Hex) -> bool:
+func is_inside_grid(hex: Vector2i) -> bool:
 	return _hex_grid.is_inside_grid(hex)
 
 
-func is_occupied(hex: Hex) -> bool:
+func is_occupied(hex: Vector2i) -> bool:
 	return _hex_grid.is_occupied(hex)
 
 
-func occupy(hex: Hex):
+func occupy(hex: Vector2i):
 	_hex_grid.occupy(hex)
 
 
-func can_place(shape: Array, base_hex: Hex, piece_type: int = -1) -> bool:
+func can_place(shape: Array, base_hex: Vector2i, piece_type: int = -1) -> bool:
 	if _requires_edge(piece_type) and get_edge_direction(base_hex) == -1:
 		return false
 	return _hex_grid.can_place(shape, base_hex)
@@ -72,7 +72,7 @@ func _requires_edge(piece_type: int) -> bool:
 
 
 func place_piece(
-	packed_scene: PackedScene, base_hex: Hex, rotation: int = 0, input_direction: int = -1
+	packed_scene: PackedScene, base_hex: Vector2i, rotation: int = 0, input_direction: int = -1
 ):
 	var piece = packed_scene.instantiate()
 	piece.position = hex_to_pixel(base_hex)
@@ -84,9 +84,9 @@ func place_piece(
 		if child.has_method("set_storage"):
 			child.set_storage(get_storage_for(child.scope))
 
-	var occupied_hexes: Array[Hex] = []
+	var occupied_hexes: Array[Vector2i] = []
 	for offset in piece.get_hex_shape():
-		var target = Hex.add(base_hex, offset)
+		var target = base_hex + offset
 		occupy(target)
 		occupied_hexes.append(target)
 
@@ -104,7 +104,7 @@ func get_storage_for(scope: String) -> SharedStorage:
 	return resolved if resolved else storage
 
 
-func remove_piece_at(target_hex: Hex) -> bool:
+func remove_piece_at(target_hex: Vector2i) -> bool:
 	var piece = _registry.get_piece_at_hex(target_hex)
 	if piece == null:
 		return false
@@ -139,7 +139,7 @@ func clear_grid():
 	_registry.clear()
 
 
-func get_piece_at_hex(hex: Hex) -> Piece:
+func get_piece_at_hex(hex: Vector2i) -> Piece:
 	return _registry.get_piece_at_hex(hex)
 
 
@@ -151,11 +151,12 @@ func get_piece_count() -> int:
 	return _registry.get_all_pieces().size()
 
 
-func get_base_hex(piece: Piece) -> Hex:
+# 登録されていないピースなら null
+func get_base_hex(piece: Piece) -> Variant:
 	return _registry.get_base_hex(piece)
 
 
-func get_neighbor_piece(hex: Hex, direction: int) -> Piece:
+func get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
 	var neighbor_hex = Hex.neighbor(hex, direction)
 	if not is_inside_grid(neighbor_hex):
 		return null
@@ -176,7 +177,7 @@ func create_hex_grid(radius: int):
 		var r1 = max(-radius, -q - radius)
 		var r2 = min(radius, -q + radius)
 		for r in range(r1, r2 + 1):
-			var hex = Hex.new(q, r)
+			var hex = Vector2i(q, r)
 			_drawn_hexes.append(hex)
 
 	for hex in _drawn_hexes:
@@ -189,24 +190,24 @@ func get_grid_hex_count() -> int:
 	return _drawn_hexes.size()
 
 
-func get_all_hexes() -> Array[Hex]:
+func get_all_hexes() -> Array[Vector2i]:
 	return _drawn_hexes.duplicate()
 
 
-func hex_to_pixel(hex: Hex) -> Vector2:
+func hex_to_pixel(hex: Vector2i) -> Vector2:
 	return Layout.hex_to_pixel(layout, hex)
 
 
-func find_hex_tile(target_hex: Hex) -> HexTile:
+func find_hex_tile(target_hex: Vector2i) -> HexTile:
 	if _renderer:
 		return _renderer.find_hex_tile(target_hex)
 	return null
 
 
-func get_outer_hexes() -> Array[Hex]:
-	var result: Array[Hex] = []
+func get_outer_hexes() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
 	for hex in _drawn_hexes:
-		var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+		var max_coord = max(abs(hex.x), abs(hex.y), abs(Hex.s(hex)))
 		if max_coord == grid_radius:
 			result.append(hex)
 	return result
@@ -215,14 +216,14 @@ func get_outer_hexes() -> Array[Hex]:
 # 辺ヘックスが属する辺の方向（0〜5）を返す。角・内側ヘックスは -1。
 # 辺は「座標1つだけが±R」で判定し、その座標の符号と一致する成分を持つ方向に対応させる。
 # 対辺は正確に逆方向（+3 mod 6）になる。
-func get_edge_direction(hex: Hex) -> int:
+func get_edge_direction(hex: Vector2i) -> int:
 	var on_edge := [
-		hex.q == grid_radius,  # E(0)
-		hex.r == -grid_radius,  # NE(1)
-		hex.s == grid_radius,  # NW(2)
-		hex.q == -grid_radius,  # W(3)
-		hex.r == grid_radius,  # SW(4)
-		hex.s == -grid_radius,  # SE(5)
+		hex.x == grid_radius,  # E(0)
+		hex.y == -grid_radius,  # NE(1)
+		Hex.s(hex) == grid_radius,  # NW(2)
+		hex.x == -grid_radius,  # W(3)
+		hex.y == grid_radius,  # SW(4)
+		Hex.s(hex) == -grid_radius,  # SE(5)
 	]
 	if on_edge.count(true) != 1:
 		return -1
@@ -242,25 +243,25 @@ func show_landing_hints(hexes: Array):
 			tile.set_highlight(true)
 
 
-func mark_resource_hex(hex: Hex, resource_type: String):
+func mark_resource_hex(hex: Vector2i, resource_type: String):
 	_resources.mark_resource_hex(hex, resource_type)
 	_paint_resource_tile(hex, resource_type)
 
 
-func _paint_resource_tile(hex: Hex, resource_type: String):
+func _paint_resource_tile(hex: Vector2i, resource_type: String):
 	var tile = find_hex_tile(hex)
 	if tile and resource_type in _resources.RESOURCE_COLORS:
 		tile.set_color(_resources.RESOURCE_COLORS[resource_type])
 
 
-func get_hex_resource(hex: Hex) -> String:
+func get_hex_resource(hex: Vector2i) -> String:
 	return _resources.get_hex_resource(hex)
 
 
-func get_inner_hexes() -> Array[Hex]:
-	var result: Array[Hex] = []
+func get_inner_hexes() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
 	for hex in _drawn_hexes:
-		var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+		var max_coord = max(abs(hex.x), abs(hex.y), abs(Hex.s(hex)))
 		if max_coord < grid_radius:
 			result.append(hex)
 	return result
@@ -268,18 +269,18 @@ func get_inner_hexes() -> Array[Hex]:
 
 # 中心(0,0)はハブの設置位置なので鉱床にしない
 func generate_ore_deposits(count: int, resource_type: String = "iron_ore"):
-	var candidates = get_inner_hexes().filter(func(h): return not Hex.equals(h, Hex.new(0, 0)))
+	var candidates = get_inner_hexes().filter(func(h): return h != Vector2i(0, 0))
 	var cluster = _resources.generate_ore_deposits(count, candidates, _hex_grid, resource_type)
 	for hex in cluster:
 		_paint_resource_tile(hex, resource_type)
 
 
-func _apply_mining_constraint(piece: Piece, occupied_hexes: Array[Hex]):
+func _apply_mining_constraint(piece: Piece, occupied_hexes: Array[Vector2i]):
 	_resources.apply_mining_constraint(piece, occupied_hexes)
 
 
 func place_hub(item_name: String, goal_count: int):
 	var scene = load("res://scenes/components/piece/hub.tscn")
-	place_piece(scene, Hex.new(0, 0))
-	var piece = get_piece_at_hex(Hex.new(0, 0))
+	place_piece(scene, Vector2i(0, 0))
+	var piece = get_piece_at_hex(Vector2i(0, 0))
 	piece.get_node("Hub").setup(item_name, goal_count)

@@ -8,26 +8,27 @@ signal changed
 # planet があれば、その外の chunk は解放できない
 var planet: Planet = null
 
-var _owned: Dictionary = {}  # Hex.to_key → Hex
+# 所有している chunk の集合
+var _owned: Dictionary[Vector2i, bool] = {}
 
 
-func claim(chunk_hex: Hex) -> void:
-	_owned[Hex.to_key(chunk_hex)] = chunk_hex
+func claim(chunk_hex: Vector2i) -> void:
+	_owned[chunk_hex] = true
 	changed.emit()
 
 
-func is_owned(chunk_hex: Hex) -> bool:
-	return _owned.has(Hex.to_key(chunk_hex))
+func is_owned(chunk_hex: Vector2i) -> bool:
+	return _owned.has(chunk_hex)
 
 
-func get_owned_hexes() -> Array[Hex]:
-	var hexes: Array[Hex] = []
-	hexes.assign(_owned.values())
+func get_owned_hexes() -> Array[Vector2i]:
+	var hexes: Array[Vector2i] = []
+	hexes.assign(_owned.keys())
 	return hexes
 
 
 # 戦って解放できるか。まだ所有していなくて、所有している chunk の隣にあること
-func can_challenge(chunk_hex: Hex) -> bool:
+func can_challenge(chunk_hex: Vector2i) -> bool:
 	if is_owned(chunk_hex) or (planet and not planet.has_chunk(chunk_hex)):
 		return false
 	for dir in range(6):

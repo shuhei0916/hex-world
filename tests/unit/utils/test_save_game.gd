@@ -50,44 +50,44 @@ class TestPlanetAndChunks:
 	func before_each():
 		super()
 		world.setup_planet(Planet.new(3, 77))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func test_惑星の半径とシードが復元され同じバイオーム配置になる():
 		var restored = _roundtrip()
-		var hex = Hex.new(2, -1)
+		var hex = Vector2i(2, -1)
 		assert_eq(restored.get_planet().radius, 3)
 		assert_eq(restored.get_planet().get_biome_id(hex), world.get_planet().get_biome_id(hex))
 
 	func test_アクティブなchunkが復元される():
-		world.set_active_chunk(Hex.new(1, 0))
+		world.set_active_chunk(Vector2i(1, 0))
 		var restored = _roundtrip()
-		assert_true(Hex.equals(restored.get_active_hex(), Hex.new(1, 0)))
+		assert_true(restored.get_active_hex() == Vector2i(1, 0))
 
 	func test_訪れたchunkとその隣で見えていたchunkだけが復元される():
 		var restored = _roundtrip()
 		assert_eq(restored.get_chunk_hexes().size(), 7)
-		assert_not_null(restored.get_chunk(Hex.new(1, 0)))
-		assert_null(restored.get_chunk(Hex.new(2, 0)))
+		assert_not_null(restored.get_chunk(Vector2i(1, 0)))
+		assert_null(restored.get_chunk(Vector2i(2, 0)))
 
 	func test_所有しているchunkが復元される():
-		world.territory.claim(Hex.new(0, 0))
-		world.territory.claim(Hex.new(1, 0))
+		world.territory.claim(Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
 		var restored = _roundtrip()
-		assert_true(restored.territory.is_owned(Hex.new(0, 0)))
-		assert_true(restored.territory.is_owned(Hex.new(1, 0)))
-		assert_false(restored.territory.is_owned(Hex.new(0, 1)))
+		assert_true(restored.territory.is_owned(Vector2i(0, 0)))
+		assert_true(restored.territory.is_owned(Vector2i(1, 0)))
+		assert_false(restored.territory.is_owned(Vector2i(0, 1)))
 
 	func test_所有の記録が無い旧セーブでは_生成済みのchunkをすべて所有とする():
 		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
 		data.erase("owned_chunks")
 		var restored = _new_world()
 		SaveGame.apply(restored, data, _new_goals())
-		assert_true(restored.territory.is_owned(Hex.new(0, 0)))
-		assert_true(restored.territory.is_owned(Hex.new(1, 0)))
-		assert_false(restored.territory.is_owned(Hex.new(2, 0)))
+		assert_true(restored.territory.is_owned(Vector2i(0, 0)))
+		assert_true(restored.territory.is_owned(Vector2i(1, 0)))
+		assert_false(restored.territory.is_owned(Vector2i(2, 0)))
 
 	func test_隣のchunkの鉱床もロードで変わらない():
-		var hex = Hex.new(1, 0)
+		var hex = Vector2i(1, 0)
 		var before = world.get_chunk(hex)
 		var after = _roundtrip().get_chunk(hex)
 		for inner in before.get_all_hexes():
@@ -114,52 +114,52 @@ class TestPieces:
 
 	func before_each():
 		super()
-		chunk = world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		chunk = world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func test_ピースの種類と位置と向きが復元される():
-		chunk.place_piece(CONVEYOR, Hex.new(2, 1), 4)
-		var piece = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(2, 1))
+		chunk.place_piece(CONVEYOR, Vector2i(2, 1), 4)
+		var piece = _roundtrip().get_active_chunk().get_piece_at_hex(Vector2i(2, 1))
 		assert_not_null(piece)
 		assert_eq(piece.piece_type, PieceData.Type.CONVEYOR)
 		assert_eq(piece.rotation_state, 4)
 
 	func test_ピースの数が一致する():
-		chunk.place_piece(CONVEYOR, Hex.new(2, 1))
-		chunk.place_piece(CONVEYOR, Hex.new(3, 1))
-		chunk.place_piece(MINER, Hex.new(-2, 0))
+		chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+		chunk.place_piece(CONVEYOR, Vector2i(3, 1))
+		chunk.place_piece(MINER, Vector2i(-2, 0))
 		assert_eq(_roundtrip().get_active_chunk().get_piece_count(), 3)
 
 	func test_コンベアの入力方向が復元される():
-		chunk.place_piece(CONVEYOR, Hex.new(2, 1), 0, 5)
-		var piece = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(2, 1))
+		chunk.place_piece(CONVEYOR, Vector2i(2, 1), 0, 5)
+		var piece = _roundtrip().get_active_chunk().get_piece_at_hex(Vector2i(2, 1))
 		assert_eq(piece.input_direction, 5)
 
 	func test_コンベア同士の接続が復元される():
-		chunk.place_piece(CONVEYOR, Hex.new(1, 1))
-		chunk.place_piece(CONVEYOR, Hex.new(2, 1))
+		chunk.place_piece(CONVEYOR, Vector2i(1, 1))
+		chunk.place_piece(CONVEYOR, Vector2i(2, 1))
 		var restored_chunk = _roundtrip().get_active_chunk()
-		var first = restored_chunk.get_piece_at_hex(Hex.new(1, 1))
-		var second = restored_chunk.get_piece_at_hex(Hex.new(2, 1))
+		var first = restored_chunk.get_piece_at_hex(Vector2i(1, 1))
+		var second = restored_chunk.get_piece_at_hex(Vector2i(2, 1))
 		assert_eq(first.get_connected_pieces(), [second])
 
 	func test_鉱床の上のMinerは復元後も同じ資源を採掘する():
-		chunk.mark_resource_hex(Hex.new(-2, 0), "coal")
-		chunk.place_piece(MINER, Hex.new(-2, 0))
-		var miner = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(-2, 0))
+		chunk.mark_resource_hex(Vector2i(-2, 0), "coal")
+		chunk.place_piece(MINER, Vector2i(-2, 0))
+		var miner = _roundtrip().get_active_chunk().get_piece_at_hex(Vector2i(-2, 0))
 		assert_eq(miner.current_recipe.outputs, {"coal": 1})
 
 	func test_chunkをまたぐ橋の接続が復元される():
-		var east = world.create_chunk(Hex.new(1, 0))
+		var east = world.create_chunk(Vector2i(1, 0))
 		chunk.create_hex_grid(2)
 		east.create_hex_grid(2)
-		chunk.place_piece(BRIDGE, Hex.new(1, 1, -2))
-		east.place_piece(CONVEYOR, Hex.new(-1, -1, 2))
+		chunk.place_piece(BRIDGE, Vector2i(1, 1))
+		east.place_piece(CONVEYOR, Vector2i(-1, -1))
 		var data = JSON.parse_string(JSON.stringify(SaveGame.capture(world, goals)))
 		var restored = _new_world()
 		SaveGame.apply(restored, data, _new_goals())
-		var bridge = restored.get_chunk(Hex.new(0, 0)).get_piece_at_hex(Hex.new(1, 1, -2))
-		var landing = restored.get_chunk(Hex.new(1, 0)).get_piece_at_hex(Hex.new(-1, -1, 2))
+		var bridge = restored.get_chunk(Vector2i(0, 0)).get_piece_at_hex(Vector2i(1, 1))
+		var landing = restored.get_chunk(Vector2i(1, 0)).get_piece_at_hex(Vector2i(-1, -1))
 		assert_not_null(landing)
 		assert_eq(bridge.get_connected_pieces(), [landing])
 
@@ -171,7 +171,7 @@ class TestPieces:
 		)
 		var restored = _new_world()
 		SaveGame.apply(restored, data, _new_goals())
-		assert_null(restored.get_chunk(Hex.new(0, 0)).get_piece_at_hex(Hex.new(0, 0)))
+		assert_null(restored.get_chunk(Vector2i(0, 0)).get_piece_at_hex(Vector2i(0, 0)))
 
 	func test_旧セーブのSenderは橋として読み込まれ_Receiverは取り除かれる():
 		chunk.create_hex_grid(2)
@@ -185,11 +185,11 @@ class TestPieces:
 		)
 		var restored = _new_world()
 		SaveGame.apply(restored, data, _new_goals())
-		var restored_chunk = restored.get_chunk(Hex.new(0, 0))
-		var bridge = restored_chunk.get_piece_at_hex(Hex.new(1, 1))
+		var restored_chunk = restored.get_chunk(Vector2i(0, 0))
+		var bridge = restored_chunk.get_piece_at_hex(Vector2i(1, 1))
 		assert_not_null(bridge)
 		assert_eq(bridge.piece_type, PieceData.Type.BRIDGE)
-		assert_null(restored_chunk.get_piece_at_hex(Hex.new(-1, -1)))
+		assert_null(restored_chunk.get_piece_at_hex(Vector2i(-1, -1)))
 
 	func test_chunkの大きさが復元される():
 		chunk.create_hex_grid(2)
@@ -203,8 +203,8 @@ class TestHubProgress:
 
 	func before_each():
 		super()
-		chunk = world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		chunk = world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func test_ハブのレベルと解放済みの報酬が復元される():
 		goals.advance_level()
@@ -248,8 +248,8 @@ class TestHubProgress:
 	func test_ハブは復元後のレベルの目標を表示し納品数も引き継ぐ():
 		goals.advance_level()
 		chunk.place_hub("iron_ingot", 20)
-		chunk.get_piece_at_hex(Hex.new(0, 0)).get_node("Hub").add_received(7)
-		var hub = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(0, 0)).get_node("Hub")
+		chunk.get_piece_at_hex(Vector2i(0, 0)).get_node("Hub").add_received(7)
+		var hub = _roundtrip().get_active_chunk().get_piece_at_hex(Vector2i(0, 0)).get_node("Hub")
 		assert_eq(hub.goal_item, "iron_ingot")
 		assert_eq(hub.goal_count, 20)
 		assert_eq(hub.received_count, 7)
@@ -290,8 +290,8 @@ class TestChestSave:
 
 	func before_each():
 		super()
-		chunk = world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		chunk = world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func test_chunkの共有倉庫の中身が復元される():
 		chunk.storage.add("iron_ore", 12)
@@ -301,17 +301,17 @@ class TestChestSave:
 		assert_eq(restored.storage.get_count("coal"), 3)
 
 	func test_搬出チェストで選んだアイテムが復元される():
-		chunk.place_piece(CHEST_OUT, Hex.new(2, 0))
-		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("coal")
-		var restored = _roundtrip().get_active_chunk().get_piece_at_hex(Hex.new(2, 0))
+		chunk.place_piece(CHEST_OUT, Vector2i(2, 0))
+		chunk.get_piece_at_hex(Vector2i(2, 0)).get_node("ChestOutput").select_item("coal")
+		var restored = _roundtrip().get_active_chunk().get_piece_at_hex(Vector2i(2, 0))
 		assert_eq(restored.get_node("ChestOutput").selected_item, "coal")
 
 	func test_復元した搬出チェストは復元した共有倉庫から取り出す():
 		chunk.storage.add("coal", 3)
-		chunk.place_piece(CHEST_OUT, Hex.new(2, 0))
-		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("coal")
+		chunk.place_piece(CHEST_OUT, Vector2i(2, 0))
+		chunk.get_piece_at_hex(Vector2i(2, 0)).get_node("ChestOutput").select_item("coal")
 		var restored_chunk = _roundtrip().get_active_chunk()
-		var chest = restored_chunk.get_piece_at_hex(Hex.new(2, 0))
+		var chest = restored_chunk.get_piece_at_hex(Vector2i(2, 0))
 		chest.tick(0.1)
 		assert_eq(restored_chunk.storage.get_count("coal"), 2)
 		assert_eq(chest.get_item_count("coal"), 1)
@@ -324,8 +324,8 @@ class TestPlanetChestSave:
 
 	func before_each():
 		super()
-		world.create_chunk(Hex.new(0, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 
 	func test_惑星の共有倉庫の中身が復元される():
 		world.planet_storage.add("copper_ore", 9)
@@ -334,8 +334,8 @@ class TestPlanetChestSave:
 	func test_復元したplanetチェストは復元した惑星の倉庫から取り出す():
 		world.planet_storage.add("copper_ore", 9)
 		var chunk = world.get_active_chunk()
-		chunk.place_piece(PLANET_OUT, Hex.new(2, 0))
-		chunk.get_piece_at_hex(Hex.new(2, 0)).get_node("ChestOutput").select_item("copper_ore")
+		chunk.place_piece(PLANET_OUT, Vector2i(2, 0))
+		chunk.get_piece_at_hex(Vector2i(2, 0)).get_node("ChestOutput").select_item("copper_ore")
 		var restored = _roundtrip()
-		restored.get_active_chunk().get_piece_at_hex(Hex.new(2, 0)).tick(0.1)
+		restored.get_active_chunk().get_piece_at_hex(Vector2i(2, 0)).tick(0.1)
 		assert_eq(restored.planet_storage.get_count("copper_ore"), 8)

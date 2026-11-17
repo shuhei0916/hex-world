@@ -8,12 +8,12 @@ const PLAYER_ATTACK := 3
 
 
 ## chunk_hex の戦闘が、何番目の段階（1始まり）の敵になるか。
-static func stage_for(chunk_hex: Hex) -> int:
+static func stage_for(chunk_hex: Vector2i) -> int:
 	return clampi(Hex.length(chunk_hex), 1, Encounter.STAGE_COUNT)
 
 
 ## chunk_hex にある chunk の上で行う戦闘を作る。
-static func create(chunk_hex: Hex, chunk: Chunk, rng: RandomNumberGenerator) -> SkillTurn:
+static func create(chunk_hex: Vector2i, chunk: Chunk, rng: RandomNumberGenerator) -> SkillTurn:
 	var player := Unit.new(Unit.Team.PLAYER, PLAYER_MAX_HP, PLAYER_ATTACK)
 	var battle := Encounter.generate(
 		stage_for(chunk_hex), player, rng, chunk.grid_radius, walls_of(chunk)
@@ -26,5 +26,5 @@ static func walls_of(chunk: Chunk) -> Array[Vector2i]:
 	var walls: Array[Vector2i] = []
 	for hex in chunk.get_all_hexes():
 		if chunk.get_hex_resource(hex) != "":
-			walls.append(BattleHex.from_hex(hex))
+			walls.append(hex)
 	return walls

@@ -19,15 +19,15 @@ func before_each():
 	HubGoals.reset()
 	world = WorldScript.new()
 	add_child_autofree(world)
-	chunk_a = world.create_chunk(Hex.new(0, 0))
-	chunk_b = world.create_chunk(Hex.new(1, 0))
+	chunk_a = world.create_chunk(Vector2i(0, 0))
+	chunk_b = world.create_chunk(Vector2i(1, 0))
 
 
 func after_each():
 	HubGoals.reset()
 
 
-func _place(chunk: Chunk, scene: PackedScene, hex: Hex) -> Piece:
+func _place(chunk: Chunk, scene: PackedScene, hex: Vector2i) -> Piece:
 	chunk.place_piece(scene, hex)
 	return chunk.get_piece_at_hex(hex)
 
@@ -36,31 +36,31 @@ class TestSharing:
 	extends "res://tests/unit/components/piece/test_planet_chest.gd"
 
 	func test_あるchunkのplanetチェストに入れたアイテムは別のchunkから取り出せる():
-		_place(chunk_a, PLANET_IN, Hex.new(0, 0)).add_item("copper_ore", 3)
-		var chest_out = _place(chunk_b, PLANET_OUT, Hex.new(0, 0))
-		var conveyor = _place(chunk_b, CONVEYOR, Hex.new(1, 0))
+		_place(chunk_a, PLANET_IN, Vector2i(0, 0)).add_item("copper_ore", 3)
+		var chest_out = _place(chunk_b, PLANET_OUT, Vector2i(0, 0))
+		var conveyor = _place(chunk_b, CONVEYOR, Vector2i(1, 0))
 		chest_out.get_node("ChestOutput").select_item("copper_ore")
 		for i in 10:
 			chest_out.tick(0.1)
 		assert_eq(conveyor.get_item_count("copper_ore"), 1)
 
 	func test_planetチェストの中身は惑星の共有倉庫に入る():
-		_place(chunk_a, PLANET_IN, Hex.new(0, 0)).add_item("copper_ore", 3)
+		_place(chunk_a, PLANET_IN, Vector2i(0, 0)).add_item("copper_ore", 3)
 		assert_eq(world.planet_storage.get_count("copper_ore"), 3)
 
 	func test_planetチェストの中身はchunkチェストの倉庫とは別():
-		_place(chunk_a, PLANET_IN, Hex.new(0, 0)).add_item("copper_ore", 3)
+		_place(chunk_a, PLANET_IN, Vector2i(0, 0)).add_item("copper_ore", 3)
 		assert_eq(chunk_a.storage.get_count("copper_ore"), 0)
 
 	func test_chunkチェストの中身は別のchunkと共有されない():
-		_place(chunk_a, CHEST_IN, Hex.new(0, 0)).add_item("copper_ore", 3)
+		_place(chunk_a, CHEST_IN, Vector2i(0, 0)).add_item("copper_ore", 3)
 		assert_eq(chunk_b.storage.get_count("copper_ore"), 0)
 		assert_eq(world.planet_storage.get_count("copper_ore"), 0)
 
 	func test_あとから訪れたchunkのplanetチェストも同じ倉庫につながる():
-		_place(chunk_a, PLANET_IN, Hex.new(0, 0)).add_item("copper_ore", 3)
-		var chunk_c = world.create_chunk(Hex.new(-1, 0))
-		var chest = _place(chunk_c, PLANET_IN, Hex.new(0, 0))
+		_place(chunk_a, PLANET_IN, Vector2i(0, 0)).add_item("copper_ore", 3)
+		var chunk_c = world.create_chunk(Vector2i(-1, 0))
+		var chest = _place(chunk_c, PLANET_IN, Vector2i(0, 0))
 		assert_eq(chest.get_node("ChestInput").get_storage().get_count("copper_ore"), 3)
 
 
@@ -88,8 +88,8 @@ class TestDefinitions:
 		assert_true(PieceData.is_unlocked(PieceData.Type.PLANET_CHEST_OUT))
 
 	func test_ホバー表示でどの範囲の倉庫かが分かる():
-		var planet_chest = _place(chunk_a, PLANET_IN, Hex.new(0, 0))
-		var chunk_chest = _place(chunk_a, CHEST_IN, Hex.new(2, 0))
+		var planet_chest = _place(chunk_a, PLANET_IN, Vector2i(0, 0))
+		var chunk_chest = _place(chunk_a, CHEST_IN, Vector2i(2, 0))
 		assert_string_contains(PieceStatus.describe(planet_chest), "惑星の倉庫: 空")
 		assert_string_contains(PieceStatus.describe(chunk_chest), "chunk の倉庫: 空")
 

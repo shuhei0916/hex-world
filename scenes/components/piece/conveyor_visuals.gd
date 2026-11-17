@@ -143,9 +143,9 @@ func refresh_belt():
 	var primary_dir = ports[0]["direction"]
 	var dirs = _output_directions if not _output_directions.is_empty() else [primary_dir]
 	var input_dir = _input_direction if _input_direction >= 0 else (primary_dir + 3) % 6
-	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
+	var in_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[input_dir]) * 0.5
 	for output_dir in dirs:
-		var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+		var out_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[output_dir]) * 0.5
 		# 分岐は中心で行き先を決めるため、どの出口へも入口→中心の区間を共有する直線で描く
 		if dirs.size() >= 2:
 			_paths.append(PackedVector2Array([in_edge, Vector2.ZERO, out_edge]))
@@ -156,7 +156,7 @@ func refresh_belt():
 	_path = _paths[0]
 	# 合流: 主入力のパスは中心を通るので、辺から中心までの直線で継ぎ足せばつながって見える
 	for merge_dir in _merge_input_directions:
-		var merge_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[merge_dir]) * 0.5
+		var merge_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[merge_dir]) * 0.5
 		_merge_paths.append(PackedVector2Array([merge_edge, Vector2.ZERO]))
 	queue_redraw()
 

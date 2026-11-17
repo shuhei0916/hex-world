@@ -21,9 +21,9 @@ var planet_storage := SharedStorage.new()
 var territory := Territory.new()
 
 var _chunks: Dictionary = {}
-var _chunk_hexes: Array[Hex] = []  # 生成済み chunk の座標
+var _chunk_hexes: Array[Vector2i] = []  # 生成済み chunk の座標
 var _active_hex = null
-var _neighbor_hexes: Array[Hex] = []  # アクティブな chunk の周りに描いている chunk
+var _neighbor_hexes: Array[Vector2i] = []  # アクティブな chunk の周りに描いている chunk
 var _planet: Planet = null
 # バイオームチェストが共有する倉庫。地域（Planet の region）ごとに1つ {地域番号: SharedStorage}
 var _region_storages: Dictionary = {}
@@ -47,8 +47,8 @@ func get_planet() -> Planet:
 
 
 # generate_deposits=false はセーブデータからの復元用（鉱床は保存された配置を使う）
-func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
-	var key = Hex.to_key(chunk_hex)
+func create_chunk(chunk_hex: Vector2i, generate_deposits: bool = true) -> Chunk:
+	var key = chunk_hex
 	if key in _chunks:
 		return _chunks[key]
 	var chunk = preload("res://scenes/components/chunk/chunk.gd").new()
@@ -66,7 +66,7 @@ func create_chunk(chunk_hex: Hex, generate_deposits: bool = true) -> Chunk:
 
 # chunk_hex の chunk から見た、chunk より広い共有範囲の倉庫を返す。
 # 該当する倉庫が無ければ null（その場合チェストは chunk の倉庫を使う）。
-func _resolve_storage(scope: String, chunk_hex: Hex) -> SharedStorage:
+func _resolve_storage(scope: String, chunk_hex: Vector2i) -> SharedStorage:
 	if scope == SharedStorage.SCOPE_PLANET:
 		return planet_storage
 	if scope == SharedStorage.SCOPE_BIOME and _planet and _planet.has_chunk(chunk_hex):
@@ -91,7 +91,7 @@ func get_region_storage_contents() -> Dictionary:
 	return result
 
 
-func _generate_biome_deposits(chunk_hex: Hex, chunk: Chunk) -> void:
+func _generate_biome_deposits(chunk_hex: Vector2i, chunk: Chunk) -> void:
 	if _planet == null:
 		return
 	var biome = _planet.get_biome(chunk_hex)
@@ -165,13 +165,13 @@ func _find_bridge_target(entry: Dictionary):
 
 # chunk_hex の chunk に向いた橋の向かいのマスのうち、まだ何も置かれていないもの
 # （受け取るコンベアや施設を置く場所）
-func get_bridge_landing_hexes(chunk_hex: Hex) -> Array:
+func get_bridge_landing_hexes(chunk_hex: Vector2i) -> Array:
 	var result = []
 	var chunk = get_chunk(chunk_hex)
 	if chunk == null:
 		return result
 	for entry in _iter_bridges():
-		if not Hex.equals(entry["target_chunk_hex"], chunk_hex):
+		if entry["target_chunk_hex"] != chunk_hex:
 			continue
 		if chunk.get_piece_at_hex(entry["landing_hex"]) == null:
 			result.append(entry["landing_hex"])
@@ -184,12 +184,12 @@ func get_bridge_landing_hexes(chunk_hex: Hex) -> Array:
 func get_bridge_spans() -> Array:
 	var visible_keys := {}
 	for chunk_hex in _visible_chunk_hexes():
-		visible_keys[Hex.to_key(chunk_hex)] = true
+		visible_keys[chunk_hex] = true
 	var spans = []
 	for entry in _iter_bridges():
-		if not visible_keys.has(Hex.to_key(entry["chunk_hex"])):
+		if not visible_keys.has(entry["chunk_hex"]):
 			continue
-		if not visible_keys.has(Hex.to_key(entry["target_chunk_hex"])):
+		if not visible_keys.has(entry["target_chunk_hex"]):
 			continue
 		var target_chunk = get_chunk(entry["target_chunk_hex"])
 		var piece: Piece = entry["piece"]
@@ -239,19 +239,19 @@ func get_connected_chunk_pairs() -> Array:
 	return result
 
 
-func get_chunk_hexes() -> Array[Hex]:
+func get_chunk_hexes() -> Array[Vector2i]:
 	return _chunk_hexes.duplicate()
 
 
 # ワールドマップに並べる chunk の座標。planet があれば未生成の chunk も含む。
-func get_map_hexes() -> Array[Hex]:
+func get_map_hexes() -> Array[Vector2i]:
 	if _planet:
 		return _planet.get_chunk_hexes()
 	return get_chunk_hexes()
 
 
-func get_chunk(chunk_hex: Hex):
-	return _chunks.get(Hex.to_key(chunk_hex), null)
+func get_chunk(chunk_hex: Vector2i):
+	return _chunks.get(chunk_hex, null)
 
 
 func get_active_hex():
@@ -264,7 +264,7 @@ func get_active_chunk() -> Chunk:
 	return get_chunk(_active_hex)
 
 
-func set_active_chunk(chunk_hex: Hex):
+func set_active_chunk(chunk_hex: Vector2i):
 	if _planet and not _planet.has_chunk(chunk_hex):
 		return
 	if get_chunk(chunk_hex) == null:
@@ -275,12 +275,12 @@ func set_active_chunk(chunk_hex: Hex):
 
 
 # アクティブな chunk の周りに描いている隣の chunk の座標
-func get_neighbor_hexes() -> Array[Hex]:
+func get_neighbor_hexes() -> Array[Vector2i]:
 	return _neighbor_hexes.duplicate()
 
 
 # 隣の chunk を描く位置（ずらし方は ChunkTopology.chunk_offset）
-func _neighbor_position(active: Chunk, chunk_delta: Hex) -> Vector2:
+func _neighbor_position(active: Chunk, chunk_delta: Vector2i) -> Vector2:
 	return active.hex_to_pixel(
 		ChunkTopology.chunk_offset(chunk_delta, active.grid_radius, gap_steps)
 	)
@@ -351,7 +351,7 @@ func _layout_visible_chunks() -> void:
 	for hex in _neighbor_hexes:
 		var chunk = get_chunk(hex)
 		chunk.visible = true
-		chunk.position = _neighbor_position(active, Hex.subtract(hex, _active_hex))
+		chunk.position = _neighbor_position(active, hex - _active_hex)
 		chunk.modulate = NEIGHBOR_MODULATE if territory.is_owned(hex) else UNOWNED_MODULATE
 
 
@@ -368,8 +368,8 @@ func _update_landing_hints():
 
 
 # ローカル画面に描いている chunk（アクティブと、その周りの隣）
-func _visible_chunk_hexes() -> Array[Hex]:
-	var hexes: Array[Hex] = []
+func _visible_chunk_hexes() -> Array[Vector2i]:
+	var hexes: Array[Vector2i] = []
 	if _active_hex != null:
 		hexes.append(_active_hex)
 	hexes.append_array(_neighbor_hexes)

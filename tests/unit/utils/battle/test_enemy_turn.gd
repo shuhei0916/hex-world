@@ -32,7 +32,7 @@ func test_1歩で届く敵は近づいてから攻撃する():
 
 	battle.end_turn()
 
-	assert_eq(BattleHex.distance(enemy.position, player.position), 1)
+	assert_eq(Hex.distance(enemy.position, player.position), 1)
 	assert_eq(player.hp, 8)
 
 
@@ -41,7 +41,7 @@ func test_遠い敵は行動ポイントぶんだけ主人公に近づく():
 
 	battle.end_turn()
 
-	assert_eq(BattleHex.distance(enemy.position, player.position), 2)
+	assert_eq(Hex.distance(enemy.position, player.position), 2)
 	assert_eq(player.hp, 10)
 
 
@@ -56,7 +56,7 @@ func test_複数の敵がそれぞれ行動する():
 
 
 func test_囲まれて近づけない敵は動かない():
-	for hex in BattleHex.neighbors(Vector2i(0, 0)):
+	for hex in Hex.neighbors(Vector2i(0, 0)):
 		field.set_terrain(hex, Battlefield.Terrain.WALL)
 	_start_with_enemy_at(Vector2i(3, 0))
 
@@ -176,7 +176,7 @@ func test_遠い敵の予定は行動ポイントぶんの移動のみ():
 
 
 func test_近づけない敵の予定は動かず攻撃もしない():
-	for hex in BattleHex.neighbors(Vector2i(0, 0)):
+	for hex in Hex.neighbors(Vector2i(0, 0)):
 		field.set_terrain(hex, Battlefield.Terrain.WALL)
 	_start_with_enemy_at(Vector2i(3, 0))
 
