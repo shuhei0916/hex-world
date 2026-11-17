@@ -121,6 +121,16 @@ class TestPreview:
 		var arrow_after = piece_placer.cursor_preview.get_child(shape_size)
 		assert_ne(arrow_after.rotation, rotation_before)
 
+	func test_施設のカーソルプレビューは置いたときと同じ1つの本体で描く():
+		piece_placer.select_piece(MINER_SCENE)
+		var bodies = piece_placer.cursor_preview.get_children().filter(
+			func(c): return c is PieceBody
+		)
+		assert_eq(bodies.size(), 1)
+		assert_eq(
+			piece_placer.cursor_preview.get_children().filter(func(c): return c is HexTile), []
+		)
+
 	func test_コンベアのカーソルプレビューはHexTileを使わない():
 		# ベルト画像でプレビューするため、旧来の色付き HexTile は使わない。
 		piece_placer.select_piece(CONVEYOR_SCENE)

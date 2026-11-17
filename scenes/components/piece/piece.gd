@@ -5,11 +5,12 @@ extends Node2D
 signal recipe_changed(recipe: Recipe)
 signal shape_changed
 
-const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 const PORT_OFFSET = 35.0
 const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
 const CONNECTED_COLOR = Color(0.5, 1.0, 0.5, 1)
+## 本体を描く高さ（地面のマスは 0）
+const BODY_Z_INDEX := 10
 
 # シーンに保存されるピース定義データ（各 .tscn に直接設定する）
 @export var piece_name: String = ""
@@ -57,25 +58,25 @@ func _process(delta: float):
 	tick(delta)
 
 
+# 占めるマスを合わせた1つの形の本体（PieceBody）を描き直す。
+# 地面のマスより内側に縮めて描くので、下の床や鉱床が縁からのぞく。
 func _create_hex_tiles():
-	for child in get_children():
-		if child is HexTile:
-			child.queue_free()
+	var old_body := get_node_or_null("Body")
+	if old_body:
+		remove_child(old_body)
+		old_body.queue_free()
 	if piece_shape.is_empty():
 		return
-	# ベルトを描くコンベアは画像自体が見た目を担うので基礎タイルは描かない。
+	# ベルトを描くコンベアは画像自体が見た目を担うので本体は描かない。
 	if _is_belt():
 		return
-	var layout = Layout.make_default()
-	var tile_z := 10
-	for hex in get_hex_shape():
-		var tile = HEX_TILE_SCENE.instantiate()
-		tile.position = Layout.hex_to_pixel(layout, hex)
-		tile.z_index = tile_z
-		tile.z_as_relative = false
-		add_child(tile)
-		tile.setup_hex(hex)
-		tile.set_color(piece_color)
+	var body := PieceBody.new()
+	body.name = "Body"
+	body.z_index = BODY_Z_INDEX
+	body.z_as_relative = false
+	add_child(body)
+	body.setup(get_hex_shape(), piece_color)
+	_refresh_connection_indicator()
 
 
 func setup(rotation: int = 0):
@@ -242,12 +243,11 @@ func has_connected_piece() -> bool:
 func _refresh_connection_indicator() -> void:
 	if piece_type != PieceData.Type.BRIDGE:
 		return
-	# つながっている橋はタイルを緑がかった色にする。向きは溝の上の帯（BridgeOverlay）で示す。
-	# modulate は子にも伝播するため、タイル側だけを個別に着色する。
-	var color = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
-	for child in get_children():
-		if child is HexTile:
-			child.modulate = color
+	# つながっている橋は本体を緑がかった色にする。向きは溝の上の帯（BridgeOverlay）で示す。
+	# modulate は子にも伝播するため、本体だけを個別に着色する。
+	var body := get_node_or_null("Body")
+	if body:
+		body.modulate = CONNECTED_COLOR if has_connected_piece() else Color(1, 1, 1)
 
 
 static func make_output_arrow(port: Dictionary) -> Sprite2D:

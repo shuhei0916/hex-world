@@ -126,21 +126,14 @@ func _draw_preview():
 	if not chunk or not cursor_preview or not snap_preview:
 		return
 
-	var color = _selected_color
-
+	# カーソル用 (手持ち)。施設は置いたときと同じ本体の形で、コンベアはベルト画像で描く
+	if not _is_conveyor:
+		var body := PieceBody.new()
+		cursor_preview.add_child(body)
+		body.setup(current_piece_shape, _selected_color)
 	for hex_coord in current_piece_shape:
-		# カーソル用 (手持ち)
 		if _is_conveyor:
-			# コンベアはベルト画像でプレビュー（色付きタイルは使わない）
 			_add_belt_preview(hex_coord)
-		else:
-			var cursor_tile = HexTileScene.instantiate()
-			cursor_preview.add_child(cursor_tile)
-			cursor_tile.position = Layout.hex_to_pixel(chunk.layout, hex_coord)
-			cursor_tile.setup_hex(hex_coord)
-			cursor_tile.set_color(color)
-			cursor_tile.set_transparency(1.0)
-
 		# ゴースト用タイル (スナップ)
 		_add_ghost_tile(hex_coord)
 

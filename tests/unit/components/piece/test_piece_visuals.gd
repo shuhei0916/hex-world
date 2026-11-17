@@ -127,7 +127,7 @@ func test_コンベアは基礎タイルを持たない():
 	conveyor.setup(0)
 	var tile_count = 0
 	for child in conveyor.get_children():
-		if child is HexTile:
+		if child is HexTile or child is PieceBody:
 			tile_count += 1
 	assert_eq(tile_count, 0)
 

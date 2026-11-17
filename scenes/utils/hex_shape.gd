@@ -20,6 +20,41 @@ static func outline(center: Vector2, circumradius: float, pointy: bool) -> Packe
 	return result
 
 
+## 複数のマス（角が上を向く形）を合わせた形の外周。隣のマスと共有する辺を除き、
+## 残った辺を順にたどった頂点を返す（最初の頂点には戻らない）。マスは一続きで、穴が無いこと。
+static func union_outline(layout: Layout, hexes: Array) -> PackedVector2Array:
+	var radius: float = layout.size.x
+	# 外周の辺を「始点 → 終点」でつなぐ。頂点は丸めた座標をキーにして突き合わせる
+	var next_of := {}
+	var point_of := {}
+	for hex in hexes:
+		var center := Layout.hex_to_pixel(layout, hex)
+		var hex_corners := corners(center, radius, true)
+		for i in range(6):
+			var start := hex_corners[i]
+			var end := hex_corners[(i + 1) % 6]
+			var across := Layout.pixel_to_hex_rounded(layout, start + end - center)
+			if across in hexes:
+				continue
+			next_of[_point_key(start)] = _point_key(end)
+			point_of[_point_key(start)] = start
+	var result := PackedVector2Array()
+	if next_of.is_empty():
+		return result
+	var first: Vector2i = next_of.keys()[0]
+	var key := first
+	while true:
+		result.append(point_of[key])
+		key = next_of[key]
+		if key == first or result.size() > next_of.size():
+			break
+	return result
+
+
+static func _point_key(point: Vector2) -> Vector2i:
+	return Vector2i((point * 100.0).round())
+
+
 ## canvas の _draw の中で呼び、fill で塗った六角形を細い線で縁取って描く。
 static func draw(
 	canvas: CanvasItem, center: Vector2, circumradius: float, pointy: bool, fill: Color

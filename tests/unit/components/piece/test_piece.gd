@@ -95,6 +95,14 @@ class TestPieceTransformation:
 		p.rotate_cw()
 		assert_eq(p.get_output_ports()[0].direction, 1)
 
+	func test_回転すると本体の形も回転後のマスに合わせて描き直す():
+		p.rotate_cw()
+		var outline: PackedVector2Array = p.get_node("Body").get_outline()
+		for hex in p.get_hex_shape():
+			var center := Layout.hex_to_pixel(Layout.make_default(), hex)
+			assert_true(Geometry2D.is_point_in_polygon(center, outline))
+		assert_eq(p.get_children().filter(func(c): return c is PieceBody).size(), 1)
+
 	func test_回転前のピースの形状を取得できる():
 		var result = p.get_hex_shape()
 		assert_eq(result.size(), 4)
@@ -153,7 +161,7 @@ class TestPieceTransformation:
 		s.setup(0)
 		var tile = null
 		for child in s.get_children():
-			if child is HexTile:
+			if child is PieceBody:
 				tile = child
 				break
 		assert_lt(s.get_node("ItemEjectorVisual/ItemIcon").z_index, tile.z_index)

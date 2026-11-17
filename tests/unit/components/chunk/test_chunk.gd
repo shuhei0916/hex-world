@@ -86,14 +86,12 @@ class TestPiecePlacement:
 		assert_false(gm.is_occupied(Vector2i(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
 
-	func test_配置時にピースの色でHexTileが生成される():
+	func test_配置時にピースの色で本体が1つ生成される():
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
-		for child in piece.get_children():
-			if child is HexTile:
-				assert_eq((child as HexTile).get_color(), piece.piece_color)
-				return
-		fail_test("ピースにHexTileが存在しない")
+		var bodies = piece.get_children().filter(func(c): return c is PieceBody)
+		assert_eq(bodies.size(), 1)
+		assert_eq(bodies[0].get_fill_color(), piece.piece_color)
 
 	func test_機械の出力アイテムは地面タイルより手前に描画される():
 		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
@@ -379,6 +377,16 @@ class TestOreDeposits:
 			assert_ne(color, HexStyle.FLOOR_COLOR, "%s の鉱床に色が付くべき" % resource_type)
 			colors[color] = true
 		assert_eq(colors.size(), biome_ids.size())
+
+	func test_鉱床のマスには資源の色の粒が付き_床は記号が無い():
+		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
+		var tile: HexTile = gm.find_hex_tile(Vector2i(1, 0))
+		assert_gt(tile.get_mark_points().size(), 0)
+		assert_eq(
+			tile.get_mark_color(),
+			load("res://scenes/components/chunk/chunk_resources.gd").RESOURCE_COLORS["copper_ore"]
+		)
+		assert_eq(gm.find_hex_tile(Vector2i(0, 1)).get_mark_points().size(), 0)
 
 
 class TestMinerConstraint:

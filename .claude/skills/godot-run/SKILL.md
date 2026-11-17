@@ -95,6 +95,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `neighbor_view.gd`: 原点 chunk の辺に橋、隣の chunk の向かいのマスにコンベアを置き、画面上の距離・接続・溝の上の帯・アイテムが渡るか・ホバー情報を出力する
 - `visual_layout.gd`: 見た目確認用の配置（Smelter に流し込むコンベアと出ていくコンベア、境界の橋と隣の受け取りコンベア）。カメラを引いて隣の chunk も映す
 - `visual_zoom_smelter.gd`: visual_layout の配置で Smelter の周りを拡大する
+- `visual_deposit.gd`: 鉱床のマスに Miner を置いて拡大し、地面の種類（鉱床）と設置物の本体が見分けられるかを映す
 - `visual_gap.gd`: 溝の幅の見比べ用。環境変数 `GAP_STEPS`（1〜3）で World.gap_steps を変えて引いて映す
 - `visual_bridge.gd`: 受け取り先のある橋（アイテムを流し続ける）と無い橋を並べて拡大する
 - `camera_navigation.gd`: 東へ少しずつパンしても今いる chunk が切り替わらない様子と、ホイールで引いてワールドマップへ、寄せてキャラクターのいる chunk のローカル画面へ戻る様子を出力する

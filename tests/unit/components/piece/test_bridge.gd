@@ -46,11 +46,8 @@ func test_接続先がなければhas_connected_pieceはfalse():
 	assert_false(bridge.has_connected_piece())
 
 
-func _get_hex_tile(piece: Piece) -> HexTile:
-	for child in piece.get_children():
-		if child is HexTile:
-			return child
-	return null
+func _get_hex_tile(piece: Piece) -> PieceBody:
+	return piece.get_node_or_null("Body")
 
 
 func test_接続時にヘックスタイルのmodulateが変わる():
