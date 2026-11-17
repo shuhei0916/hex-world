@@ -6,7 +6,9 @@ const SAVE_PATH := "user://test_main_save.json"
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
 # 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
-const EAST_EDGE_HEX := Vector2i(2, 3)
+const EAST_EDGE_HEX := Vector2i(2, Chunk.DEFAULT_RADIUS - 2)
+# ゲームの既定の画面の大きさ（テストの画面は小さいので、計算にはこちらを渡す）
+const SCREEN_SIZE := Vector2(1152, 648)
 
 var main: Main
 
@@ -209,9 +211,11 @@ func test_チャンク切替でHUDの座標ラベルが更新される():
 
 func test_ワールドマップ表示時に接続済みチャンクペアの矢印が表示される():
 	var bridge_scene = main.hud.get_scene_for_slot(6)
-	main.world.get_active_chunk().place_piece(bridge_scene, Vector2i(4, 1))
+	# 東隣 (1, 0) に面した辺（SE）の橋と、その向かいのマスのコンベア
+	var bridge_hex = Vector2i(Chunk.DEFAULT_RADIUS - 1, 1)
+	main.world.get_active_chunk().place_piece(bridge_scene, bridge_hex)
 	var chunk_b = main.world.create_chunk(Vector2i(1, 0))
-	chunk_b.place_piece(CONVEYOR, Vector2i(-1, -4))
+	chunk_b.place_piece(CONVEYOR, ChunkTopology.mirror_hex(bridge_hex, 5))
 	main._handle_key_input(_make_space_event())
 	assert_eq(main.world_map_view.get_connection_arrow_count(), 1)
 
@@ -624,10 +628,33 @@ func test_戦闘中は建築のHUDとピースの設置を隠す():
 	assert_false(main.piece_placer.visible)
 
 
-func test_戦闘中は盤面全体が見える位置と倍率にカメラを合わせる():
+# chunk 全体の、画面上（World の座標）の範囲
+func _chunk_bounds(chunk: Chunk) -> Rect2:
+	var bounds := Rect2(chunk.position + chunk.hex_to_pixel(Vector2i(0, 0)), Vector2.ZERO)
+	for hex in chunk.get_all_hexes():
+		bounds = bounds.expand(chunk.position + chunk.hex_to_pixel(hex))
+	return bounds
+
+
+func test_戦闘中は_chunk全体がスキルのボタンに隠れずに画面に収まる():
+	var hex = _start_battle_on_east()
+	var view = main.battle_camera_view(SCREEN_SIZE)
+	var zoom: float = view["zoom"]
+	var half = SCREEN_SIZE / 2.0 / zoom
+	var visible = Rect2(view["position"] - half, half * 2.0)
+	visible.size.y -= Main.BATTLE_BOTTOM_RESERVED / zoom
+	var chunk_bounds = _chunk_bounds(main.world.get_chunk(hex))
+	assert_true(visible.encloses(chunk_bounds), "%s に %s が収まる" % [visible, chunk_bounds])
+	assert_gt(
+		chunk_bounds.size.y * zoom, (SCREEN_SIZE.y - Main.BATTLE_BOTTOM_RESERVED) * 0.8, "小さすぎない"
+	)
+
+
+func test_戦闘を始めるとカメラを_画面の大きさに合わせた位置と倍率にする():
 	_start_battle_on_east()
-	assert_eq(main.camera.position, Main.BATTLE_CAMERA_POSITION)
-	assert_eq(main.camera.zoom, Vector2.ONE * Main.BATTLE_CAMERA_ZOOM)
+	var view = main.battle_camera_view(main.get_viewport().get_visible_rect().size)
+	assert_true(main.camera.position.is_equal_approx(view["position"]))
+	assert_true(main.camera.zoom.is_equal_approx(Vector2.ONE * view["zoom"]))
 
 
 func test_ワールドマップで霧のchunkを選んでも何も起きない():
@@ -696,22 +723,24 @@ func test_戦闘から撤退すると_カメラは一瞬で飛ばずにキャラ
 	main.battle_overlay.retreat()
 	on_screen += main.world.get_chunk(Vector2i(1, 0)).position
 	assert_true(main.camera.position.is_equal_approx(on_screen))
-	assert_eq(main.camera.zoom, Vector2.ONE * Main.BATTLE_CAMERA_ZOOM)
 	_settle_camera()
 	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
 	assert_true(main.camera.zoom.is_equal_approx(Vector2.ONE * 0.7))
 
 
-func test_戦闘に勝つと_カメラは一瞬で飛ばずにキャラクターへ戻る():
+func test_戦闘に勝つと_カメラは一瞬で飛ばずにキャラクターと戦闘前の倍率へ戻る():
+	main.camera.zoom = Vector2.ONE * 0.7
 	_start_battle_on_east()
+	var battle_position = main.camera.position
 	_win_battle()
 	main.battle_overlay.confirm_result()
-	assert_eq(main.camera.position, Main.BATTLE_CAMERA_POSITION, "勝った瞬間は見え方が変わらない")
+	assert_eq(main.camera.position, battle_position, "勝った瞬間は見え方が変わらない")
 	main.update_camera_follow(0.05)
-	assert_ne(main.camera.position, Main.BATTLE_CAMERA_POSITION, "少しずつ動き出す")
+	assert_ne(main.camera.position, battle_position, "少しずつ動き出す")
 	assert_false(main.camera.position.is_equal_approx(main.world.get_player_position()))
 	_settle_camera()
 	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+	assert_true(main.camera.zoom.is_equal_approx(Vector2.ONE * 0.7))
 
 
 func test_戦闘中はスペースを押しても地図に切り替わらない():
@@ -732,8 +761,9 @@ func test_戦闘中もカメラを動かせる():
 	_start_battle_on_east()
 	assert_true(main.camera.is_processing_unhandled_input(), "ホイールと中ボタンドラッグ")
 	assert_true(main.camera.is_processing(), "キーでの移動")
+	var zoom_before = main.camera.zoom.x
 	main.camera._unhandled_input(_wheel_event(MOUSE_BUTTON_WHEEL_UP))
-	assert_gt(main.camera.zoom.x, Main.BATTLE_CAMERA_ZOOM)
+	assert_gt(main.camera.zoom.x, zoom_before)
 
 
 func test_戦闘中にカメラを動かしても_戦っているchunkのままで戦闘は続く():
@@ -750,8 +780,7 @@ func test_戦闘中はいくら引いても地図には切り替わらない():
 	for i in range(30):
 		main.camera._unhandled_input(_wheel_event(MOUSE_BUTTON_WHEEL_DOWN))
 	main.update_navigation()
-	assert_almost_eq(main.camera.zoom.x, Main.BATTLE_MIN_ZOOM, 0.0001)
-	assert_gt(Main.BATTLE_MIN_ZOOM, Main.LOCAL_TO_MAP_ZOOM)
+	assert_almost_eq(main.camera.zoom.x, main.camera.min_zoom, 0.0001)
 	assert_true(main.is_local_mode())
 
 

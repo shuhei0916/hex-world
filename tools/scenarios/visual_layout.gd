@@ -31,11 +31,11 @@ func run(scene: Node) -> void:
 	chunk.place_piece(CONVEYOR, Vector2i(0, 2), 2)
 	chunk.place_piece(CONVEYOR, Vector2i(0, 1), 2)
 	print("Smelter の出力: ", chunk.get_piece_at_hex(Vector2i(-3, 3)).get_output_ports())
-	chunk.place_piece(SENDER, Vector2i(5, -2), 0)
-	var edge_dir = chunk.get_edge_direction(Vector2i(5, -2))
+	chunk.place_piece(SENDER, Vector2i(Chunk.DEFAULT_RADIUS, -2), 0)
+	var edge_dir = chunk.get_edge_direction(Vector2i(Chunk.DEFAULT_RADIUS, -2))
 	var target_hex = Hex.neighbor(Vector2i(0, 0), ChunkTopology.to_world_direction(edge_dir))
 	world.get_chunk(target_hex).place_piece(
-		CONVEYOR, ChunkTopology.mirror_hex(Vector2i(5, -2), edge_dir), 0
+		CONVEYOR, ChunkTopology.mirror_hex(Vector2i(Chunk.DEFAULT_RADIUS, -2), edge_dir), 0
 	)
 	scene.camera.zoom = Vector2(CAMERA_ZOOM, CAMERA_ZOOM)
 	for i in 60:

@@ -9,7 +9,10 @@ signal grid_updated(hexes: Array[Vector2i])
 signal piece_placed(piece: Piece)
 signal piece_removed
 
-@export var grid_radius: int = 5:
+# 新しい chunk の半径（中心のマスから端まで）。半径8で217マス
+const DEFAULT_RADIUS := 8
+
+@export var grid_radius: int = DEFAULT_RADIUS:
 	set(value):
 		if value == grid_radius:
 			return

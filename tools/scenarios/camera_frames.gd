@@ -11,7 +11,7 @@ func run(scene: Node) -> void:
 		_dump(scene, "start %d" % i)
 		await tree.process_frame
 	print("--- 東へ渡って戦い、勝つ ---")
-	scene.world.place_player(Vector2i(0, 0), Vector2i(2, 3))
+	scene.world.place_player(Vector2i(0, 0), Vector2i(2, Chunk.DEFAULT_RADIUS - 2))
 	scene.try_cross()
 	for i in range(3):
 		_dump(scene, "battle %d" % i)
@@ -26,7 +26,7 @@ func run(scene: Node) -> void:
 		_dump(scene, "after win %d" % i)
 		await tree.process_frame
 	print("--- 次へ渡って撤退 ---")
-	scene.world.place_player(Vector2i(1, 0), Vector2i(2, 3))
+	scene.world.place_player(Vector2i(1, 0), Vector2i(2, Chunk.DEFAULT_RADIUS - 2))
 	scene.try_cross()
 	await tree.process_frame
 	scene.battle_overlay.retreat()

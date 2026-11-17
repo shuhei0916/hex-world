@@ -387,14 +387,14 @@ func _neighbor_position(active: Chunk, chunk_delta: Vector2i) -> Vector2:
 # 頂点とくぼみの真ん中（マスの画像の頂点までの 3/4）を辺とみなす
 func get_chunk_inradius() -> float:
 	var active = get_active_chunk()
-	var radius = active.grid_radius if active else 5
+	var radius = active.grid_radius if active else Chunk.DEFAULT_RADIUS
 	var cell_spacing = Layout.hex_to_pixel(Layout.make_default(), Hex.direction(0)).length()
 	return radius * cell_spacing * sqrt(3.0) * 0.5 + HexTile.visual_circumradius() * 0.75
 
 
 func get_chunk_spacing() -> float:
 	var active = get_active_chunk()
-	var radius = active.grid_radius if active else 5
+	var radius = active.grid_radius if active else Chunk.DEFAULT_RADIUS
 	var layout = Layout.make_default()
 	return (
 		Layout

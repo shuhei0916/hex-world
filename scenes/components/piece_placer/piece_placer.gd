@@ -11,7 +11,7 @@ const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const BELT_PREVIEW_TEXTURE = preload("res://scenes/components/piece/belt/forward_0.png")
 const _BELT_TEXTURE_SIZE = 192.0
 # キャラクターから何マス以内まで建築・撤去できるか
-const REACH := 4
+const REACH := 6
 const OUT_OF_REACH_TEXT := "キャラクターから遠すぎて届かない"
 const UNDER_PLAYER_TEXT := "キャラクターの足元には置けない"
 # 届かない場所に合わせたゴーストの色

@@ -11,7 +11,7 @@ func run(scene: Node) -> void:
 	HubGoals.creative_mode = true
 	var world: World = scene.world
 	var origin: Chunk = world.get_active_chunk()
-	var connected_hex = Vector2i(5, -2)
+	var connected_hex = Vector2i(Chunk.DEFAULT_RADIUS, -2)
 	var open_hex = Vector2i(5, -4)
 	var edge_dir = origin.get_edge_direction(connected_hex)
 	var target: Chunk = world.get_chunk(

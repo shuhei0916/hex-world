@@ -16,7 +16,7 @@ func run(scene: Node) -> void:
 		return
 	# 建築の画面に戻り、キャラクターを東の辺に立たせて隣の chunk へ渡ろうとする
 	scene._enter_local_mode()
-	scene.world.place_player(Vector2i(0, 0), Vector2i(2, 3))
+	scene.world.place_player(Vector2i(0, 0), Vector2i(2, Chunk.DEFAULT_RADIUS - 2))
 	scene.try_cross()
 	var battle_scene: BattleScene = scene.battle_overlay.battle_scene
 	battle_scene.animations_enabled = false

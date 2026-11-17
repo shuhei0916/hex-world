@@ -607,6 +607,9 @@ class TestReach:
 	func _far_hex() -> Vector2i:
 		return Vector2i(PiecePlacer.REACH + 1, 0)
 
+	func test_キャラクターから6マスまで届く():
+		assert_eq(PiecePlacer.REACH, 6)
+
 	func test_届く範囲のマスには置ける():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		assert_true(piece_placer.place_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))

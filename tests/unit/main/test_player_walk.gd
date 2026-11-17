@@ -7,7 +7,7 @@ const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_player_walk_save.json"
 const RIGHT := Vector2(1, 0)
 # 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
-const EAST_EDGE_HEX := Vector2i(2, 3)
+const EAST_EDGE_HEX := Vector2i(2, Chunk.DEFAULT_RADIUS - 2)
 
 var main: Main
 

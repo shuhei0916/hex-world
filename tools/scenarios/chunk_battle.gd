@@ -11,7 +11,7 @@ extends RefCounted
 const CONVEYOR_SLOT := 0
 
 # 東隣の chunk に面した辺（SE）の、角でないマス
-const EAST_EDGE_HEX := Vector2i(2, 3)
+const EAST_EDGE_HEX := Vector2i(2, Chunk.DEFAULT_RADIUS - 2)
 
 
 func run(scene: Node) -> void:

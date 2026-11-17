@@ -17,6 +17,12 @@ class TestGridLogic:
 		add_child_autofree(gm)
 		gm.clear_grid()
 
+	func test_新しいchunkは半径8で217マス():
+		var chunk = Chunk.new()
+		add_child_autofree(chunk)
+		assert_eq(chunk.grid_radius, 8)
+		assert_eq(chunk.get_grid_hex_count(), 217)
+
 	func test_指定した範囲のグリッドを生成できる():
 		gm.create_hex_grid(2)
 		assert_eq(gm.get_grid_hex_count(), 19, "半径2のグリッドは19マスであるべき")

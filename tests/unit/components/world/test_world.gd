@@ -679,7 +679,7 @@ class TestPlayer:
 
 	# 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
 	func _east_edge_hex() -> Vector2i:
-		return Vector2i(2, 3)
+		return Vector2i(2, Chunk.DEFAULT_RADIUS - 2)
 
 	func test_辺のマスに立つと_向こうのchunkの向かいのマスへ渡れる():
 		world.place_player(Vector2i(0, 0), _east_edge_hex())
@@ -690,7 +690,7 @@ class TestPlayer:
 	func test_内側のマスや角からは渡れない():
 		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
 		assert_true(world.get_player_crossing().is_empty())
-		world.place_player(Vector2i(0, 0), Vector2i(5, 0))
+		world.place_player(Vector2i(0, 0), Vector2i(Chunk.DEFAULT_RADIUS, 0))
 		assert_true(world.get_player_crossing().is_empty(), "角は2つの辺にまたがるので渡らない")
 
 	func test_渡るとキャラクターは向こうのchunkの向かいのマスに立つ():

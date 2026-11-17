@@ -13,7 +13,7 @@ func run(scene: Node) -> void:
 	var world: World = scene.world
 	var origin = world.get_active_chunk()
 	print("隣の chunk: ", world.get_neighbor_hexes())
-	var bridge_hex = Vector2i(5, -2)
+	var bridge_hex = Vector2i(Chunk.DEFAULT_RADIUS, -2)
 	var edge_dir = origin.get_edge_direction(bridge_hex)
 	var target_chunk_hex = Hex.neighbor(Vector2i(0, 0), ChunkTopology.to_world_direction(edge_dir))
 	var target = world.get_chunk(target_chunk_hex)
