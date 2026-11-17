@@ -649,3 +649,38 @@ class TestPlayer:
 		assert_ne(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)), "すぐには着かない")
 		await wait_seconds(0.3)
 		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(2, 0)))
+
+	# ---- chunk の間を渡る ----
+	# 辺のマスに立つと、その辺の向こうの chunk の、向かい合うマスへ渡れる。
+
+	# 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
+	func _east_edge_hex() -> Vector2i:
+		return Vector2i(2, 3)
+
+	func test_辺のマスに立つと_向こうのchunkの向かいのマスへ渡れる():
+		world.place_player(Vector2i(0, 0), _east_edge_hex())
+		var crossing = world.get_player_crossing()
+		assert_eq(crossing["chunk_hex"], Vector2i(1, 0))
+		assert_eq(crossing["hex"], ChunkTopology.mirror_hex(_east_edge_hex(), 5))
+
+	func test_内側のマスや角からは渡れない():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_true(world.get_player_crossing().is_empty())
+		world.place_player(Vector2i(0, 0), Vector2i(5, 0))
+		assert_true(world.get_player_crossing().is_empty(), "角は2つの辺にまたがるので渡らない")
+
+	func test_渡るとキャラクターは向こうのchunkの向かいのマスに立つ():
+		world.place_player(Vector2i(0, 0), _east_edge_hex())
+		assert_true(world.cross_player())
+		assert_eq(world.player.chunk_hex, Vector2i(1, 0))
+		assert_eq(world.player.hex, ChunkTopology.mirror_hex(_east_edge_hex(), 5))
+
+	func test_向かいのマスに機械があれば渡れない():
+		world.place_player(Vector2i(0, 0), _east_edge_hex())
+		var east: Chunk = world.get_chunk(Vector2i(1, 0))
+		east.place_piece(
+			load("res://scenes/components/piece/smelter_t1.tscn"),
+			world.get_player_crossing()["hex"]
+		)
+		assert_false(world.cross_player())
+		assert_eq(world.player.chunk_hex, Vector2i(0, 0))

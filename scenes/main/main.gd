@@ -16,6 +16,8 @@ const BATTLE_CAMERA_ZOOM := 0.8
 const BATTLE_MIN_ZOOM := 0.5
 # WASD を押し続けたとき、キャラクターが次の1歩を踏むまでの秒数
 const STEP_INTERVAL := 0.15
+# chunk の端に立って押すと、辺の向こうの隣の chunk へ渡るキー
+const CROSS_KEY := KEY_F
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
@@ -120,6 +122,7 @@ func _on_pause_menu_quit_requested() -> void:
 func _process(delta: float) -> void:
 	update_navigation()
 	update_walk(_read_walk_input(), delta)
+	world.set_player_prompt(crossing_prompt() if _can_walk() else "")
 
 
 func _read_walk_input() -> Vector2:
@@ -156,6 +159,39 @@ func update_walk(input: Vector2, delta: float) -> void:
 		_last_walk_direction = direction
 		_walk_cooldown = STEP_INTERVAL
 		_follow_player()
+
+
+# キャラクターが chunk の辺に立っていれば、辺の向こうの隣の chunk へ渡る。
+# 所有している chunk ならそのまま入り、所有していない隣なら、入ってきたマスから戦って解放する
+func try_cross() -> void:
+	if not _can_walk():
+		return
+	var crossing = world.get_player_crossing()
+	if crossing.is_empty():
+		return
+	var target: Vector2i = crossing["chunk_hex"]
+	if world.territory.is_owned(target):
+		# 渡った先の chunk は原点に来るので、カメラも同じだけずらしてからキャラクターを追う
+		var offset = world.get_chunk(target).position
+		if world.cross_player():
+			_activate_chunk(target)
+			camera.position -= offset
+			_follow_player()
+	elif world.territory.can_challenge(target):
+		start_battle(target, crossing["hex"])
+
+
+# キャラクターの立っている辺から、隣の chunk へ渡れるときの案内。渡れなければ空
+func crossing_prompt() -> String:
+	var crossing = world.get_player_crossing()
+	if crossing.is_empty():
+		return ""
+	var key = OS.get_keycode_string(CROSS_KEY)
+	if world.territory.is_owned(crossing["chunk_hex"]):
+		return "[%s] 渡る" % key
+	if world.territory.can_challenge(crossing["chunk_hex"]):
+		return "[%s] 戦って解放" % key
+	return ""
 
 
 func _can_walk() -> bool:
@@ -245,6 +281,8 @@ func _handle_key_input(event):
 			hud.cycle_variant()
 		elif event.keycode == KEY_E and is_local_mode():
 			hud.toggle_research_panel()
+		elif event.keycode == CROSS_KEY and is_local_mode():
+			try_cross()
 
 
 func _toggle_mode():
@@ -349,18 +387,16 @@ func _handle_world_map_click(event: InputEventMouseButton) -> void:
 			select_world_map_chunk(hex)
 
 
-# ワールドマップで chunk を選ぶ。所有していればキャラクターのいる chunk の画面に戻り
-# （chunk の間は歩いて移るので、地図からは飛ばない）、その隣なら戦って解放する。霧の中は選べない
+# ワールドマップで所有している chunk を選ぶと、キャラクターのいる chunk の画面に戻る。
+# chunk の間はキャラクターが歩いて渡るので、地図から別の chunk へ飛んだり戦いを始めたりはしない
 func select_world_map_chunk(hex: Vector2i) -> void:
 	if world.territory.is_owned(hex):
 		_handle_world_map_chunk_selected(world.player.chunk_hex)
-	elif world.territory.can_challenge(hex):
-		start_battle(hex)
 
 
-# chunk を解放するための戦闘を始める。ワールドマップからその chunk の画面に入り、
-# chunk のマスの上でそのまま戦う。戦闘中も工場は動き続ける
-func start_battle(chunk_hex: Vector2i) -> void:
+# chunk を解放するための戦闘を始める。その chunk の画面に入り、chunk のマスの上でそのまま戦う。
+# 主人公は start_hex のマス（キャラクターが入ってきたマス）から始まる。戦闘中も工場は動き続ける
+func start_battle(chunk_hex: Vector2i, start_hex = null) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_battle_chunk_hex = chunk_hex
@@ -368,7 +404,6 @@ func start_battle(chunk_hex: Vector2i) -> void:
 		"active_hex": world.get_active_hex(),
 		"camera_position": camera.position,
 		"camera_zoom": camera.zoom,
-		"local_camera_position": _local_camera_position,
 		"camera_min_zoom": camera.min_zoom,
 	}
 	_handle_world_map_chunk_selected(chunk_hex)
@@ -376,25 +411,26 @@ func start_battle(chunk_hex: Vector2i) -> void:
 	camera.position = BATTLE_CAMERA_POSITION
 	camera.zoom = Vector2.ONE * BATTLE_CAMERA_ZOOM
 	camera.min_zoom = BATTLE_MIN_ZOOM
-	_battle_turn = ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng)
+	_battle_turn = ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng, start_hex)
 	battle_overlay.open(_battle_turn, world)
+	world.player_shown = false
 	_refresh_camera_keyboard()
 
 
-# 勝ったらその chunk を所有し、同じ画面のまま建築に移る。
-# 負けたり撤退したりしたら、戦闘前に見ていたワールドマップへ戻る
+# 勝ったらその chunk を所有し、キャラクターは主人公が戦い終えたマスに立って、そのまま建築に移る。
+# 負けたり撤退したりしたら、キャラクターは渡る前のマスに残り、戦闘前の建築の画面に戻る
 func _on_battle_closed(won: bool) -> void:
 	camera.min_zoom = _pre_battle["camera_min_zoom"]
 	if won:
 		world.territory.claim(_battle_chunk_hex)
 		world.place_player(_battle_chunk_hex, _battle_turn.battle.player.position)
-		_set_build_ui_visible(true)
 	else:
 		_activate_chunk(_pre_battle["active_hex"])
-		_enter_world_map_mode()
+		world_map_view.set_active_chunk(_pre_battle["active_hex"])
 		camera.position = _pre_battle["camera_position"]
 		camera.zoom = _pre_battle["camera_zoom"]
-		_local_camera_position = _pre_battle["local_camera_position"]
+	_set_build_ui_visible(true)
+	world.player_shown = true
 	_battle_chunk_hex = null
 	_battle_turn = null
 	_pre_battle = {}

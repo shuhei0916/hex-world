@@ -63,3 +63,10 @@ func test_chunkの鉱床は通れない壁になる():
 	assert_eq(field.terrain_at(Vector2i(1, -1)), Battlefield.Terrain.WALL)
 	assert_eq(field.terrain_at(Vector2i(2, -1)), Battlefield.Terrain.WALL)
 	assert_eq(field.terrain_at(Vector2i(0, 0)), Battlefield.Terrain.FLOOR)
+
+
+func test_主人公はchunkに入ってきたマスから始まる():
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	var turn := ChunkBattle.create(Vector2i(1, 0), chunk, rng, Vector2i(-2, -3))
+	assert_eq(turn.battle.player.position, Vector2i(-2, -3))

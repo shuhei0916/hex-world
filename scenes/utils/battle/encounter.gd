@@ -24,14 +24,21 @@ static func player_start(radius: int) -> Vector2i:
 
 ## 半径 radius の六角形の戦場に、stage 番目（1始まり）の段階の敵と player を置く。
 ## walls のマスは通れない壁になる（戦場の外のマスは無視する）。
+## 主人公は start のマスから始まる（壁ならいちばん近い歩けるマス）。省くと左下の端の近くから。
 static func generate(
-	stage: int, player: Unit, rng: RandomNumberGenerator, radius: int, walls: Array[Vector2i] = []
+	stage: int,
+	player: Unit,
+	rng: RandomNumberGenerator,
+	radius: int,
+	walls: Array[Vector2i] = [],
+	start_hex = null
 ) -> Battle:
 	var field := Battlefield.hexagon(radius)
 	for hex in walls:
 		if field.has_cell(hex):
 			field.set_terrain(hex, Battlefield.Terrain.WALL)
-	var start := _nearest_walkable(field, player_start(radius))
+	var wanted: Vector2i = start_hex if start_hex != null else player_start(radius)
+	var start := _nearest_walkable(field, wanted)
 	field.place_unit(player, start)
 	var spots: Array[Vector2i] = field.cells().filter(
 		func(hex: Vector2i) -> bool:

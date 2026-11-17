@@ -6,6 +6,8 @@ extends GutTest
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_player_walk_save.json"
 const RIGHT := Vector2(1, 0)
+# 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
+const EAST_EDGE_HEX := Vector2i(2, 3)
 
 var main: Main
 
@@ -95,3 +97,36 @@ func test_上だけを押して片方の斜めがふさがっていれば_もう
 	main.world.place_player(Vector2i(0, 0), Vector2i(radius, -1))
 	main.update_walk(Vector2(0, -1), 0.016)
 	assert_eq(_player_hex(), Vector2i(radius, -2))
+
+
+# ---- 渡れる場所の案内 ----
+# chunk の辺に立つと、キャラクターの上に渡るキーの案内を出す。
+
+
+func _prompt_label() -> Label:
+	return main.world.get_node("PlayerView/Prompt")
+
+
+func test_所有している隣に面した辺では渡る案内を出す():
+	main.world.territory.claim(Vector2i(1, 0))
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	assert_eq(main.crossing_prompt(), "[F] 渡る")
+
+
+func test_所有していない隣に面した辺では戦って解放する案内を出す():
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	assert_eq(main.crossing_prompt(), "[F] 戦って解放")
+
+
+func test_内側のマスでは案内を出さない():
+	assert_eq(main.crossing_prompt(), "")
+
+
+func test_案内はキャラクターの上に表示される():
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	main._process(0.0)
+	assert_true(_prompt_label().visible)
+	assert_eq(_prompt_label().text, "[F] 戦って解放")
+	main.world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+	main._process(0.0)
+	assert_false(_prompt_label().visible)

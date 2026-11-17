@@ -14,7 +14,10 @@ func run(scene: Node) -> void:
 	scene.world_map_view.set_hovered_chunk(Vector2i(1, 0))
 	if view_name not in ["battle", "intent", "result", "built"]:
 		return
-	scene.select_world_map_chunk(Vector2i(1, 0))
+	# 建築の画面に戻り、キャラクターを東の辺に立たせて隣の chunk へ渡ろうとする
+	scene._enter_local_mode()
+	scene.world.place_player(Vector2i(0, 0), Vector2i(2, 3))
+	scene.try_cross()
 	var battle_scene: BattleScene = scene.battle_overlay.battle_scene
 	battle_scene.animations_enabled = false
 	if view_name == "battle":

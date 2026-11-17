@@ -118,3 +118,18 @@ func test_同じシードなら同じ配置になる():
 
 func test_シードが違えば配置が変わる():
 	assert_ne(_enemy_positions(_generate(2, 5)), _enemy_positions(_generate(2, 6)))
+
+
+func test_始まるマスを渡せば主人公はそこから始まる():
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	Encounter.generate(1, player, rng, RADIUS, [], Vector2i(3, 2))
+	assert_eq(player.position, Vector2i(3, 2))
+
+
+func test_始まるマスが壁なら_いちばん近い歩けるマスから始まる():
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	var walls: Array[Vector2i] = [Vector2i(3, 2)]
+	Encounter.generate(1, player, rng, RADIUS, walls, Vector2i(3, 2))
+	assert_eq(Hex.distance(player.position, Vector2i(3, 2)), 1)

@@ -1,12 +1,17 @@
 extends RefCounted
 
 # ワールドマップの霧と、隣の chunk をその chunk のマスの上で戦って解放する流れを確かめる。
-# 実際のマウス入力で: 霧のタイルをクリック（何も起きない）→ 隣のタイルをクリック
-# （その chunk の画面に入って戦闘が始まる）→ 移動スキルを選んでマスをクリック（主人公が動く）
-# → 敵を取り除いて勝利 → 結果を閉じる（同じ画面のまま建築できる）→ コンベアを置く、
-# さらに次の chunk に挑んで撤退する（元の chunk の地図に戻る）、までを出力する。
+# 実際の入力で: 霧のタイルをクリック（何も起きない）→ 隣のタイルをクリック（地図からは戦わない）
+# → 建築の画面でキャラクターを東の辺に立たせて渡るキーを押す（その chunk の上で、入ってきたマスから
+# 戦闘が始まる）→ 移動スキルを選んでマスをクリック（主人公が動く）→ 敵を取り除いて勝利
+# → 結果を閉じる（同じ画面のまま建築できる。キャラクターは戦い終えたマスに立つ）→ コンベアを置く、
+# さらに次の chunk に渡ろうとして撤退する（渡る前のマスに残り、元の chunk の建築の画面に戻る）、
+# までを出力する。
 
 const CONVEYOR_SLOT := 0
+
+# 東隣の chunk に面した辺（SE）の、角でないマス
+const EAST_EDGE_HEX := Vector2i(2, 3)
 
 
 func run(scene: Node) -> void:
@@ -31,6 +36,10 @@ func run(scene: Node) -> void:
 
 	await _click(scene, _tile_screen_pos(scene, east))
 	print("[click frontier] %s" % _state(scene))
+
+	scene._enter_local_mode()
+	await _cross_east(scene)
+	print("[cross east] %s player=%s" % [_state(scene), _player(scene)])
 	var overlay: BattleOverlay = scene.battle_overlay
 	var battle_scene: BattleScene = overlay.battle_scene
 	battle_scene.animations_enabled = false
@@ -99,7 +108,9 @@ func run(scene: Node) -> void:
 		)
 	)
 	overlay.confirm_result()
-	print("[after win] %s owned=%s" % [_state(scene), _owned(scene, east)])
+	print(
+		"[after win] %s owned=%s player=%s" % [_state(scene), _owned(scene, east), _player(scene)]
+	)
 
 	# 勝ったあと、同じ画面のままコンベアを置ける
 	scene.hud.slot_buttons[CONVEYOR_SLOT].button_pressed = true
@@ -110,13 +121,11 @@ func run(scene: Node) -> void:
 	print("[build] piece at %s: %s" % [spot, chunk.get_piece_at_hex(spot) != null])
 	scene.hud.deselect()
 
-	# 次の chunk に挑んで撤退すると、戦闘前にいた chunk の地図に戻る
-	scene._enter_world_map_mode()
-	await scene.get_tree().process_frame
-	await _click(scene, _tile_screen_pos(scene, far))
+	# 次の chunk に渡ろうとして撤退すると、渡る前のマスに残り、元の chunk の建築の画面に戻る
+	await _cross_east(scene)
 	print("[second battle] %s" % _state(scene))
 	overlay.retreat()
-	print("[retreat] %s owned=%s" % [_state(scene), _owned(scene, far)])
+	print("[retreat] %s owned=%s player=%s" % [_state(scene), _owned(scene, far), _player(scene)])
 
 
 func _state(scene: Node) -> String:
@@ -124,6 +133,11 @@ func _state(scene: Node) -> String:
 		"battle_open=%s local=%s active=%s hud=%s"
 		% [_is_open(scene), scene.is_local_mode(), scene.world.get_active_hex(), scene.hud.visible]
 	)
+
+
+func _player(scene: Node) -> String:
+	var player: PlayerCharacter = scene.world.player
+	return "%s@%s" % [player.hex, player.chunk_hex]
 
 
 func _one_line(view: WorldMapView) -> String:
@@ -184,6 +198,19 @@ func _click(scene: Node, pos: Vector2) -> void:
 		ev.button_index = MOUSE_BUTTON_LEFT
 		ev.position = pos
 		ev.global_position = pos
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+		Input.flush_buffered_events()
+	await scene.get_tree().process_frame
+
+
+# キャラクターを今いる chunk の東の辺に立たせ、実際のキー入力で渡るキーを押す
+func _cross_east(scene: Node) -> void:
+	scene.world.place_player(scene.world.get_active_hex(), EAST_EDGE_HEX)
+	for pressed in [true, false]:
+		var ev := InputEventKey.new()
+		ev.keycode = Main.CROSS_KEY
+		ev.physical_keycode = Main.CROSS_KEY
 		ev.pressed = pressed
 		Input.parse_input_event(ev)
 		Input.flush_buffered_events()

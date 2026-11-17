@@ -1,21 +1,21 @@
 extends RefCounted
 
 # 戦闘中も、建築のときと同じ操作でカメラを動かせることを確かめる。
-# 実際のマウス入力で: 隣の chunk に挑む → 中ボタンドラッグでパン → ホイールで寄せる
+# 実際の入力で: 東の辺から渡るキーで隣の chunk に挑む → 中ボタンドラッグでパン → ホイールで寄せる
 # → 動かしたあとの画面でマスをクリックして歩く（クリックした位置のマスに動くか）
-# → ホイールで引けるだけ引く（地図には切り替わらない）→ 撤退（戦闘前の地図の見え方に戻る）、
+# → ホイールで引けるだけ引く（地図には切り替わらない）→ 撤退（戦闘前の建築の画面の見え方に戻る）、
 # までを出力する。
+
+# 東隣の chunk に面した辺（SE）の、角でないマス
+const EAST_EDGE_HEX := Vector2i(2, 3)
 
 
 func run(scene: Node) -> void:
-	var east = Vector2i(1, 0)
 	# ヘッドレスの画面は 64x64 で、戦闘のボタンが盤面に重なってクリックを受けてしまうので広げる
 	scene.get_window().size = Vector2i(1280, 720)
-	scene._enter_world_map_mode()
-	await scene.get_tree().process_frame
-	print("[map] %s" % _state(scene))
+	print("[before] %s" % _state(scene))
 
-	await _click(scene, _tile_screen_pos(scene, east))
+	await _cross_east(scene)
 	var battle_scene: BattleScene = scene.battle_overlay.battle_scene
 	battle_scene.animations_enabled = false
 	var battle: Battle = battle_scene.battle
@@ -61,12 +61,6 @@ func _state(scene: Node) -> String:
 			scene.camera.zoom.x,
 		]
 	)
-
-
-func _tile_screen_pos(scene: Node, hex: Vector2i) -> Vector2:
-	var view: WorldMapView = scene.world_map_view
-	var world_pos = view.to_global(view.get_tile_position(hex))
-	return scene.get_viewport().get_canvas_transform() * world_pos
 
 
 # 戦場のマスの、画面上の位置
@@ -123,4 +117,17 @@ func _wheel(scene: Node, button: MouseButton) -> void:
 	var pos = Vector2(640, 360)
 	_button(button, pos, true)
 	_button(button, pos, false)
+	await scene.get_tree().process_frame
+
+
+# キャラクターを今いる chunk の東の辺に立たせ、実際のキー入力で渡るキーを押す
+func _cross_east(scene: Node) -> void:
+	scene.world.place_player(scene.world.get_active_hex(), EAST_EDGE_HEX)
+	for pressed in [true, false]:
+		var ev := InputEventKey.new()
+		ev.keycode = Main.CROSS_KEY
+		ev.physical_keycode = Main.CROSS_KEY
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+		Input.flush_buffered_events()
 	await scene.get_tree().process_frame

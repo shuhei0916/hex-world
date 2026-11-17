@@ -2,6 +2,7 @@ class_name ChunkBattle
 ## chunk を解放するための1戦を作る。その chunk のマスがそのまま戦場になり、鉱床は通れない壁になる。
 ## 原点から遠い chunk ほど敵が手ごわい。
 ## 主人公は毎回 HP が満タンの状態で、最初から使えるスキルで戦う。
+## 主人公は chunk に入ってきたマスから始まる。
 
 const PLAYER_MAX_HP := 30
 const PLAYER_ATTACK := 3
@@ -12,11 +13,14 @@ static func stage_for(chunk_hex: Vector2i) -> int:
 	return clampi(Hex.length(chunk_hex), 1, Encounter.STAGE_COUNT)
 
 
-## chunk_hex にある chunk の上で行う戦闘を作る。
-static func create(chunk_hex: Vector2i, chunk: Chunk, rng: RandomNumberGenerator) -> SkillTurn:
+## chunk_hex にある chunk の上で行う戦闘を作る。主人公は start_hex のマスから始まる
+## （省くと戦場の左下の端の近くから）。
+static func create(
+	chunk_hex: Vector2i, chunk: Chunk, rng: RandomNumberGenerator, start_hex = null
+) -> SkillTurn:
 	var player := Unit.new(Unit.Team.PLAYER, PLAYER_MAX_HP, PLAYER_ATTACK)
 	var battle := Encounter.generate(
-		stage_for(chunk_hex), player, rng, chunk.grid_radius, walls_of(chunk)
+		stage_for(chunk_hex), player, rng, chunk.grid_radius, walls_of(chunk), start_hex
 	)
 	return SkillTurn.new(battle, SkillLibrary.starter_skills())
 

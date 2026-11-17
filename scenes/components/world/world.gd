@@ -22,6 +22,11 @@ var planet_storage := SharedStorage.new()
 var territory := Territory.new()
 # プレイヤーキャラクター。place_player するまでは null
 var player: PlayerCharacter = null
+# false の間はキャラクターを描かない（戦闘中は戦闘の主人公として描かれる）
+var player_shown := true:
+	set(value):
+		player_shown = value
+		_update_player_view()
 
 var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Vector2i] = []  # 生成済み chunk の座標
@@ -62,15 +67,49 @@ func move_player(direction: int) -> bool:
 	return true
 
 
+# キャラクターが今のマスから渡れる先 {chunk_hex, hex}。辺のマスに立っていれば、その辺の向こうの
+# chunk の向かい合うマス。内側のマスや角（2つの辺にまたがる）、惑星の外へは渡れないので空
+func get_player_crossing() -> Dictionary:
+	if player == null:
+		return {}
+	var edge_dir = get_chunk(player.chunk_hex).get_edge_direction(player.hex)
+	if edge_dir == -1:
+		return {}
+	var target = Hex.neighbor(player.chunk_hex, ChunkTopology.to_world_direction(edge_dir))
+	if _planet and not _planet.has_chunk(target):
+		return {}
+	return {"chunk_hex": target, "hex": ChunkTopology.mirror_hex(player.hex, edge_dir)}
+
+
+# キャラクターを、辺の向こうの chunk の向かい合うマスへ渡らせる。渡れたら true。
+# 向かいのマスが通れなければ渡らない（所有しているかどうかは呼び出し側で確かめる）
+func cross_player() -> bool:
+	var crossing = get_player_crossing()
+	if crossing.is_empty():
+		return false
+	var target_chunk = get_chunk(crossing["chunk_hex"])
+	if target_chunk == null:
+		target_chunk = create_chunk(crossing["chunk_hex"])
+	if not PlayerCharacter.can_enter(target_chunk, crossing["hex"]):
+		return false
+	place_player(crossing["chunk_hex"], crossing["hex"])
+	return true
+
+
 # キャラクターの立っているマスの中心の、画面上の位置（World の座標）
 func get_player_position() -> Vector2:
 	var chunk: Chunk = get_chunk(player.chunk_hex)
 	return chunk.position + chunk.hex_to_pixel(player.hex)
 
 
+# キャラクターの上に出す操作の案内（空なら出さない）
+func set_player_prompt(text: String) -> void:
+	_player_view.set_prompt(text)
+
+
 # キャラクターを、立っている chunk の描かれている位置に合わせて描く。描かれていなければ隠す
 func _update_player_view() -> void:
-	if player == null or not _visible_chunk_hexes().has(player.chunk_hex):
+	if not player_shown or player == null or not _visible_chunk_hexes().has(player.chunk_hex):
 		_player_view.visible = false
 		return
 	_player_view.jump_to(get_player_position())

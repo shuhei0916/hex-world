@@ -5,6 +5,8 @@ const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_main_save.json"
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
+# 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
+const EAST_EDGE_HEX := Vector2i(2, 3)
 
 var main: Main
 
@@ -523,15 +525,51 @@ func test_ワールドマップで所有しているchunkを選ぶと_キャラ�
 	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
 
 
-# ワールドマップで東隣の chunk を選んで戦闘を始める
+func _make_cross_event() -> InputEventKey:
+	var event = InputEventKey.new()
+	event.keycode = Main.CROSS_KEY
+	event.pressed = true
+	return event
+
+
+# 東隣の chunk に面した辺に立って渡るキーを押す
+func _cross_to_east() -> Vector2i:
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	main._handle_key_input(_make_cross_event())
+	return Vector2i(1, 0)
+
+
+# 東隣の（所有していない）chunk へ渡ろうとして戦闘を始める
 func _start_battle_on_east() -> Vector2i:
-	var hex = Vector2i(1, 0)
-	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(hex)
-	return hex
+	return _cross_to_east()
 
 
-func test_ワールドマップで所有しているchunkの隣を選ぶと_そのchunkの上で戦闘が始まる():
+func test_端に立って渡るキーを押すと_所有している隣のchunkへ渡る():
+	main.world.territory.claim(Vector2i(1, 0))
+	var hex = _cross_to_east()
+	assert_eq(main.world.player.chunk_hex, hex)
+	assert_eq(main.world.player.hex, ChunkTopology.mirror_hex(EAST_EDGE_HEX, 5))
+	assert_true(main.world.get_active_hex() == hex)
+	assert_eq(main.piece_placer.chunk, main.world.get_chunk(hex))
+	assert_false(main.battle_overlay.is_open())
+
+
+func test_渡るとカメラは渡った先のキャラクターを追う():
+	main.world.territory.claim(Vector2i(1, 0))
+	_cross_to_east()
+	await wait_seconds(0.3)
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+
+
+func test_端でないところで渡るキーを押しても何も起きない():
+	main.world.territory.claim(Vector2i(1, 0))
+	main.world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+	main._handle_key_input(_make_cross_event())
+	assert_eq(main.world.player.chunk_hex, Vector2i(0, 0))
+	assert_false(main.battle_overlay.is_open())
+
+
+func test_端に立って渡るキーを押すと_所有していない隣のchunkの上で戦闘が始まる():
 	var hex = _start_battle_on_east()
 	assert_true(main.battle_overlay.is_open())
 	assert_true(main.is_local_mode())
@@ -548,6 +586,26 @@ func test_戦闘の戦場はそのchunkのマスで_鉱床は壁になる():
 	assert_gt(walls.size(), 0)
 	for wall in walls:
 		assert_eq(field.terrain_at(wall), Battlefield.Terrain.WALL)
+
+
+func test_戦闘の主人公はchunkに入ってきたマスから始まる():
+	_start_battle_on_east()
+	var player = main.battle_overlay.battle_scene.battle.player
+	assert_eq(player.position, ChunkTopology.mirror_hex(EAST_EDGE_HEX, 5))
+
+
+func test_戦闘中はキャラクターを隠し_戦闘の主人公だけを描く():
+	_start_battle_on_east()
+	assert_false(main.world.get_node("PlayerView").visible)
+	main.battle_overlay.retreat()
+	assert_true(main.world.get_node("PlayerView").visible)
+
+
+func test_ワールドマップで所有していない隣のchunkを選んでも戦闘は始まらない():
+	# chunk の解放は、キャラクターが歩いて端から渡ろうとしたときだけ
+	main._handle_key_input(_make_space_event())
+	main.select_world_map_chunk(Vector2i(1, 0))
+	assert_false(main.battle_overlay.is_open())
 
 
 func test_戦闘中は建築のHUDとピースの設置を隠す():
@@ -590,12 +648,11 @@ func test_戦闘に勝つとキャラクターは戦い終えたマスに立つ(
 	assert_eq(main.world.player.hex, end_hex)
 
 
-func test_戦闘から撤退するとキャラクターは元の場所に残る():
-	var before_hex = main.world.player.hex
+func test_戦闘から撤退するとキャラクターは渡る前のマスに残る():
 	_start_battle_on_east()
 	main.battle_overlay.retreat()
 	assert_eq(main.world.player.chunk_hex, Vector2i(0, 0))
-	assert_eq(main.world.player.hex, before_hex)
+	assert_eq(main.world.player.hex, EAST_EDGE_HEX)
 
 
 func test_戦闘に勝ったあと地図を開くと霧が晴れている():
@@ -609,33 +666,25 @@ func test_戦闘に勝ったあと地図を開くと霧が晴れている():
 	assert_true(main.world_map_view.get_tile_active(hex), "今いる chunk の印が付く")
 
 
-func test_戦闘から撤退するとそのchunkは所有せず_元のchunkの地図に戻る():
+func test_戦闘から撤退するとそのchunkは所有せず_元のchunkの建築画面に戻る():
 	var hex = _start_battle_on_east()
 	main.battle_overlay.retreat()
 	assert_false(main.world.territory.is_owned(hex))
 	assert_false(main.battle_overlay.is_open())
-	assert_false(main.is_local_mode())
+	assert_true(main.is_local_mode())
 	assert_true(main.world.get_active_hex() == Vector2i(0, 0))
-	assert_true(main.world_map_view.get_tile_active(Vector2i(0, 0)))
+	assert_true(main.hud.visible)
+	assert_eq(main.piece_placer.chunk, main.world.get_chunk(Vector2i(0, 0)))
 
 
-func test_戦闘から撤退するとカメラは戦闘前の地図の位置と倍率に戻る():
-	main._handle_key_input(_make_space_event())
-	main.camera.zoom = Vector2.ONE * 0.5
-	main.camera.position += Vector2(30, 10)
-	var position_before = main.camera.position
-	main.select_world_map_chunk(Vector2i(1, 0))
+func test_戦闘から撤退するとカメラは戦闘前の位置と倍率に戻る():
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	main.camera.zoom = Vector2.ONE * 0.7
+	main.camera.position = Vector2(30, 10)
+	main._handle_key_input(_make_cross_event())
 	main.battle_overlay.retreat()
-	assert_eq(main.camera.position, position_before)
-	assert_eq(main.camera.zoom, Vector2.ONE * 0.5)
-
-
-func test_戦闘から撤退して所有するchunkに入ると_戦闘前に見ていた位置が映る():
-	main.camera.position = Vector2(120, -80)
-	_start_battle_on_east()
-	main.battle_overlay.retreat()
-	main._handle_key_input(_make_space_event())
-	assert_eq(main.camera.position, Vector2(120, -80))
+	assert_eq(main.camera.position, Vector2(30, 10))
+	assert_eq(main.camera.zoom, Vector2.ONE * 0.7)
 
 
 func test_戦闘中はスペースを押しても地図に切り替わらない():
