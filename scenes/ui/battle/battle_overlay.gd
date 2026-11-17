@@ -6,7 +6,6 @@ extends CanvasLayer
 signal closed(won: bool)
 
 const BattleSceneScene := preload("res://scenes/ui/battle/battle_scene.tscn")
-const BACKGROUND_COLOR := Color("#14161b")
 const VICTORY_TEXT := "勝利！ この chunk を解放した"
 const DEFEAT_TEXT := "敗北… 何度でも挑める"
 ## 戦闘画面のスキルなどの表示（BattleScene の Hud）より手前に出す
@@ -33,7 +32,7 @@ func _init() -> void:
 	visible = false
 	var background := ColorRect.new()
 	background.name = "Background"
-	background.color = BACKGROUND_COLOR
+	background.color = HexStyle.BACKGROUND_COLOR
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
 	# 盤面のクリックは BattleScene が受け取るので、背景では止めない
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE

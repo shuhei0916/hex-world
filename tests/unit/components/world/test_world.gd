@@ -400,7 +400,7 @@ class TestNeighborView:
 			assert_true(gap.is_equal_approx(step * World.gap_steps), str(edge_hex))
 
 	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
-		var floor_color = HexTile.new().normal_color
+		var floor_color = HexStyle.FLOOR_COLOR
 		var dimmed = floor_color * World.NEIGHBOR_MODULATE
 		var background = ProjectSettings.get_setting(
 			"rendering/environment/defaults/default_clear_color"

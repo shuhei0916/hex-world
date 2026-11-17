@@ -370,7 +370,7 @@ class TestOreDeposits:
 			var resource_type = Biome.get_biome(biome_ids[i]).resource_type
 			gm.mark_resource_hex(hexes[i], resource_type)
 			var color = gm.find_hex_tile(hexes[i]).get_color()
-			assert_ne(color, Color("#3D3D3D"), "%s の鉱床に色が付くべき" % resource_type)
+			assert_ne(color, HexStyle.FLOOR_COLOR, "%s の鉱床に色が付くべき" % resource_type)
 			colors[color] = true
 		assert_eq(colors.size(), biome_ids.size())
 
