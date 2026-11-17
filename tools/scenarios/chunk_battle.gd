@@ -112,10 +112,11 @@ func run(scene: Node) -> void:
 		"[after win] %s owned=%s player=%s" % [_state(scene), _owned(scene, east), _player(scene)]
 	)
 
-	# 勝ったあと、同じ画面のままコンベアを置ける
+	# 勝ったあと、同じ画面のままコンベアを置ける（建築できるのはキャラクターの近くだけなので、西隣に置く）
 	scene.hud.slot_buttons[CONVEYOR_SLOT].button_pressed = true
 	scene.hud.on_slot_pressed(CONVEYOR_SLOT)
-	var spot = Vector2i(0, 3)
+	await scene.get_tree().process_frame
+	var spot = Hex.neighbor(scene.world.player.hex, 3)
 	scene._hover_local(chunk.hex_to_pixel(spot))
 	scene.piece_placer.place_current_piece()
 	print("[build] piece at %s: %s" % [spot, chunk.get_piece_at_hex(spot) != null])

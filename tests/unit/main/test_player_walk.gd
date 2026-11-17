@@ -130,3 +130,17 @@ func test_案内はキャラクターの上に表示される():
 	main.world.place_player(Vector2i(0, 0), Vector2i(1, 0))
 	main._process(0.0)
 	assert_false(_prompt_label().visible)
+
+
+# ---- 建築できる範囲 ----
+
+
+func test_建築はキャラクターの近くだけ():
+	main._process(0.0)
+	assert_eq(main.piece_placer.reach_center, Vector2i(1, 0))
+
+
+func test_歩くと建築できる範囲もついてくる():
+	main.update_walk(RIGHT, 0.016)
+	main._process(0.0)
+	assert_eq(main.piece_placer.reach_center, Vector2i(2, 0))

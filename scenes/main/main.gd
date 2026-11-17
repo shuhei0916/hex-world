@@ -18,6 +18,8 @@ const BATTLE_MIN_ZOOM := 0.5
 const STEP_INTERVAL := 0.15
 # chunk の端に立って押すと、辺の向こうの隣の chunk へ渡るキー
 const CROSS_KEY := KEY_F
+# どこからも届かないマス（キャラクターのいない chunk の建築できる範囲の中心にする）
+const UNREACHABLE_HEX := Vector2i(1 << 20, 1 << 20)
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
@@ -123,6 +125,7 @@ func _process(delta: float) -> void:
 	update_navigation()
 	update_walk(_read_walk_input(), delta)
 	world.set_player_prompt(crossing_prompt() if _can_walk() else "")
+	_sync_reach()
 
 
 func _read_walk_input() -> Vector2:
@@ -179,6 +182,16 @@ func try_cross() -> void:
 			_follow_player()
 	elif world.territory.can_challenge(target):
 		start_battle(target, crossing["hex"])
+
+
+# 建築できるのは、今いる chunk に立っているキャラクターの近くだけ
+func _sync_reach() -> void:
+	var player = world.player
+	if player != null and player.chunk_hex == world.get_active_hex():
+		piece_placer.reach_center = player.hex
+	else:
+		# キャラクターのいない chunk では、どこにも届かない
+		piece_placer.reach_center = UNREACHABLE_HEX
 
 
 # キャラクターの立っている辺から、隣の chunk へ渡れるときの案内。渡れなければ空

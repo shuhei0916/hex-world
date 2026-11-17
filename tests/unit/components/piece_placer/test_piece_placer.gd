@@ -581,3 +581,114 @@ class TestBuildCost:
 		watch_signals(piece_placer)
 		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+
+class TestReach:
+	extends GutTest
+
+	## 建築はキャラクターの近く（reach_center から PiecePlacer.REACH マス以内）だけ。
+	## 置けるのはピースのすべてのマスが届く範囲にあるときだけ。撤去は、届く範囲のマスからだけ。
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(PiecePlacer.REACH + 2)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.reach_center = Vector2i(0, 0)
+
+	func after_each():
+		await get_tree().process_frame
+
+	func _far_hex() -> Vector2i:
+		return Vector2i(PiecePlacer.REACH + 1, 0)
+
+	func test_届く範囲のマスには置ける():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))
+
+	func test_届かないマスには置けず_理由を伝える():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		watch_signals(piece_placer)
+		assert_false(piece_placer.place_piece_at_hex(_far_hex()))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_一部のマスでも届かなければ置けない():
+		# Miner(t1) は base と、その南東のマスを占める
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, PiecePlacer.REACH)))
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, PiecePlacer.REACH - 1)))
+
+	func test_届かないマスのピースは撤去できない():
+		piece_placer.reach_center = null
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.place_piece_at_hex(_far_hex())
+		piece_placer.reach_center = Vector2i(0, 0)
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		piece_placer.start_delete_drag()
+		assert_not_null(chunk.get_piece_at_hex(_far_hex()))
+
+	func test_コンベアのドラッグは届かないマスへは伸びない():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(PiecePlacer.REACH, 0)))
+		piece_placer.start_drag()
+		piece_placer.place_current_piece()
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		piece_placer.stop_drag()
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))
+		assert_null(chunk.get_piece_at_hex(_far_hex()))
+
+	func test_キャラクターの立っているマスには機械を置けない():
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, -1)), "南東のマスが足元")
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+
+	func test_キャラクターの立っているマスにもコンベアは置ける():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+
+	func test_届かないマスに合わせると_ゴーストもカーソルのプレビューも赤くなる():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.OUT_OF_REACH_TINT)
+		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.OUT_OF_REACH_TINT)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+		assert_eq(piece_placer.cursor_preview.modulate, Color.WHITE)
+
+	func test_届く範囲を決めていなければどこにでも置ける():
+		piece_placer.reach_center = null
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(_far_hex()))
+
+	# ---- 届く範囲の表示 ----
+
+	func _reachable_count(center: Vector2i) -> int:
+		return (
+			chunk
+			. get_all_hexes()
+			. filter(func(hex): return Hex.distance(hex, center) <= PiecePlacer.REACH)
+			. size()
+		)
+
+	func test_ピースを選んでいる間は届く範囲のマスを示す():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.reach_area.visible)
+		assert_eq(piece_placer.reach_area.hexes.size(), _reachable_count(Vector2i(0, 0)))
+
+	func test_ピースを選んでいなければ届く範囲は示さない():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.select_piece(null)
+		assert_false(piece_placer.reach_area.visible)
+
+	func test_キャラクターが動くと示す範囲も動く():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.reach_center = Vector2i(2, 0)
+		assert_true(Vector2i(2 + PiecePlacer.REACH, 0) in piece_placer.reach_area.hexes)
+		assert_false(Vector2i(-PiecePlacer.REACH, 0) in piece_placer.reach_area.hexes)

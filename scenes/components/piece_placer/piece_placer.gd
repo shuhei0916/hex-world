@@ -10,9 +10,24 @@ signal placement_denied(message: String)
 const HexTileScene = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 const BELT_PREVIEW_TEXTURE = preload("res://scenes/components/piece/belt/forward_0.png")
 const _BELT_TEXTURE_SIZE = 192.0
+# キャラクターから何マス以内まで建築・撤去できるか
+const REACH := 4
+const OUT_OF_REACH_TEXT := "キャラクターから遠すぎて届かない"
+const UNDER_PLAYER_TEXT := "キャラクターの足元には置けない"
+# 届かない場所に合わせたゴーストの色
+const OUT_OF_REACH_TINT := Color(1.0, 0.25, 0.25)
 
 # 依存関係（Mainから注入される）
 var chunk: Chunk
+# キャラクターの立っているマス。ここから REACH マス以内だけ建築できる。null なら制限しない
+var reach_center = null:
+	set(value):
+		if value == reach_center:
+			return
+		reach_center = value
+		_refresh_reach_area()
+# 建築できる範囲の表示。ピースを選んでいる間だけ出す
+var reach_area := ReachArea.new()
 
 # 内部状態
 var current_piece_shape: Array[Vector2i] = []
@@ -32,6 +47,13 @@ var _conveyor_drag_path: Array[Vector2i] = []
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
+
+
+func _ready() -> void:
+	reach_area.visible = false
+	add_child(reach_area)
+	# ゴーストより奥に描く
+	move_child(reach_area, 0)
 
 
 func start_drag():
@@ -65,6 +87,16 @@ func stop_delete_drag():
 
 func setup(chunk_ref: Chunk):
 	chunk = chunk_ref
+	_refresh_reach_area()
+
+
+# ピースを選んでいれば、今の chunk でキャラクターから届くマスを示す
+func _refresh_reach_area() -> void:
+	reach_area.visible = selected_scene != null and reach_center != null and chunk != null
+	if not reach_area.visible:
+		return
+	reach_area.layout = chunk.layout
+	reach_area.show_hexes(chunk.get_all_hexes().filter(func(hex): return _is_within_reach([hex])))
 
 
 func select_piece(scene: PackedScene):
@@ -82,6 +114,7 @@ func select_piece(scene: PackedScene):
 	else:
 		current_piece_shape = []
 	_draw_preview()
+	_refresh_reach_area()
 
 
 func _draw_preview():
@@ -161,6 +194,9 @@ func update_hover(local_mouse_pos: Vector2):
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
 	cursor_preview.position = local_mouse_pos
+	var reachable = _is_within_reach(_shape_at(hex_coord))
+	snap_preview.modulate = Color.WHITE if reachable else OUT_OF_REACH_TINT
+	cursor_preview.modulate = snap_preview.modulate
 
 	if is_dragging and (_last_drag_hex == null or hex_coord != _last_drag_hex):
 		_place_piece_at(hex_coord)
@@ -188,7 +224,11 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 		return false
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
-	if not chunk.can_place(current_piece_shape, target_hex, _selected_piece_type):
+	# 置けない場所なら何も言わず、置ける場所なのに届かないときだけ理由を伝える
+	if (
+		not chunk.can_place(current_piece_shape, target_hex, _selected_piece_type)
+		or not _is_reachable_spot(_shape_at(target_hex))
+	):
 		return false
 	# 置ける場所だと分かってから支払う（置けないのに在庫だけ減るのを防ぐ）
 	var cost = BuildCost.of_scene(selected_scene)
@@ -206,6 +246,43 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 	return false
 
 
+# いま選んでいるピースを base_hex に置いたときに占めるマス
+func _shape_at(base_hex: Vector2i) -> Array[Vector2i]:
+	var hexes: Array[Vector2i] = []
+	for offset in current_piece_shape:
+		hexes.append(base_hex + offset)
+	return hexes
+
+
+# hexes のすべてがキャラクターから REACH マス以内か（届く範囲を決めていなければ常に true）
+func _is_within_reach(hexes: Array[Vector2i]) -> bool:
+	if reach_center == null:
+		return true
+	for hex in hexes:
+		if Hex.distance(hex, reach_center) > REACH:
+			return false
+	return true
+
+
+# キャラクターの届く範囲にあって、足元をふさがない置き場所か。だめなら（ドラッグ中でなければ）理由を伝える
+func _is_reachable_spot(hexes: Array[Vector2i]) -> bool:
+	var reason := ""
+	if not _is_within_reach(hexes):
+		reason = OUT_OF_REACH_TEXT
+	elif _covers_player(hexes):
+		reason = UNDER_PLAYER_TEXT
+	if reason != "" and not is_dragging:
+		placement_denied.emit(reason)
+	return reason == ""
+
+
+# 上を歩けないピースが、キャラクターの足元のマスにかかるか
+func _covers_player(hexes: Array[Vector2i]) -> bool:
+	if reach_center == null or _selected_piece_type in PlayerCharacter.WALKABLE_PIECES:
+		return false
+	return reach_center in hexes
+
+
 # いま選んでいるピースの設置コストを在庫から支払えるか
 func can_afford_selected() -> bool:
 	return HubGoals.can_afford(BuildCost.of_scene(selected_scene))
@@ -213,6 +290,8 @@ func can_afford_selected() -> bool:
 
 # プレイヤーの操作による撤去。設置コストは全額戻す。
 func _remove_piece_at(hex: Vector2i) -> void:
+	if not _is_within_reach([hex]):
+		return
 	var piece = chunk.get_piece_at_hex(hex)
 	if piece == null:
 		return
@@ -226,6 +305,8 @@ func _add_to_conveyor_path(hex: Vector2i) -> bool:
 		if h == hex:
 			return false
 	if not chunk.can_place(current_piece_shape, hex) and not _is_replaceable_conveyor(hex):
+		return false
+	if not _is_within_reach([hex]):
 		return false
 	_conveyor_drag_path.append(hex)
 	conveyor_path_extended.emit()
