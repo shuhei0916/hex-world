@@ -339,3 +339,22 @@ class TestPlanetChestSave:
 		var restored = _roundtrip()
 		restored.get_active_chunk().get_piece_at_hex(Vector2i(2, 0)).tick(0.1)
 		assert_eq(restored.planet_storage.get_count("copper_ore"), 8)
+
+
+class TestPlayerSave:
+	extends "res://tests/unit/utils/test_save_game.gd"
+
+	func before_each():
+		super()
+		world.setup_planet(Planet.new(3, 77))
+		world.set_active_chunk(Vector2i(0, 0))
+
+	func test_キャラクターの立っている場所が復元される():
+		world.place_player(Vector2i(1, 0), Vector2i(2, -1))
+		var restored = _roundtrip()
+		assert_eq(restored.player.chunk_hex, Vector2i(1, 0))
+		assert_eq(restored.player.hex, Vector2i(2, -1))
+
+	func test_キャラクターの記録が無い旧セーブではキャラクターを置かない():
+		var restored = _roundtrip()
+		assert_null(restored.player)

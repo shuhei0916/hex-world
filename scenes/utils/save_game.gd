@@ -3,7 +3,7 @@ extends RefCounted
 
 ## ゲームの進行状況を Dictionary（JSON にできる形）へ取り出し、そこから復元する。
 ## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、
-## 所有している chunk、ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
+## 所有している chunk、キャラクターの立っている場所、ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
 ## ベルト上や機械の中にあるアイテムは保存しない（ロード後は空の状態から動き出す）。
 
 const VERSION := 1
@@ -45,6 +45,11 @@ static func capture(world: World, goals: Node, active_hex = null) -> Dictionary:
 	for chunk_hex in world.get_chunk_hexes():
 		data["chunks"].append(_capture_chunk(chunk_hex, world.get_chunk(chunk_hex)))
 	data["owned_chunks"] = world.territory.get_owned_hexes().map(_hex_to_array)
+	if world.player:
+		data["player"] = {
+			"chunk": _hex_to_array(world.player.chunk_hex),
+			"hex": _hex_to_array(world.player.hex),
+		}
 	return data
 
 
@@ -84,6 +89,10 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 		world.territory.claim(_array_to_hex(values))
 	if data.has("active_chunk"):
 		world.set_active_chunk(_array_to_hex(data["active_chunk"]))
+	# キャラクターの記録が無い旧セーブでは置かない（呼び出し側がハブの隣に立たせる）
+	if data.has("player"):
+		var player: Dictionary = data["player"]
+		world.place_player(_array_to_hex(player["chunk"]), _array_to_hex(player["hex"]))
 
 
 static func exists(file_path: String = path) -> bool:

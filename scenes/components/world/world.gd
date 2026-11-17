@@ -19,6 +19,8 @@ static var gap_steps := 2
 var planet_storage := SharedStorage.new()
 # どの chunk を所有しているか。入って工場を作れるのは所有している chunk だけ
 var territory := Territory.new()
+# プレイヤーキャラクター。place_player するまでは null
+var player: PlayerCharacter = null
 
 var _chunks: Dictionary = {}
 var _chunk_hexes: Array[Vector2i] = []  # 生成済み chunk の座標
@@ -27,13 +29,32 @@ var _neighbor_hexes: Array[Vector2i] = []  # アクティブな chunk の周り�
 var _planet: Planet = null
 # バイオームチェストが共有する倉庫。地域（Planet の region）ごとに1つ {地域番号: SharedStorage}
 var _region_storages: Dictionary = {}
+var _player_view := PlayerView.new()
 
 
 func _ready() -> void:
 	var overlay := BridgeOverlay.new()
 	overlay.name = "BridgeOverlay"
 	add_child(overlay)
+	_player_view.visible = false
+	add_child(_player_view)
 	territory.changed.connect(_on_territory_changed)
+
+
+# プレイヤーキャラクターを chunk_hex の chunk の hex のマスに立たせる
+func place_player(chunk_hex: Vector2i, hex: Vector2i) -> void:
+	player = PlayerCharacter.new(chunk_hex, hex)
+	_update_player_view()
+
+
+# キャラクターを、立っている chunk の描かれている位置に合わせて描く。描かれていなければ隠す
+func _update_player_view() -> void:
+	if player == null or not _visible_chunk_hexes().has(player.chunk_hex):
+		_player_view.visible = false
+		return
+	var chunk: Chunk = get_chunk(player.chunk_hex)
+	_player_view.position = chunk.position + chunk.hex_to_pixel(player.hex)
+	_player_view.visible = true
 
 
 # planet を設定する。chunk の実体は初めてアクティブにしたときに生成する（遅延生成）。
@@ -353,6 +374,7 @@ func _layout_visible_chunks() -> void:
 		chunk.visible = true
 		chunk.position = _neighbor_position(active, hex - _active_hex)
 		chunk.modulate = NEIGHBOR_MODULATE if territory.is_owned(hex) else UNOWNED_MODULATE
+	_update_player_view()
 
 
 # 解放した隣の chunk を明るく描き直す

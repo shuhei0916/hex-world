@@ -37,6 +37,10 @@ func _ready():
 	if not _load_game():
 		_start_new_game()
 	_activate_chunk(world.get_active_hex())
+	# 新しいゲームと、キャラクターの記録が無い旧セーブでは、今いる chunk のハブの隣に立たせる
+	if world.player == null:
+		var active_hex = world.get_active_hex()
+		world.place_player(active_hex, PlayerCharacter.spawn_hex(world.get_chunk(active_hex)))
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)

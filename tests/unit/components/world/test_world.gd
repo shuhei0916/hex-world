@@ -579,3 +579,52 @@ class TestOwnership:
 		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(0, 0))
 		world.territory.claim(Vector2i(1, 0))
 		assert_true(world.get_nearest_visible_chunk(east, true) == Vector2i(1, 0))
+
+
+class TestPlayer:
+	extends GutTest
+
+	## プレイヤーキャラクターは、立っている chunk のマスの上に描く。
+	## その chunk が画面に描かれていなければ隠す。
+
+	var world
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		world.setup_planet(Planet.new(3, 1))
+		world.set_active_chunk(Vector2i(0, 0))
+
+	func _view() -> Node2D:
+		return world.get_node("PlayerView")
+
+	func test_置いたキャラクターを取得できる():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_eq(world.player.chunk_hex, Vector2i(0, 0))
+		assert_eq(world.player.hex, Vector2i(1, 0))
+
+	func test_立っているマスの上に描く():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		assert_true(_view().visible)
+		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(1, 0)))
+
+	func test_隣のchunkに立っていればその位置に描く():
+		world.place_player(Vector2i(1, 0), Vector2i(0, 0))
+		assert_true(_view().visible)
+		assert_eq(_view().position, world.get_chunk(Vector2i(1, 0)).position)
+
+	func test_今いるchunkが変わって並び直しても立っているマスの上に描く():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(1, 0))
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		assert_eq(_view().position, chunk.position + chunk.hex_to_pixel(Vector2i(1, 0)))
+
+	func test_立っているchunkが描かれていなければ隠す():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(2, 0))
+		assert_false(_view().visible)
+
+	func test_施設より手前に描く():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_gt(_view().z_index, 0)

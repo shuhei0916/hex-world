@@ -695,3 +695,39 @@ func test_ワールドマップで寄せても所有していないchunkには�
 	main.camera.zoom = Vector2.ONE * (Main.MAP_TO_LOCAL_ZOOM + 0.01) / scale
 	main.update_navigation()
 	assert_false(main.is_local_mode())
+
+
+class TestPlayerSpawn:
+	extends GutTest
+
+	## 新しいゲームでも、キャラクターの記録が無い旧セーブでも、今いる chunk のハブの隣に立つ。
+
+	func before_each():
+		SaveGame.path = SAVE_PATH
+		SaveGame.delete()
+		HubGoals.reset()
+
+	func after_each():
+		await get_tree().process_frame
+		SaveGame.delete()
+		SaveGame.path = SaveGame.DEFAULT_PATH
+		HubGoals.reset()
+
+	func _start() -> Main:
+		var main = MainScene.instantiate()
+		add_child_autofree(main)
+		return main
+
+	func test_新しいゲームではハブの隣に立つ():
+		var main = _start()
+		assert_eq(main.world.player.chunk_hex, Vector2i(0, 0))
+		assert_eq(Hex.distance(main.world.player.hex, Vector2i(0, 0)), 1)
+
+	func test_キャラクターの記録が無いセーブを読むと今いるchunkのハブの隣に立つ():
+		var first = _start()
+		var data = SaveGame.capture(first.world, HubGoals)
+		data.erase("player")
+		SaveGame.write(SAVE_PATH, data)
+		var main = _start()
+		assert_eq(main.world.player.chunk_hex, main.world.get_active_hex())
+		assert_eq(Hex.distance(main.world.player.hex, Vector2i(0, 0)), 1)
