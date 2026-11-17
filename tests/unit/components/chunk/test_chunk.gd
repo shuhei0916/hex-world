@@ -86,12 +86,18 @@ class TestPiecePlacement:
 		assert_false(gm.is_occupied(Vector2i(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
 
-	func test_配置時にピースの色で本体が1つ生成される():
+	func test_配置すると本体が1つ生成される():
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var bodies = piece.get_children().filter(func(c): return c is PieceBody)
 		assert_eq(bodies.size(), 1)
-		assert_eq(bodies[0].get_fill_color(), piece.piece_color)
+		assert_eq(bodies[0].get_fill_color(), PieceBody.FILL_COLOR)
+
+	func test_機械の本体には作っている品物のアイコンが出る():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var output: String = piece.current_recipe.outputs.keys()[0]
+		assert_eq(piece.get_node("Body").get_icon(), ItemDB.get_item(output).icon)
 
 	func test_機械の出力アイテムは地面タイルより手前に描画される():
 		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
@@ -378,15 +384,22 @@ class TestOreDeposits:
 			colors[color] = true
 		assert_eq(colors.size(), biome_ids.size())
 
-	func test_鉱床のマスには資源の色の粒が付き_床は記号が無い():
+	func test_鉱床のマスの中央には資源のアイコンが出て_床には出ない():
 		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
 		var tile: HexTile = gm.find_hex_tile(Vector2i(1, 0))
-		assert_gt(tile.get_mark_points().size(), 0)
-		assert_eq(
-			tile.get_mark_color(),
+		assert_eq(tile.get_icon(), ItemDB.get_item("copper_ore").icon)
+		assert_null(gm.find_hex_tile(Vector2i(0, 1)).get_icon())
+
+	func test_鉱床の色は床に薄く混ぜる程度():
+		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
+		var color: Color = gm.find_hex_tile(Vector2i(1, 0)).get_color()
+		var ore: Color = (
 			load("res://scenes/components/chunk/chunk_resources.gd").RESOURCE_COLORS["copper_ore"]
 		)
-		assert_eq(gm.find_hex_tile(Vector2i(0, 1)).get_mark_points().size(), 0)
+		assert_lt(_distance(color, HexStyle.FLOOR_COLOR), _distance(color, ore))
+
+	func _distance(a: Color, b: Color) -> float:
+		return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
 
 
 class TestMinerConstraint:

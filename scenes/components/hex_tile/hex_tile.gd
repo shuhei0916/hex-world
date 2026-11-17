@@ -5,11 +5,9 @@ extends Node2D
 # HexTile - 個別の六角形タイル表示（床のマス、ピースのマス、設置のプレビュー）
 # 画像は使わず、戦闘の盤面と同じ角のとがった六角形を描く
 
-## 地面の種類（鉱床）を示す粒の半径
-const MARK_RADIUS := 3.5
-## 粒を置く位置。外側の6つは辺の近くに置き、設置物の本体を上に置いても縁からのぞくようにする
-const _MARK_OUTER_DISTANCE := 0.86
-const _MARK_INNER_DISTANCE := 0.4
+## 地面の種類（鉱床）を示す、中央のアイコンの大きさ（ピクセル）と濃さ
+const ICON_SIZE := 44.0
+const ICON_ALPHA := 0.55
 
 var hex_coordinate: Vector2i
 var is_highlighted: bool = false
@@ -17,7 +15,7 @@ var normal_color: Color = HexStyle.FLOOR_COLOR
 # 橋の着地点（受け取りを置く場所）のヒント用の色
 var highlight_color: Color = Color(0.55, 0.35, 0.25)
 var _current_color: Color = HexStyle.FLOOR_COLOR  # 現在のHexの色 (ピースの色が優先される)
-var _mark_color := Color.TRANSPARENT
+var _icon: Texture2D = null
 
 
 # マスの中心から頂点までの距離。隣のマスとすき間なく並ぶ大きさ
@@ -54,28 +52,14 @@ func get_color() -> Color:
 	return _current_color
 
 
-# 地面の種類を示す粒を color で描く（鉱床のマス）
-func set_marks(color: Color) -> void:
-	_mark_color = color
+# 地面の種類を示すアイコンを中央に薄く描く（鉱床のマスなら資源の品目）。null なら描かない
+func set_icon(icon: Texture2D) -> void:
+	_icon = icon
 	queue_redraw()
 
 
-func get_mark_color() -> Color:
-	return _mark_color
-
-
-# 粒の中心（タイルの座標）。記号が無ければ空
-func get_mark_points() -> PackedVector2Array:
-	var points := PackedVector2Array()
-	if _mark_color.a == 0.0:
-		return points
-	var apothem := visual_circumradius() * cos(PI / 6)
-	for i in range(6):
-		points.append(Vector2.from_angle(deg_to_rad(60.0 * i)) * apothem * _MARK_OUTER_DISTANCE)
-	for i in range(3):
-		var angle := deg_to_rad(120.0 * i + 30.0)
-		points.append(Vector2.from_angle(angle) * apothem * _MARK_INNER_DISTANCE)
-	return points
+func get_icon() -> Texture2D:
+	return _icon
 
 
 # 透明度を設定
@@ -96,5 +80,6 @@ func get_outline() -> PackedVector2Array:
 
 func _draw() -> void:
 	HexShape.draw(self, Vector2.ZERO, visual_circumradius(), true, get_fill_color())
-	for point in get_mark_points():
-		draw_circle(point, MARK_RADIUS, _mark_color)
+	if _icon:
+		var size := Vector2(ICON_SIZE, ICON_SIZE)
+		draw_texture_rect(_icon, Rect2(-size * 0.5, size), false, Color(1, 1, 1, ICON_ALPHA))

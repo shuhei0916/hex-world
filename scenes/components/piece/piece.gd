@@ -8,7 +8,8 @@ signal shape_changed
 const FORWARD_TEXTURE = preload("res://scenes/components/piece/forward.png")
 const PORT_OFFSET = 35.0
 const ARROW_COLOR = Color(0.9607843, 0.6509804, 0.13725491, 1)
-const CONNECTED_COLOR = Color(0.5, 1.0, 0.5, 1)
+## つながっている橋の本体に掛ける色（灰色の本体がうっすら緑がかる程度）
+const CONNECTED_COLOR = Color(0.8, 1.0, 0.8, 1)
 ## 本体を描く高さ（地面のマスは 0）
 const BODY_Z_INDEX := 10
 
@@ -60,6 +61,7 @@ func _process(delta: float):
 
 # 占めるマスを合わせた1つの形の本体（PieceBody）を描き直す。
 # 地面のマスより内側に縮めて描くので、下の床や鉱床が縁からのぞく。
+# 本体は種類によらず同じ色で、piece_color は使わない（種類は中央のアイコンで示す）。
 func _create_hex_tiles():
 	var old_body := get_node_or_null("Body")
 	if old_body:
@@ -75,8 +77,21 @@ func _create_hex_tiles():
 	body.z_index = BODY_Z_INDEX
 	body.z_as_relative = false
 	add_child(body)
-	body.setup(get_hex_shape(), piece_color)
+	body.setup(get_hex_shape())
+	_refresh_body_icon()
 	_refresh_connection_indicator()
+
+
+# 本体の中央に、作っている品物のアイコンを出す（レシピを持たない設置物は出さない）
+func _refresh_body_icon() -> void:
+	var body := get_node_or_null("Body")
+	if not body:
+		return
+	var recipe := current_recipe
+	var item = null
+	if recipe and not recipe.outputs.is_empty():
+		item = ItemDB.get_item(recipe.outputs.keys()[0])
+	body.set_icon(item.icon if item else null)
 
 
 func setup(rotation: int = 0):
@@ -107,6 +122,7 @@ func _ensure_port_visuals() -> void:
 func set_recipe(recipe: Recipe):
 	if crafter:
 		crafter.set_recipe(recipe)
+	_refresh_body_icon()
 	recipe_changed.emit(recipe)
 
 

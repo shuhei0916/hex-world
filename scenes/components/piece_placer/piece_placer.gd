@@ -38,7 +38,6 @@ var is_dragging: bool = false
 var is_delete_dragging: bool = false
 var selected_scene: PackedScene
 var _last_drag_hex = null
-var _selected_color: Color
 var _is_conveyor: bool = false
 var _selected_piece_type: int = -1
 var _selected_port_direction: int = -1
@@ -105,7 +104,6 @@ func select_piece(scene: PackedScene):
 	if selected_scene:
 		var piece = selected_scene.instantiate()
 		current_piece_shape = piece.get_hex_shape()
-		_selected_color = piece.piece_color
 		_is_conveyor = (piece.piece_type == PieceData.Type.CONVEYOR)
 		_selected_piece_type = piece.piece_type
 		_selected_port_direction = piece.port_direction
@@ -130,7 +128,7 @@ func _draw_preview():
 	if not _is_conveyor:
 		var body := PieceBody.new()
 		cursor_preview.add_child(body)
-		body.setup(current_piece_shape, _selected_color)
+		body.setup(current_piece_shape)
 	for hex_coord in current_piece_shape:
 		if _is_conveyor:
 			_add_belt_preview(hex_coord)

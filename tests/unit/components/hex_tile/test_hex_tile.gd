@@ -60,20 +60,13 @@ func test_頂点が上を向く六角形で描く():
 	assert_eq(outline, HexShape.outline(Vector2.ZERO, HexTile.visual_circumradius(), true))
 
 
-func test_ふだんのマスには記号の粒が無い():
-	assert_eq(hex_tile.get_mark_points().size(), 0)
+func test_ふだんのマスにはアイコンが無い():
+	assert_null(hex_tile.get_icon())
 
 
-func test_記号を付けると_設置物の本体より外側にも粒がのぞく():
-	hex_tile.set_marks(Color.ORANGE)
+func test_アイコンを付けられる():
+	var icon: Texture2D = load("res://assets/items/iron_ore.svg")
 
-	var points := hex_tile.get_mark_points()
-	assert_gt(points.size(), 0)
-	assert_eq(hex_tile.get_mark_color(), Color.ORANGE)
-	var body_reach := HexTile.visual_circumradius() - PieceBody.INSET
-	for point in points:
-		assert_lt(point.length(), HexTile.visual_circumradius())
-	var outermost := 0.0
-	for point in points:
-		outermost = maxf(outermost, point.length() + HexTile.MARK_RADIUS)
-	assert_gt(outermost, body_reach * cos(PI / 6), "本体を置いても縁に粒が見える")
+	hex_tile.set_icon(icon)
+
+	assert_eq(hex_tile.get_icon(), icon)

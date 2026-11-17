@@ -12,7 +12,7 @@ signal piece_removed
 # 新しい chunk の半径（中心のマスから端まで）。半径8で217マス
 const DEFAULT_RADIUS := 8
 ## 鉱床のマスの床に混ぜる資源の色の割合
-const DEPOSIT_TINT := 0.35
+const DEPOSIT_TINT := 0.2
 
 @export var grid_radius: int = DEFAULT_RADIUS:
 	set(value):
@@ -256,10 +256,11 @@ func mark_resource_hex(hex: Vector2i, resource_type: String):
 func _paint_resource_tile(hex: Vector2i, resource_type: String):
 	var tile = find_hex_tile(hex)
 	if tile and resource_type in _resources.RESOURCE_COLORS:
-		# 鉱床は地面の種類なので、床に資源の色を混ぜて塗り、資源の色の粒を散らす
+		# 鉱床は地面の種類なので、床に資源の色を薄く混ぜ、中央に資源のアイコンを出す
 		var color: Color = _resources.RESOURCE_COLORS[resource_type]
 		tile.set_color(HexStyle.FLOOR_COLOR.lerp(color, DEPOSIT_TINT))
-		tile.set_marks(color)
+		var item = ItemDB.get_item(resource_type)
+		tile.set_icon(item.icon if item else null)
 
 
 func get_hex_resource(hex: Vector2i) -> String:
