@@ -8,11 +8,16 @@ const PLANET_SEED := 2026
 # この倍率に相当するところまで寄せるとローカル画面へ入る（差をつけて行き来のちらつきを防ぐ）
 const LOCAL_TO_MAP_ZOOM := 0.45
 const MAP_TO_LOCAL_ZOOM := 0.6
+# 戦闘中のカメラ。chunk 全体が、画面の下に並ぶスキルのボタンに隠れずに映る
+const BATTLE_CAMERA_POSITION := Vector2(0, 40)
+const BATTLE_CAMERA_ZOOM := 0.8
 
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
 # いま戦って解放しようとしている chunk。戦闘中でなければ null
 var _battle_chunk_hex = null
+# 戦闘を始める前の状態。負けたり撤退したりしたら、ここへ戻る
+var _pre_battle := {}
 
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
@@ -60,7 +65,9 @@ func _load_game() -> bool:
 
 
 func save_game() -> bool:
-	return SaveGame.write(SaveGame.path, SaveGame.capture(world, HubGoals))
+	# 戦闘中は解放前の chunk に入っているので、今いる chunk は戦闘前のものとして保存する
+	var active_hex = _pre_battle.get("active_hex")
+	return SaveGame.write(SaveGame.path, SaveGame.capture(world, HubGoals, active_hex))
 
 
 # セーブデータと進行度を捨てる（シーンの再読み込みは呼び出し側で行う）
@@ -293,21 +300,50 @@ func select_world_map_chunk(hex: Hex) -> void:
 		start_battle(hex)
 
 
-# chunk を解放するための戦闘を始める。戦闘中も工場は動き続ける
+# chunk を解放するための戦闘を始める。ワールドマップからその chunk の画面に入り、
+# chunk のマスの上でそのまま戦う。戦闘中も工場は動き続ける
 func start_battle(chunk_hex: Hex) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_battle_chunk_hex = chunk_hex
+	_pre_battle = {
+		"active_hex": world.get_active_hex(),
+		"camera_position": camera.position,
+		"camera_zoom": camera.zoom,
+		"local_camera_position": _local_camera_position,
+	}
+	_handle_world_map_chunk_selected(chunk_hex)
+	_set_build_ui_visible(false)
+	camera.position = BATTLE_CAMERA_POSITION
+	camera.zoom = Vector2.ONE * BATTLE_CAMERA_ZOOM
 	_set_camera_enabled(false)
-	battle_overlay.open(ChunkBattle.create(chunk_hex, rng))
+	battle_overlay.open(ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng), world)
 
 
+# 勝ったらその chunk を所有し、同じ画面のまま建築に移る。
+# 負けたり撤退したりしたら、戦闘前に見ていたワールドマップへ戻る
 func _on_battle_closed(won: bool) -> void:
 	_set_camera_enabled(true)
 	if won:
 		world.territory.claim(_battle_chunk_hex)
-		_refresh_world_map()
+		_set_build_ui_visible(true)
+	else:
+		_activate_chunk(_pre_battle["active_hex"])
+		_enter_world_map_mode()
+		camera.position = _pre_battle["camera_position"]
+		camera.zoom = _pre_battle["camera_zoom"]
+		_local_camera_position = _pre_battle["local_camera_position"]
 	_battle_chunk_hex = null
+	_pre_battle = {}
+
+
+# 建築のための表示（ツールバーなどの HUD と、設置するピースのプレビュー）を出す・隠す
+func _set_build_ui_visible(shown: bool) -> void:
+	if not shown:
+		hud.deselect()
+		hud.show_hovered_piece(null)
+	hud.visible = shown
+	piece_placer.visible = shown
 
 
 # 戦闘中は、裏の地図がキーやホイールで動かないようにする

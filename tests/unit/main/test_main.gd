@@ -522,12 +522,43 @@ func test_ワールドマップで所有しているchunkを選ぶとそのchunk
 	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(1, 0)))
 
 
-func test_ワールドマップで所有しているchunkの隣を選ぶと戦闘が始まる():
+# ワールドマップで東隣の chunk を選んで戦闘を始める
+func _start_battle_on_east() -> Hex:
+	var hex = Hex.new(1, 0)
 	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(Hex.new(1, 0))
+	main.select_world_map_chunk(hex)
+	return hex
+
+
+func test_ワールドマップで所有しているchunkの隣を選ぶと_そのchunkの上で戦闘が始まる():
+	var hex = _start_battle_on_east()
 	assert_true(main.battle_overlay.is_open())
-	assert_false(main.is_local_mode())
-	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.is_local_mode())
+	assert_true(Hex.equals(main.world.get_active_hex(), hex))
+	assert_eq(main.battle_overlay.battle_scene.get_parent(), main.world)
+
+
+func test_戦闘の戦場はそのchunkのマスで_鉱床は壁になる():
+	var hex = _start_battle_on_east()
+	var chunk = main.world.get_chunk(hex)
+	var field = main.battle_overlay.battle_scene.battle.field
+	assert_eq(field.cells().size(), chunk.get_grid_hex_count())
+	var walls = ChunkBattle.walls_of(chunk)
+	assert_gt(walls.size(), 0)
+	for wall in walls:
+		assert_eq(field.terrain_at(wall), Battlefield.Terrain.WALL)
+
+
+func test_戦闘中は建築のHUDとピースの設置を隠す():
+	_start_battle_on_east()
+	assert_false(main.hud.visible)
+	assert_false(main.piece_placer.visible)
+
+
+func test_戦闘中は盤面全体が見える位置と倍率にカメラを合わせる():
+	_start_battle_on_east()
+	assert_eq(main.camera.position, Main.BATTLE_CAMERA_POSITION)
+	assert_eq(main.camera.zoom, Vector2.ONE * Main.BATTLE_CAMERA_ZOOM)
 
 
 func test_ワールドマップで霧のchunkを選んでも何も起きない():
@@ -537,41 +568,80 @@ func test_ワールドマップで霧のchunkを選んでも何も起きない()
 	assert_false(main.is_local_mode())
 
 
-func test_戦闘に勝って結果を閉じるとそのchunkを所有し地図の霧が晴れる():
-	var hex = Hex.new(1, 0)
-	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(hex)
+func test_戦闘に勝って結果を閉じるとそのchunkを所有し_そのまま建築できる():
+	var hex = _start_battle_on_east()
 	_win_battle()
 	main.battle_overlay.confirm_result()
 	assert_true(main.world.territory.is_owned(hex))
-	var biome_color = main.world.get_planet().get_biome(hex).map_color
-	assert_eq(main.world_map_view.get_tile_color(hex), biome_color)
-	assert_true(main.world_map_view.get_tile_active(Hex.new(0, 0)), "今いる chunk の印は残る")
+	assert_true(main.is_local_mode())
+	assert_true(Hex.equals(main.world.get_active_hex(), hex))
+	assert_true(main.hud.visible)
+	assert_true(main.piece_placer.visible)
+	assert_eq(main.piece_placer.chunk, main.world.get_chunk(hex))
 
 
-func test_戦闘から撤退するとそのchunkは所有しない():
+func test_戦闘に勝ったあと地図を開くと霧が晴れている():
+	var hex = _start_battle_on_east()
+	_win_battle()
+	main.battle_overlay.confirm_result()
 	main._handle_key_input(_make_space_event())
+	main.world_map_view.set_hovered_chunk(hex)
+	assert_ne(main.world_map_view.get_hover_info_text(), "")
+	assert_eq(main.world_map_view.get_hover_info_text().find("戦って解放"), -1)
+	assert_true(main.world_map_view.get_tile_active(hex), "今いる chunk の印が付く")
+
+
+func test_戦闘から撤退するとそのchunkは所有せず_元のchunkの地図に戻る():
+	var hex = _start_battle_on_east()
+	main.battle_overlay.retreat()
+	assert_false(main.world.territory.is_owned(hex))
+	assert_false(main.battle_overlay.is_open())
+	assert_false(main.is_local_mode())
+	assert_true(Hex.equals(main.world.get_active_hex(), Hex.new(0, 0)))
+	assert_true(main.world_map_view.get_tile_active(Hex.new(0, 0)))
+
+
+func test_戦闘から撤退するとカメラは戦闘前の地図の位置と倍率に戻る():
+	main._handle_key_input(_make_space_event())
+	main.camera.zoom = Vector2.ONE * 0.5
+	main.camera.position += Vector2(30, 10)
+	var position_before = main.camera.position
 	main.select_world_map_chunk(Hex.new(1, 0))
 	main.battle_overlay.retreat()
-	assert_false(main.world.territory.is_owned(Hex.new(1, 0)))
-	assert_false(main.battle_overlay.is_open())
+	assert_eq(main.camera.position, position_before)
+	assert_eq(main.camera.zoom, Vector2.ONE * 0.5)
 
 
-func test_戦闘中はスペースを押してもローカル画面に切り替わらない():
+func test_戦闘から撤退して所有するchunkに入ると_戦闘前に見ていた位置が映る():
+	main.camera.position = Vector2(120, -80)
+	_start_battle_on_east()
+	main.battle_overlay.retreat()
 	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(Hex.new(1, 0))
+	assert_eq(main.camera.position, Vector2(120, -80))
+
+
+func test_戦闘中はスペースを押しても地図に切り替わらない():
+	_start_battle_on_east()
 	main._unhandled_input(_make_space_event())
-	assert_false(main.is_local_mode())
+	assert_true(main.is_local_mode())
+	assert_true(main.battle_overlay.is_open())
 
 
 func test_戦闘中はカメラを動かせず_終わると動かせる():
-	main._handle_key_input(_make_space_event())
-	main.select_world_map_chunk(Hex.new(1, 0))
+	_start_battle_on_east()
 	assert_false(main.camera.is_processing_unhandled_input())
 	assert_false(main.camera.is_processing())
 	main.battle_overlay.retreat()
 	assert_true(main.camera.is_processing_unhandled_input())
 	assert_true(main.camera.is_processing())
+
+
+func test_戦闘中にセーブしても_今いるchunkは戦闘前のchunkとして保存する():
+	_start_battle_on_east()
+	main.save_game()
+	var other = _start_another_main()
+	assert_true(Hex.equals(other.world.get_active_hex(), Hex.new(0, 0)))
+	assert_false(other.world.territory.is_owned(Hex.new(1, 0)))
 
 
 func test_ワールドマップで寄せても所有していないchunkには入らない():

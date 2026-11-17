@@ -1,10 +1,12 @@
 extends RefCounted
 
-# ワールドマップの霧と、隣の chunk を戦って解放する流れを確かめる。
-# 実際のマウス入力で: 霧のタイルをクリック（何も起きない）→ 隣のタイルをクリック（戦闘が始まる）
-# → 移動スキルを選んで盤面をクリック（主人公が動く。選んだまま続けて使える）
-# → 敵を取り除いて勝利 → 結果を閉じて解放、
-# 解放した chunk をクリックして入る、までを出力する。
+# ワールドマップの霧と、隣の chunk をその chunk のマスの上で戦って解放する流れを確かめる。
+# 実際のマウス入力で: 霧のタイルをクリック（何も起きない）→ 隣のタイルをクリック
+# （その chunk の画面に入って戦闘が始まる）→ 移動スキルを選んでマスをクリック（主人公が動く）
+# → 敵を取り除いて勝利 → 結果を閉じる（同じ画面のまま建築できる）→ コンベアを置く、
+# さらに次の chunk に挑んで撤退する（元の chunk の地図に戻る）、までを出力する。
+
+const CONVEYOR_SLOT := 0
 
 
 func run(scene: Node) -> void:
@@ -25,36 +27,49 @@ func run(scene: Node) -> void:
 		)
 
 	await _click(scene, _tile_screen_pos(scene, far))
-	print("[click fog] battle_open=%s local=%s" % [_is_open(scene), scene.is_local_mode()])
+	print("[click fog] %s" % _state(scene))
 
 	await _click(scene, _tile_screen_pos(scene, east))
+	print("[click frontier] %s" % _state(scene))
 	var overlay: BattleOverlay = scene.battle_overlay
-	print("[click frontier] battle_open=%s local=%s" % [_is_open(scene), scene.is_local_mode()])
 	var battle_scene: BattleScene = overlay.battle_scene
 	battle_scene.animations_enabled = false
 	var battle: Battle = battle_scene.battle
+	var chunk: Chunk = scene.world.get_active_chunk()
 	print(
 		(
-			"[battle] stage=%d enemies=%d player_hp=%d skills=%s"
+			"[battle] stage=%d enemies=%d player=%s cells=%d(chunk %d) walls=%s skills=%s"
 			% [
 				ChunkBattle.stage_for(east),
 				battle.enemies().size(),
-				battle.player.hp,
+				battle.player.position,
+				battle.field.cells().size(),
+				chunk.get_grid_hex_count(),
+				ChunkBattle.walls_of(chunk),
 				_bar_texts(battle_scene),
 			]
 		)
 	)
+	var player_view = battle_scene.view_of(battle.player)
+	print(
+		(
+			"[overlap] player view at %s, chunk tile at %s"
+			% [
+				player_view.global_position,
+				chunk.to_global(chunk.hex_to_pixel(BattleHex.to_hex(battle.player.position))),
+			]
+		)
+	)
 
-	# スキルのボタンを押して選び、盤面を2回クリックして続けて歩く
-	# （ヘッドレスの画面は 64x64 でボタンが画面の外に出るので、ボタンはシグナルで押す）
+	# スキルのボタンを押して選び、マスを2回クリックして続けて歩く
+	# （ボタンはシグナルで押す。マスは実際のクリックで選ぶ）
 	var walk: Skill = battle_scene.skill_turn.skills[0]
 	_press(battle_scene, 0)
 	print("[select] selected=%s" % [_selected_title(battle_scene)])
 	for i in range(2):
 		var from = battle.player.position
 		var target = _reachable_target(battle, walk.value)
-		var screen = battle_scene.position + BattleHex.to_pixel(target, BattleScene.HEX_SIZE)
-		await _click(scene, screen)
+		await _click(scene, _hex_screen_pos(scene, battle_scene, target))
 		print(
 			(
 				"[move] %s -> click %s -> player at %s (energy %d, selected=%s)"
@@ -71,37 +86,44 @@ func run(scene: Node) -> void:
 	# クールダウンのあるスキル（走る）を使うと、しばらく押せなくなる
 	_press(battle_scene, 3)
 	var dash_target = _reachable_target(battle, battle_scene.skill_turn.skills[3].value)
-	await _click(
-		scene, battle_scene.position + BattleHex.to_pixel(dash_target, BattleScene.HEX_SIZE)
-	)
+	await _click(scene, _hex_screen_pos(scene, battle_scene, dash_target))
 	print("[cooldown] player at %s skills=%s" % [battle.player.position, _bar_texts(battle_scene)])
-
-	var camera_before = scene.camera.position
-	Input.action_press("ui_accept")
-	await scene.get_tree().process_frame
-	Input.action_release("ui_accept")
-	print("[during battle] camera moved=%s" % [scene.camera.position != camera_before])
 
 	for enemy in battle.enemies():
 		battle.field.remove_unit(enemy)
 	battle_scene.refresh()
-	print("[win] result=%s owned=%s" % [overlay.get_result_text(), _owned(scene, east)])
-	overlay.confirm_result()
-	view.set_hovered_chunk(far)
 	print(
 		(
-			"[after] battle_open=%s owned=%s east_color=%s far_hover=%s"
-			% [
-				_is_open(scene),
-				_owned(scene, east),
-				view.get_tile_color(east).to_html(false),
-				_one_line(view),
-			]
+			"[win] result=%s button=%s owned=%s"
+			% [overlay.get_result_text(), overlay.get_confirm_text(), _owned(scene, east)]
 		)
 	)
+	overlay.confirm_result()
+	print("[after win] %s owned=%s" % [_state(scene), _owned(scene, east)])
 
-	await _click(scene, _tile_screen_pos(scene, east))
-	print("[enter] local=%s active=%s" % [scene.is_local_mode(), scene.world.get_active_hex()])
+	# 勝ったあと、同じ画面のままコンベアを置ける
+	scene.hud.slot_buttons[CONVEYOR_SLOT].button_pressed = true
+	scene.hud.on_slot_pressed(CONVEYOR_SLOT)
+	var spot = Hex.new(0, 3)
+	scene._hover_local(chunk.hex_to_pixel(spot))
+	scene.piece_placer.place_current_piece()
+	print("[build] piece at %s: %s" % [spot, chunk.get_piece_at_hex(spot) != null])
+	scene.hud.deselect()
+
+	# 次の chunk に挑んで撤退すると、戦闘前にいた chunk の地図に戻る
+	scene._enter_world_map_mode()
+	await scene.get_tree().process_frame
+	await _click(scene, _tile_screen_pos(scene, far))
+	print("[second battle] %s" % _state(scene))
+	overlay.retreat()
+	print("[retreat] %s owned=%s" % [_state(scene), _owned(scene, far)])
+
+
+func _state(scene: Node) -> String:
+	return (
+		"battle_open=%s local=%s active=%s hud=%s"
+		% [_is_open(scene), scene.is_local_mode(), scene.world.get_active_hex(), scene.hud.visible]
+	)
 
 
 func _one_line(view: WorldMapView) -> String:
@@ -119,6 +141,12 @@ func _owned(scene: Node, hex: Hex) -> bool:
 func _tile_screen_pos(scene: Node, hex: Hex) -> Vector2:
 	var view: WorldMapView = scene.world_map_view
 	var world_pos = view.to_global(view.get_tile_position(hex))
+	return scene.get_viewport().get_canvas_transform() * world_pos
+
+
+# 戦場のマスの、画面上の位置
+func _hex_screen_pos(scene: Node, battle_scene: BattleScene, hex: Vector2i) -> Vector2:
+	var world_pos = battle_scene.to_global(BattleHex.to_pixel(hex, BattleScene.HEX_SIZE))
 	return scene.get_viewport().get_canvas_transform() * world_pos
 
 

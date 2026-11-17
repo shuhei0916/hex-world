@@ -1,8 +1,10 @@
 extends GutTest
 
-## 戦闘画面をほかの画面の上に重ねて出し、決着の結果を見せてから閉じる。
+## 戦闘を、渡された場所（戦う chunk のある画面）に出し、決着の結果を見せてから閉じる。
 
 var overlay: BattleOverlay
+## 戦闘画面を置く場所。ゲームでは chunk を描いている World
+var stage: Node2D
 var player: Unit
 var enemy: Unit
 var attack_skill: Skill
@@ -12,6 +14,8 @@ func before_each():
 	overlay = BattleOverlay.new()
 	overlay.animations_enabled = false
 	add_child_autofree(overlay)
+	stage = Node2D.new()
+	add_child_autofree(stage)
 	watch_signals(overlay)
 
 
@@ -38,23 +42,58 @@ func test_はじめは閉じている():
 
 
 func test_開くと戦闘画面が出る():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 
 	assert_true(overlay.is_open())
 	assert_true(overlay.visible)
 	assert_not_null(overlay.battle_scene)
 
 
-func test_盤面はスキルバーに隠れないよう_スキルバーの上の領域の中央に置く():
-	overlay.open(_skill_turn())
+func test_戦闘画面は渡した場所の原点に置かれる():
+	overlay.open(_skill_turn(), stage)
 
-	var size: Vector2 = overlay.get_viewport().get_visible_rect().size
-	var expected := Vector2(size.x / 2.0, (size.y - BattleOverlay.SKILL_BAR_HEIGHT) / 2.0)
-	assert_eq(overlay.battle_scene.position, expected)
+	assert_eq(overlay.battle_scene.get_parent(), stage)
+	assert_eq(overlay.battle_scene.position, Vector2.ZERO)
+
+
+func test_裏の画面を隠す背景は持たない():
+	overlay.open(_skill_turn(), stage)
+
+	assert_null(overlay.get_node_or_null("Background"))
+
+
+func test_戦闘画面は床やピースより手前に描かれる():
+	overlay.open(_skill_turn(), stage)
+
+	assert_gt(overlay.battle_scene.z_index, 10)
+
+
+func test_勝ったときの結果のボタンは建設を始める():
+	overlay.open(_skill_turn(), stage)
+
+	_win()
+
+	assert_eq(overlay.get_confirm_text(), "建設を始める")
+
+
+func test_負けたときの結果のボタンは地図に戻る():
+	overlay.open(_skill_turn(1), stage)
+
+	overlay.battle_scene.end_turn()
+
+	assert_eq(overlay.get_confirm_text(), "地図に戻る")
+
+
+func test_閉じると戦闘画面は渡した場所から取り除かれる():
+	overlay.open(_skill_turn(), stage)
+
+	overlay.retreat()
+
+	assert_eq(stage.get_child_count(), 0)
 
 
 func test_結果の表示は盤面が透けない():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 	_win()
 
 	var style: StyleBoxFlat = overlay.get_node("Ui/ResultPanel").get_theme_stylebox("panel")
@@ -62,13 +101,13 @@ func test_結果の表示は盤面が透けない():
 
 
 func test_戦闘中は結果を出さない():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 
 	assert_false(overlay.is_result_shown())
 
 
 func test_勝つと勝利の結果を出す():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 
 	_win()
 
@@ -78,7 +117,7 @@ func test_勝つと勝利の結果を出す():
 
 
 func test_勝利の結果を閉じると勝ったことを知らせて閉じる():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 	_win()
 
 	overlay.confirm_result()
@@ -89,7 +128,7 @@ func test_勝利の結果を閉じると勝ったことを知らせて閉じる(
 
 
 func test_負けると敗北の結果を出し_閉じると負けたことを知らせる():
-	overlay.open(_skill_turn(1))
+	overlay.open(_skill_turn(1), stage)
 
 	overlay.battle_scene.end_turn()
 
@@ -99,7 +138,7 @@ func test_負けると敗北の結果を出し_閉じると負けたことを知
 
 
 func test_撤退すると負けた扱いで閉じる():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 
 	overlay.retreat()
 
@@ -108,7 +147,7 @@ func test_撤退すると負けた扱いで閉じる():
 
 
 func test_決着したあとは撤退できない():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 	_win()
 
 	overlay.retreat()
@@ -118,10 +157,10 @@ func test_決着したあとは撤退できない():
 
 
 func test_閉じたあとにもう一度開ける():
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 	overlay.retreat()
 
-	overlay.open(_skill_turn())
+	overlay.open(_skill_turn(), stage)
 
 	assert_true(overlay.is_open())
 	assert_false(overlay.is_result_shown())

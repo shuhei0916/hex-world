@@ -1,6 +1,7 @@
 class_name BattleOverlay
 extends CanvasLayer
-## 戦闘画面をほかの画面の上に重ねて出す。決着したら結果を見せ、閉じるときに勝敗を知らせる。
+## 戦闘を、渡された場所（戦う chunk を描いている画面）に出す。
+## 自分は撤退のボタンと決着の結果だけを画面に重ね、閉じるときに勝敗を知らせる。
 
 ## 戦闘を終えて閉じた。撤退したときは負けた扱い。
 signal closed(won: bool)
@@ -8,10 +9,12 @@ signal closed(won: bool)
 const BattleSceneScene := preload("res://scenes/ui/battle/battle_scene.tscn")
 const VICTORY_TEXT := "勝利！ この chunk を解放した"
 const DEFEAT_TEXT := "敗北… 何度でも挑める"
+const VICTORY_CONFIRM_TEXT := "建設を始める"
+const DEFEAT_CONFIRM_TEXT := "地図に戻る"
 ## 戦闘画面のスキルなどの表示（BattleScene の Hud）より手前に出す
 const UI_LAYER_OFFSET := 2
-## 画面の下に並ぶスキルの高さ。盤面はこの上の領域の中央に置く
-const SKILL_BAR_HEIGHT := 96.0
+## 戦闘画面を描く重なり順。床やピースより手前
+const BATTLE_Z_INDEX := 100
 const RESULT_PANEL_COLOR := Color("#1e222c")
 
 ## いま表示している戦闘の画面。閉じているあいだは null。
@@ -21,45 +24,33 @@ var animations_enabled := true
 
 var _won := false
 var _ui := CanvasLayer.new()
-var _holder := Node2D.new()
 var _retreat_button := Button.new()
 var _result_panel := PanelContainer.new()
 var _result_label := Label.new()
+var _confirm_button := Button.new()
 
 
 func _init() -> void:
 	layer = 10
 	visible = false
-	var background := ColorRect.new()
-	background.name = "Background"
-	background.color = HexStyle.BACKGROUND_COLOR
-	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	# 盤面のクリックは BattleScene が受け取るので、背景では止めない
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(background)
-	_holder.name = "Holder"
-	add_child(_holder)
 	_build_ui()
-
-
-func _ready() -> void:
-	get_viewport().size_changed.connect(_center_battle_scene)
 
 
 func is_open() -> bool:
 	return battle_scene != null
 
 
-## skill_turn の戦闘を表示する。
-func open(skill_turn: SkillTurn) -> void:
+## skill_turn の戦闘を、stage の原点に置いて表示する。
+## stage は戦う chunk を原点に描いている画面で、戦場のマスは chunk のマスに重なる。
+func open(skill_turn: SkillTurn, stage: Node) -> void:
 	_remove_battle_scene()
 	_won = false
 	battle_scene = BattleSceneScene.instantiate()
 	battle_scene.skill_turn = skill_turn
 	battle_scene.animations_enabled = animations_enabled
+	battle_scene.z_index = BATTLE_Z_INDEX
 	battle_scene.battle_finished.connect(_on_battle_finished)
-	_holder.add_child(battle_scene)
-	_center_battle_scene()
+	stage.add_child(battle_scene)
 	_result_panel.visible = false
 	_retreat_button.visible = true
 	_set_shown(true)
@@ -85,9 +76,15 @@ func get_result_text() -> String:
 	return _result_label.text
 
 
+## 結果を閉じるボタンの文。勝てばその場で建設に移り、負ければ地図に戻る。
+func get_confirm_text() -> String:
+	return _confirm_button.text
+
+
 func _on_battle_finished(outcome: Battle.Outcome) -> void:
 	_won = outcome == Battle.Outcome.VICTORY
 	_result_label.text = VICTORY_TEXT if _won else DEFEAT_TEXT
+	_confirm_button.text = VICTORY_CONFIRM_TEXT if _won else DEFEAT_CONFIRM_TEXT
 	_result_panel.visible = true
 	_retreat_button.visible = false
 
@@ -102,16 +99,9 @@ func _close() -> void:
 func _remove_battle_scene() -> void:
 	if battle_scene == null:
 		return
-	_holder.remove_child(battle_scene)
+	battle_scene.get_parent().remove_child(battle_scene)
 	battle_scene.queue_free()
 	battle_scene = null
-
-
-func _center_battle_scene() -> void:
-	if battle_scene == null:
-		return
-	var size := get_viewport().get_visible_rect().size
-	battle_scene.position = Vector2(size.x / 2.0, (size.y - SKILL_BAR_HEIGHT) / 2.0)
 
 
 ## CanvasLayer を隠しても子の CanvasLayer は隠れないので、合わせて切り替える。
@@ -159,10 +149,9 @@ func _build_ui() -> void:
 	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_result_label.add_theme_font_size_override("font_size", 28)
 	box.add_child(_result_label)
-	var confirm_button := Button.new()
-	confirm_button.name = "ConfirmButton"
-	confirm_button.text = "地図に戻る"
-	confirm_button.focus_mode = Control.FOCUS_NONE
-	confirm_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	confirm_button.pressed.connect(confirm_result)
-	box.add_child(confirm_button)
+	_confirm_button.name = "ConfirmButton"
+	_confirm_button.text = DEFEAT_CONFIRM_TEXT
+	_confirm_button.focus_mode = Control.FOCUS_NONE
+	_confirm_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_confirm_button.pressed.connect(confirm_result)
+	box.add_child(_confirm_button)

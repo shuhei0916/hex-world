@@ -64,3 +64,13 @@ static func from_pixel(pixel: Vector2, size: float) -> Vector2i:
 	var r := pixel.y / (size * 1.5)
 	var q := pixel.x / (size * sqrt(3.0)) - r / 2.0
 	return round_fractional(Vector2(q, r))
+
+
+## 工場側の座標（Hex）を戦闘の座標に直す。
+static func from_hex(hex: Hex) -> Vector2i:
+	return Vector2i(hex.q, hex.r)
+
+
+## 戦闘の座標を工場側の座標（Hex）に直す。
+static func to_hex(hex: Vector2i) -> Hex:
+	return Hex.new(hex.x, hex.y)

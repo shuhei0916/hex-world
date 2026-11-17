@@ -48,6 +48,10 @@ func _pixel(hex: Vector2i) -> Vector2:
 	return BattleHex.to_pixel(hex, BattleScene.HEX_SIZE)
 
 
+func test_マスの大きさは工場のマスと同じ():
+	assert_eq(BattleScene.HEX_SIZE, Layout.make_default().size.x)
+
+
 func test_ユニットごとに表示が作られマスの位置に置かれる():
 	assert_eq(scene.get_node("Units").get_child_count(), 2)
 	assert_eq(scene.view_of(enemy).position, _pixel(Vector2i(1, 0)))

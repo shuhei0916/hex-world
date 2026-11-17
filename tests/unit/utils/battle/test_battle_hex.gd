@@ -97,3 +97,16 @@ func test_中心から少しずれた画面座標も同じヘックスになる(
 
 	assert_eq(BattleHex.from_pixel(center + Vector2(10.0, -12.0), 32.0), Vector2i(2, -1))
 	assert_eq(BattleHex.from_pixel(center + Vector2(-20.0, 5.0), 32.0), Vector2i(2, -1))
+
+
+func test_工場側のHexと行き来できる():
+	assert_eq(BattleHex.from_hex(Hex.new(2, -3)), Vector2i(2, -3))
+	assert_true(Hex.equals(BattleHex.to_hex(Vector2i(2, -3)), Hex.new(2, -3)))
+
+
+func test_画面上の位置は工場側のマスの位置と一致する():
+	var layout := Layout.make_default()
+	for hex in [Hex.new(0, 0), Hex.new(3, -1), Hex.new(-2, 5), Hex.new(-4, 2)]:
+		var expected: Vector2 = Layout.hex_to_pixel(layout, hex)
+		var actual := BattleHex.to_pixel(BattleHex.from_hex(hex), layout.size.x)
+		assert_almost_eq(actual, expected, Vector2(0.001, 0.001), str(hex))

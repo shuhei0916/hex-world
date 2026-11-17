@@ -7,7 +7,8 @@ signal animations_finished
 ## 戦闘が決着し、その結果を画面に出し終えた。1戦につき一度だけ知らせる。
 signal battle_finished(outcome: Battle.Outcome)
 
-const HEX_SIZE := 40.0
+## マスの中心から頂点までの長さ。戦場は chunk のマスに重ねるので、工場のマスと同じ大きさ
+const HEX_SIZE := 42.0
 ## 1マス歩くのにかける秒数。
 const STEP_TIME := 0.12
 

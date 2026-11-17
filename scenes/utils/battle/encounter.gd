@@ -1,16 +1,12 @@
 class_name Encounter
-## ランの各戦闘の戦場と敵を作る。
+## 1戦ぶんの戦場を作り、主人公と敵を置く。戦場の大きさと壁は呼び出し側が決める。
 
-## 1ランの戦闘の数。最後の戦闘はボス戦。
+## 敵の強さの段階の数。最後の段階はボス戦。
 const STAGE_COUNT := 5
-const RADIUS := 4
-const PLAYER_START := Vector2i(-3, 1)
 ## 敵を置くときに主人公から最低限あける距離。
 const MIN_ENEMY_DISTANCE := 4
-const MIN_WALLS := 4
-const MAX_WALLS := 7
 
-## 戦闘ごとの敵の [最大HP, 攻撃力] の一覧。
+## 段階ごとの敵の [最大HP, 攻撃力] の一覧。
 const ENEMIES_BY_STAGE: Array[Array] = [
 	[[5, 2], [5, 2]],
 	[[5, 2], [5, 2], [5, 2]],
@@ -20,18 +16,29 @@ const ENEMIES_BY_STAGE: Array[Array] = [
 ]
 
 
-## stage 番目（1始まり）の戦闘を作り、player を開始位置に置く。
-static func generate(stage: int, player: Unit, rng: RandomNumberGenerator) -> Battle:
-	var field := Battlefield.hexagon(RADIUS)
-	_place_walls(field, rng)
-	field.place_unit(player, PLAYER_START)
+## 半径 radius の戦場で主人公が始まるマス。左下の端の近く。
+static func player_start(radius: int) -> Vector2i:
+	@warning_ignore("integer_division")
+	return Vector2i(1 - radius, radius / 2)
+
+
+## 半径 radius の六角形の戦場に、stage 番目（1始まり）の段階の敵と player を置く。
+## walls のマスは通れない壁になる（戦場の外のマスは無視する）。
+static func generate(
+	stage: int, player: Unit, rng: RandomNumberGenerator, radius: int, walls: Array[Vector2i] = []
+) -> Battle:
+	var field := Battlefield.hexagon(radius)
+	for hex in walls:
+		if field.has_cell(hex):
+			field.set_terrain(hex, Battlefield.Terrain.WALL)
+	var start := _nearest_walkable(field, player_start(radius))
+	field.place_unit(player, start)
 	var spots: Array[Vector2i] = field.cells().filter(
 		func(hex: Vector2i) -> bool:
-			return (
-				field.is_walkable(hex)
-				and BattleHex.distance(hex, PLAYER_START) >= MIN_ENEMY_DISTANCE
-			)
+			return field.is_walkable(hex) and BattleHex.distance(hex, start) >= MIN_ENEMY_DISTANCE
 	)
+	# 辞書の並び順に左右されないよう、並べてから混ぜる
+	spots.sort()
 	Shuffle.in_place(spots, rng)
 	var specs: Array = ENEMIES_BY_STAGE[stage - 1]
 	for i in range(specs.size()):
@@ -39,20 +46,17 @@ static func generate(stage: int, player: Unit, rng: RandomNumberGenerator) -> Ba
 	return Battle.new(field)
 
 
-## 壁を乱数で置く。床が分断される置き方は取り消す。
-static func _place_walls(field: Battlefield, rng: RandomNumberGenerator) -> void:
-	var candidates: Array[Vector2i] = field.cells().filter(
-		func(hex: Vector2i) -> bool: return BattleHex.distance(hex, PLAYER_START) > 1
-	)
-	Shuffle.in_place(candidates, rng)
-	var wanted := rng.randi_range(MIN_WALLS, MAX_WALLS)
-	var floor_count := field.cells().size()
-	for hex in candidates:
-		if wanted == 0:
-			return
-		field.set_terrain(hex, Battlefield.Terrain.WALL)
-		if field.reachable(PLAYER_START, floor_count).size() == floor_count - 1:
-			floor_count -= 1
-			wanted -= 1
-		else:
-			field.set_terrain(hex, Battlefield.Terrain.FLOOR)
+## from にいちばん近い、歩けるマス。from が歩けるならそのまま返す。
+static func _nearest_walkable(field: Battlefield, from: Vector2i) -> Vector2i:
+	var cells := field.cells()
+	cells.sort()
+	var best := from
+	var best_distance := -1
+	for hex in cells:
+		if not field.is_walkable(hex):
+			continue
+		var distance := BattleHex.distance(hex, from)
+		if best_distance < 0 or distance < best_distance:
+			best = hex
+			best_distance = distance
+	return best

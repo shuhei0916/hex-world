@@ -22,7 +22,7 @@ const RETIRED_SCENES := [
 static var path: String = DEFAULT_PATH
 
 
-static func capture(world: World, goals: Node) -> Dictionary:
+static func capture(world: World, goals: Node, active_hex: Hex = null) -> Dictionary:
 	var data := {
 		"version": VERSION,
 		"hub_goals":
@@ -39,7 +39,7 @@ static func capture(world: World, goals: Node) -> Dictionary:
 	var planet = world.get_planet()
 	if planet:
 		data["planet"] = {"radius": planet.radius, "seed": planet.seed_value}
-	var active = world.get_active_hex()
+	var active = active_hex if active_hex != null else world.get_active_hex()
 	if active != null:
 		data["active_chunk"] = _hex_to_array(active)
 	for chunk_hex in world.get_chunk_hexes():

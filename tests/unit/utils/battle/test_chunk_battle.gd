@@ -1,12 +1,21 @@
 extends GutTest
 
-## chunk を解放するための1戦。原点から遠い chunk ほど敵が手ごわい。
+## chunk を解放するための1戦。その chunk のマスが戦場になり、鉱床は通れない壁になる。
+## 原点から遠い chunk ほど敵が手ごわい。
+
+var chunk: Chunk
+
+
+func before_each():
+	chunk = Chunk.new()
+	add_child_autofree(chunk)
+	chunk.create_hex_grid(chunk.grid_radius)
 
 
 func _create(chunk_hex: Hex) -> SkillTurn:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
-	return ChunkBattle.create(chunk_hex, rng)
+	return ChunkBattle.create(chunk_hex, chunk, rng)
 
 
 func test_原点の隣のchunkは最初の段階の敵と戦う():
@@ -35,3 +44,22 @@ func test_最初のスキルを持って始まる():
 	var skill_turn := _create(Hex.new(1, 0))
 
 	assert_eq(skill_turn.skills.size(), SkillLibrary.starter_skills().size())
+
+
+func test_戦場のマスはchunkのマスと同じ():
+	var field := _create(Hex.new(1, 0)).battle.field
+
+	assert_eq(field.cells().size(), chunk.get_grid_hex_count())
+	for hex in chunk.get_all_hexes():
+		assert_true(field.has_cell(BattleHex.from_hex(hex)), str(hex))
+
+
+func test_chunkの鉱床は通れない壁になる():
+	chunk.mark_resource_hex(Hex.new(1, -1), "iron_ore")
+	chunk.mark_resource_hex(Hex.new(2, -1), "iron_ore")
+
+	var field := _create(Hex.new(1, 0)).battle.field
+
+	assert_eq(field.terrain_at(Vector2i(1, -1)), Battlefield.Terrain.WALL)
+	assert_eq(field.terrain_at(Vector2i(2, -1)), Battlefield.Terrain.WALL)
+	assert_eq(field.terrain_at(Vector2i(0, 0)), Battlefield.Terrain.FLOOR)

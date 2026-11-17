@@ -1,14 +1,15 @@
 class_name BoardView
 extends Node2D
-## 戦場のマスを描く。移動できるマスと、マウスを乗せた敵の予定を示す。
+## 戦場の上に重ねる印を描く。移動できるマスと、マウスを乗せた敵の予定を示す。
+## マスそのもの（床と、壁になる鉱床）は下にある chunk が描いているので、ここでは描かない。
 
-const REACHABLE_COLOR := Color(0.25, 0.45, 0.7)
+const REACHABLE_COLOR := Color(0.25, 0.45, 0.7, 0.85)
 const THREAT_COLOR := Color(0.9, 0.3, 0.25)
 const PLAN_COLOR := Color(1.0, 0.7, 0.2)
 const HOVER_COLOR := Color(1.0, 1.0, 1.0, 0.25)
 
 var field: Battlefield
-var hex_size := 40.0
+var hex_size := 42.0
 var reachable: Dictionary[Vector2i, int] = {}
 ## マウスを乗せた敵に、次の敵ターンで攻撃されうるマス。
 var threatened: Array[Vector2i] = []
@@ -23,13 +24,9 @@ var hovered: Variant = null
 func _draw() -> void:
 	if field == null:
 		return
-	for hex in field.cells():
-		var color := HexStyle.FLOOR_COLOR
-		if field.terrain_at(hex) == Battlefield.Terrain.WALL:
-			color = HexStyle.WALL_COLOR
-		elif reachable.get(hex, 0) > 0:
-			color = REACHABLE_COLOR
-		HexShape.draw(self, BattleHex.to_pixel(hex, hex_size), hex_size, true, color)
+	for hex in reachable:
+		if reachable[hex] > 0:
+			HexShape.draw(self, BattleHex.to_pixel(hex, hex_size), hex_size, true, REACHABLE_COLOR)
 	for hex in threatened:
 		var center := BattleHex.to_pixel(hex, hex_size)
 		draw_polyline(HexShape.outline(center, hex_size * 0.82, true), THREAT_COLOR, 2.0)
