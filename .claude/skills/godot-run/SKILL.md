@@ -106,6 +106,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `visual_chunk_battle.gd`: 見た目確認用。環境変数 `BATTLE_VIEW`（map / battle / intent / result / built）で、霧のある地図・chunk の上の戦闘・敵の予定・勝利の結果・勝ったあとの建築画面を映す
 - `visual_player_edge.gd`: 見た目確認用。キャラクターを所有していない隣に面した辺に立たせ、渡るキーの案内を出す
 - `visual_reach.gd`: 見た目確認用。Miner を選び、キャラクターから届く範囲の表示と、届かないマスに合わせた赤いゴーストを映す（環境変数 `REACH_VIEW=near` で届くマス）
+- `camera_frames.gd`: カメラのかくつき調査用。起動直後・戦闘に勝ったあと・撤退したあとの各フレームで、カメラの位置・倍率・実際に映している中心とキャラクターの位置を出力する（`--frames=0` で起動直後から）
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
 
 動作確認ツールは専用のセーブファイル（`user://tool_session_save.json`）を毎回消してから起動するので、

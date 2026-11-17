@@ -16,8 +16,9 @@ const BATTLE_CAMERA_ZOOM := 0.8
 const BATTLE_MIN_ZOOM := 0.5
 # キャラクターの歩く速さ（ピクセル/秒）。マス3つ半ほど
 const WALK_SPEED := 260.0
-# 隣の chunk へ渡ったとき、カメラが渡った先のキャラクターへすべる秒数
-const CROSS_CAMERA_SECONDS := 0.2
+# カメラがキャラクターに追いつく速さ（1秒あたり、残りの距離の何割を詰めるかの目安）。
+# 一瞬で合わせると、離れているときにかくつくので、少しずつ近づける
+const CAMERA_FOLLOW_RATE := 10.0
 # chunk の端に立って押すと、辺の向こうの隣の chunk へ渡るキー
 const CROSS_KEY := KEY_F
 # どこからも届かないマス（キャラクターのいない chunk の建築できる範囲の中心にする）
@@ -31,7 +32,10 @@ var _battle_chunk_hex = null
 var _pre_battle := {}
 # いまの戦闘。勝ったとき、主人公が戦い終えたマスにキャラクターを立たせるのに使う
 var _battle_turn: SkillTurn = null
-var _camera_tween: Tween
+# true の間、カメラはキャラクターへ少しずつ近づく（歩いたときや戦闘のあと）。追いついたら止まる
+var _camera_following := false
+# カメラの倍率も少しずつ近づけるときの目標。null なら倍率は変えない
+var _camera_target_zoom = null
 
 @onready var hud: HUD = $HUD
 @onready var world: World = $World
@@ -53,6 +57,7 @@ func _ready():
 		var active_hex = world.get_active_hex()
 		world.place_player(active_hex, PlayerCharacter.spawn_hex(world.get_chunk(active_hex)))
 	_refresh_camera_keyboard()
+	camera.position = world.get_player_position()
 	hud.slot_selected.connect(sfx_player.on_slot_selected)
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
@@ -122,6 +127,7 @@ func _on_pause_menu_quit_requested() -> void:
 func _process(delta: float) -> void:
 	update_navigation()
 	update_walk(_read_walk_input(), delta)
+	update_camera_follow(delta)
 	world.set_player_prompt(crossing_prompt() if _can_walk() else "")
 	_sync_reach()
 
@@ -145,8 +151,7 @@ func update_walk(input: Vector2, delta: float) -> void:
 	if input == Vector2.ZERO or not _can_walk():
 		return
 	if world.move_player_by(input.normalized() * WALK_SPEED * delta):
-		_stop_camera_tween()
-		camera.position = world.get_player_position()
+		_camera_following = true
 
 
 # キャラクターが chunk の辺に立っていれば、辺の向こうの隣の chunk へ渡る。
@@ -164,7 +169,7 @@ func try_cross() -> void:
 		if world.cross_player():
 			_activate_chunk(target)
 			camera.position -= offset
-			_follow_player()
+			_camera_following = true
 	elif world.territory.can_challenge(target):
 		start_battle(target, crossing["hex"])
 
@@ -196,18 +201,32 @@ func _can_walk() -> bool:
 	return is_local_mode() and not battle_overlay.is_open() and not hud.is_modal_open()
 
 
-# カメラをキャラクターの位置へすべらせる（隣の chunk へ渡ったとき）
-func _follow_player() -> void:
-	_stop_camera_tween()
-	_camera_tween = create_tween()
-	_camera_tween.tween_property(
-		camera, "position", world.get_player_position(), CROSS_CAMERA_SECONDS
-	)
+# カメラをキャラクター（と目標の倍率）へ少しずつ近づける。追いついたら止まり、
+# 止まっている間は中ボタンのドラッグなどで自由に動かせる
+func update_camera_follow(delta: float) -> void:
+	if not _camera_following:
+		return
+	if not is_local_mode() or battle_overlay.is_open():
+		_stop_camera_follow()
+		return
+	var weight = 1.0 - exp(-CAMERA_FOLLOW_RATE * delta)
+	var target = world.get_player_position()
+	camera.position = camera.position.lerp(target, weight)
+	var zoom_done = true
+	if _camera_target_zoom != null:
+		var target_zoom = Vector2.ONE * _camera_target_zoom
+		camera.zoom = camera.zoom.lerp(target_zoom, weight)
+		zoom_done = camera.zoom.distance_to(target_zoom) < 0.001
+		if zoom_done:
+			camera.zoom = target_zoom
+	if camera.position.distance_to(target) < 0.5 and zoom_done:
+		camera.position = target
+		_stop_camera_follow()
 
 
-func _stop_camera_tween() -> void:
-	if _camera_tween and _camera_tween.is_valid():
-		_camera_tween.kill()
+func _stop_camera_follow() -> void:
+	_camera_following = false
+	_camera_target_zoom = null
 
 
 # WASD は、キャラクターが歩く建築の画面ではカメラを動かさず、ワールドマップと戦闘中はカメラを動かす
@@ -404,7 +423,6 @@ func start_battle(chunk_hex: Vector2i, start_hex = null) -> void:
 	_battle_chunk_hex = chunk_hex
 	_pre_battle = {
 		"active_hex": world.get_active_hex(),
-		"camera_position": camera.position,
 		"camera_zoom": camera.zoom,
 		"camera_min_zoom": camera.min_zoom,
 	}
@@ -429,8 +447,11 @@ func _on_battle_closed(won: bool) -> void:
 	else:
 		_activate_chunk(_pre_battle["active_hex"])
 		world_map_view.set_active_chunk(_pre_battle["active_hex"])
-		camera.position = _pre_battle["camera_position"]
-		camera.zoom = _pre_battle["camera_zoom"]
+		# 元の chunk が原点に戻り、戦った chunk は隣へずれる。見え方を保つようにカメラも同じだけずらす
+		camera.position += world.get_chunk(_battle_chunk_hex).position
+		_camera_target_zoom = _pre_battle["camera_zoom"].x
+	# 戦闘の視点から、一瞬で飛ばずにキャラクターへ戻る
+	_camera_following = true
 	_set_build_ui_visible(true)
 	world.player_shown = true
 	_battle_chunk_hex = null

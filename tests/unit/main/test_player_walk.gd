@@ -57,9 +57,36 @@ func test_マスの境目を越えるまでは立っているマスは変わら�
 	assert_eq(_player_hex(), Vector2i(2, 0))
 
 
-func test_カメラは歩いている間キャラクターを追う():
+func _settle_camera() -> void:
+	for i in range(100):
+		main.update_camera_follow(0.05)
+
+
+func test_カメラは歩いたキャラクターを追う():
+	main.camera.position = main.world.get_player_position()
 	main.update_walk(RIGHT, 0.1)
+	_settle_camera()
 	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+
+
+func test_カメラが離れたところから歩き始めても_カメラは一瞬で飛ばずに追いつく():
+	var far = main.world.get_player_position() + Vector2(300, 0)
+	main.camera.position = far
+	main.update_walk(RIGHT, 0.016)
+	main.update_camera_follow(0.016)
+	var gap = main.camera.position.distance_to(main.world.get_player_position())
+	assert_gt(gap, 200.0, "1フレームでは飛ばない")
+	assert_lt(main.camera.position.x, far.x, "キャラクターの方へ動き出す")
+	_settle_camera()
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+
+
+func test_止まっていればカメラを自由に動かせる():
+	main.update_walk(RIGHT, 0.1)
+	_settle_camera()
+	main.camera.position += Vector2(100, 0)
+	_settle_camera()
+	assert_false(main.camera.position.is_equal_approx(main.world.get_player_position()))
 
 
 func test_ワールドマップでは歩かない():

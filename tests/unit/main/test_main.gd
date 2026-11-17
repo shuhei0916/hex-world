@@ -554,10 +554,20 @@ func test_端に立って渡るキーを押すと_所有している隣のchunk�
 	assert_false(main.battle_overlay.is_open())
 
 
-func test_渡るとカメラは渡った先のキャラクターを追う():
+# カメラがキャラクターに追いつくまで、時間を進める
+func _settle_camera() -> void:
+	for i in range(100):
+		main.update_camera_follow(0.05)
+
+
+func test_渡るとカメラは渡った先のキャラクターへなめらかに追いつく():
 	main.world.territory.claim(Vector2i(1, 0))
-	_cross_to_east()
-	await wait_seconds(0.3)
+	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
+	main.camera.position = main.world.get_player_position()
+	var on_screen = main.camera.position - main.world.get_chunk(Vector2i(1, 0)).position
+	main._handle_key_input(_make_cross_event())
+	assert_true(main.camera.position.is_equal_approx(on_screen), "渡った瞬間は見え方が変わらない")
+	_settle_camera()
 	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
 
 
@@ -677,14 +687,31 @@ func test_戦闘から撤退するとそのchunkは所有せず_元のchunkの�
 	assert_eq(main.piece_placer.chunk, main.world.get_chunk(Vector2i(0, 0)))
 
 
-func test_戦闘から撤退するとカメラは戦闘前の位置と倍率に戻る():
+func test_戦闘から撤退すると_カメラは一瞬で飛ばずにキャラクターと戦闘前の倍率へ戻る():
 	main.world.place_player(Vector2i(0, 0), EAST_EDGE_HEX)
 	main.camera.zoom = Vector2.ONE * 0.7
-	main.camera.position = Vector2(30, 10)
-	main._handle_key_input(_make_cross_event())
+	_start_battle_on_east()
+	# 撤退で元の chunk が原点に戻っても、撤退した瞬間の見え方は変わらない
+	var on_screen = main.camera.position + main.world.get_chunk(Vector2i(1, 0)).position
 	main.battle_overlay.retreat()
-	assert_eq(main.camera.position, Vector2(30, 10))
-	assert_eq(main.camera.zoom, Vector2.ONE * 0.7)
+	on_screen += main.world.get_chunk(Vector2i(1, 0)).position
+	assert_true(main.camera.position.is_equal_approx(on_screen))
+	assert_eq(main.camera.zoom, Vector2.ONE * Main.BATTLE_CAMERA_ZOOM)
+	_settle_camera()
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+	assert_true(main.camera.zoom.is_equal_approx(Vector2.ONE * 0.7))
+
+
+func test_戦闘に勝つと_カメラは一瞬で飛ばずにキャラクターへ戻る():
+	_start_battle_on_east()
+	_win_battle()
+	main.battle_overlay.confirm_result()
+	assert_eq(main.camera.position, Main.BATTLE_CAMERA_POSITION, "勝った瞬間は見え方が変わらない")
+	main.update_camera_follow(0.05)
+	assert_ne(main.camera.position, Main.BATTLE_CAMERA_POSITION, "少しずつ動き出す")
+	assert_false(main.camera.position.is_equal_approx(main.world.get_player_position()))
+	_settle_camera()
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
 
 
 func test_戦闘中はスペースを押しても地図に切り替わらない():
@@ -774,6 +801,10 @@ class TestPlayerSpawn:
 		var main = MainScene.instantiate()
 		add_child_autofree(main)
 		return main
+
+	func test_起動したときからカメラはキャラクターを映している():
+		var main = _start()
+		assert_eq(main.camera.position, main.world.get_player_position())
 
 	func test_新しいゲームではハブの隣に立つ():
 		var main = _start()
