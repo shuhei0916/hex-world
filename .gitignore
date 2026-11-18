@@ -5,3 +5,6 @@
 
 # 他作品から抜き出した調査データ（公開しない）
 docs/research/*/generated/
+
+# Python
+__pycache__/

@@ -6,6 +6,7 @@ hex-world の参考にするため、自動化ゲーム 6 本の研究・アイ�
 - 各ゲームの詳細は `<ゲーム>/README.md`
 - 一覧表は `<ゲーム>/generated/`（ゲームの内容そのものなので git に入れない。作り直し方は各 README にある）
 - 生成スクリプトは `tools/research/`
+- hex-world 自身のデータも同じ物差しで測れる（[hex_world/README.md](hex_world/README.md)、`tools/research/hex_world.sh`）
 
 | ゲーム | 情報源 | 研究ツリー |
 |---|---|---|

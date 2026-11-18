@@ -109,6 +109,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `visual_reach.gd`: 見た目確認用。Miner を選び、キャラクターから届く範囲の表示と、届かないマスに合わせた赤いゴーストを映す（環境変数 `REACH_VIEW=near` で届くマス）
 - `camera_frames.gd`: カメラのかくつき調査用。起動直後・戦闘に勝ったあと・撤退したあとの各フレームで、カメラの位置・倍率・実際に映している中心とキャラクターの位置を出力する（`--frames=0` で起動直後から）
 - `save_load.gd`: 工場を組んでセーブし、別の Main を起動して同じ状態に戻るかを出力する
+- `export_game_data.gd`: アイテム・レシピ・研究・目標・設置コストを環境変数 `EXPORT_PATH` の JSON に書き出す（集計は `tools/research/hex_world.sh` でまとめて行う）
 
 動作確認ツールは専用のセーブファイル（`user://tool_session_save.json`）を毎回消してから起動するので、
 本物のセーブデータの影響を受けず、常に新しいゲームの状態から始まる。
