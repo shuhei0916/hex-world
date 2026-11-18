@@ -224,6 +224,120 @@ def write_stats(d, out):
     open(os.path.join(out, "stats.md"), "w", encoding="utf-8").write("\n".join(lines) + "\n")
 
 
+def research_group(r):
+    n = r["m_Name"]
+    if "Decoration" in n or n.startswith(("Rug", "CreatureFlag")):
+        return "飾り"
+    if n.startswith("Monument"):
+        return "記念碑"
+    if n.startswith("Spacewalk"):
+        return "宇宙遊泳"
+    if n.startswith("HouseUpgrade"):
+        return "家"
+    if r["isHardDrive"] or n.startswith("HardDrive"):
+        return "ハードドライブ（探索で拾う）"
+    if n.startswith("InventorInvention"):
+        return "発明家"
+    if r["researchCreditsCost"] > 0 or n.startswith("MarketMembership"):
+        return "市場（クレジットで購入）"
+    return "技術ツリー（Research Processor）"
+
+
+def write_research(d, raw):
+    """NovaCalc の extract_game.py で抜き出した cls_*.json から研究ツリーを作る。"""
+    import glob
+
+    idx = {}
+    for f in glob.glob(os.path.join(raw, "cls_*.json")):
+        for o in json.load(open(f, encoding="utf-8")):
+            idx[o["_key"]] = o
+            if o.get("m_GameObject"):
+                idx.setdefault(o["m_GameObject"], o)
+    researches = json.load(open(os.path.join(raw, "cls_ResearchDescriptor.json"), encoding="utf-8"))
+    by_key = {r["_key"]: r for r in researches}
+    items_by_key = {i["key"]: i for i in d.g["items"]}
+    bld_by_key = {b["key"]: b for b in d.g["buildings"]}
+    rec_by_key = {r["key"]: r for r in d.g["recipes"]}
+
+    def obj_name(k):
+        return (idx.get(k) or {}).get("m_Name") or (idx.get(k) or {}).get("_goName") or k
+
+    def r_name(r):
+        key = r["researchName"] or r["m_Name"] + "_NAME"
+        e, j = d.name(key)
+        if e == key:
+            return r["m_Name"]
+        return f"{j}（{e}）" if j and j != e else e
+
+    def item_label(k):
+        it = items_by_key.get(obj_name(k))
+        return d.item_name(it["id"]) if it else obj_name(k)
+
+    def bld_label(k):
+        b = bld_by_key.get(obj_name(k))
+        if not b:
+            return obj_name(k)
+        e, j = d.name(b["nameKey"])
+        return j or e
+
+    def rec_label(k):
+        r = rec_by_key.get(obj_name(k))
+        if not r or not r["outputs"]:
+            return obj_name(k)
+        return "・".join(d.item_name(o["item"]).split("（")[-1].rstrip("）") for o in r["outputs"])
+
+    depth = {}
+
+    def depth_of(r, seen=()):
+        if r["_key"] in depth:
+            return depth[r["_key"]]
+        reqs = [by_key[k] for k in r["requirement"] if k in by_key and k not in seen]
+        depth[r["_key"]] = 1 + max((depth_of(q, seen + (r["_key"],)) for q in reqs), default=-1)
+        return depth[r["_key"]]
+
+    groups = defaultdict(list)
+    for r in researches:
+        groups[research_group(r)].append(r)
+    lines = ["# Nova Lands 研究", "",
+             "ゲームのアセット（ResearchDescriptor）から抜き出したもの。深さ = 前提をたどった段数（前提なしが 0）。", "",
+             "| 種類 | 件数 |", "|---|---|"]
+    lines += [f"| {g} | {len(v)} |" for g, v in groups.items()]
+    lines.append("")
+    for g, rs in groups.items():
+        if g in ("飾り", "記念碑"):
+            continue  # 件数だけ上に出す
+        rs = sorted(rs, key=lambda r: (depth_of(r), r["researchCreditsCost"], r["xpOnResearch"]))
+        lines += [f"## {g}（{len(rs)} 件）", "",
+                  "| 深さ | 研究 | 前提 | コスト | 解放する建物 | 解放するレシピ（出力） | その他 | XP |",
+                  "|---|---|---|---|---|---|---|---|"]
+        for r in rs:
+            cost = " + ".join(f"{c['amount']}×{item_label(c['resource'])}" for c in r["researchCost"])
+            if r["researchCreditsCost"]:
+                cost = (cost + " + " if cost else "") + f"{r['researchCreditsCost']} クレジット"
+            other = []
+            if r["unlockedBiomes"]:
+                other.append("島: " + "・".join(d.name(obj_name(k) + "_NAME")[1] or obj_name(k) for k in r["unlockedBiomes"]))
+            if r["unlockedSkills"]:
+                other.append(f"スキル {len(r['unlockedSkills'])}")
+            if r["unlockedParameters"]:
+                other.append("能力: " + "・".join(
+                    d.name(p["name"] + "_PARAMETER_NAME")[1] or d.name(p["name"] + "_PARAMETER_NAME")[0]
+                    for p in r["unlockedParameters"]))
+            if r["isBlueprint"]:
+                other.append("設計図")
+            cells = [depth_of(r), r_name(r), "・".join(r_name(by_key[k]) for k in r["requirement"] if k in by_key) or "—",
+                     cost or "—", "・".join(bld_label(k) for k in r["unlockedBuildings"]) or "",
+                     "・".join(dict.fromkeys(rec_label(k) for k in r["unlockedRecipes"])) or "",
+                     " / ".join(other), r["xpOnResearch"]]
+            lines.append("| " + " | ".join(str(x).replace("|", "/") for x in cells) + " |")
+        lines.append("")
+    open(os.path.join(out_dir_of(d), "research.md"), "w", encoding="utf-8").write("\n".join(lines))
+
+
+def out_dir_of(d):
+    return d.out
+
+
 def _place_name(self, b):
     if b.get("key") == "-":
         return b["nameKey"]
@@ -235,12 +349,15 @@ def _place_name(self, b):
 Data.item_name_or_building = _place_name
 
 
-def main(gamedata_path, game_dir, out):
+def main(gamedata_path, game_dir, out, raw=None):
     loc = os.path.join(game_dir, "Nova Lands_Data", "StreamingAssets", "Localization")
     d = Data(json.load(open(gamedata_path, encoding="utf-8")),
              load_loc(os.path.join(loc, "messages_en.bytes")),
              load_loc(os.path.join(loc, "messages_ja.bytes")))
+    d.out = out
     os.makedirs(out, exist_ok=True)
+    if raw:
+        write_research(d, raw)
     write_items(d, out)
     write_recipes(d, out)
     write_buildings(d, out)
@@ -250,4 +367,4 @@ def main(gamedata_path, game_dir, out):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])

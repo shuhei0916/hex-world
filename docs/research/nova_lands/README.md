@@ -12,7 +12,8 @@ hex-world の参考にするため、Nova Lands の研究・アイテム・建�
 | `items.md` | アイテム 116 件を加工の段階ごとに（英語名・日本語名・作る場所・説明） |
 | `recipes.md` | レシピを建物ごとに（入力・出力・時間・毎分の出力） |
 | `buildings.md` | 建物（コスト・電力・速度・レシピ数・説明） |
-| `progression.md` | 研究 39 件・島 17 件・チャレンジ 45 件・実績など（名前と説明のみ） |
+| `research.md` | 研究 205 件（技術ツリー 44・市場 42・宇宙遊泳 22 など）の前提・コスト・解放内容 |
+| `progression.md` | 島 17 件・チャレンジ 45 件・実績など（名前と説明のみ） |
 | `stats.md` | 段階ごとの件数、レシピの入力数、よく材料になるアイテム |
 
 作り直し方:
@@ -20,8 +21,11 @@ hex-world の参考にするため、Nova Lands の研究・アイテム・建�
 ```
 # 1. NovaCalc のデータを取ってくる（どこか作業用のフォルダへ）
 curl -o gamedata.json https://raw.githubusercontent.com/frostmx/novacalc/main/data/gamedata.json
-# 2. 一覧を生成
-python -I tools/research/nova_lands.py gamedata.json "X:/SteamLibrary/steamapps/common/Nova Lands" docs/research/nova_lands/generated
+# 2. 研究ツリーをゲームのアセットから抜き出す（NovaCalc の tools/extract_game.py。
+#    pip install UnityPy==1.25.4 TypeTreeGeneratorAPI を入れた仮想環境で）
+python -I extract_game.py "X:/SteamLibrary/steamapps/common/Nova Lands" nl_raw
+# 3. 一覧を生成（最後の引数を省くと research.md は作らない）
+python -I tools/research/nova_lands.py gamedata.json "X:/SteamLibrary/steamapps/common/Nova Lands" docs/research/nova_lands/generated nl_raw
 ```
 
 ## 情報源
@@ -33,13 +37,14 @@ python -I tools/research/nova_lands.py gamedata.json "X:/SteamLibrary/steamapps/
   - 中身はただの JSON。英語名・日本語名・説明文はここから取った。研究・チャレンジ・島の名前もここにある。
 - Fandom の wiki（nova-lands.fandom.com）は自動取得を拒否されて（HTTP 402）読めなかった。
 
+- **ゲームのアセット**（研究ツリー）
+  - NovaCalc の `tools/extract_game.py` を手元のゲームに対して動かし、`ResearchDescriptor` を抜き出した。
+
 ## まだ取れていないもの
 
-- **研究ツリーの中身**（前提・コスト・解放するもの）
-  - ゲームのアセットに `ResearchDescriptor` として入っている。
-  - NovaCalc の `tools/extract_game.py` を手元のゲームに対して動かせば抜き出せる見込み（UnityPy と TypeTreeGeneratorAPI が必要）。
 - **島の解放コスト**
   - バイオームスキャナーのレシピに一部ある（例：スチール 2 + プラスチール 2）が、どの島に対応するかは不明。
+- **クレジットの稼ぎ方の数値**（輸出ロケットで何がいくらで売れるか）
 
 ## データから読み取れる構造
 
@@ -95,6 +100,23 @@ python -I tools/research/nova_lands.py gamedata.json "X:/SteamLibrary/steamapps/
 
 - 作業台は全レシピ 2 秒で、ボット・装備・回復アイテムなど「プレイヤーが使う物」を作る。
 - 生産設備は工場用の素材を作る。役割がはっきり分かれている。
+
+### 9. 研究のコストは「作れた証明」程度に小さい
+
+- 技術ツリーは 44 件、深さ 11 段。
+- 前提は 1〜2 個で、ほぼ一本道の枝が 4〜5 本（生産・探検・農業と牧畜・電力・戦闘）並ぶ。
+- コストはその時点の最新素材を少しだけ払う形になっている。
+  - 例：大量生産 I はレンガ 20、ガラス工芸は電子部品 1、超硬質ミネラルはチタン鉱石 2
+  - 最終段のハイパーコンピューターだけ、スーパーコンピュータモジュール 5 + 電池 5 と重い。
+- 研究は「量を集める作業」ではなく、「新しい素材を作れたら次が開く」チェックポイントとして働く。
+  - 量を求める役割は、チャレンジ（N 個作る）とゲートウェイの納品が受け持っている。
+
+### 10. 2 つ目の通貨（クレジット）で、建物の台数そのものを買う
+
+- 市場の研究 42 件はクレジットで買う。輸出ロケットで素材を売ってクレジットを得る。
+- 巨大炉・Packager・ドローン基地などは、まず「設計図」を買い、そのあと 1 台ずつ「Unit00〜02」を買い足す。台数に上限があり、値段は台数ごとに上がる。
+  - 例：アドバンス農場は 50 → 70 → 90 → 115 クレジット
+- 上位の建物は「研究で開く」のではなく、「稼いだクレジットで台数を買う」。工場の規模拡大に、生産とは別の経済の軸が付いている。
 
 ## ゲームループの所感（プレイヤーとして）
 
