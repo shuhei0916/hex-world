@@ -11,6 +11,7 @@ extends RefCounted
 ##   level               研究できるようになるハブのレベル（HubGoals.level がこの値以上）
 ##   requires            先に済ませておく研究の id
 ##   effect              効果。{"unlock": 報酬id} / {"belt_speed": 倍率} / {"mining_speed": 倍率}
+##                       / {"skill": スキルid}（SkillLibrary.RESEARCH_SKILLS の戦闘スキル）
 ## 価格は仮の値。
 
 enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL }
@@ -18,6 +19,7 @@ enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL }
 const BELT_SPEED := "belt_speed"
 const MINING_SPEED := "mining_speed"
 const UNLOCK := "unlock"
+const SKILL := "skill"
 
 # 一覧に表示する順（おおむね研究できるようになる順）
 const DEFS = {
@@ -57,6 +59,15 @@ const DEFS = {
 		"requires": ["mining_speed_1"],
 		"effect": {MINING_SPEED: 2.0},
 	},
+	"skill_iron_wall":
+	{
+		"name": "戦闘: 鉄壁",
+		"description": "戦闘で「鉄壁」（防御 8、2ターンに1回）が使えるようになる。",
+		"cost": {"iron_plate": 20},
+		"level": 4,
+		"requires": [],
+		"effect": {SKILL: "iron_wall"},
+	},
 	"belt_speed_2":
 	{
 		"name": "コンベア高速化 II",
@@ -74,6 +85,24 @@ const DEFS = {
 		"level": 6,
 		"requires": ["unlock_chunk_chest"],
 		"effect": {UNLOCK: "unlock_biome_chest"},
+	},
+	"skill_steel_lance":
+	{
+		"name": "戦闘: 鋼の槍",
+		"description": "戦闘で「鋼の槍」（攻撃 6、毎ターン1回）が使えるようになる。",
+		"cost": {"steel": 20},
+		"level": 7,
+		"requires": [],
+		"effect": {SKILL: "steel_lance"},
+	},
+	"skill_sprint":
+	{
+		"name": "戦闘: 疾走",
+		"description": "戦闘で「疾走」（6マス移動、2ターンに1回）が使えるようになる。",
+		"cost": {"motor": 10},
+		"level": 9,
+		"requires": [],
+		"effect": {SKILL: "sprint"},
 	},
 	"unlock_planet_chest":
 	{

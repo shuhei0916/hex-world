@@ -181,3 +181,28 @@ class TestSpeedBonuses:
 		_research_with_requirements("mining_speed_1")
 		assert_eq(goals.get_mining_speed(), 1.5)
 		assert_eq(goals.get_belt_speed(), 1.0)
+
+
+class TestSkills:
+	extends "res://tests/unit/utils/test_research.gd"
+
+	func _skill_research_ids() -> Array:
+		return Research.all_ids().filter(
+			func(id): return Research.get_def(id)["effect"].has(Research.SKILL)
+		)
+
+	func test_スキルを解放する研究がある():
+		assert_gt(_skill_research_ids().size(), 0)
+
+	func test_研究で解放するスキルはすべてスキルの一覧にある():
+		for id in _skill_research_ids():
+			var skill_id = Research.get_def(id)["effect"][Research.SKILL]
+			assert_not_null(SkillLibrary.create(skill_id), "%s のスキル %s" % [id, skill_id])
+
+	func test_研究する前は解放されたスキルがない():
+		assert_eq(goals.unlocked_skill_ids(), [])
+
+	func test_研究するとスキルが解放される():
+		var id = _skill_research_ids()[0]
+		_research_with_requirements(id)
+		assert_eq(goals.unlocked_skill_ids(), [Research.get_def(id)["effect"][Research.SKILL]])

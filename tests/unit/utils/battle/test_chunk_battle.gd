@@ -70,3 +70,14 @@ func test_主人公はchunkに入ってきたマスから始まる():
 	rng.seed = 1
 	var turn := ChunkBattle.create(Vector2i(1, 0), chunk, rng, Vector2i(-2, -3))
 	assert_eq(turn.battle.player.position, Vector2i(-2, -3))
+
+
+func test_研究で解放したスキルも持って始まる():
+	var skill_id: String = SkillLibrary.RESEARCH_SKILLS.keys()[0]
+	for id in Research.all_ids():
+		if Research.get_def(id)["effect"].get(Research.SKILL, "") == skill_id:
+			HubGoals.researched[id] = true
+	var skill_turn := _create(Vector2i(1, 0))
+	HubGoals.reset()
+
+	assert_eq(skill_turn.skills.size(), SkillLibrary.starter_skills().size() + 1)

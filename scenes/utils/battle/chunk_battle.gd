@@ -1,7 +1,7 @@
 class_name ChunkBattle
 ## chunk を解放するための1戦を作る。その chunk のマスがそのまま戦場になり、鉱床は通れない壁になる。
 ## 原点から遠い chunk ほど敵が手ごわい。
-## 主人公は毎回 HP が満タンの状態で、最初から使えるスキルで戦う。
+## 主人公は毎回 HP が満タンの状態で、最初から使えるスキルと研究で解放したスキルで戦う。
 ## 主人公は chunk に入ってきたマスから始まる。
 
 const PLAYER_MAX_HP := 30
@@ -22,7 +22,7 @@ static func create(
 	var battle := Encounter.generate(
 		stage_for(chunk_hex), player, rng, chunk.grid_radius, walls_of(chunk), start_hex
 	)
-	return SkillTurn.new(battle, SkillLibrary.starter_skills())
+	return SkillTurn.new(battle, SkillLibrary.available(HubGoals.unlocked_skill_ids()))
 
 
 ## chunk のマスのうち、戦闘で通れないもの（鉱床）。

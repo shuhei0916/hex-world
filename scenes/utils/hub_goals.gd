@@ -171,6 +171,15 @@ func research(id: String) -> bool:
 	return true
 
 
+# 研究で解放した戦闘スキルの id（研究の定義の順）
+func unlocked_skill_ids() -> Array:
+	var ids := []
+	for id in Research.all_ids():
+		if is_researched(id) and Research.get_def(id)["effect"].has(Research.SKILL):
+			ids.append(Research.get_def(id)["effect"][Research.SKILL])
+	return ids
+
+
 func get_belt_speed() -> float:
 	return _best_effect(Research.BELT_SPEED)
 

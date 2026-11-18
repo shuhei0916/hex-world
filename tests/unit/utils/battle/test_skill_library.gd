@@ -32,3 +32,35 @@ func test_最初のスキルにはクールダウンのあるものとないも�
 
 	assert_has(cooldowns, true)
 	assert_has(cooldowns, false)
+
+
+func test_研究で解放するスキルをidで作れる():
+	for id in SkillLibrary.RESEARCH_SKILLS:
+		var skill := SkillLibrary.create(id)
+		assert_not_null(skill, id)
+		if skill:
+			assert_ne(skill.title, "", id)
+
+
+func test_知らないidのスキルはnull():
+	assert_null(SkillLibrary.create("unknown"))
+
+
+func test_研究で解放するスキルは最初のスキルと名前が重ならない():
+	var titles := {}
+	for skill in SkillLibrary.starter_skills():
+		titles[skill.title] = true
+	for id in SkillLibrary.RESEARCH_SKILLS:
+		assert_false(titles.has(SkillLibrary.create(id).title), id)
+
+
+func test_使えるスキルは最初のスキルに解放済みのスキルを足したもの():
+	var id: String = SkillLibrary.RESEARCH_SKILLS.keys()[0]
+	var skills := SkillLibrary.available([id])
+
+	assert_eq(skills.size(), SkillLibrary.starter_skills().size() + 1)
+	assert_eq(skills[-1].title, SkillLibrary.create(id).title)
+
+
+func test_何も解放していなければ使えるのは最初のスキルだけ():
+	assert_eq(SkillLibrary.available([]).size(), SkillLibrary.starter_skills().size())
