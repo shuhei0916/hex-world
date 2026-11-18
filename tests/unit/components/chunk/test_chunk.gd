@@ -374,7 +374,9 @@ class TestOreDeposits:
 
 	func test_鉱床タイルは資源の種類ごとに異なる色になる():
 		var colors = {}
-		var hexes = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
+		var hexes = [
+			Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)
+		]
 		var biome_ids = Biome.all_ids()
 		for i in range(biome_ids.size()):
 			var resource_type = Biome.get_biome(biome_ids[i]).resource_type

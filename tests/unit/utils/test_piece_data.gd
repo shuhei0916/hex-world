@@ -51,5 +51,10 @@ class TestPieceDataUnlock:
 		HubGoals.gained_rewards["unlock_smelter"] = true
 		assert_true(PieceData.is_unlocked(PieceData.Type.SMELTER))
 
+	func test_窯はunlock_kilnを取るまでロックされる():
+		assert_false(PieceData.is_unlocked(PieceData.Type.KILN))
+		HubGoals.gained_rewards["unlock_kiln"] = true
+		assert_true(PieceData.is_unlocked(PieceData.Type.KILN))
+
 	func test_橋は常にアンロック済み():
 		assert_true(PieceData.is_unlocked(PieceData.Type.BRIDGE))

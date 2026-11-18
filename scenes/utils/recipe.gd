@@ -36,7 +36,7 @@ class RecipeDB:
 
 	static func _register_defaults():
 		# Miner: 足元の鉱床の資源を採掘する (1.0s)。先頭の iron_ore が配置直後の既定レシピ
-		for resource_type in ["iron_ore", "copper_ore", "coal", "sand"]:
+		for resource_type in ["iron_ore", "copper_ore", "coal", "sand", "limestone"]:
 			register_recipe(
 				Recipe.new(resource_type, {}, {resource_type: 1}, 1.0), PieceData.Type.MINER
 			)
@@ -59,6 +59,9 @@ class RecipeDB:
 			[PieceData.Type.MIXER, {"copper_wire": 2, "iron_plate": 1}, {"circuit": 1}, 6.0],
 			[PieceData.Type.MIXER, {"steel_beam": 2, "screw": 2}, {"frame": 1}, 6.0],
 			[PieceData.Type.MIXER, {"lens": 1, "circuit": 1}, {"sensor": 1}, 8.0],
+			[PieceData.Type.MIXER, {"quicklime": 1, "sand": 2}, {"concrete": 1}, 4.0],
+			# Kiln（1入力）: 焼く
+			[PieceData.Type.KILN, {"limestone": 1}, {"quicklime": 1}, 3.0],
 			# Assembler（2入力）: 部品を組み立てる
 			[PieceData.Type.ASSEMBLER, {"iron_plate": 1, "screw": 2}, {"gear": 1}, 4.0],
 			[PieceData.Type.ASSEMBLER, {"gear": 1, "copper_wire": 2}, {"motor": 1}, 6.0],

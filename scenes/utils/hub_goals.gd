@@ -17,7 +17,9 @@ const LEVELS = [
 	# 段階2: 2つのバイオームの資源を組み合わせる
 	{"goal_item": "copper_wire", "required": 40, "reward": ""},
 	{"goal_item": "steel", "required": 20, "reward": ""},
-	{"goal_item": "circuit", "required": 30, "reward": ""},
+	{"goal_item": "circuit", "required": 30, "reward": "unlock_kiln"},
+	# 石灰岩の台地の石灰石を窯で焼き、砂と混ぜる。上位のチェストの材料になる
+	{"goal_item": "concrete", "required": 30, "reward": ""},
 	{"goal_item": "motor", "required": 20, "reward": ""},
 	{"goal_item": "glass", "required": 30, "reward": ""},
 	# 段階3: 3〜4つのバイオームの資源を組み合わせる。最終目標は探査機

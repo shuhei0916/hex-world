@@ -14,6 +14,8 @@ const RECIPE_TABLE = [
 	[PieceData.Type.MIXER, {"copper_wire": 2, "iron_plate": 1}, {"circuit": 1}, 6.0],
 	[PieceData.Type.MIXER, {"steel_beam": 2, "screw": 2}, {"frame": 1}, 6.0],
 	[PieceData.Type.MIXER, {"lens": 1, "circuit": 1}, {"sensor": 1}, 8.0],
+	[PieceData.Type.MIXER, {"quicklime": 1, "sand": 2}, {"concrete": 1}, 4.0],
+	[PieceData.Type.KILN, {"limestone": 1}, {"quicklime": 1}, 3.0],
 	[PieceData.Type.ASSEMBLER, {"iron_plate": 1, "screw": 2}, {"gear": 1}, 4.0],
 	[PieceData.Type.ASSEMBLER, {"gear": 1, "copper_wire": 2}, {"motor": 1}, 6.0],
 	[PieceData.Type.ASSEMBLER, {"frame": 1, "motor": 1}, {"engine": 1}, 8.0],
@@ -109,7 +111,8 @@ func test_加工機のレシピはレシピ表にあるものだけ():
 		PieceData.Type.SMELTER,
 		PieceData.Type.CUTTER,
 		PieceData.Type.MIXER,
-		PieceData.Type.ASSEMBLER
+		PieceData.Type.ASSEMBLER,
+		PieceData.Type.KILN,
 	]:
 		var expected = RECIPE_TABLE.filter(func(row): return row[0] == piece_type).size()
 		assert_eq(Recipe.RecipeDB.get_recipes_by_type(piece_type).size(), expected)
@@ -123,9 +126,10 @@ func test_材料は2種類まで_個数は2個まで_出力は1種類():
 		assert_eq(row[2].size(), 1)
 
 
-func test_最終目標の探査機は4つのバイオームの資源をすべて使う():
+func test_最終目標の探査機は本筋のバイオームの資源をすべて使う():
+	# 石灰岩の台地の石灰石は建物の材料（コンクリート）に使い、探査機には使わない
 	var raw = _raw_materials("probe")
-	for biome_id in Biome.all_ids():
+	for biome_id in [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST, Biome.DESERT]:
 		var resource_type = Biome.get_biome(biome_id).resource_type
 		assert_true(raw.has(resource_type), "%s が要る" % resource_type)
 
@@ -154,7 +158,8 @@ func test_同じ機械のレシピ同士で材料が重ならない():
 		PieceData.Type.SMELTER,
 		PieceData.Type.ASSEMBLER,
 		PieceData.Type.CUTTER,
-		PieceData.Type.MIXER
+		PieceData.Type.MIXER,
+		PieceData.Type.KILN,
 	]:
 		var seen = {}
 		for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):

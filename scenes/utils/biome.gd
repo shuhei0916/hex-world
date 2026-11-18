@@ -7,6 +7,7 @@ const PLAINS := "plains"
 const MOUNTAINS := "mountains"
 const FOREST := "forest"
 const DESERT := "desert"
+const PLATEAU := "plateau"
 
 static var _biomes: Dictionary = {}
 
@@ -31,6 +32,7 @@ static func _ensure_defaults() -> void:
 		Biome.new(MOUNTAINS, "山岳", Color("#8c6a4a"), "copper_ore"),
 		Biome.new(FOREST, "森林", Color("#2a5a3a"), "coal"),
 		Biome.new(DESERT, "砂丘", Color("#c2a35e"), "sand"),
+		Biome.new(PLATEAU, "石灰岩の台地", Color("#a9a48f"), "limestone"),
 	]:
 		_biomes[biome.id] = biome
 

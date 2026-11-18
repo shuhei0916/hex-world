@@ -12,6 +12,7 @@ const MACHINE_TYPES = [
 	PieceData.Type.CUTTER,
 	PieceData.Type.ASSEMBLER,
 	PieceData.Type.MIXER,
+	PieceData.Type.KILN,
 ]
 
 
@@ -29,6 +30,15 @@ func test_ハブは無料():
 
 func test_Smelterの設置には鉄鉱石が要る():
 	assert_eq(BuildCost.of_scene(SMELTER_T1), {"iron_ore": 5})
+
+
+func test_窯の設置には鋼が要る():
+	assert_eq(BuildCost.of_scene(load(BuildCost.PIECE_DIR + "kiln_t1.tscn")), {"steel": 10})
+
+
+func test_Biomeチェストの設置にはコンクリートが要る():
+	for path in ["biome_chest_in.tscn", "biome_chest_out.tscn"]:
+		assert_eq(BuildCost.COSTS[BuildCost.PIECE_DIR + path], {"concrete": 10}, path)
 
 
 func test_上位の採掘機は有料():

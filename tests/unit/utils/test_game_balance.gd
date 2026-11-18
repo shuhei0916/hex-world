@@ -12,6 +12,7 @@ const MACHINES = [
 	PieceData.Type.CUTTER,
 	PieceData.Type.MIXER,
 	PieceData.Type.ASSEMBLER,
+	PieceData.Type.KILN,
 ]
 
 

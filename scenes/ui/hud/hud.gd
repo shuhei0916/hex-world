@@ -16,6 +16,7 @@ const CUTTER_T1_SCENE = preload("res://scenes/components/piece/cutter_t1.tscn")
 const CUTTER_T2_SCENE = preload("res://scenes/components/piece/cutter_t2.tscn")
 const MIXER_T1_SCENE = preload("res://scenes/components/piece/mixer_t1.tscn")
 const MIXER_T2_SCENE = preload("res://scenes/components/piece/mixer_t2.tscn")
+const KILN_T1_SCENE = preload("res://scenes/components/piece/kiln_t1.tscn")
 const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
 const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 const CHEST_OUT_SCENE = preload("res://scenes/components/piece/chest_out.tscn")
@@ -40,8 +41,10 @@ var _slot_variants: Array = [
 	[BRIDGE_SCENE],
 	[CHEST_IN_SCENE, BIOME_CHEST_IN_SCENE, PLANET_CHEST_IN_SCENE],
 	[CHEST_OUT_SCENE, BIOME_CHEST_OUT_SCENE, PLANET_CHEST_OUT_SCENE],
+	# 窯は t2 を作らない（docs/recipe_plan.md）。あとから足した機械なので末尾（キー 0）に置く
+	[KILN_T1_SCENE],
 ]
-var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+var _variant_indices: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.CONVEYOR,
@@ -53,6 +56,7 @@ var _scene_types: Array[PieceData.Type] = [
 	PieceData.Type.BRIDGE,
 	PieceData.Type.CHEST,
 	PieceData.Type.CHEST_OUT,
+	PieceData.Type.KILN,
 ]
 
 # マウスが乗っている設置済みピース（撤去されて無効になることがあるので型は付けない）

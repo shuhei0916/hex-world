@@ -78,6 +78,14 @@ func test_スロット4はアッセンブラーである():
 	assert_eq(_get_slot_piece_type(3), PieceData.Type.ASSEMBLER)
 
 
+func test_スロット10は窯で_unlock_kilnを取るまで使えない():
+	assert_eq(_get_slot_piece_type(9), PieceData.Type.KILN)
+	assert_true(hud.slot_buttons[9].disabled)
+	HubGoals.gained_rewards["unlock_kiln"] = true
+	HubGoals.unlocks_changed.emit()
+	assert_false(hud.slot_buttons[9].disabled)
+
+
 func test_スロットにアイコンテクスチャが設定されている():
 	var slot0 = hud.toolbar.get_child(0) as Button
 	assert_not_null(slot0.icon)
@@ -356,7 +364,7 @@ class TestChestSlots:
 		HubGoals.reset()
 
 	func test_ツールバーに搬入チェストと搬出チェストのスロットがある():
-		assert_eq(hud.slot_buttons.size(), 9)
+		assert_eq(hud.slot_buttons.size(), 10)
 		assert_eq(
 			hud.get_scene_for_slot(7).resource_path, "res://scenes/components/piece/chest_in.tscn"
 		)
