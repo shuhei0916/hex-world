@@ -50,8 +50,11 @@ var _camera_target_zoom = null
 
 
 func _ready():
+	# 研究の条件（chunk の数・バイオーム）のため、所有している chunk を HubGoals に伝え続ける
+	world.territory.changed.connect(_sync_owned_chunks)
 	if not _load_game():
 		_start_new_game()
+	_sync_owned_chunks()
 	_activate_chunk(world.get_active_hex())
 	# 新しいゲームと、キャラクターの記録が無い旧セーブでは、今いる chunk のハブの隣に立たせる
 	if world.player == null:
@@ -76,6 +79,10 @@ func _start_new_game() -> void:
 	initial_chunk.place_hub(goal["goal_item"], goal["required"])
 	world.territory.claim(Vector2i(0, 0))
 	world.set_active_chunk(Vector2i(0, 0))
+
+
+func _sync_owned_chunks() -> void:
+	HubGoals.set_owned_chunks(world.territory.count_by_biome())
 
 
 # セーブデータがあれば復元して true を返す。無い・壊れている場合は false。

@@ -557,6 +557,16 @@ class TestOwnership:
 		world.territory.claim(Vector2i(1, 0))
 		assert_eq(world.territory.get_owned_hexes().size(), 2)
 
+	func test_所有しているchunkをバイオームごとに数える():
+		world.territory.claim(Vector2i(0, 0))
+		world.territory.claim(Vector2i(1, 0))
+		var planet = world.get_planet()
+		var expected := {}
+		for hex in [Vector2i(0, 0), Vector2i(1, 0)]:
+			var biome_id = planet.get_biome_id(hex)
+			expected[biome_id] = expected.get(biome_id, 0) + 1
+		assert_eq(world.territory.count_by_biome(), expected)
+
 	func test_ローカル画面では所有していない隣のchunkを所有している隣より暗く描く():
 		world.territory.claim(Vector2i(0, 0))
 		world.territory.claim(Vector2i(1, 0))

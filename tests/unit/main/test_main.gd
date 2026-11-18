@@ -520,6 +520,12 @@ func test_新しいゲームでは原点のchunkだけを所有している():
 	assert_eq(main.world.territory.get_owned_hexes().size(), 1)
 
 
+func test_所有しているchunkの数を研究の条件のためにHubGoalsへ伝える():
+	assert_eq(HubGoals.owned_chunk_count(), 1)
+	main.world.territory.claim(Vector2i(1, 0))
+	assert_eq(HubGoals.owned_chunk_count(), 2)
+
+
 func test_ワールドマップで所有しているchunkを選ぶと_キャラクターのいるchunkに戻る():
 	# chunk の間はキャラクターが歩いて移るので、地図から別の chunk へは飛ばない
 	main.world.territory.claim(Vector2i(1, 0))

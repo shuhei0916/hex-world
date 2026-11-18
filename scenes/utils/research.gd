@@ -12,14 +12,18 @@ extends RefCounted
 ##   requires            先に済ませておく研究の id
 ##   effect              効果。{"unlock": 報酬id} / {"belt_speed": 倍率} / {"mining_speed": 倍率}
 ##                       / {"skill": スキルid}（SkillLibrary.RESEARCH_SKILLS の戦闘スキル）
+##   conditions          探索の条件（省略可）。{"chunks": 所有している chunk の数}
+##                       / {"biome": そのバイオームの chunk を1つ以上持っていること}
 ## 価格は仮の値。
 
-enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL }
+enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL, LOCKED_CONDITION }
 
 const BELT_SPEED := "belt_speed"
 const MINING_SPEED := "mining_speed"
 const UNLOCK := "unlock"
 const SKILL := "skill"
+const CHUNKS := "chunks"
+const BIOME := "biome"
 
 # 一覧に表示する順（おおむね研究できるようになる順）
 const DEFS = {
@@ -93,6 +97,7 @@ const DEFS = {
 		"cost": {"steel": 20},
 		"level": 7,
 		"requires": [],
+		"conditions": {BIOME: Biome.FOREST},
 		"effect": {SKILL: "steel_lance"},
 	},
 	"skill_sprint":
@@ -102,6 +107,7 @@ const DEFS = {
 		"cost": {"motor": 10},
 		"level": 9,
 		"requires": [],
+		"conditions": {CHUNKS: 3},
 		"effect": {SKILL: "sprint"},
 	},
 	"unlock_planet_chest":

@@ -163,10 +163,11 @@ def write_progression(g, out):
                 g.research_depth(r["id"]),
                 "、".join(g.research[q]["name"] for q in r["requires"]) or "—",
                 g.amounts(r["cost"]),
+                ", ".join(f"{k}: {v}" for k, v in r.get("conditions", {}).items()) or "—",
                 ", ".join(f"{k}: {v}" for k, v in r["effect"].items()),
             ]
         )
-    text += "## 研究\n\n" + table(["研究", "Lv", "深さ", "前提", "値段", "効果"], rows) + "\n\n"
+    text += "## 研究\n\n" + table(["研究", "Lv", "深さ", "前提", "値段", "条件", "効果"], rows) + "\n\n"
     rows = [[b["piece"], g.amounts(b["cost"])] for b in g.data["build_costs"]]
     text += "## 設置コスト\n\n" + table(["ピース", "値段"], rows) + "\n"
     (out / "progression.md").write_text(text, encoding="utf-8")

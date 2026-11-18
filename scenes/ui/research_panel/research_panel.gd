@@ -27,9 +27,10 @@ const STATUS_COLOR := Color(1.0, 0.82, 0.45)
 const STATE_ORDER = {
 	Research.State.AVAILABLE: 0,
 	Research.State.UNAFFORDABLE: 1,
-	Research.State.LOCKED_PREREQUISITE: 2,
-	Research.State.LOCKED_LEVEL: 3,
-	Research.State.DONE: 4,
+	Research.State.LOCKED_CONDITION: 2,
+	Research.State.LOCKED_PREREQUISITE: 3,
+	Research.State.LOCKED_LEVEL: 4,
+	Research.State.DONE: 5,
 }
 
 var close_button: Button
@@ -50,6 +51,7 @@ func _ready() -> void:
 	_build()
 	HubGoals.research_changed.connect(refresh)
 	HubGoals.stock_changed.connect(refresh)
+	HubGoals.exploration_changed.connect(refresh)
 	HubGoals.level_up.connect(func(_level, _reward): refresh())
 	refresh()
 

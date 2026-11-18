@@ -206,3 +206,78 @@ class TestSkills:
 		var id = _skill_research_ids()[0]
 		_research_with_requirements(id)
 		assert_eq(goals.unlocked_skill_ids(), [Research.get_def(id)["effect"][Research.SKILL]])
+
+
+class TestExplorationConditions:
+	## 研究の条件に探索を入れる。{"chunks": n} は所有している chunk の数、
+	## {"biome": id} はそのバイオームの chunk を1つ以上持っていること。
+	extends "res://tests/unit/utils/test_research.gd"
+
+	func _with_condition(condition: Dictionary) -> String:
+		for id in Research.all_ids():
+			if Research.get_def(id).get("conditions", {}).has(condition.keys()[0]):
+				return id
+		return ""
+
+	func _ready_except_condition(id: String) -> void:
+		var def = Research.get_def(id)
+		for required in def["requires"]:
+			goals.researched[required] = true
+		goals.level = maxi(goals.level, def["level"])
+		_give(def["cost"])
+
+	func test_chunkの数とバイオームを条件にした研究がある():
+		assert_ne(_with_condition({"chunks": 0}), "")
+		assert_ne(_with_condition({"biome": ""}), "")
+
+	func test_条件のバイオームはすべて存在する():
+		for id in Research.all_ids():
+			var biome_id = Research.get_def(id).get("conditions", {}).get("biome", "")
+			if biome_id != "":
+				assert_not_null(Biome.get_biome(biome_id), "%s の条件 %s" % [id, biome_id])
+
+	func test_chunkが足りない研究は条件不足で研究できない():
+		var id = _with_condition({"chunks": 0})
+		_ready_except_condition(id)
+		goals.set_owned_chunks({Biome.PLAINS: 1})
+		assert_eq(goals.research_state(id), Research.State.LOCKED_CONDITION)
+		assert_false(goals.research(id))
+
+	func test_chunkが足りると研究できる():
+		var id = _with_condition({"chunks": 0})
+		_ready_except_condition(id)
+		goals.set_owned_chunks({Biome.PLAINS: Research.get_def(id)["conditions"]["chunks"]})
+		assert_eq(goals.research_state(id), Research.State.AVAILABLE)
+
+	func test_そのバイオームのchunkを持つと研究できる():
+		var id = _with_condition({"biome": ""})
+		var biome_id = Research.get_def(id)["conditions"]["biome"]
+		_ready_except_condition(id)
+		assert_eq(goals.research_state(id), Research.State.LOCKED_CONDITION)
+		goals.set_owned_chunks({biome_id: 1})
+		assert_eq(goals.research_state(id), Research.State.AVAILABLE)
+
+	func test_条件不足の理由を手持ちの数つきで文章にする():
+		var id = _with_condition({"chunks": 0})
+		var needed = Research.get_def(id)["conditions"]["chunks"]
+		_ready_except_condition(id)
+		goals.set_owned_chunks({Biome.PLAINS: 1})
+		assert_eq(goals.research_state_text(id), "chunk を %d 個持つと研究できる（1/%d）" % [needed, needed])
+		var biome_id = Research.get_def(_with_condition({"biome": ""}))["conditions"]["biome"]
+		var biome_name = Biome.get_biome(biome_id).display_name
+		assert_eq(
+			goals.research_state_text(_with_condition({"biome": ""})).ends_with(
+				"%s の chunk を持つと研究できる" % biome_name
+			),
+			true
+		)
+
+	func test_所有しているchunkが変わると通知される():
+		watch_signals(goals)
+		goals.set_owned_chunks({Biome.PLAINS: 2})
+		assert_signal_emitted(goals, "exploration_changed")
+
+	func test_リセットすると所有しているchunkの記録も消える():
+		goals.set_owned_chunks({Biome.PLAINS: 2})
+		goals.reset()
+		assert_eq(goals.owned_chunk_count(), 0)
