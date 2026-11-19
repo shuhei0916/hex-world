@@ -3,6 +3,7 @@ extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
+const SMELTER_T1_SCENE = preload("res://scenes/components/piece/smelter_t1.tscn")
 const Chunk = preload("res://scenes/components/chunk/chunk.gd")
 
 
@@ -293,6 +294,23 @@ class TestConveyorConnection:
 		conv_b.get_node("ConveyorLogic").tick(0.5)  # B が chest へ搬出し空になる
 		conv_a.get_node("ConveyorLogic").tick(0.5)  # A から B へ渡れるはず
 		assert_eq(conv_b.get_item_count("iron_plate"), 1)
+
+	# smelter_t1 を (-1,0) に置く: (-2,0),(-1,0),(-1,1) を占め、排出口は (-1,0) から East (0,0)
+	func _place_smelter_t1() -> Piece:
+		gm.place_piece(SMELTER_T1_SCENE, Vector2i(-1, 0))
+		return gm.get_piece_at_hex(Vector2i(-1, 0))
+
+	func test_施設の排出口のないマスからは隣のコンベアへ接続されない():
+		var smelter = _place_smelter_t1()
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 1), 0)  # (-1,1) の東隣、East 向き
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 1))
+		assert_false(conveyor in smelter.get_connected_pieces())
+
+	func test_排出口から斜めに出るコンベアの入力は排出口の側だけ():
+		_place_smelter_t1()
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 5)  # NE 向き（(-1,1) から見て直進の向き）
+		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
+		assert_eq(conveyor.get_node("ConveyorVisuals").get_input_directions(), [3])
 
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン

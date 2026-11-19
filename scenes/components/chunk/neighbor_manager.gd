@@ -98,7 +98,10 @@ func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: in
 		if absolute_port_hex == source_hex and port.direction == direction:
 			return true
 
-	# コンベア同士の自然な分岐: 隣のコンベアの出力方向が A→C の向きと一致するとき接続
+	# コンベア同士の自然な分岐: 隣のコンベアの出力方向が A→C の向きと一致するとき接続。
+	# 施設は排出口（上のポート）からしか出さないので、送り手がコンベアのときだけ
+	if not _is_conveyor(source):
+		return false
 	var neighbor = _get_neighbor_piece(source_hex, direction)
 	if _is_downstream_conveyor(neighbor, direction):
 		return true
@@ -110,12 +113,16 @@ func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: in
 # - 直進: C の出力方向が source→C の向きと一致する
 # - 曲がり: C の入力側（input_direction）が source を向いている
 func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
-	if neighbor == null or neighbor.get_node_or_null("ConveyorVisuals") == null:
+	if not _is_conveyor(neighbor):
 		return false
 	if neighbor.input_direction == (direction + 3) % 6:
 		return true
 	var ports = neighbor.get_output_ports()
 	return not ports.is_empty() and ports[0]["direction"] == direction
+
+
+func _is_conveyor(piece: Piece) -> bool:
+	return piece != null and piece.get_node_or_null("ConveyorVisuals") != null
 
 
 func _get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
