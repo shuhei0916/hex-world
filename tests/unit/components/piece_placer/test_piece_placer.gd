@@ -359,6 +359,26 @@ class TestOptimalConveyorDirection:
 		var first = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(first.rotation_state, 0, "パス方向East(0)で設置されるべき")
 
+	func test_施設の排出口からドラッグを始めると先頭のベルトは排出口の側から受け取る():
+		# miner_t1 を (0,-1) に置く: (0,-1),(0,0) を占め、排出口は (0,0) から SW の (-1,1) へ
+		chunk.place_piece(MINER_SCENE, Vector2i(0, -1))
+		piece_placer.start_drag()
+		for hex in [Vector2i(0, 0), Vector2i(-1, 1), Vector2i(0, 1)]:
+			piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Vector2i(-1, 1))
+		assert_eq(first.input_direction, 1, "排出口のある NE(1) から受け取るべき")
+
+	func test_施設の排出口でないマスからドラッグを始めても先頭のベルトの入力は決めない():
+		# (0,-1) は Miner のマスだが排出口ではない。(-1,0) は排出口の先でもない
+		chunk.place_piece(MINER_SCENE, Vector2i(0, -1))
+		piece_placer.start_drag()
+		for hex in [Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-2, 0)]:
+			piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Vector2i(-1, 0))
+		assert_eq(first.input_direction, -1)
+
 	func test_ドラッグパス中間はパス前後の方向が優先される():
 		# (0,0)→(1,0)→(2,0): 全てEast向きになる
 		piece_placer.start_drag()

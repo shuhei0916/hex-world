@@ -153,6 +153,21 @@ class TestNeighbors:
 		gm.remove_piece_at(Vector2i(1, 0))
 		assert_eq(source.get_connected_pieces().size(), 0, "削除後は接続が切れているべき")
 
+	# C(1,0) は北東から受けて東へ曲がるベルト。その真後ろ(0,0)を南西へ流れるコンベア A がある
+	func _place_curve_with_line_behind() -> Array:
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0, 1)  # C: East、入力は NE
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 2)  # A: SW
+		return [gm.get_piece_at_hex(Vector2i(0, 0)), gm.get_piece_at_hex(Vector2i(1, 0))]
+
+	func test_曲がったベルトの真後ろを通るコンベアはそのベルトへ分岐しない():
+		var pieces = _place_curve_with_line_behind()
+		assert_false(pieces[1] in pieces[0].get_connected_pieces())
+
+	func test_曲がったベルトは真後ろを通るコンベアを入力として描かない():
+		var pieces = _place_curve_with_line_behind()
+		var inputs = pieces[1].get_node("ConveyorVisuals").get_input_directions()
+		assert_false(3 in inputs, "真後ろ(West)は入力ではない: %s" % [inputs])
+
 	func test_自然な分岐後コンベアAのConveyorVisualsは2本のパスを持つ():
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))  # A: East
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))  # B: East

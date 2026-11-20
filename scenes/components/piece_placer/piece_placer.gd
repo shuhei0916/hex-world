@@ -44,6 +44,8 @@ var _selected_piece_type: int = -1
 var _selected_port_direction: int = -1
 var _selected_port_hex: Vector2i = Vector2i.ZERO
 var _conveyor_drag_path: Array[Vector2i] = []
+# コンベアのドラッグで、パスの先頭の直前にいたマス。無ければ null
+var _drag_origin_hex = null
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
@@ -59,6 +61,7 @@ func _ready() -> void:
 func start_drag():
 	is_dragging = true
 	_last_drag_hex = null
+	_drag_origin_hex = null
 	_conveyor_drag_path.clear()
 
 
@@ -301,6 +304,9 @@ func _add_to_conveyor_path(hex: Vector2i) -> bool:
 		return false
 	if not _is_within_reach([hex]):
 		return false
+	if _conveyor_drag_path.is_empty():
+		# パスに入る直前にいたマス（施設の排出口からドラッグを始めたときの、その排出口）
+		_drag_origin_hex = _last_drag_hex
 	_conveyor_drag_path.append(hex)
 	conveyor_path_extended.emit()
 	return true
@@ -353,14 +359,33 @@ func _place_conveyor_chain(end_target = null):
 		var rotation = (_selected_port_direction - direction + 6) % 6
 		# 2マス目以降はパス上の1つ前から受け取る（先頭で曲がる分岐も入力側で接続を保つため）
 		# 始点の既存コンベアは元の入力方向を引き継ぐ（分岐元から引いた分岐でも上流との接続を保つため）
+		# 施設の排出口から引き始めた先頭は、その排出口の側から受け取る（真後ろのラインから分岐しないため）
 		var input_direction := -1
 		if i > 0:
 			input_direction = Hex.get_direction_to(hex, _conveyor_drag_path[i - 1])
 		elif can_replace:
 			input_direction = chunk.get_piece_at_hex(hex).input_direction
+		else:
+			input_direction = _input_from_drag_origin(hex)
 		if can_replace:
 			chunk.remove_piece_at(hex)
 		chunk.place_piece(selected_scene, hex, rotation, input_direction)
+
+
+# ドラッグを施設の排出口のマスから始めたとき、先頭のベルト first_hex はその排出口の側から受け取る。
+# そうでなければ -1（未指定）
+func _input_from_drag_origin(first_hex: Vector2i) -> int:
+	if _drag_origin_hex == null:
+		return -1
+	var origin = chunk.get_piece_at_hex(_drag_origin_hex)
+	if origin == null:
+		return -1
+	var base = chunk.get_base_hex(origin)
+	for port in origin.get_output_ports():
+		var port_hex = base + port.hex
+		if port_hex == _drag_origin_hex and Hex.neighbor(port_hex, port.direction) == first_hex:
+			return Hex.get_direction_to(first_hex, port_hex)
+	return -1
 
 
 func _compute_optimal_conveyor_direction(hex: Vector2i, fallback_direction: int) -> int:

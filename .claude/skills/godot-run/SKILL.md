@@ -85,6 +85,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `conveyor_spacing.gd`: 分岐を含むラインを詰まらせ、レーンごとのアイテム間隔（ヘックス間距離=1.0）を出力する
 - `conveyor_merge.gd`: ドラッグで本線の途中へ合流させ、合流先のベルトの入力方向（主入力＋合流）と接続を出力する
 - `conveyor_from_smelter.gd`: Smelter の排出口からドラッグで斜めに曲がるコンベアを引き、ベルトの入力方向と、排出口のないマスの隣のコンベアに Smelter がつながらないことを出力する
+- `conveyor_from_miner.gd`: 別のラインが真後ろを通る場所で Miner の排出口からコンベアを引き、先頭のベルトの入力方向と、通りすがりのラインが分岐してこないことを出力する
 - `planet_overview.gd`: planet のバイオーム分布を文字で描き、ワールドマップのホバー表示と未生成 chunk への入場（遅延生成・鉱床）を出力する
 - `limestone_kiln.gd`: 窯のスロットが Lv7 の報酬で開くこと、石灰岩の台地の chunk で石灰石が掘れること、窯で生石灰・混合機でコンクリートが実際の tick で作られることを出力する（約9秒待つ）
 - `biome_production.gd`: 山岳・森林 chunk の鉱床に Miner を置いて新資源の採掘を確かめ、銅インゴット・鋼材が実際の tick で加工されるかを出力する（約9秒待つ）

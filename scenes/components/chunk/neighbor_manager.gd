@@ -109,14 +109,14 @@ func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: in
 	return false
 
 
-# 隣のコンベア C が source から受け取る配置かどうか。
-# - 直進: C の出力方向が source→C の向きと一致する
-# - 曲がり: C の入力側（input_direction）が source を向いている
+# 隣のコンベア C が source から受け取る配置かどうか。ベルトは自分の入力側からしか受け取らない。
+# - 入力側が決まっている: C の入力側（input_direction）が source を向いている
+# - 入力側が未指定（直進）: C の出力方向が source→C の向きと一致する（真後ろが入力側）
 func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
 	if not _is_conveyor(neighbor):
 		return false
-	if neighbor.input_direction == (direction + 3) % 6:
-		return true
+	if neighbor.input_direction >= 0:
+		return neighbor.input_direction == (direction + 3) % 6
 	var ports = neighbor.get_output_ports()
 	return not ports.is_empty() and ports[0]["direction"] == direction
 
