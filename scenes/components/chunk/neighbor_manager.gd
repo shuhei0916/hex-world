@@ -92,6 +92,9 @@ func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: in
 	var base_hex = _registry.get_base_hex(source)
 	if base_hex == null:
 		return false
+	# ベルトは出口の側からは受け取らない（向かい合わせのベルトはアイテムを押し付け合わず止まる）
+	if _outputs_toward(_get_neighbor_piece(source_hex, direction), (direction + 3) % 6):
+		return false
 
 	for port in source.get_output_ports():
 		var absolute_port_hex = base_hex + port.hex
@@ -118,6 +121,14 @@ func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
 	if neighbor.input_direction >= 0:
 		return neighbor.input_direction == (direction + 3) % 6
 	var ports = neighbor.get_output_ports()
+	return not ports.is_empty() and ports[0]["direction"] == direction
+
+
+# piece がコンベアで、出口が direction を向いているか
+func _outputs_toward(piece: Piece, direction: int) -> bool:
+	if not _is_conveyor(piece):
+		return false
+	var ports = piece.get_output_ports()
 	return not ports.is_empty() and ports[0]["direction"] == direction
 
 

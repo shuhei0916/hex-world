@@ -312,6 +312,31 @@ class TestConveyorConnection:
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(conveyor.get_node("ConveyorVisuals").get_input_directions(), [3])
 
+	# A(0,0)→East と B(1,0)→West が向かい合う
+	func _place_facing_pair() -> Array:
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 3)
+		return [gm.get_piece_at_hex(Vector2i(0, 0)), gm.get_piece_at_hex(Vector2i(1, 0))]
+
+	func test_向かい合わせのコンベアは互いにつながらない():
+		var pair = _place_facing_pair()
+		assert_eq(pair[0].get_connected_pieces(), [])
+		assert_eq(pair[1].get_connected_pieces(), [])
+
+	func test_向かい合わせのコンベアではアイテムは端で止まり相手へ渡らない():
+		var pair = _place_facing_pair()
+		pair[0].add_item("iron_plate", 1)
+		var logic = pair[0].get_node("ConveyorLogic")
+		logic.tick(TransferBuffer.TRANSFER_TIME)
+		assert_eq(pair[0].get_item_count("iron_plate"), 1, "A の端で止まるべき")
+		assert_eq(pair[1].get_item_count("iron_plate"), 0, "B へ渡ってはいけない")
+		assert_eq(logic.get_progress_ratio(), 1.0)
+
+	func test_向かい合わせのコンベアは相手を入力として描かない():
+		var pair = _place_facing_pair()
+		assert_eq(pair[0].get_node("ConveyorVisuals").get_input_directions(), [])
+		assert_eq(pair[1].get_node("ConveyorVisuals").get_input_directions(), [])
+
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン
 		# (1,0)のコンベアは West(3) 側から入力を受け取るべき
