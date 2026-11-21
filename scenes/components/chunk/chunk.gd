@@ -101,6 +101,22 @@ func place_piece(
 	piece_placed.emit(piece)
 
 
+# hex のピースへ流し込んでくる入力元の方向（0-5）
+func get_feeding_directions(hex: Vector2i) -> Array:
+	var piece = _registry.get_piece_at_hex(hex)
+	return [] if piece == null else _neighbor_manager.feeding_directions(piece)
+
+
+# 置いてあるコンベアの向き（rotation）と入力側を、載っているアイテムを残したまま変える
+func reorient_conveyor(hex: Vector2i, rotation: int, input_direction: int) -> void:
+	var piece = _registry.get_piece_at_hex(hex)
+	if piece == null:
+		return
+	piece.input_direction = input_direction
+	piece.set_rotation_state(rotation)
+	_neighbor_manager.update_connections_around(piece)
+
+
 # 共有範囲に対応する倉庫。World につながっていない chunk では、すべて自分の倉庫になる。
 func get_storage_for(scope: String) -> SharedStorage:
 	if scope == SharedStorage.SCOPE_CHUNK or not storage_resolver.is_valid():

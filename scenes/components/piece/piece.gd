@@ -166,7 +166,11 @@ func get_hex_shape() -> Array[Vector2i]:
 
 
 func rotate_cw():
-	rotation_state = (rotation_state + 1) % 6
+	set_rotation_state((rotation_state + 1) % 6)
+
+
+func set_rotation_state(rotation: int) -> void:
+	rotation_state = rotation
 	_refresh_output_arrow()
 	_create_hex_tiles()
 	shape_changed.emit()

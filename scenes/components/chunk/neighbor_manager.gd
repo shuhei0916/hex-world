@@ -68,13 +68,20 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 	var visuals = piece.get_node_or_null("ConveyorVisuals")
 	if visuals == null:
 		return
+	# 合流では入力元が複数になる。ドラッグで決まった入力方向がつながっていればそれを主入力にする。
+	var directions := feeding_directions(piece)
+	if piece.input_direction in directions:
+		directions.erase(piece.input_direction)
+		directions.push_front(piece.input_direction)
+	visuals.set_input_directions(directions)
+
+
+# 1マスのピースへ流し込んでくる入力元の方向（0-5）。出力の配線（_is_physically_connected）と同じ判定
+func feeding_directions(piece: Piece) -> Array:
+	var directions: Array = []
 	var base_hex = _registry.get_base_hex(piece)
 	if base_hex == null:
-		visuals.set_input_direction(-1)
-		return
-	# 出力の配線（_is_physically_connected）と同じ判定で、流し込んでくる入力元をすべて探す。
-	# 合流では複数になる。ドラッグで決まった入力方向がつながっていればそれを主入力にする。
-	var directions: Array = []
+		return directions
 	for direction in range(6):
 		var input_hex = Hex.neighbor(base_hex, direction)
 		var neighbor = _registry.get_piece_at_hex(input_hex)
@@ -82,10 +89,7 @@ func _update_conveyor_input_direction(piece: Piece) -> void:
 			continue
 		if _is_physically_connected(neighbor, input_hex, (direction + 3) % 6):
 			directions.append(direction)
-	if piece.input_direction in directions:
-		directions.erase(piece.input_direction)
-		directions.push_front(piece.input_direction)
-	visuals.set_input_directions(directions)
+	return directions
 
 
 func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: int) -> bool:

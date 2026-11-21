@@ -233,11 +233,14 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 		return false
 	if HubGoals.pay(cost):
 		var rotation := current_rotation
+		var input_direction := -1
 		if _is_conveyor:
 			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6
-			var optimal_dir := _compute_optimal_conveyor_direction(target_hex, fallback_dir)
-			rotation = (_selected_port_direction - optimal_dir + 6) % 6
-		chunk.place_piece(selected_scene, target_hex, rotation)
+			var orientation := _compute_conveyor_orientation(target_hex, fallback_dir)
+			rotation = (_selected_port_direction - orientation[0] + 6) % 6
+			input_direction = orientation[1]
+		chunk.place_piece(selected_scene, target_hex, rotation, input_direction)
+		_reorient_belts_around(_shape_at(target_hex))
 		return true
 	return false
 
@@ -292,8 +295,13 @@ func _remove_piece_at(hex: Vector2i) -> void:
 	if piece == null:
 		return
 	var cost = BuildCost.of_piece(piece)
+	var base = chunk.get_base_hex(piece)
+	var hexes: Array[Vector2i] = []
+	for offset in piece.get_hex_shape():
+		hexes.append(base + offset)
 	if chunk.remove_piece_at(hex):
 		HubGoals.refund(cost)
+		_reorient_belts_around(hexes)
 
 
 func _add_to_conveyor_path(hex: Vector2i) -> bool:
@@ -370,6 +378,7 @@ func _place_conveyor_chain(end_target = null):
 		if can_replace:
 			chunk.remove_piece_at(hex)
 		chunk.place_piece(selected_scene, hex, rotation, input_direction)
+	_reorient_belts_around(_conveyor_drag_path)
 
 
 # ドラッグを施設の排出口のマスから始めたとき、先頭のベルト first_hex はその排出口の側から受け取る。
@@ -389,22 +398,110 @@ func _input_from_drag_origin(first_hex: Vector2i) -> int:
 
 
 func _compute_optimal_conveyor_direction(hex: Vector2i, fallback_direction: int) -> int:
-	var feeding_direction := -1
+	return _compute_conveyor_orientation(hex, fallback_direction)[0]
+
+
+# ---- コンベアの向きの自動調整（shapez の computeOptimalDirectionAndRotationVariantAtTile 相当）----
+
+
+# hex にコンベアを1つ置くときの [出口の方向, 入力側（-1 は真後ろ）]。out は手持ちの向き。
+# - 真後ろから入れてくる相手がいれば直進
+# - 入れてくる相手が1つだけなら、出口はそのままで、その相手の側から受ける曲がり
+#   （相手が正面にいるときは曲がれないので、相手から遠ざかる直進に反転する）
+# - 入れてくる相手がいなければ、正面が空いていて横に受け取るベルトが1つだけあるとき、そちらへ曲がる
+func _compute_conveyor_orientation(hex: Vector2i, out: int) -> Array:
+	var back := (out + 3) % 6
+	var feeders := _port_feeders(hex)
+	if back in feeders or feeders.size() >= 2:
+		return [out, -1]
+	if feeders.size() == 1:
+		var feeder: int = feeders[0]
+		if feeder == out:
+			return [back, -1]
+		return [out, feeder]
+	var turn := _turn_toward_taker(hex, out, back)
+	if turn >= 0:
+		return [turn, back]
+	return [out, -1]
+
+
+# hex へ出力ポートを向けている隣のピースの方向（0-5）
+func _port_feeders(hex: Vector2i) -> Array:
+	var directions := []
 	for direction in range(6):
 		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
-		if neighbor == null:
+		if neighbor == null or neighbor == chunk.get_piece_at_hex(hex):
 			continue
 		var base = chunk.get_base_hex(neighbor)
 		for port in neighbor.get_output_ports():
-			var abs_port = base + port.hex
-			var target = Hex.neighbor(abs_port, port.direction)
-			if target == hex:
-				if feeding_direction != -1:
-					return fallback_direction  # 複数の入力が競合 → fallback
-				feeding_direction = direction
-	if feeding_direction == -1:
-		return fallback_direction
-	return (feeding_direction + 3) % 6
+			if Hex.neighbor(base + port.hex, port.direction) == hex:
+				directions.append(direction)
+				break
+	return directions
+
+
+# 正面（out）が空いていて、横（out・input 以外）に hex から受け取るベルトが1つだけあれば、その方向。
+# なければ -1。ベルトは入力側でだけ受け取るので、入力側が hex を向いているベルトだけを数える
+func _turn_toward_taker(hex: Vector2i, out: int, input: int) -> int:
+	if chunk.get_piece_at_hex(Hex.neighbor(hex, out)) != null:
+		return -1
+	var takers := []
+	for direction in range(6):
+		if direction == out or direction == input:
+			continue
+		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
+		if neighbor != null and neighbor.is_replaceable():
+			if _belt_input_side(neighbor) == (direction + 3) % 6:
+				takers.append(direction)
+	return takers[0] if takers.size() == 1 else -1
+
+
+# ベルトが受け取る側（入力側が未指定なら真後ろ）
+func _belt_input_side(belt: Piece) -> int:
+	if belt.input_direction >= 0:
+		return belt.input_direction
+	return (_belt_output(belt) + 3) % 6
+
+
+func _belt_output(belt: Piece) -> int:
+	return belt.get_output_ports()[0]["direction"]
+
+
+# プレイヤーが hexes に置いた／撤去したあと、その周りのベルトの向きを直す
+# （shapez の updateSurroundingBeltPlacement 相当）。セーブの読み込みなど、chunk に直接置くときは行わない
+func _reorient_belts_around(hexes: Array) -> void:
+	var visited := {}
+	for hex in hexes:
+		for direction in range(6):
+			var neighbor_hex = Hex.neighbor(hex, direction)
+			if neighbor_hex in hexes or visited.has(neighbor_hex):
+				continue
+			visited[neighbor_hex] = true
+			var belt = chunk.get_piece_at_hex(neighbor_hex)
+			if belt != null and belt.is_replaceable():
+				_reorient_belt(neighbor_hex, belt)
+
+
+# 置いてあるベルト1つの向き直し。いま受け取れているベルトの入力側は変えない。
+# - 入力側に相手がいなくなっていて、入れてくる相手が（正面以外に）1つだけあれば、その側から受ける
+# - 正面が空いていて、横に受け取るベルトが1つだけあれば、そちらへ曲がる
+func _reorient_belt(hex: Vector2i, belt: Piece) -> void:
+	var out := _belt_output(belt)
+	var input := _belt_input_side(belt)
+	var new_input: int = belt.input_direction
+	if not input in chunk.get_feeding_directions(hex):
+		var feeders = _port_feeders(hex).filter(func(d): return d != out)
+		if feeders.size() == 1:
+			input = feeders[0]
+			new_input = input
+	var new_out := out
+	var turn := _turn_toward_taker(hex, out, input)
+	if turn >= 0:
+		new_out = turn
+		new_input = input
+	if new_out == out and new_input == belt.input_direction:
+		return
+	chunk.reorient_conveyor(hex, (belt.port_direction - new_out + 6) % 6, new_input)
 
 
 func rotate_current_piece():
