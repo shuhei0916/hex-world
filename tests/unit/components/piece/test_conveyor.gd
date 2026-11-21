@@ -337,6 +337,13 @@ class TestConveyorConnection:
 		assert_eq(pair[0].get_node("ConveyorVisuals").get_input_directions(), [])
 		assert_eq(pair[1].get_node("ConveyorVisuals").get_input_directions(), [])
 
+	func test_入れてくる相手がいなくても記録された入力側から描く():
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 5, 3)  # NE 向き、入力は West
+		var belt = gm.get_piece_at_hex(Vector2i(0, 0))
+		var in_edge = belt.get_node("ConveyorVisuals")._path[0]
+		var expected = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[3]) * 0.5
+		assert_almost_eq(in_edge, expected, Vector2(0.1, 0.1))
+
 	func test_曲がり角コンベアの入力エッジが実際の入力方向を向く():
 		# (0,0)[East出力] → (1,0)[NW出力=rotation4] → (1,-1) のチェーン
 		# (1,0)のコンベアは West(3) 側から入力を受け取るべき
