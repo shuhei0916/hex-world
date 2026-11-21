@@ -504,6 +504,41 @@ func test_在庫不足で置けないとカーソル付近にメッセージが�
 	assert_eq(main.hud.cursor_message.text, "在庫不足: Iron Ore 0/5")
 
 
+func test_置けなかった理由は最後にマウスを動かした画面上の位置の近くに出る():
+	var chunk = main.world.get_active_chunk()
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
+	var motion := InputEventMouseMotion.new()
+	motion.position = (
+		main.get_viewport().get_canvas_transform() * chunk.hex_to_pixel(Vector2i(3, -1))
+	)
+	main._unhandled_input(motion)
+	main.piece_placer.place_current_piece()
+	assert_eq(main.hud.cursor_message.position, motion.position + HUD.CURSOR_MESSAGE_OFFSET)
+
+
+func test_置けなかったときはエラー音が鳴る():
+	var chunk = main.world.get_active_chunk()
+	main.hud.slot_buttons[2].button_pressed = true
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
+	main._hover_local(chunk.hex_to_pixel(Vector2i(3, -1)))
+	main.piece_placer.place_current_piece()
+	assert_true(main.sfx_player.get_node("PlacementDenied").playing)
+
+
+func test_キャラクターの立っているマスに機械を置くと_キャラクターを押し出して置く():
+	HubGoals.creative_mode = true
+	var chunk = main.world.get_active_chunk()
+	# ハブから離れた、機械の形がほかにかからないマスに立たせる
+	var player_hex := Vector2i(3, -1)
+	main.world.place_player(main.world.get_active_hex(), player_hex)
+	main._process(0.0)
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
+	assert_true(main.piece_placer.place_piece_at_hex(player_hex))
+	assert_not_null(chunk.get_piece_at_hex(player_hex))
+	assert_ne(main.world.player.hex, player_hex)
+	assert_true(PlayerCharacter.can_stand_at(chunk, main.world.player.position))
+
+
 # ---- 所有と戦闘 --------------------------------------------------------------
 
 

@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 # gdlint:disable=duplicated-load
 extends GutTest
 
@@ -610,6 +611,29 @@ class TestPlayer:
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
 		assert_true(_view().visible)
 		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(1, 0)))
+
+	func test_置くマスにキャラクターが立っていれば隣のマスへ押し出す():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_true(world.push_player_out_of(Vector2i(0, 0), [Vector2i(1, 0)]))
+		assert_eq(Hex.distance(world.player.hex, Vector2i(1, 0)), 1)
+		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
+		assert_eq(_view().position, chunk.hex_to_pixel(world.player.hex), "描く位置も動く")
+
+	func test_置くマスに重ならなければ動かさない():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		assert_true(world.push_player_out_of(Vector2i(0, 0), [Vector2i(-2, 0)]))
+		assert_eq(world.player.hex, Vector2i(1, 0))
+
+	func test_別のchunkに置くならキャラクターは動かさない():
+		world.place_player(Vector2i(1, 0), Vector2i(1, 0))
+		assert_true(world.push_player_out_of(Vector2i(0, 0), [Vector2i(1, 0)]))
+		assert_eq(world.player.hex, Vector2i(1, 0))
+
+	func test_押し出せる場所が無ければfalseで動かさない():
+		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
+		var all: Array[Vector2i] = world.get_chunk(Vector2i(0, 0)).get_all_hexes()
+		assert_false(world.push_player_out_of(Vector2i(0, 0), all))
+		assert_eq(world.player.hex, Vector2i(1, 0))
 
 	func test_隣のchunkに立っていればその位置に描く():
 		world.place_player(Vector2i(1, 0), Vector2i(0, 0))

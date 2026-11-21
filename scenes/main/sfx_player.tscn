@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://csosrk1kfdw2q" path="res://assets/sounds/sfx/place_belt.wav" id="3_place_belt"]
 [ext_resource type="AudioStream" uid="uid://nwlxx5x2lh3c" path="res://assets/sounds/sfx/destroy_building.wav" id="4_destroy"]
 [ext_resource type="AudioStream" uid="uid://be3yaoy73r7pf" path="res://assets/sounds/sfx/ui_click.wav" id="5_ui_click"]
+[ext_resource type="AudioStream" uid="uid://byb012gfr5ux5" path="res://assets/sounds/sfx/ui_error.wav" id="6_ui_error"]
 
 [node name="SfxPlayer" type="Node" unique_id=1570466865]
 script = ExtResource("1_script")
@@ -23,4 +24,8 @@ volume_db = -6.0
 
 [node name="UiClick" type="AudioStreamPlayer" parent="." unique_id=1783296922]
 stream = ExtResource("5_ui_click")
+volume_db = -6.0
+
+[node name="PlacementDenied" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_ui_error")
 volume_db = -6.0

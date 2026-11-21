@@ -6,6 +6,7 @@ const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 # ドラッグ操作のテストがコストの有無に左右されないよう、無料の t1 を使う
 const MINER_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
 const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
+const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
 
 
 class TestPiecePlacement:
@@ -52,7 +53,7 @@ class TestPiecePlacement:
 			)
 
 	func test_橋は内側ヘックスに配置できない():
-		piece_placer.select_piece(preload("res://scenes/components/piece/bridge.tscn"))
+		piece_placer.select_piece(BRIDGE_SCENE)
 		var placed = piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_false(placed, "辺ヘックス以外への橋の設置は拒否されるべき")
 
@@ -706,10 +707,144 @@ class TestBuildCost:
 		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_signal_not_emitted(piece_placer, "placement_denied")
 
-	func test_場所がふさがっていて置けないときは在庫不足とは通知されない():
+	func test_場所がふさがっていて置けないときは在庫不足ではなく重なっていると通知される():
 		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		watch_signals(piece_placer)
 		piece_placer.place_piece_at_hex(Vector2i(0, 0))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+
+class TestDeniedFeedback:
+	extends GutTest
+
+	## 置けなかったときは、理由を placement_denied で伝える（カーソルの近くの表示と効果音に使う）。
+	## クリックした1回だけ伝え、ドラッグでなぞったマスが置けなくても伝えない（なぞるたびに鳴ると煩い）。
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		# 半径は既定の Chunk.DEFAULT_RADIUS(8)
+		add_child_autofree(chunk)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		watch_signals(piece_placer)
+
+	func after_each():
+		await get_tree().process_frame
+
+	# Main と同じ順に、マウスを合わせて押す
+	func _press_at(hex: Vector2i) -> void:
+		piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.start_drag()
+		piece_placer.place_current_piece()
+
+	func test_chunkの外には置けないと通知される():
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(Chunk.DEFAULT_RADIUS + 4, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUTSIDE_TEXT]
+		)
+
+	func test_一部でも外にはみ出すときも外には置けないと通知される():
+		# Miner(t1) は base と、その南東のマスを占める
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, Chunk.DEFAULT_RADIUS)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUTSIDE_TEXT]
+		)
+
+	func test_橋を内側に置こうとすると辺にしか置けないと通知される():
+		piece_placer.select_piece(BRIDGE_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.BRIDGE_EDGE_TEXT]
+		)
+
+	func test_機械をクリックで置けなかったとき1回だけ通知される():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(0, 0))
+		# 同じマスの中で少し動かしても、もう一度は伝えない
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)) + Vector2(3, 2))
+		piece_placer.stop_drag()
+		assert_signal_emit_count(piece_placer, "placement_denied", 1)
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+	func test_ドラッグでなぞったマスが置けなくても通知されない():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(-2, 0))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		piece_placer.stop_drag()
+		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+	func test_クリックした場所が届かなければドラッグ中でも通知される():
+		piece_placer.reach_center = Vector2i(-6, 0)
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(2, 0))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_コンベアを施設の上でクリックして離すと重なっていると通知される():
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		assert_signal_not_emitted(
+			piece_placer, "placement_denied", "排出口から引き始めるかもしれないので、押した時点では伝えない"
+		)
+		piece_placer.stop_drag()
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+	func test_施設の上からコンベアを引き出したときは通知されない():
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(-1, 0)))
+		piece_placer.stop_drag()
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(-1, 0)))
+		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+	func test_コンベアを届かないマスでクリックして離すと届かないと通知される():
+		piece_placer.reach_center = Vector2i(-6, 0)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(3, 0))
+		piece_placer.stop_drag()
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_機械を置けないマスに合わせると_ゴーストもカーソルのプレビューも赤くなる():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.DENIED_TINT)
+		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.DENIED_TINT)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(-2, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+
+	func test_コンベアは施設の上に合わせても赤くしない():
+		# 施設の排出口から引き始める場所なので
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+
+	func test_既にあるコンベアの上でコンベアをクリックしても通知されない():
+		# 既存のコンベアは置き換えられる
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		piece_placer.stop_drag()
 		assert_signal_not_emitted(piece_placer, "placement_denied")
 
 
@@ -777,20 +912,56 @@ class TestReach:
 		assert_not_null(chunk.get_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))
 		assert_null(chunk.get_piece_at_hex(_far_hex()))
 
-	func test_キャラクターの立っているマスには機械を置けない():
-		piece_placer.select_piece(MINER_SCENE)
-		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, -1)), "南東のマスが足元")
-		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+	# ---- キャラクターの押し出し ----
+	# 上を歩けないピースを置くときは、置くマスを push_player に渡してキャラクターを押し出してもらう
 
-	func test_キャラクターの立っているマスにもコンベアは置ける():
+	func _fake_pusher(result: bool, calls: Array) -> Callable:
+		return func(hexes: Array) -> bool:
+			calls.append(hexes.duplicate())
+			return result
+
+	func test_機械を置くときは置くマスを渡してキャラクターを押し出してから置く():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(true, calls)
+		piece_placer.select_piece(MINER_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, -1)), "南東のマスが足元")
+		assert_eq(calls, [[Vector2i(0, -1), Vector2i(0, 0)]])
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+
+	func test_押し出せる場所が無ければ置かず_理由を伝える():
+		piece_placer.push_player = _fake_pusher(false, [])
+		piece_placer.select_piece(MINER_SCENE)
+		watch_signals(piece_placer)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, -1)))
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.NO_ROOM_TO_PUSH_TEXT]
+		)
+
+	func test_上を歩けるコンベアはキャラクターを押し出さずに置く():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(false, calls)
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+		assert_eq(calls, [])
+
+	func test_置けない場所ならキャラクターを押し出さない():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(true, calls)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		piece_placer.place_piece_at_hex(Vector2i(0, -1))
+		assert_eq(calls, [])
+
+	func test_押し出し役がいなければそのまま置く():
+		piece_placer.select_piece(MINER_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, -1)))
 
 	func test_届かないマスに合わせると_ゴーストもカーソルのプレビューも赤くなる():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
-		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.OUT_OF_REACH_TINT)
-		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.OUT_OF_REACH_TINT)
+		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.DENIED_TINT)
+		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.DENIED_TINT)
 		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
 		assert_eq(piece_placer.cursor_preview.modulate, Color.WHITE)

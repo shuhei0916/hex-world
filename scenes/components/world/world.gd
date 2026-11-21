@@ -83,6 +83,19 @@ func move_player_by(motion: Vector2) -> bool:
 	return false
 
 
+# chunk_hex の chunk の hexes に上を歩けないピースを置く前に、そこに重なるキャラクターを
+# いちばん近い立てる位置へ押し出す。押し出す必要が無いか、押し出せたら true。
+# 押し出せる場所が無ければ false（キャラクターは動かさない）
+func push_player_out_of(chunk_hex: Vector2i, hexes: Array) -> bool:
+	if player == null or player.chunk_hex != chunk_hex:
+		return true
+	var pushed = PlayerCharacter.push_out_position(get_chunk(chunk_hex), player.position, hexes)
+	if pushed == null:
+		return false
+	move_player_to(pushed)
+	return true
+
+
 # キャラクターが今のマスから渡れる先 {chunk_hex, hex}。辺のマスに立っていれば、その辺の向こうの
 # chunk の向かい合うマス。内側のマスや角（2つの辺にまたがる）、惑星の外へは渡れないので空
 func get_player_crossing() -> Dictionary:

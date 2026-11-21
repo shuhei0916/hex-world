@@ -33,6 +33,8 @@ var _battle_chunk_hex = null
 var _pre_battle := {}
 # いまの戦闘。勝ったとき、主人公が戦い終えたマスにキャラクターを立たせるのに使う
 var _battle_turn: SkillTurn = null
+# 最後に受け取ったマウス入力の画面上の位置。置けなかった理由をカーソルの近くに出すのに使う
+var _mouse_screen_position := Vector2.ZERO
 # true の間、カメラはキャラクターへ少しずつ近づく（歩いたときや戦闘のあと）。追いついたら止まる
 var _camera_following := false
 # カメラの倍率も少しずつ近づけるときの目標。null なら倍率は変えない
@@ -67,6 +69,8 @@ func _ready():
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
 	hud.modal_changed.connect(_on_hud_modal_changed)
 	piece_placer.placement_denied.connect(_on_placement_denied)
+	piece_placer.placement_denied.connect(sfx_player.on_placement_denied)
+	piece_placer.push_player = _push_player_out_of
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
 	battle_overlay.closed.connect(_on_battle_closed)
@@ -118,9 +122,14 @@ func _on_pause_menu_new_game_requested() -> void:
 	get_tree().reload_current_scene()
 
 
-# 在庫不足で設置できなかった理由を、マウスカーソルの近くに出す
+# 今いる chunk の hexes に上を歩けないピースを置くとき、そこに立つキャラクターを押し出す
+func _push_player_out_of(hexes: Array) -> bool:
+	return world.push_player_out_of(world.get_active_hex(), hexes)
+
+
+# 設置できなかった理由（重なっている・届かない・在庫不足など）を、マウスカーソルの近くに出す
 func _on_placement_denied(message: String) -> void:
-	hud.show_cursor_message(message, get_viewport().get_mouse_position())
+	hud.show_cursor_message(message, _mouse_screen_position)
 
 
 # 研究画面などを開いている間は、ホイールを一覧のスクロールに使うのでマップは拡縮しない
@@ -291,6 +300,8 @@ func _unhandled_input(event):
 	# 戦闘中の操作は戦闘画面が受け取る
 	if battle_overlay.is_open():
 		return
+	if event is InputEventMouse:
+		_mouse_screen_position = event.position
 	_handle_key_input(event)
 	_handle_mouse_motion(event)
 	_handle_mouse_click(event)

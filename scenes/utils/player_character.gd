@@ -34,23 +34,39 @@ static func _layout() -> Layout:
 
 
 ## chunk の hex のマスに入れるか。chunk の中で、何も無いか、上を歩けるコンベアや橋のマスだけ。
-## 鉱床は通れる。
-static func can_enter(chunk: Chunk, target: Vector2i) -> bool:
-	if not chunk.is_inside_grid(target):
+## 鉱床は通れる。blocked のマス（これからピースを置くマスなど）は通れないものとして扱う。
+static func can_enter(chunk: Chunk, target: Vector2i, blocked: Array = []) -> bool:
+	if not chunk.is_inside_grid(target) or target in blocked:
 		return false
 	var piece := chunk.get_piece_at_hex(target)
 	return piece == null or piece.piece_type in WALKABLE_PIECES
 
 
 ## chunk の中の位置 pos に立てるか。体の中心と縁が、すべて入れるマスの上にあるときだけ。
-static func can_stand_at(chunk: Chunk, pos: Vector2) -> bool:
-	if not can_enter(chunk, Layout.pixel_to_hex_rounded(chunk.layout, pos)):
+static func can_stand_at(chunk: Chunk, pos: Vector2, blocked: Array = []) -> bool:
+	if not can_enter(chunk, Layout.pixel_to_hex_rounded(chunk.layout, pos), blocked):
 		return false
 	for i in range(BODY_SAMPLES):
 		var edge := pos + Vector2.from_angle(TAU * i / BODY_SAMPLES) * BODY_RADIUS
-		if not can_enter(chunk, Layout.pixel_to_hex_rounded(chunk.layout, edge)):
+		if not can_enter(chunk, Layout.pixel_to_hex_rounded(chunk.layout, edge), blocked):
 			return false
 	return true
+
+
+## blocked のマスに上を歩けないピースを置くとき、位置 pos のキャラクターが立つ位置。
+## 重ならなければ pos のまま。重なるなら、立てるマスのうち pos にいちばん近いマスの中心へ押し出す。
+## 立てる場所がどこにも無ければ null
+static func push_out_position(chunk: Chunk, pos: Vector2, blocked: Array):
+	if can_stand_at(chunk, pos, blocked):
+		return pos
+	var best = null
+	for hex in chunk.get_all_hexes():
+		var center := chunk.hex_to_pixel(hex)
+		if not can_stand_at(chunk, center, blocked):
+			continue
+		if best == null or center.distance_squared_to(pos) < best.distance_squared_to(pos):
+			best = center
+	return best
 
 
 ## chunk で最初に立つマス。ハブの隣のうち、施設の置かれていない最初のマス。

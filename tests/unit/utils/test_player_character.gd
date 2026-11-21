@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 extends GutTest
 
 ## プレイヤーキャラクターは、どの chunk の、どのマスに立っているかを持つ。
@@ -110,3 +111,40 @@ func test_chunkの外にはみ出す位置には立てない():
 	var edge = Vector2i(chunk.grid_radius, 0)
 	var outside = _center(edge) + Vector2(PlayerCharacter.BODY_RADIUS * 2.0, 0)
 	assert_false(PlayerCharacter.can_stand_at(chunk, outside))
+
+
+# ---- ピースを置くときの押し出し ------------------------------------------------
+# 上を歩けないピースをキャラクターに重ねて置くときは、キャラクターをいちばん近い立てる位置へ押し出す。
+# blocked は、これからピースを置くマス（まだ置かれていないが通れないものとして扱う）。
+
+
+func test_置くマスに重ならなければ押し出さずその場にいる():
+	var pos := _center(Vector2i(2, 0))
+	assert_eq(PlayerCharacter.push_out_position(chunk, pos, [Vector2i(-2, 0)]), pos)
+
+
+func test_置くマスに立っていれば_そのマスを避けたいちばん近いマスの中心へ押し出す():
+	var pos := _center(Vector2i(2, 0)) + Vector2(4, 0)
+	var pushed = PlayerCharacter.push_out_position(chunk, pos, [Vector2i(2, 0)])
+	assert_not_null(pushed)
+	assert_true(PlayerCharacter.can_stand_at(chunk, pushed, [Vector2i(2, 0)]))
+	assert_eq(Hex.distance(Layout.pixel_to_hex_rounded(chunk.layout, pushed), Vector2i(2, 0)), 1)
+	assert_eq(Layout.pixel_to_hex_rounded(chunk.layout, pushed), Vector2i(3, 0), "少しずれていた東側へ")
+
+
+func test_体の縁だけが置くマスにかかっていても押し出す():
+	# 中心は (2,0) だが、西隣の (1,0) との境目に寄っている
+	var pos := _center(Vector2i(2, 0)).lerp(_center(Vector2i(1, 0)), 0.4)
+	var pushed = PlayerCharacter.push_out_position(chunk, pos, [Vector2i(1, 0)])
+	assert_ne(pushed, pos)
+	assert_true(PlayerCharacter.can_stand_at(chunk, pushed, [Vector2i(1, 0)]))
+
+
+func test_立てる場所がどこにも無ければnull():
+	var all: Array[Vector2i] = chunk.get_all_hexes()
+	assert_null(PlayerCharacter.push_out_position(chunk, _center(Vector2i(2, 0)), all))
+
+
+func test_blockedに入れたマスは通れないものとして扱う():
+	assert_false(PlayerCharacter.can_enter(chunk, Vector2i(2, 0), [Vector2i(2, 0)]))
+	assert_false(PlayerCharacter.can_stand_at(chunk, _center(Vector2i(2, 0)), [Vector2i(2, 0)]))

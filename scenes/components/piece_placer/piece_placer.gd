@@ -13,9 +13,12 @@ const _BELT_TEXTURE_SIZE = 192.0
 # キャラクターから何マス以内まで建築・撤去できるか
 const REACH := 6
 const OUT_OF_REACH_TEXT := "キャラクターから遠すぎて届かない"
-const UNDER_PLAYER_TEXT := "キャラクターの足元には置けない"
-# 届かない場所に合わせたゴーストの色
-const OUT_OF_REACH_TINT := Color(1.0, 0.25, 0.25)
+const NO_ROOM_TO_PUSH_TEXT := "キャラクターを押し出せる場所がない"
+const OCCUPIED_TEXT := "ほかの設置物と重なっている"
+const OUTSIDE_TEXT := "chunk の外には置けない"
+const BRIDGE_EDGE_TEXT := "橋は chunk の辺にしか置けない"
+# 届かない・置けない場所に合わせたゴーストの色
+const DENIED_TINT := Color(1.0, 0.25, 0.25)
 
 # 依存関係（Mainから注入される）
 var chunk: Chunk
@@ -28,6 +31,9 @@ var reach_center = null:
 		_refresh_reach_area()
 # 建築できる範囲の表示。ピースを選んでいる間だけ出す
 var reach_area := ReachArea.new()
+# 上を歩けないピースを置く前に、置くマス（Array[Vector2i]）に重なるキャラクターを押し出す処理。
+# 押し出す必要が無いか押し出せたら true を返す。未設定なら押し出さない（Main から注入される）
+var push_player := Callable()
 
 # 内部状態
 var current_piece_shape: Array[Vector2i] = []
@@ -46,6 +52,10 @@ var _selected_port_hex: Vector2i = Vector2i.ZERO
 var _conveyor_drag_path: Array[Vector2i] = []
 # コンベアのドラッグで、パスの先頭の直前にいたマス。無ければ null
 var _drag_origin_hex = null
+# true の間はクリックした1回の設置。置けなければ理由を伝える（ドラッグでなぞったマスでは伝えない）
+var _is_click := false
+# コンベアのドラッグを押し始めたマス。何も引けずに離したとき、そこに置けなかった理由を伝える
+var _conveyor_press_hex = null
 
 @onready var cursor_preview: Node2D = $CursorPreview
 @onready var snap_preview: Node2D = $SnapPreview
@@ -62,6 +72,7 @@ func start_drag():
 	is_dragging = true
 	_last_drag_hex = null
 	_drag_origin_hex = null
+	_conveyor_press_hex = null
 	_conveyor_drag_path.clear()
 
 
@@ -70,6 +81,10 @@ func stop_drag():
 	_last_drag_hex = null
 	if _is_conveyor and not _conveyor_drag_path.is_empty():
 		_place_conveyor_chain(current_hovered_hex)
+	elif _is_conveyor and _conveyor_press_hex != null:
+		# 施設の上で押してもそこから引き出すかもしれないので、何も引けずに離したときだけ伝える
+		_deny(_conveyor_denial_reason(_conveyor_press_hex))
+	_conveyor_press_hex = null
 	_conveyor_drag_path.clear()
 	# パスプレビューで ZERO に移動した snap_preview をホバー位置へ戻してから描き直す
 	# （戻さないとゴーストがチャンク中央に一瞬表示される）
@@ -190,8 +205,7 @@ func update_hover(local_mouse_pos: Vector2):
 	var snapped_pos = Layout.hex_to_pixel(chunk.layout, hex_coord)
 
 	cursor_preview.position = local_mouse_pos
-	var reachable = _is_within_reach(_shape_at(hex_coord))
-	snap_preview.modulate = Color.WHITE if reachable else OUT_OF_REACH_TINT
+	snap_preview.modulate = Color.WHITE if _looks_placeable(hex_coord) else DENIED_TINT
 	cursor_preview.modulate = snap_preview.modulate
 
 	if is_dragging and (_last_drag_hex == null or hex_coord != _last_drag_hex):
@@ -204,10 +218,29 @@ func update_hover(local_mouse_pos: Vector2):
 		snap_preview.position = snapped_pos
 
 
+# ゴーストを白く描くか。届かない場所は赤くする。施設は重なる・はみ出す場所も赤くするが、
+# コンベアは施設の排出口から引き始めることがあるので、施設の上でも赤くしない
+func _looks_placeable(base_hex: Vector2i) -> bool:
+	if not _is_within_reach(_shape_at(base_hex)):
+		return false
+	if _is_conveyor or selected_scene == null:
+		return true
+	return _spot_denial_reason(base_hex) == ""
+
+
+# クリックした1回の設置。置けなければ理由を伝える
 func place_current_piece() -> bool:
 	if current_hovered_hex == null:
 		return false
-	return _place_piece_at(current_hovered_hex)
+	_is_click = true
+	var placed := _place_piece_at(current_hovered_hex)
+	_is_click = false
+	if is_dragging:
+		# 押したマスの中でマウスを動かしても、もう一度は置こうとしない
+		if _is_conveyor and _conveyor_drag_path.is_empty():
+			_conveyor_press_hex = current_hovered_hex
+		_last_drag_hex = current_hovered_hex
+	return placed
 
 
 # テストや外部から座標指定で配置する場合用
@@ -220,16 +253,16 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 		return false
 	if _is_conveyor and is_dragging:
 		return _add_to_conveyor_path(target_hex)
-	# 置けない場所なら何も言わず、置ける場所なのに届かないときだけ理由を伝える
-	if (
-		not chunk.can_place(current_piece_shape, target_hex, _selected_piece_type)
-		or not _is_reachable_spot(_shape_at(target_hex))
-	):
-		return false
-	# 置ける場所だと分かってから支払う（置けないのに在庫だけ減るのを防ぐ）
+	var hexes := _shape_at(target_hex)
+	# 置ける場所だと分かってから、押し出し・支払いをする（置けないのに在庫だけ減るのを防ぐ）
 	var cost = BuildCost.of_scene(selected_scene)
-	if not HubGoals.can_afford(cost):
-		placement_denied.emit(BuildCost.shortage_text(cost))
+	var reason := _spot_denial_reason(target_hex)
+	if reason == "" and not HubGoals.can_afford(cost):
+		reason = BuildCost.shortage_text(cost)
+	if reason == "" and not _push_player_away(hexes):
+		reason = NO_ROOM_TO_PUSH_TEXT
+	if reason != "":
+		_deny(reason)
 		return false
 	if HubGoals.pay(cost):
 		var rotation := current_rotation
@@ -240,9 +273,44 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 			rotation = (_selected_port_direction - orientation[0] + 6) % 6
 			input_direction = orientation[1]
 		chunk.place_piece(selected_scene, target_hex, rotation, input_direction)
-		_reorient_belts_around(_shape_at(target_hex))
+		_reorient_belts_around(hexes)
 		return true
 	return false
+
+
+# 置けなかった理由を伝える。ドラッグでなぞったマスでは伝えない（なぞるたびに出ると煩い）
+func _deny(reason: String) -> void:
+	if reason != "" and (_is_click or not is_dragging):
+		placement_denied.emit(reason)
+
+
+# いま選んでいるピースを base_hex に置けない理由。置けるなら空
+func _spot_denial_reason(base_hex: Vector2i) -> String:
+	var hexes := _shape_at(base_hex)
+	for hex in hexes:
+		if not chunk.is_inside_grid(hex):
+			return OUTSIDE_TEXT
+	if not chunk.can_place(current_piece_shape, base_hex, _selected_piece_type):
+		if hexes.any(func(hex): return chunk.is_occupied(hex)):
+			return OCCUPIED_TEXT
+		return BRIDGE_EDGE_TEXT
+	if not _is_within_reach(hexes):
+		return OUT_OF_REACH_TEXT
+	return ""
+
+
+# コンベアを hex に置けない理由（既にあるコンベアは置き換えられるので置ける）。置けるなら空
+func _conveyor_denial_reason(hex: Vector2i) -> String:
+	if _is_replaceable_conveyor(hex):
+		return OUT_OF_REACH_TEXT if not _is_within_reach([hex]) else ""
+	return _spot_denial_reason(hex)
+
+
+# 上を歩けないピースを hexes に置く前に、重なるキャラクターを押し出す。置いてよければ true
+func _push_player_away(hexes: Array[Vector2i]) -> bool:
+	if not push_player.is_valid() or _selected_piece_type in PlayerCharacter.WALKABLE_PIECES:
+		return true
+	return push_player.call(hexes)
 
 
 # いま選んでいるピースを base_hex に置いたときに占めるマス
@@ -261,25 +329,6 @@ func _is_within_reach(hexes: Array[Vector2i]) -> bool:
 		if Hex.distance(hex, reach_center) > REACH:
 			return false
 	return true
-
-
-# キャラクターの届く範囲にあって、足元をふさがない置き場所か。だめなら（ドラッグ中でなければ）理由を伝える
-func _is_reachable_spot(hexes: Array[Vector2i]) -> bool:
-	var reason := ""
-	if not _is_within_reach(hexes):
-		reason = OUT_OF_REACH_TEXT
-	elif _covers_player(hexes):
-		reason = UNDER_PLAYER_TEXT
-	if reason != "" and not is_dragging:
-		placement_denied.emit(reason)
-	return reason == ""
-
-
-# 上を歩けないピースが、キャラクターの足元のマスにかかるか
-func _covers_player(hexes: Array[Vector2i]) -> bool:
-	if reach_center == null or _selected_piece_type in PlayerCharacter.WALKABLE_PIECES:
-		return false
-	return reach_center in hexes
 
 
 # いま選んでいるピースの設置コストを在庫から支払えるか
