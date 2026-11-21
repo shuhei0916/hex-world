@@ -539,6 +539,20 @@ func test_キャラクターの立っているマスに機械を置くと_キャ
 	assert_true(PlayerCharacter.can_stand_at(chunk, main.world.player.position))
 
 
+func test_キャラクターを押し出すとカメラがなめらかに追う():
+	HubGoals.creative_mode = true
+	var player_hex := Vector2i(3, -1)
+	main.world.place_player(main.world.get_active_hex(), player_hex)
+	main.camera.position = main.world.get_player_position()
+	main._process(0.0)
+	var before: Vector2 = main.camera.position
+	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
+	main.piece_placer.place_piece_at_hex(player_hex)
+	assert_eq(main.camera.position, before, "押し出した瞬間には飛ばない")
+	_settle_camera()
+	assert_true(main.camera.position.is_equal_approx(main.world.get_player_position()))
+
+
 # ---- 所有と戦闘 --------------------------------------------------------------
 
 

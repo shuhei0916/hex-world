@@ -1,6 +1,6 @@
 extends RefCounted
 ## 実際のマウス入力で、設置の手応えを確かめる:
-## - キャラクターの立っているマスに機械を置くと、キャラクターが隣へ押し出されて置ける
+## - キャラクターの立っているマスに機械を置くと、キャラクターが施設の端まで押し出されて置け、カメラが追う
 ## - 既に置いてあるマスをクリックすると、カーソルの近くに理由が出てエラー音が鳴る
 ## - 機械を置けないマスに合わせると、ゴーストが赤くなる
 
@@ -15,6 +15,9 @@ func run(scene: Node) -> void:
 	world.place_player(world.get_active_hex(), PLAYER_HEX)
 	await scene.get_tree().process_frame
 
+	var start_position := world.player.position
+	# ヘッドレスの画面は小さく、カメラをキャラクターに合わせるとクリック位置が HUD に重なるので動かさない
+	var camera_before: Vector2 = scene.camera.position
 	scene.hud.slot_buttons[2].button_pressed = true
 	scene.hud.on_slot_pressed(2)
 	print("選んだピース: %s" % placer.selected_scene.resource_path)
@@ -32,7 +35,24 @@ func run(scene: Node) -> void:
 			]
 		)
 	)
+	print(
+		(
+			"  押し出した距離 = %.1f px（隣のマスの中心までは %.1f px）"
+			% [
+				start_position.distance_to(world.player.position),
+				chunk.hex_to_pixel(Vector2i(0, 0)).distance_to(chunk.hex_to_pixel(Vector2i(1, 0))),
+			]
+		)
+	)
 	print("  メッセージ表示 = %s" % scene.hud.cursor_message.visible)
+	for i in range(30):
+		await scene.get_tree().process_frame
+	print(
+		(
+			"  カメラ: %s → 30フレーム後 %s（キャラクター %s）"
+			% [camera_before, scene.camera.position, world.get_player_position()]
+		)
+	)
 
 	await _click(scene, chunk, PLAYER_HEX)
 	print("[置いたマスをもう一度クリック]")

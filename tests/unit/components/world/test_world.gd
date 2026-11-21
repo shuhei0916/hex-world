@@ -612,12 +612,12 @@ class TestPlayer:
 		assert_true(_view().visible)
 		assert_eq(_view().position, chunk.hex_to_pixel(Vector2i(1, 0)))
 
-	func test_置くマスにキャラクターが立っていれば隣のマスへ押し出す():
+	func test_置くマスにキャラクターが立っていれば押し出す():
 		world.place_player(Vector2i(0, 0), Vector2i(1, 0))
 		assert_true(world.push_player_out_of(Vector2i(0, 0), [Vector2i(1, 0)]))
 		assert_eq(Hex.distance(world.player.hex, Vector2i(1, 0)), 1)
 		var chunk: Chunk = world.get_chunk(Vector2i(0, 0))
-		assert_eq(_view().position, chunk.hex_to_pixel(world.player.hex), "描く位置も動く")
+		assert_eq(_view().position, world.player.position, "描く位置も動く")
 
 	func test_置くマスに重ならなければ動かさない():
 		world.place_player(Vector2i(0, 0), Vector2i(1, 0))

@@ -123,8 +123,14 @@ func _on_pause_menu_new_game_requested() -> void:
 
 
 # 今いる chunk の hexes に上を歩けないピースを置くとき、そこに立つキャラクターを押し出す
+# 押し出したら、歩いたときと同じくカメラでなめらかに追う
 func _push_player_out_of(hexes: Array) -> bool:
-	return world.push_player_out_of(world.get_active_hex(), hexes)
+	var before = world.get_player_position()
+	if not world.push_player_out_of(world.get_active_hex(), hexes):
+		return false
+	if world.get_player_position() != before:
+		_camera_following = true
+	return true
 
 
 # 設置できなかった理由（重なっている・届かない・在庫不足など）を、マウスカーソルの近くに出す

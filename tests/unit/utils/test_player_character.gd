@@ -114,8 +114,18 @@ func test_chunkの外にはみ出す位置には立てない():
 
 
 # ---- ピースを置くときの押し出し ------------------------------------------------
-# 上を歩けないピースをキャラクターに重ねて置くときは、キャラクターをいちばん近い立てる位置へ押し出す。
+# 上を歩けないピースをキャラクターに重ねて置くときは、キャラクターを最小の距離だけ押し出し、
+# 施設の端に体が接する位置（歩いてぶつかったときに止まる位置）に立たせる。
 # blocked は、これからピースを置くマス（まだ置かれていないが通れないものとして扱う）。
+
+
+# pushed が施設の端に接しているか: 立てるが、元の位置へ少しでも戻ると重なる
+func _touches_edge(pushed: Vector2, original: Vector2, blocked: Array) -> bool:
+	var back := pushed + (original - pushed).normalized() * 2.0
+	return (
+		PlayerCharacter.can_stand_at(chunk, pushed, blocked)
+		and not PlayerCharacter.can_stand_at(chunk, back, blocked)
+	)
 
 
 func test_置くマスに重ならなければ押し出さずその場にいる():
@@ -123,21 +133,28 @@ func test_置くマスに重ならなければ押し出さずその場にいる(
 	assert_eq(PlayerCharacter.push_out_position(chunk, pos, [Vector2i(-2, 0)]), pos)
 
 
-func test_置くマスに立っていれば_そのマスを避けたいちばん近いマスの中心へ押し出す():
-	var pos := _center(Vector2i(2, 0)) + Vector2(4, 0)
+func test_置くマスに立っていれば_施設の端に接するところまで押し出す():
+	var pos := _center(Vector2i(2, 0))
 	var pushed = PlayerCharacter.push_out_position(chunk, pos, [Vector2i(2, 0)])
 	assert_not_null(pushed)
-	assert_true(PlayerCharacter.can_stand_at(chunk, pushed, [Vector2i(2, 0)]))
-	assert_eq(Hex.distance(Layout.pixel_to_hex_rounded(chunk.layout, pushed), Vector2i(2, 0)), 1)
-	assert_eq(Layout.pixel_to_hex_rounded(chunk.layout, pushed), Vector2i(3, 0), "少しずれていた東側へ")
+	assert_true(_touches_edge(pushed, pos, [Vector2i(2, 0)]))
+	var to_neighbor_center := _center(Vector2i(2, 0)).distance_to(_center(Vector2i(3, 0)))
+	assert_lt(pos.distance_to(pushed), to_neighbor_center, "隣のマスの中心までは飛ばさない")
 
 
-func test_体の縁だけが置くマスにかかっていても押し出す():
+func test_施設の中心からずれていた側へ押し出す():
+	var pos := _center(Vector2i(2, 0)) + Vector2(6, 0)
+	var pushed = PlayerCharacter.push_out_position(chunk, pos, [Vector2i(2, 0)])
+	assert_gt(pushed.x, pos.x)
+	assert_eq(Layout.pixel_to_hex_rounded(chunk.layout, pushed), Vector2i(3, 0))
+
+
+func test_体の縁だけが置くマスにかかっていれば_少しだけ押し出す():
 	# 中心は (2,0) だが、西隣の (1,0) との境目に寄っている
 	var pos := _center(Vector2i(2, 0)).lerp(_center(Vector2i(1, 0)), 0.4)
 	var pushed = PlayerCharacter.push_out_position(chunk, pos, [Vector2i(1, 0)])
-	assert_ne(pushed, pos)
-	assert_true(PlayerCharacter.can_stand_at(chunk, pushed, [Vector2i(1, 0)]))
+	assert_true(_touches_edge(pushed, pos, [Vector2i(1, 0)]))
+	assert_lt(pos.distance_to(pushed), PlayerCharacter.BODY_RADIUS)
 
 
 func test_立てる場所がどこにも無ければnull():
