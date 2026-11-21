@@ -18,8 +18,7 @@ func run(scene: Node) -> void:
 	var start_position := world.player.position
 	# ヘッドレスの画面は小さく、カメラをキャラクターに合わせるとクリック位置が HUD に重なるので動かさない
 	var camera_before: Vector2 = scene.camera.position
-	scene.hud.slot_buttons[2].button_pressed = true
-	scene.hud.on_slot_pressed(2)
+	scene.hud.select_slot(2)
 	print("選んだピース: %s" % placer.selected_scene.resource_path)
 
 	await _click(scene, chunk, PLAYER_HEX)

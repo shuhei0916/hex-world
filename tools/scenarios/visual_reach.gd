@@ -8,8 +8,7 @@ const SMELTER_SLOT := 1
 
 func run(scene: Node) -> void:
 	HubGoals.toggle_creative_mode()
-	scene.hud.slot_buttons[SMELTER_SLOT].button_pressed = true
-	scene.hud.on_slot_pressed(SMELTER_SLOT)
+	scene.hud.select_slot(SMELTER_SLOT)
 	await scene.get_tree().process_frame
 	var player_hex: Vector2i = scene.world.player.hex
 	var target = player_hex + Vector2i(-2, 1)

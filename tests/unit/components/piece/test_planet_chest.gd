@@ -109,8 +109,7 @@ class TestToolbarVariants:
 		add_child_autofree(hud)
 
 	func _select(slot: int) -> void:
-		hud.slot_buttons[slot].button_pressed = true
-		hud.on_slot_pressed(slot)
+		hud.select_slot(slot)
 
 	func test_planetチェストを研究していないと切り替えてもchunkチェストのまま():
 		_select(SLOT_IN)

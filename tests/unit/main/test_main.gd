@@ -371,6 +371,18 @@ func test_何も無いマスにマウスを移すとピースの情報が消え�
 	assert_false(main.hud.info_panel.visible)
 
 
+func test_ツールバーにマウスが乗ると盤面のゴーストとホバー情報が消える():
+	var chunk = main.world.get_active_chunk()
+	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
+	main.hud.select_slot(0)
+	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
+	main.hud.deselect()
+	main.hud.toolbar_hovered.emit()
+	assert_null(main.piece_placer.current_hovered_hex)
+	assert_false(main.piece_placer.snap_preview.visible)
+	assert_false(main.hud.info_panel.visible)
+
+
 func test_ワールドマップに切り替えるとピースの情報が消える():
 	var chunk = main.world.get_active_chunk()
 	chunk.place_piece(CONVEYOR, Vector2i(2, 1))
@@ -490,7 +502,6 @@ func test_研究画面を開くと設置しようとしていたピースの選�
 
 func test_在庫不足で置けないとカーソル付近にメッセージが出る():
 	var chunk = main.world.get_active_chunk()
-	main.hud.slot_buttons[2].button_pressed = true
 	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
 	main._hover_local(chunk.hex_to_pixel(Vector2i(3, -1)))
 	main.piece_placer.place_current_piece()
@@ -512,7 +523,6 @@ func test_置けなかった理由は最後にマウスを動かした画面上�
 
 func test_置けなかったときはエラー音が鳴る():
 	var chunk = main.world.get_active_chunk()
-	main.hud.slot_buttons[2].button_pressed = true
 	main.piece_placer.select_piece(main.hud.get_scene_for_slot(2))
 	main._hover_local(chunk.hex_to_pixel(Vector2i(3, -1)))
 	main.piece_placer.place_current_piece()

@@ -4,6 +4,8 @@ extends CanvasLayer
 signal slot_selected(scene: PackedScene)
 # 研究画面・アイテム選択パネルが開いた／閉じた
 signal modal_changed
+# ツールバーのボタンにマウスが乗った（盤面にはマウスの動きが届かなくなるので、ゴーストを隠すのに使う）
+signal toolbar_hovered
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const MINER_T1_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
@@ -94,7 +96,9 @@ var _scene_types: Array[PieceData.Type] = [
 var _hovered_piece = null
 var _cursor_message_time_left := 0.0
 var _active_category := -1
-var _button_group := ButtonGroup.new()
+# 設置するために選んでいるスロット。選んでいなければ -1。
+# 選択の状態はここだけで持ち、ボタンの押された見た目はこれに合わせて描き直す
+var _active_slot := -1
 
 @onready var toolbar: VBoxContainer = $ToolBar
 @onready var piece_row: HBoxContainer = $ToolBar/PieceRow
@@ -126,17 +130,15 @@ func _ready():
 # ツールバーのボタンを作る。上の段（PieceRow）に全スロットを並べ、開いているジャンルの分だけ見せる。
 # 下の段（CategoryRow）はジャンルのボタン
 func _build_toolbar() -> void:
-	# 選んでいるボタンをもう一度押すと選択を外せる
-	_button_group.allow_unpress = true
 	for i in _slot_variants.size():
 		var btn := HexButton.new()
 		btn.name = "Slot%d" % (i + 1)
 		btn.custom_minimum_size = SLOT_BUTTON_SIZE
 		btn.toggle_mode = true
-		btn.button_group = _button_group
 		btn.hex_icon = SLOT_ICONS[i]
 		btn.hint = OS.get_keycode_string(SLOT_KEYS[i])
-		btn.pressed.connect(on_slot_pressed.bind(i))
+		btn.pressed.connect(select_slot.bind(i))
+		_connect_toolbar_pointer(btn)
 		piece_row.add_child(btn)
 		slot_buttons.append(btn)
 	for c in CATEGORIES.size():
@@ -147,9 +149,22 @@ func _build_toolbar() -> void:
 		btn.hex_icon = CATEGORIES[c]["icon"]
 		btn.tooltip_text = CATEGORIES[c]["name"]
 		btn.pressed.connect(_on_category_pressed.bind(c))
+		_connect_toolbar_pointer(btn)
 		category_row.add_child(btn)
 		category_buttons.append(btn)
 	_show_category(-1)
+
+
+# ツールバーのボタンの上では、盤面と同じくマウスの右ボタンで選択を解除できるようにする
+func _connect_toolbar_pointer(btn: Button) -> void:
+	btn.mouse_entered.connect(func(): toolbar_hovered.emit())
+	btn.gui_input.connect(_on_toolbar_gui_input)
+
+
+func _on_toolbar_gui_input(event: InputEvent) -> void:
+	var mouse := event as InputEventMouseButton
+	if mouse and mouse.button_index == MOUSE_BUTTON_RIGHT and mouse.pressed:
+		deselect()
 
 
 func get_category_name(category_index: int) -> String:
@@ -187,19 +202,40 @@ func _show_category(category_index: int) -> void:
 		category_buttons[c].set_pressed_no_signal(c == category_index)
 
 
-# スロットのボタンを押したのと同じ操作（数字キーもここを通る）。
+# スロットを選ぶ（ボタンのクリック・数字キーはどちらもここを通る）。
 # 選んでいなければ選び、そのスロットのジャンルを開く。選んでいれば選択を外す。未解放なら何もしない
 func select_slot(index: int) -> void:
 	if index < 0 or index >= slot_buttons.size():
 		return
-	var btn: Button = slot_buttons[index]
-	if btn.disabled:
+	if index == _active_slot:
+		deselect()
+		return
+	if not PieceData.is_unlocked(_scene_types[index]):
+		_sync_slot_buttons()
 		return
 	var category := _category_of_slot(index)
 	if category != _active_category:
 		_show_category(category)
-	btn.button_pressed = not btn.button_pressed
-	on_slot_pressed(index)
+	# ピースを選んだら研究画面は閉じる（説明パネルと重ならないように）
+	research_panel.close()
+	_reset_other_variant_indices(index)
+	_active_slot = index
+	_sync_slot_buttons()
+	slot_selected.emit(get_scene_for_slot(index))
+
+
+# 選択を解除する。解除はすべてここを通し、ボタンの見た目・切替パネル・説明を同じように片付ける
+func deselect() -> void:
+	_active_slot = -1
+	_sync_slot_buttons()
+	variant_panel.clear()
+	slot_selected.emit(null)
+
+
+# ボタンは押すと自分で押された見た目に切り替わるので、選択の状態に合わせて戻す
+func _sync_slot_buttons() -> void:
+	for i in slot_buttons.size():
+		slot_buttons[i].set_pressed_no_signal(i == _active_slot)
 
 
 # 数字キーでスロットを選ぶ。閉じているジャンルのボタンも選べるよう、ボタンのショートカットではなくここで受ける
@@ -411,31 +447,10 @@ func _items_per_minute_for_piece(piece: Node) -> float:
 	return 0.0
 
 
-func on_slot_pressed(index: int):
-	if index < 0 or index >= slot_buttons.size():
-		_deselect_all_buttons()
-		slot_selected.emit(null)
-		return
-
-	# ピースを選んだら研究画面は閉じる（説明パネルと重ならないように）
-	research_panel.close()
-	_reset_other_variant_indices(index)
-	var btn = slot_buttons[index]
-	if btn.button_pressed:
-		slot_selected.emit(get_scene_for_slot(index))
-	else:
-		slot_selected.emit(null)
-
-
 func _reset_other_variant_indices(active_index: int) -> void:
 	for i in _variant_indices.size():
 		if i != active_index:
 			_variant_indices[i] = 0
-
-
-func _deselect_all_buttons():
-	if _button_group and _button_group.get_pressed_button():
-		_button_group.get_pressed_button().button_pressed = false
 
 
 func get_scene_for_slot(index: int) -> PackedScene:
@@ -463,18 +478,9 @@ func cycle_variant() -> void:
 	slot_selected.emit(get_scene_for_slot(index))
 
 
-func deselect():
-	_deselect_all_buttons()
-	variant_panel.clear()
-	slot_selected.emit(null)
-
-
 func set_chunk_coordinate(chunk_hex: Vector2i) -> void:
 	$ChunkCoordLabel.text = "Chunk: %d, %d" % [chunk_hex.x, chunk_hex.y]
 
 
 func get_active_index() -> int:
-	if not _button_group:
-		return -1
-	var pressed_btn = _button_group.get_pressed_button()
-	return pressed_btn.get_index() if pressed_btn else -1
+	return _active_slot

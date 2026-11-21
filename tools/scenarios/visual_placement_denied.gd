@@ -12,8 +12,7 @@ func run(scene: Node) -> void:
 	HubGoals.creative_mode = true
 	world.place_player(world.get_active_hex(), Feedback.PLAYER_HEX)
 	await scene.get_tree().process_frame
-	scene.hud.slot_buttons[2].button_pressed = true
-	scene.hud.on_slot_pressed(2)
+	scene.hud.select_slot(2)
 	await feedback._click(scene, chunk, Feedback.PLAYER_HEX)
 	await feedback._click(scene, chunk, Feedback.PLAYER_HEX)
 	await scene.get_tree().process_frame

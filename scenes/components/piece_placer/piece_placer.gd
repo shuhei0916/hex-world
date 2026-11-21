@@ -195,9 +195,21 @@ func _clear_preview():
 			child.free()
 
 
+# マウスが盤面から外れた（ツールバーの上に乗ったなど）。ゴーストを隠し、クリックしても置かないようにする。
+# ドラッグ中は、押したままツールバーをかすめただけかもしれないので何もしない
+func clear_hover() -> void:
+	if is_dragging or is_delete_dragging:
+		return
+	current_hovered_hex = null
+	cursor_preview.visible = false
+	snap_preview.visible = false
+
+
 func update_hover(local_mouse_pos: Vector2):
 	var hex_coord = Layout.pixel_to_hex_rounded(chunk.layout, local_mouse_pos)
 	current_hovered_hex = hex_coord
+	cursor_preview.visible = true
+	snap_preview.visible = true
 
 	if is_delete_dragging:
 		_remove_piece_at(hex_coord)

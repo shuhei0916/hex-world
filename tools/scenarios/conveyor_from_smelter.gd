@@ -24,8 +24,12 @@ func run(scene: Node) -> void:
 		print(
 			(
 				"%s output=%s piece.input_direction=%s visuals.inputs=%s"
-				% [hex, belt.get_output_ports()[0]["direction"], belt.input_direction,
-				visuals.get_input_directions()]
+				% [
+					hex,
+					belt.get_output_ports()[0]["direction"],
+					belt.input_direction,
+					visuals.get_input_directions()
+				]
 			)
 		)
 	var smelter: Piece = chunk.get_piece_at_hex(Vector2i(-3, 0))

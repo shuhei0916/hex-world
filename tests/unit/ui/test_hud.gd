@@ -98,12 +98,6 @@ func test_スロット選択時にslot_selectedがPackedSceneを持って発火�
 	assert_signal_emitted_with_parameters(hud, "slot_selected", [expected_scene])
 
 
-func test_選択解除時にslot_selectedがnullを持って発火される():
-	watch_signals(hud)
-	hud.on_slot_pressed(-1)
-	assert_signal_emitted_with_parameters(hud, "slot_selected", [null])
-
-
 func test_deselect呼び出しでslot_selectedがnullを持って発火される():
 	watch_signals(hud)
 	hud.deselect()

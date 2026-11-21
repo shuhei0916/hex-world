@@ -68,6 +68,7 @@ func _ready():
 	piece_placer.conveyor_path_extended.connect(sfx_player.on_conveyor_path_extended)
 	pause_menu.quit_requested.connect(_on_pause_menu_quit_requested)
 	hud.modal_changed.connect(_on_hud_modal_changed)
+	hud.toolbar_hovered.connect(_on_toolbar_hovered)
 	piece_placer.placement_denied.connect(_on_placement_denied)
 	piece_placer.placement_denied.connect(sfx_player.on_placement_denied)
 	piece_placer.push_player = _push_player_out_of
@@ -408,6 +409,12 @@ func _handle_mouse_motion(event):
 		var local_pos = make_input_local(event).position
 		var view_pos = world_map_view.to_local(to_global(local_pos))
 		world_map_view.set_hovered_chunk(world_map_view.chunk_at_local_pos(view_pos))
+
+
+# ツールバーの上ではマウスの動きが盤面に届かないので、最後に乗っていたマスのゴーストや情報を残さない
+func _on_toolbar_hovered() -> void:
+	piece_placer.clear_hover()
+	hud.show_hovered_piece(null)
 
 
 func _hover_local(local_mouse_pos: Vector2) -> void:

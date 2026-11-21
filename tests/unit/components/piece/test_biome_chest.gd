@@ -144,8 +144,7 @@ class TestToolbar:
 		HubGoals.researched = {"unlock_chunk_chest": true, "unlock_biome_chest": true}
 		hud = HUDScene.instantiate()
 		add_child_autofree(hud)
-		hud.slot_buttons[HUD.CHEST_SLOTS[0]].button_pressed = true
-		hud.on_slot_pressed(HUD.CHEST_SLOTS[0])
+		hud.select_slot(HUD.CHEST_SLOTS[0])
 
 	func test_切り替えボタンは共有範囲の狭い順に並ぶ():
 		var texts = hud.variant_panel.button_row.get_children().map(func(b): return b.text)

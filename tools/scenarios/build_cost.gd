@@ -9,8 +9,7 @@ func run(scene: Node) -> void:
 	var placer: PiecePlacer = scene.piece_placer
 	var hex = Vector2i(TARGET[0], TARGET[1])
 	HubGoals.gained_rewards["unlock_smelter"] = true
-	scene.hud.slot_buttons[2].button_pressed = true
-	scene.hud.on_slot_pressed(2)
+	scene.hud.select_slot(2)
 	placer.select_piece(scene.hud.get_scene_for_slot(2))
 	placer.update_hover(chunk.hex_to_pixel(hex))
 	_report("Smelter を選択（在庫なし）", scene)

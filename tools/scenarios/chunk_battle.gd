@@ -113,8 +113,7 @@ func run(scene: Node) -> void:
 	)
 
 	# 勝ったあと、同じ画面のままコンベアを置ける（建築できるのはキャラクターの近くだけなので、西隣に置く）
-	scene.hud.slot_buttons[CONVEYOR_SLOT].button_pressed = true
-	scene.hud.on_slot_pressed(CONVEYOR_SLOT)
+	scene.hud.select_slot(CONVEYOR_SLOT)
 	await scene.get_tree().process_frame
 	var spot = Hex.neighbor(scene.world.player.hex, 3)
 	scene._hover_local(chunk.hex_to_pixel(spot))
