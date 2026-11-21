@@ -11,6 +11,9 @@ func before_each():
 	HubGoals.gained_rewards.clear()
 	hud = HUDScene.instantiate()
 	add_child_autofree(hud)
+	# スロット3（Smelter）は未解放だと選べないので、ここでは解放しておく
+	HubGoals.gained_rewards["unlock_smelter"] = true
+	HubGoals.unlocks_changed.emit()
 
 
 func after_each():
@@ -18,9 +21,7 @@ func after_each():
 
 
 func _select_slot(index: int) -> void:
-	var btn = hud.toolbar.get_child(index) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(index)
+	hud.select_slot(index)
 
 
 func test_バリアントが1つのスロットではcycle_variantを呼んでも変化しない():

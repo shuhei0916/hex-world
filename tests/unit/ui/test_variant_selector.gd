@@ -16,9 +16,7 @@ func after_each():
 
 
 func _select_slot(index: int) -> void:
-	var btn = hud.toolbar.get_child(index) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(index)
+	hud.select_slot(index)
 
 
 func test_バリアントが2つ以上のスロット選択時バリアントパネルが表示される():

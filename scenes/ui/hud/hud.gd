@@ -31,6 +31,37 @@ const RESEARCH_BUTTON_TEXT := "研究 [E]"
 # カーソル付近のメッセージ（在庫不足など）を出しておく時間と、カーソルからのずらし幅
 const CURSOR_MESSAGE_SECONDS := 1.5
 const CURSOR_MESSAGE_OFFSET := Vector2(18, 14)
+# ツールバーの各スロットのアイコン（_slot_variants と同じ並び）
+const SLOT_ICONS: Array[Texture2D] = [
+	preload("res://assets/pieces/conveyor.svg"),
+	preload("res://assets/pieces/miner.svg"),
+	preload("res://assets/pieces/smelter.svg"),
+	preload("res://assets/pieces/assembler.svg"),
+	preload("res://assets/pieces/cutter.svg"),
+	preload("res://assets/pieces/mixer.svg"),
+	preload("res://assets/pieces/bridge.svg"),
+	preload("res://assets/pieces/chest_in.svg"),
+	preload("res://assets/pieces/chest_out.svg"),
+	preload("res://assets/pieces/kiln.svg"),
+]
+# スロットを選ぶ数字キー（スロット1〜10 → 1〜9, 0）
+const SLOT_KEYS: Array[Key] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
+# ツールバーの下の段に並ぶジャンル。押すと、そのジャンルのスロットが上の段に出る
+const CATEGORIES := [
+	{"name": "物流", "icon": preload("res://assets/pieces/category_logistics.svg"), "slots": [0, 6]},
+	{"name": "採掘", "icon": preload("res://assets/pieces/category_extraction.svg"), "slots": [1]},
+	{
+		"name": "加工",
+		"icon": preload("res://assets/pieces/category_processing.svg"),
+		"slots": [2, 3, 4, 5, 9],
+	},
+	{"name": "倉庫", "icon": preload("res://assets/pieces/category_storage.svg"), "slots": [7, 8]},
+]
+const SLOT_BUTTON_SIZE := Vector2(52, 60)
+const CATEGORY_BUTTON_SIZE := Vector2(44, 50)
+
+var slot_buttons: Array = []
+var category_buttons: Array = []
 var _slot_variants: Array = [
 	[CONVEYOR_SCENE],
 	[MINER_T1_SCENE, MINER_T2_SCENE],
@@ -62,9 +93,12 @@ var _scene_types: Array[PieceData.Type] = [
 # マウスが乗っている設置済みピース（撤去されて無効になることがあるので型は付けない）
 var _hovered_piece = null
 var _cursor_message_time_left := 0.0
+var _active_category := -1
+var _button_group := ButtonGroup.new()
 
-@onready var toolbar: HBoxContainer = $ToolBar
-@onready var slot_buttons: Array = $ToolBar.get_children()
+@onready var toolbar: VBoxContainer = $ToolBar
+@onready var piece_row: HBoxContainer = $ToolBar/PieceRow
+@onready var category_row: HBoxContainer = $ToolBar/CategoryRow
 @onready var stock_display: StockDisplay = %StockDisplay
 @onready var cursor_message: Label = %CursorMessage
 @onready var research_button: Button = %ResearchButton
@@ -72,12 +106,10 @@ var _cursor_message_time_left := 0.0
 @onready var item_picker: ItemPicker = %ItemPicker
 @onready var info_panel: PieceInfoPanel = $SidePanels/PieceInfoPanel
 @onready var variant_panel: VariantPanel = $SidePanels/VariantPanel
-@onready var _button_group: ButtonGroup = (
-	(slot_buttons[0] as Button).button_group if not slot_buttons.is_empty() else null
-)
 
 
 func _ready():
+	_build_toolbar()
 	info_panel.clear()
 	slot_selected.connect(_on_slot_selected_for_info)
 	HubGoals.level_up.connect(_on_level_up)
@@ -89,6 +121,99 @@ func _ready():
 	item_picker.visibility_changed.connect(func(): modal_changed.emit())
 	_refresh_research_button()
 	_refresh_unlock_states()
+
+
+# ツールバーのボタンを作る。上の段（PieceRow）に全スロットを並べ、開いているジャンルの分だけ見せる。
+# 下の段（CategoryRow）はジャンルのボタン
+func _build_toolbar() -> void:
+	# 選んでいるボタンをもう一度押すと選択を外せる
+	_button_group.allow_unpress = true
+	for i in _slot_variants.size():
+		var btn := HexButton.new()
+		btn.name = "Slot%d" % (i + 1)
+		btn.custom_minimum_size = SLOT_BUTTON_SIZE
+		btn.toggle_mode = true
+		btn.button_group = _button_group
+		btn.hex_icon = SLOT_ICONS[i]
+		btn.hint = OS.get_keycode_string(SLOT_KEYS[i])
+		btn.pressed.connect(on_slot_pressed.bind(i))
+		piece_row.add_child(btn)
+		slot_buttons.append(btn)
+	for c in CATEGORIES.size():
+		var btn := HexButton.new()
+		btn.name = "Category%d" % (c + 1)
+		btn.custom_minimum_size = CATEGORY_BUTTON_SIZE
+		btn.toggle_mode = true
+		btn.hex_icon = CATEGORIES[c]["icon"]
+		btn.tooltip_text = CATEGORIES[c]["name"]
+		btn.pressed.connect(_on_category_pressed.bind(c))
+		category_row.add_child(btn)
+		category_buttons.append(btn)
+	_show_category(-1)
+
+
+func get_category_name(category_index: int) -> String:
+	return CATEGORIES[category_index]["name"]
+
+
+# 開いているジャンルの番号。どれも開いていなければ -1
+func get_active_category() -> int:
+	return _active_category
+
+
+func _category_of_slot(slot_index: int) -> int:
+	for c in CATEGORIES.size():
+		if slot_index in CATEGORIES[c]["slots"]:
+			return c
+	return -1
+
+
+# ジャンルのボタンを押した: 閉じていれば開き、開いていれば閉じる。
+# 見えなくなるピースを選んだままにしないよう、選んでいたピースは解除する
+func _on_category_pressed(category_index: int) -> void:
+	var next := -1 if category_index == _active_category else category_index
+	if get_active_index() != -1:
+		deselect()
+	_show_category(next)
+
+
+func _show_category(category_index: int) -> void:
+	_active_category = category_index
+	var shown: Array = [] if category_index < 0 else CATEGORIES[category_index]["slots"]
+	for i in slot_buttons.size():
+		slot_buttons[i].visible = i in shown
+	piece_row.visible = category_index >= 0
+	for c in category_buttons.size():
+		category_buttons[c].set_pressed_no_signal(c == category_index)
+
+
+# スロットのボタンを押したのと同じ操作（数字キーもここを通る）。
+# 選んでいなければ選び、そのスロットのジャンルを開く。選んでいれば選択を外す。未解放なら何もしない
+func select_slot(index: int) -> void:
+	if index < 0 or index >= slot_buttons.size():
+		return
+	var btn: Button = slot_buttons[index]
+	if btn.disabled:
+		return
+	var category := _category_of_slot(index)
+	if category != _active_category:
+		_show_category(category)
+	btn.button_pressed = not btn.button_pressed
+	on_slot_pressed(index)
+
+
+# 数字キーでスロットを選ぶ。閉じているジャンルのボタンも選べるよう、ボタンのショートカットではなくここで受ける
+func _shortcut_input(event: InputEvent) -> void:
+	if not visible or not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if not key.pressed or key.echo or key.ctrl_pressed or key.alt_pressed or key.meta_pressed:
+		return
+	var index := SLOT_KEYS.find(key.keycode)
+	if index == -1:
+		return
+	select_slot(index)
+	get_viewport().set_input_as_handled()
 
 
 func _on_stock_changed() -> void:
@@ -191,6 +316,13 @@ func _refresh_unlock_states():
 		var unlocked := PieceData.is_unlocked(_scene_types[i])
 		btn.disabled = not unlocked
 		btn.modulate = Color(1, 1, 1, 1) if unlocked else Color(0.4, 0.4, 0.4, 1)
+	# 中のピースがひとつも解放されていないジャンルは押せない
+	for c in category_buttons.size():
+		var any_unlocked := false
+		for i in CATEGORIES[c]["slots"]:
+			any_unlocked = any_unlocked or not slot_buttons[i].disabled
+		category_buttons[c].disabled = not any_unlocked
+		category_buttons[c].modulate = Color.WHITE if any_unlocked else Color(0.4, 0.4, 0.4, 1)
 
 
 func _on_slot_selected_for_info(scene: PackedScene):

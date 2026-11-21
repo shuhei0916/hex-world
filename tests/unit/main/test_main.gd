@@ -36,9 +36,7 @@ func _start_another_main() -> Main:
 
 
 func test_HUDのスロット選択でPiecePlacerが更新される():
-	var btn = main.hud.toolbar.get_child(0) as Button
-	btn.button_pressed = true
-	main.hud.on_slot_pressed(0)
+	main.hud.select_slot(0)
 	assert_not_null(main.piece_placer.selected_scene)
 
 
@@ -95,8 +93,7 @@ func test_右ボタンを離すと削除ドラッグが終了する():
 
 
 func test_ツールバー選択中の右クリックでは削除ドラッグが開始されない():
-	var btn = main.hud.toolbar.get_child(0) as Button
-	btn.button_pressed = true
+	main.hud.select_slot(0)
 	main._handle_mouse_click(_make_right_button_event(true))
 	assert_false(main.piece_placer.is_delete_dragging)
 
@@ -405,8 +402,7 @@ func test_ワールドマップではEキーで研究パネルが開かない():
 
 func test_研究でコンベアを速くすると情報パネルのスピードに反映される():
 	HubGoals.researched = {"belt_speed_1": true}
-	main.hud.slot_buttons[0].button_pressed = true
-	main.hud.on_slot_pressed(0)
+	main.hud.select_slot(0)
 	assert_eq(main.hud.info_panel.rate_label.text, "スピード: 180/分")
 
 
@@ -428,8 +424,7 @@ func test_何も選んでいない状態で搬出チェストをクリックす�
 func test_設置するピースを選んでいるときは搬出チェストをクリックしてもパネルが開かない():
 	var chunk = main.world.get_active_chunk()
 	chunk.place_piece(CHEST_OUT, Vector2i(2, 1))
-	main.hud.slot_buttons[0].button_pressed = true
-	main.hud.on_slot_pressed(0)
+	main.hud.select_slot(0)
 	main._hover_local(chunk.hex_to_pixel(Vector2i(2, 1)))
 	main._handle_local_click(_left_click(true))
 	assert_false(main.hud.item_picker.visible)
@@ -487,8 +482,7 @@ func test_研究画面を開いている間に盤面を右クリックしても�
 
 
 func test_研究画面を開くと設置しようとしていたピースの選択が解除される():
-	main.hud.slot_buttons[0].button_pressed = true
-	main.hud.on_slot_pressed(0)
+	main.hud.select_slot(0)
 	main.piece_placer.select_piece(main.hud.get_scene_for_slot(0))
 	main._handle_key_input(_make_key_event(KEY_E))
 	assert_null(main.piece_placer.selected_scene)

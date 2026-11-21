@@ -21,12 +21,6 @@ func after_each():
 
 func test_スロット7は橋である():
 	assert_eq(_get_slot_piece_type(6), PieceData.Type.BRIDGE)
-	assert_eq(hud.slot_buttons[6].text, "橋")
-
-
-func test_橋のスロットはキー7で選べる():
-	var key = (hud.slot_buttons[6] as Button).shortcut.events[0] as InputEventKey
-	assert_eq(key.keycode, KEY_7)
 
 
 func test_Painterは廃止したのでツールバーにない():
@@ -35,7 +29,7 @@ func test_Painterは廃止したのでツールバーにない():
 
 
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
-	var smelter_btn = hud.toolbar.get_child(2) as Button
+	var smelter_btn = hud.slot_buttons[2] as Button
 	assert_true(smelter_btn.disabled, "前提: Smelterスロットは初期状態でロック")
 	HubGoals.creative_mode = true
 	HubGoals.unlocks_changed.emit()
@@ -44,14 +38,17 @@ func test_unlocks_changed受信で未アンロックのスロットが有効に�
 
 func test_アクティブスロット変更でUIハイライトが更新される():
 	assert_eq(hud.get_active_index(), -1)
+	_unlock_all()
 
-	# HUDを直接操作（ボタンを真にしてハンドラを呼ぶ）
-	var btn3 = hud.toolbar.get_child(3) as Button
-	btn3.button_pressed = true
-	hud.on_slot_pressed(3)
+	hud.select_slot(3)
 
 	# 状態が更新されているか確認
 	assert_eq(hud.get_active_index(), 3)
+
+
+func _unlock_all() -> void:
+	HubGoals.creative_mode = true
+	HubGoals.unlocks_changed.emit()
 
 
 func _get_slot_piece_type(index: int) -> PieceData.Type:
@@ -86,27 +83,17 @@ func test_スロット10は窯で_unlock_kilnを取るまで使えない():
 	assert_false(hud.slot_buttons[9].disabled)
 
 
-func test_スロットにアイコンテクスチャが設定されている():
-	var slot0 = hud.toolbar.get_child(0) as Button
-	assert_not_null(slot0.icon)
-
-
 func test_スロットをクリックすると選択が更新される():
-	# ボタンのクリックを擬似的に発生させる
-	var btn2 = hud.toolbar.get_child(2) as Button
-
-	# 手動でトグル状態をセットしてハンドラを呼ぶ
-	btn2.button_pressed = true
-	hud.on_slot_pressed(2)
-
+	_unlock_all()
+	hud.slot_buttons[2].button_pressed = true
+	hud.slot_buttons[2].pressed.emit()
 	assert_eq(hud.get_active_index(), 2, "スロット2を選択したらインデックス2がアクティブになるべき")
 
 
 func test_スロット選択時にslot_selectedがPackedSceneを持って発火される():
+	_unlock_all()
 	watch_signals(hud)
-	var btn = hud.toolbar.get_child(3) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(3)
+	hud.select_slot(3)
 	var expected_scene = hud.get_scene_for_slot(3)
 	assert_signal_emitted_with_parameters(hud, "slot_selected", [expected_scene])
 
@@ -124,9 +111,7 @@ func test_deselect呼び出しでslot_selectedがnullを持って発火される
 
 
 func test_スロット選択で情報パネルにピース名が表示される():
-	var btn = hud.toolbar.get_child(1) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(1)
+	hud.select_slot(1)
 	assert_eq(hud.info_panel.name_label.text, "Miner")
 
 
@@ -138,9 +123,8 @@ func test_選択解除で情報パネルが非表示になる():
 
 func test_機械スロット選択で情報パネルにt1の生産速度が表示される():
 	# スロット2はSmelter。初期状態はt1（craft_time_multiplier=2.0）なので15/分
-	var btn = hud.toolbar.get_child(2) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(2)
+	_unlock_all()
+	hud.select_slot(2)
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 15/分")
 
 
@@ -148,25 +132,19 @@ func test_Tキーでt2に切り替えると情報パネルの速度が更新さ�
 	# スロット2はSmelter。cycle_variantでt2（30/分）に切り替わる
 	HubGoals.gained_rewards["unlock_smelter"] = true
 	hud._refresh_unlock_states()
-	var btn = hud.toolbar.get_child(2) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(2)
+	hud.select_slot(2)
 	hud.cycle_variant()  # t1→t2
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
 
 
 func test_コンベアスロット選択で情報パネルに搬送速度が表示される():
-	var btn = hud.toolbar.get_child(0) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(0)
+	hud.select_slot(0)
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 120/分")
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():
 	# 橋（レシピなし＝生産速度なし）は速度行を出さない
-	var btn = hud.toolbar.get_child(6) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(6)
+	hud.select_slot(6)
 	assert_false(hud.info_panel.rate_label.visible)
 
 
@@ -229,15 +207,13 @@ class TestHoveredPiece:
 		assert_string_contains(hud.info_panel.description_label.text, "稼働中")
 
 	func test_設置するピースを選んでいる間は選んだピースの説明を優先する():
-		hud.slot_buttons[1].button_pressed = true
-		hud.on_slot_pressed(1)
+		hud.select_slot(1)
 		hud.show_hovered_piece(smelter)
 		hud._process(0.1)
 		assert_eq(hud.info_panel.name_label.text, "Miner")
 
 	func test_ピースの選択を解除するとホバー中のピースの情報に戻る():
-		hud.slot_buttons[1].button_pressed = true
-		hud.on_slot_pressed(1)
+		hud.select_slot(1)
 		hud.show_hovered_piece(smelter)
 		hud.deselect()
 		assert_eq(hud.info_panel.name_label.text, smelter.piece_name)
@@ -267,8 +243,7 @@ class TestStockAndCost:
 		HubGoals.reset()
 
 	func _select_slot(index: int) -> void:
-		hud.slot_buttons[index].button_pressed = true
-		hud.on_slot_pressed(index)
+		hud.select_slot(index)
 
 	func test_在庫が無いときはなしと表示する():
 		assert_eq(hud.stock_display.get_summary_text(), "在庫: なし")
@@ -443,8 +418,7 @@ class TestResearchPanelFocus:
 		HubGoals.reset()
 
 	func _select_slot(index: int) -> void:
-		hud.slot_buttons[index].button_pressed = true
-		hud.on_slot_pressed(index)
+		hud.select_slot(index)
 
 	func test_研究画面を開くと選んでいたピースが解除され説明パネルが消える():
 		_select_slot(1)
