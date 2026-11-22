@@ -55,6 +55,20 @@ class TestDefinitions:
 		for id in Research.all_ids():
 			assert_lte(Research.get_def(id)["level"], goals.LEVELS.size() + 1, id)
 
+	func test_すべての研究はいずれかの系統に属する():
+		for id in Research.all_ids():
+			assert_true(Research.get_def(id).get("branch", "") in Research.BRANCHES, id)
+
+	func test_系統には表示名がある():
+		for branch in Research.BRANCHES:
+			assert_ne(Research.branch_name(branch), "", branch)
+
+	func test_前提の研究は同じ系統にある():
+		# ツリーでは前提と横一列につながって見えるように
+		for id in Research.all_ids():
+			for required in Research.get_def(id)["requires"]:
+				assert_eq(Research.get_def(required)["branch"], Research.get_def(id)["branch"], id)
+
 
 class TestState:
 	extends "res://tests/unit/utils/test_research.gd"

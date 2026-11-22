@@ -9,7 +9,8 @@ extends RefCounted
 ##   name / description  表示用
 ##   cost                価格 {item_id: 個数}
 ##   level               研究できるようになるハブのレベル（HubGoals.level がこの値以上）
-##   requires            先に済ませておく研究の id
+##   requires            先に済ませておく研究の id（同じ系統の研究にする。ツリーで横一列につなぐため）
+##   branch              系統（BRANCHES のどれか）。ツリー画面の行になる
 ##   effect              効果。{"unlock": 報酬id} / {"belt_speed": 倍率} / {"mining_speed": 倍率}
 ##                       / {"skill": スキルid}（SkillLibrary.RESEARCH_SKILLS の戦闘スキル）
 ##   conditions          探索の条件（省略可）。{"chunks": 所有している chunk の数}
@@ -25,10 +26,19 @@ const SKILL := "skill"
 const CHUNKS := "chunks"
 const BIOME := "biome"
 
+# 系統。ツリー画面では上からこの順に行を並べる
+const LOGISTICS := "logistics"
+const MINING := "mining"
+const CHEST := "chest"
+const COMBAT := "combat"
+const BRANCHES := [LOGISTICS, MINING, CHEST, COMBAT]
+const _BRANCH_NAMES := {LOGISTICS: "物流", MINING: "採掘", CHEST: "チェスト", COMBAT: "戦闘"}
+
 # 一覧に表示する順（おおむね研究できるようになる順）
 const DEFS = {
 	"mining_speed_1":
 	{
+		"branch": MINING,
 		"name": "採掘高速化 I",
 		"description": "すべての採掘機が1.5倍の速さで掘る。",
 		"cost": {"iron_ore": 20},
@@ -38,6 +48,7 @@ const DEFS = {
 	},
 	"belt_speed_1":
 	{
+		"branch": LOGISTICS,
 		"name": "コンベア高速化 I",
 		"description": "すべてのコンベアが2倍の速さで運ぶ（毎分120個）。",
 		"cost": {"iron_ingot": 20},
@@ -47,6 +58,7 @@ const DEFS = {
 	},
 	"unlock_chunk_chest":
 	{
+		"branch": CHEST,
 		"name": "Chunk チェスト",
 		"description": "同じ chunk の中で中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
 		"cost": {"iron_plate": 20},
@@ -56,6 +68,7 @@ const DEFS = {
 	},
 	"mining_speed_2":
 	{
+		"branch": MINING,
 		"name": "採掘高速化 II",
 		"description": "すべての採掘機が2倍の速さで掘る。",
 		"cost": {"iron_plate": 20},
@@ -65,6 +78,7 @@ const DEFS = {
 	},
 	"skill_iron_wall":
 	{
+		"branch": COMBAT,
 		"name": "戦闘: 鉄壁",
 		"description": "戦闘で「鉄壁」（防御 8、2ターンに1回）が使えるようになる。",
 		"cost": {"iron_plate": 20},
@@ -74,6 +88,7 @@ const DEFS = {
 	},
 	"belt_speed_2":
 	{
+		"branch": LOGISTICS,
 		"name": "コンベア高速化 II",
 		"description": "すべてのコンベアが4倍の速さで運ぶ（毎分240個）。",
 		"cost": {"screw": 20},
@@ -83,6 +98,7 @@ const DEFS = {
 	},
 	"belt_speed_3":
 	{
+		"branch": LOGISTICS,
 		"name": "コンベア高速化 III",
 		"description": "すべてのコンベアが8倍の速さで運ぶ（毎分480個）。",
 		"cost": {"circuit": 20},
@@ -92,6 +108,7 @@ const DEFS = {
 	},
 	"unlock_biome_chest":
 	{
+		"branch": CHEST,
 		"name": "Biome チェスト",
 		"description": "同じバイオームのひと続きの地域の中で中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
 		"cost": {"concrete": 20},
@@ -101,6 +118,7 @@ const DEFS = {
 	},
 	"skill_steel_lance":
 	{
+		"branch": COMBAT,
 		"name": "戦闘: 鋼の槍",
 		"description": "戦闘で「鋼の槍」（攻撃 6、毎ターン1回）が使えるようになる。",
 		"cost": {"steel": 20},
@@ -111,6 +129,7 @@ const DEFS = {
 	},
 	"skill_sprint":
 	{
+		"branch": COMBAT,
 		"name": "戦闘: 疾走",
 		"description": "戦闘で「疾走」（6マス移動、2ターンに1回）が使えるようになる。",
 		"cost": {"motor": 10},
@@ -121,6 +140,7 @@ const DEFS = {
 	},
 	"unlock_planet_chest":
 	{
+		"branch": CHEST,
 		"name": "Planet チェスト",
 		"description": "惑星のどの chunk に置いても中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
 		"cost": {"steel": 30, "copper_ingot": 30},
@@ -129,6 +149,10 @@ const DEFS = {
 		"effect": {UNLOCK: "unlock_planet_chest"},
 	},
 }
+
+
+static func branch_name(branch: String) -> String:
+	return _BRANCH_NAMES.get(branch, "")
 
 
 static func all_ids() -> Array:
