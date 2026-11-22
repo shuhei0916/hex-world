@@ -27,7 +27,8 @@ var _input_direction: int = -1  # 主入力。出口へのパスはここから�
 var _merge_input_directions: Array = []
 
 @onready var _piece: Piece = get_parent()
-@onready var _mover: Node = _find_mover()
+# ベルトの上のアイテムの動き。コンベアのシーンには必ずある
+@onready var _mover: ConveyorLogic = get_parent().get_node("ConveyorLogic")
 @onready var _item_icon: Sprite2D = $ItemIcon
 @onready var _item_icon_2: Sprite2D = $ItemIcon2
 
@@ -93,13 +94,6 @@ func _ready():
 	_item_icon_2.z_as_relative = false
 	_piece.shape_changed.connect(refresh_belt)
 	refresh_belt()
-
-
-func _find_mover() -> Node:
-	for sibling in get_parent().get_children():
-		if sibling.has_method("get_held_item"):
-			return sibling
-	return null
 
 
 func _process(delta: float):
@@ -236,10 +230,8 @@ func update_item_icon():
 		return
 	_update_slot_icon(_item_icon, _mover.get_held_item(), _mover.get_progress_ratio())
 	if _item_icon_2:
-		var held2 = _mover.get_held_item_2() if _mover.has_method("get_held_item_2") else ""
-		var ratio2 = (
-			_mover.get_progress_ratio_2() if _mover.has_method("get_progress_ratio_2") else 0.0
-		)
+		var held2 = _mover.get_held_item_2()
+		var ratio2 = _mover.get_progress_ratio_2()
 		_update_slot_icon(_item_icon_2, held2, ratio2)
 
 
@@ -271,7 +263,7 @@ func _position_on_path(t: float) -> Vector2:
 
 
 func _select_active_path() -> PackedVector2Array:
-	if _paths.size() <= 1 or not _mover.has_method("get_target_direction"):
+	if _paths.size() <= 1:
 		return _path
 	var target_dir = _mover.get_target_direction()
 	for i in range(_output_directions.size()):

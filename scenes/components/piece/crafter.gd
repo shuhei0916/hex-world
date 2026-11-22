@@ -23,7 +23,8 @@ var input_capacity: int = 0
 # 採掘機かどうか（研究の採掘高速化が効く）。Piece が設置時に設定する
 var is_miner: bool = false
 
-var output_container: Node
+# 作ったものを置く排出口
+var output_container: ItemEjector
 
 var _input_slots: Dictionary = {}  # {item_name: count}
 var _clock: float = 0.0  # 設置からの経過時間（実績レートの計測用）
@@ -32,7 +33,7 @@ var _completion_times: Array[float] = []
 @onready var _progress_bar: ProgressBar = get_node_or_null("ProgressBar")
 
 
-func setup(out_container: Node):
+func setup(out_container: ItemEjector):
 	output_container = out_container
 
 
@@ -47,7 +48,7 @@ func _apply_io_capacities():
 	if not current_recipe:
 		return
 	input_capacity = _sum_quantities(current_recipe.inputs)
-	if output_container and output_container.has_method("set_capacity"):
+	if output_container:
 		output_container.set_capacity(maxi(_sum_quantities(current_recipe.outputs), 1))
 
 

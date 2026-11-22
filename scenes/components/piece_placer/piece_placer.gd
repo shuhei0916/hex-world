@@ -383,7 +383,7 @@ func _add_to_conveyor_path(hex: Vector2i) -> bool:
 
 func _is_replaceable_conveyor(hex: Vector2i) -> bool:
 	var existing = chunk.get_piece_at_hex(hex)
-	return existing != null and existing.is_replaceable()
+	return existing != null and existing.is_conveyor()
 
 
 func _add_ghost_tile(hex: Vector2i):
@@ -511,7 +511,7 @@ func _turn_toward_taker(hex: Vector2i, out: int, input: int) -> int:
 		if direction == out or direction == input:
 			continue
 		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
-		if neighbor != null and neighbor.is_replaceable():
+		if neighbor != null and neighbor.is_conveyor():
 			if _belt_input_side(neighbor) == (direction + 3) % 6:
 				takers.append(direction)
 	return takers[0] if takers.size() == 1 else -1
@@ -539,7 +539,7 @@ func _reorient_belts_around(hexes: Array) -> void:
 				continue
 			visited[neighbor_hex] = true
 			var belt = chunk.get_piece_at_hex(neighbor_hex)
-			if belt != null and belt.is_replaceable():
+			if belt != null and belt.is_conveyor():
 				_reorient_belt(neighbor_hex, belt)
 
 

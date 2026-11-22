@@ -60,12 +60,12 @@ class TestMachineState:
 		var conveyor = _place_output_conveyor(smelter)
 		assert_true(conveyor in smelter.get_connected_pieces(), "前提: 搬出先につながっている")
 		# 行き止まりのコンベアを満杯にしてから完成品を作る
-		smelter.add_to_output("iron_ingot", 1)
+		smelter.ejector.add_item("iron_ingot", 1)
 		for i in 100:
 			smelter.tick(0.1)
 			conveyor.tick(0.1)
 			if smelter.get_item_count("iron_ingot") == 0:
-				smelter.add_to_output("iron_ingot", 1)
+				smelter.ejector.add_item("iron_ingot", 1)
 		assert_eq(PieceStatus.state_of(smelter), PieceStatus.State.OUTPUT_BLOCKED)
 
 	func test_鉱床の無い場所のMinerは鉱床なし():

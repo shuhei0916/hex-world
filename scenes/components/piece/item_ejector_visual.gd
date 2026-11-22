@@ -2,13 +2,13 @@ class_name ItemEjectorVisual
 extends Node2D
 
 ## 保持しているアイテムのアイコンを表示するビジュアル（機械等の搬出系で使用）。
-## shapez の ItemEjectorSystem 相当の描画部。搬送状態は兄弟の mover
-## （get_held_item を持つ BalancerLogic 等）から読む。ベルト描画やパス補間は持たない。
+## shapez の ItemEjectorSystem 相当の描画部。搬送状態は兄弟の ItemEjector から読む。
+## ベルト描画やパス補間は持たない。
 ## アイテムが向かう出力方向は mover.get_target_direction() から読むため、
 ## 表示と実際の排出先が常に一致する（片側のみ接続・詰まり時も食い違わない）。
 
 @onready var _piece: Piece = get_parent()
-@onready var _mover: Node = _find_mover()
+@onready var _mover: ItemEjector = get_parent().get_node_or_null("ItemEjector")
 @onready var _item_icon: Sprite2D = $ItemIcon
 
 
@@ -17,13 +17,6 @@ func _ready():
 	# 施設の背後から出力ポート端に覗かせる。
 	_item_icon.z_index = 7
 	_item_icon.z_as_relative = false
-
-
-func _find_mover() -> Node:
-	for sibling in get_parent().get_children():
-		if sibling.has_method("get_held_item"):
-			return sibling
-	return null
 
 
 func _process(_delta: float):
@@ -45,15 +38,12 @@ func update_item_icon():
 	_item_icon.visible = true
 	# 出力hexの中心(起点)→ポート端(終点)へ、進捗(progress)に応じてスライドさせる（shapez のスロット進行）。
 	var ends = _slide_endpoints(_target_direction())
-	var t = 1.0
-	if _mover.has_method("get_progress_ratio"):
-		t = _mover.get_progress_ratio()
-	_item_icon.position = ends[0].lerp(ends[1], t)
+	_item_icon.position = ends[0].lerp(ends[1], _mover.get_progress_ratio())
 
 
 # mover が示す排出方向(0-5)。取得できなければ主出力ポート方向にフォールバック。
 func _target_direction() -> int:
-	if _mover and _mover.has_method("get_target_direction"):
+	if _mover:
 		var dir = _mover.get_target_direction()
 		if dir >= 0:
 			return dir

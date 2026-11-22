@@ -31,10 +31,10 @@ var storage_resolver: Callable
 
 var _hex_grid := HexGrid.new()
 var _registry := PieceRegistry.new()
-var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.gd").new()
+var _neighbor_manager := NeighborManager.new()
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Vector2i] = []
-var _resources = preload("res://scenes/components/chunk/chunk_resources.gd").new()
+var _resources := ChunkResources.new()
 var _hint_hexes: Array = []
 
 
@@ -44,7 +44,7 @@ func _init():
 
 
 func _ready():
-	_renderer = preload("res://scenes/components/chunk/grid_renderer.gd").new()
+	_renderer = GridRenderer.new()
 	_renderer.setup(layout)
 	add_child(_renderer)
 	_update_grid_visuals()
@@ -82,9 +82,9 @@ func place_piece(
 	piece.setup(rotation)
 	piece.input_direction = input_direction
 	# チェストには、この chunk の共有倉庫を渡す
-	for child in piece.get_children():
-		if child.has_method("set_storage"):
-			child.set_storage(get_storage_for(child.scope))
+	var chest = piece.get_chest()
+	if chest:
+		chest.set_storage(get_storage_for(chest.scope))
 
 	var occupied_hexes: Array[Vector2i] = []
 	for offset in piece.get_hex_shape():
@@ -133,10 +133,7 @@ func remove_piece_at(target_hex: Vector2i) -> bool:
 	_registry.unregister(piece)
 	_neighbor_manager.update_connections_around(piece, hexes_to_remove)
 
-	# 手元にアイテムを持つ部品（搬出チェストなど）に、片付ける機会を与える
-	for child in piece.get_children():
-		if child.has_method("on_piece_removed"):
-			child.on_piece_removed()
+	piece.on_removed()
 	piece.queue_free()
 	piece_removed.emit()
 	return true
@@ -252,9 +249,9 @@ func mark_resource_hex(hex: Vector2i, resource_type: String):
 
 func _paint_resource_tile(hex: Vector2i, resource_type: String):
 	var tile = find_hex_tile(hex)
-	if tile and resource_type in _resources.RESOURCE_COLORS:
+	if tile and resource_type in ChunkResources.RESOURCE_COLORS:
 		# 鉱床は地面の種類なので、床に資源の色を薄く混ぜ、中央に資源のアイコンを出す
-		var color: Color = _resources.RESOURCE_COLORS[resource_type]
+		var color: Color = ChunkResources.RESOURCE_COLORS[resource_type]
 		tile.set_color(HexStyle.FLOOR_COLOR.lerp(color, DEPOSIT_TINT))
 		var item = ItemDB.get_item(resource_type)
 		tile.set_icon(item.icon if item else null)

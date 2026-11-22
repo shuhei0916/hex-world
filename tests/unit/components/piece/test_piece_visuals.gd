@@ -60,7 +60,7 @@ func test_rotate_cw後に出力エッジ点が更新される():
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
 	var out_before = conveyor.get_node("ConveyorVisuals")._path[2]
-	conveyor.rotate_cw()
+	conveyor.set_rotation_state((conveyor.rotation_state + 1) % 6)
 	var out_after = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_ne(out_after, out_before)
 

@@ -50,7 +50,7 @@ class TestOutputs:
 
 	func test_回転すると出口の向きも変わる():
 		var smelter = _place(SMELTER, Vector2i(0, 0))
-		smelter.rotate_cw()
+		smelter.set_rotation_state((smelter.rotation_state + 1) % 6)
 		var stubs = _ports_of(smelter).get_output_stubs()
 		assert_eq(stubs[0]["direction"], smelter.get_output_ports()[0]["direction"])
 

@@ -248,7 +248,7 @@ class TestItemTransfer:
 		# SMELTER at (-1,2): port at (0,0) → absolute (-1,2), direction E → neighbor (0,2)
 		gm.place_piece(SMELTER_SCENE, Vector2i(-1, 2))
 		var source = gm.get_piece_at_hex(Vector2i(-1, 2))
-		source.add_to_output("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
+		source.ejector.add_item("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 
 		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 2))
@@ -430,9 +430,7 @@ class TestOreDeposits:
 	func test_鉱床の色は床に薄く混ぜる程度():
 		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
 		var color: Color = gm.find_hex_tile(Vector2i(1, 0)).get_color()
-		var ore: Color = (
-			load("res://scenes/components/chunk/chunk_resources.gd").RESOURCE_COLORS["copper_ore"]
-		)
+		var ore: Color = ChunkResources.RESOURCE_COLORS["copper_ore"]
 		assert_lt(_distance(color, HexStyle.FLOOR_COLOR), _distance(color, ore))
 
 	func _distance(a: Color, b: Color) -> float:

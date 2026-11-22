@@ -249,7 +249,7 @@ class TestConveyorConnection:
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 2))
 		var smelter = gm.get_piece_at_hex(Vector2i(-1, 2))
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 2))
-		smelter.add_to_output("iron_ingot", 1)
+		smelter.ejector.add_item("iron_ingot", 1)
 		smelter.tick(1.0)  # スライド完了→コンベアへ排出
 		assert_eq(conveyor.get_item_count("iron_ingot"), 1)
 

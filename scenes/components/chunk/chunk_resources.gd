@@ -1,3 +1,4 @@
+class_name ChunkResources
 extends RefCounted
 
 # ChunkResources - ヘックスの資源（鉱床）管理と採掘制約の適用を担当する

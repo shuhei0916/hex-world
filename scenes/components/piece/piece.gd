@@ -37,10 +37,14 @@ var _output_arrow: Sprite2D = null
 var _output_arrow2: Sprite2D = null
 var _connection_direction: int = -1
 
-# コンポーネント
-# 受け入れ口は get_acceptor()（can_accept_item+add_item を持つ子をダックタイピング）で解決する。
+# 部品。ピースの種類ごとに、シーンにこの名前で子として置く（無いものは null）。
+# 型の合わない部品が付いていたら、黙って無視せず読み込み時にエラーになる
 @onready var ejector: ItemEjector = get_node_or_null("ItemEjector")
 @onready var crafter: Crafter = get_node_or_null("Crafter")
+@onready var conveyor_logic: ConveyorLogic = get_node_or_null("ConveyorLogic")
+@onready var chest_input: ChestInput = get_node_or_null("ChestInput")
+@onready var chest_output: ChestOutput = get_node_or_null("ChestOutput")
+@onready var hub: Hub = get_node_or_null("Hub")
 
 
 func _ready():
@@ -68,7 +72,7 @@ func _create_hex_tiles():
 	if piece_shape.is_empty():
 		return
 	# ベルトを描くコンベアは画像自体が見た目を担うので本体は描かない。
-	if _is_belt():
+	if is_conveyor():
 		return
 	var body := PieceBody.new()
 	body.name = "Body"
@@ -110,7 +114,7 @@ func setup(rotation: int = 0):
 
 # 施設（ベルト以外）には、出入口を描く PortVisuals を付ける
 func _ensure_port_visuals() -> void:
-	if Engine.is_editor_hint() or _is_belt() or has_node("PortVisuals"):
+	if Engine.is_editor_hint() or is_conveyor() or has_node("PortVisuals"):
 		return
 	var ports := PortVisuals.new()
 	ports.name = "PortVisuals"
@@ -135,27 +139,29 @@ func add_item(item_name: String, amount: int):
 		acc.add_item(item_name, amount)
 
 
-func add_to_output(item_name: String, amount: int):
-	if ejector:
-		ejector.add_item(item_name, amount)
-
-
+# 手元にある item_name の数（加工待ちの材料・ベルトの上・排出待ちの合計）
 func get_item_count(item_name: String) -> int:
-	var count = 0
-	for child in get_children():
-		if child.has_method("get_item_count"):
-			count += child.get_item_count(item_name)
+	var count := 0
+	if crafter:
+		count += crafter.get_item_count(item_name)
+	if conveyor_logic:
+		count += conveyor_logic.get_item_count(item_name)
+	if ejector:
+		count += ejector.get_item_count(item_name)
 	return count
 
 
 func tick(delta: float):
-	# 全 tick を Piece に集約する。まず crafter(生産)→次に他のロジック(ejector/conveyor)。
-	# これにより同一フレーム内で「生産→排出」が流れ、子の自走 _process との二重 tick も避ける。
+	# 全 tick を Piece に集約する。生産 → 搬送・排出 → 倉庫からの次の取り出し の順に進めるので、
+	# 同じフレームのうちに「作る → 出す」が流れる（部品が自分で _process を回す二重 tick も避ける）
 	if crafter:
 		crafter.tick(delta)
-	for child in get_children():
-		if child != crafter and child.has_method("tick"):
-			child.tick(delta)
+	if conveyor_logic:
+		conveyor_logic.tick(delta)
+	if ejector:
+		ejector.tick(delta)
+	if chest_output:
+		chest_output.tick(delta)
 
 
 func get_hex_shape() -> Array[Vector2i]:
@@ -163,10 +169,6 @@ func get_hex_shape() -> Array[Vector2i]:
 	for v in piece_shape:
 		hexes.append(Hex.from_offset_rotated(v, rotation_state))
 	return hexes
-
-
-func rotate_cw():
-	set_rotation_state((rotation_state + 1) % 6)
 
 
 func set_rotation_state(rotation: int) -> void:
@@ -191,13 +193,10 @@ func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 	return {"hex": hex, "direction": rotated_direction}
 
 
-func is_replaceable() -> bool:
-	return _is_belt()
-
-
-func _is_belt() -> bool:
-	# ConveyorVisuals を持つのはベルトを描くコンベアのみ。
-	return get_node_or_null("ConveyorVisuals") != null
+# コンベアか。種類で決める（見た目の部品の有無では判断しない）。
+# 橋もベルトと同じ動きの部品（ConveyorLogic）を持つが、コンベアではない
+func is_conveyor() -> bool:
+	return piece_type == PieceData.Type.CONVEYOR
 
 
 func _refresh_output_arrow():
@@ -208,7 +207,7 @@ func _refresh_output_arrow():
 		_output_arrow2.queue_free()
 		_output_arrow2 = null
 	# ベルト画像自体が方向を示すので、コンベアには矢印を出さない。
-	if _is_belt():
+	if is_conveyor():
 		return
 	var ports = get_output_ports()
 	if ports.is_empty():
@@ -225,11 +224,17 @@ func _refresh_output_arrow():
 			_output_arrow2.visible = false
 
 
+# アイテムの受け入れ口になる部品（shapez の ItemAcceptor 相当）。受け入れないピースは null。
+# どれも can_accept_item(item_name) と add_item(item_name, amount) を持つ
 func get_acceptor() -> Node:
-	# アイテム受け入れ口となるコンポーネント（shapez の ItemAcceptor 相当）を返す
-	for child in get_children():
-		if child.has_method("can_accept_item") and child.has_method("add_item"):
-			return child
+	if conveyor_logic:
+		return conveyor_logic
+	if crafter:
+		return crafter
+	if chest_input:
+		return chest_input
+	if hub:
+		return hub
 	return null
 
 
@@ -238,20 +243,43 @@ func can_accept_item(item_name: String) -> bool:
 	return acc != null and acc.can_accept_item(item_name)
 
 
+# 送り出す先のピースを、送り出す部品（ベルトの動き か 排出口）に伝える
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
-	for child in get_children():
-		if child.has_method("set_connected_pieces"):
-			child.set_connected_pieces(pieces, directions)
-			break
+	var sender = _sender()
+	if sender:
+		sender.set_connected_pieces(pieces, directions)
 	_connection_direction = directions[0] if not directions.is_empty() else -1
 	_refresh_connection_indicator()
 
 
 func get_connected_pieces() -> Array:
-	for child in get_children():
-		if child.has_method("get_connected_pieces"):
-			return child.get_connected_pieces()
-	return []
+	var sender = _sender()
+	return sender.get_connected_pieces() if sender else []
+
+
+func _sender() -> Node:
+	if conveyor_logic:
+		return conveyor_logic
+	return ejector
+
+
+# 共有倉庫を使う部品（チェスト）。無ければ null
+func get_chest() -> Node:
+	return chest_input if chest_input else chest_output
+
+
+# ベルトを、入ってくる側（先頭が主入力）から出ていく側へ描き直す。ベルトを描かないピースでは何もしない
+func show_belt_directions(input_directions: Array, output_directions: Array) -> void:
+	var visuals := get_node_or_null("ConveyorVisuals") as ConveyorVisuals
+	if visuals:
+		visuals.set_input_directions(input_directions)
+		visuals.set_output_directions(output_directions)
+
+
+# chunk から撤去されるとき。手元にアイテムを持つ部品に片付ける機会を与える
+func on_removed() -> void:
+	if chest_output:
+		chest_output.on_piece_removed()
 
 
 func has_connected_piece() -> bool:

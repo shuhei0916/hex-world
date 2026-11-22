@@ -1,7 +1,4 @@
-# gdlint:disable=constant-name
 extends GutTest
-
-const PieceRegistry = preload("res://scenes/components/chunk/piece_registry.gd")
 
 
 class TestRegisterAndGet:

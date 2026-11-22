@@ -4,6 +4,8 @@ extends GutTest
 const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
 
 
 class TestMachineCapacity:
@@ -92,11 +94,11 @@ class TestPieceTransformation:
 
 	func test_ピースの回転に合わせてポートの向きも変更される():
 		assert_eq(p.get_output_ports()[0].direction, 2)
-		p.rotate_cw()
+		p.set_rotation_state((p.rotation_state + 1) % 6)
 		assert_eq(p.get_output_ports()[0].direction, 1)
 
 	func test_回転すると本体の形も回転後のマスに合わせて描き直す():
-		p.rotate_cw()
+		p.set_rotation_state((p.rotation_state + 1) % 6)
 		var outline: PackedVector2Array = p.get_node("Body").get_outline()
 		for hex in p.get_hex_shape():
 			var center := Layout.hex_to_pixel(Layout.make_default(), hex)
@@ -110,7 +112,7 @@ class TestPieceTransformation:
 		assert_true(result[1] == Vector2i(0, 0))
 
 	func test_回転後のピースの形状を取得できる():
-		p.rotate_cw()
+		p.set_rotation_state((p.rotation_state + 1) % 6)
 		var result = p.get_hex_shape()
 		assert_true(result[0] == Vector2i(0, -1))
 
@@ -118,7 +120,7 @@ class TestPieceTransformation:
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		s.add_to_output("iron_ingot", 1)
+		s.ejector.add_item("iron_ingot", 1)
 		s.ejector.tick(1.0)  # スライド完了させてポート端へ
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
@@ -134,12 +136,12 @@ class TestPieceTransformation:
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		s.add_to_output("iron_ingot", 1)
+		s.ejector.add_item("iron_ingot", 1)
 		s.ejector.tick(1.0)
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var before = visual.get_node("ItemIcon").position
-		s.rotate_cw()
+		s.set_rotation_state((s.rotation_state + 1) % 6)
 		visual.update_item_icon()
 		assert_ne(visual.get_node("ItemIcon").position, before)
 
@@ -148,7 +150,7 @@ class TestPieceTransformation:
 		var m = MINER_SCENE.instantiate()
 		add_child_autofree(m)
 		m.setup(0)
-		m.add_to_output("iron_ore", 1)  # progress 0（スライド開始前）
+		m.ejector.add_item("iron_ore", 1)  # progress 0（スライド開始前）
 		var visual = m.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var port = m.get_output_ports()[0]
@@ -170,8 +172,6 @@ class TestPieceTransformation:
 class TestPieceAcceptor:
 	extends GutTest
 
-	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
-
 	func test_機械ピースのget_acceptorはCrafterを返す():
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
@@ -188,6 +188,39 @@ class TestPieceAcceptor:
 		add_child_autofree(p)
 		p.setup()
 		assert_false(p.can_accept_item("iron_ore"))
+
+	func test_搬入チェストとハブはそれぞれの部品が受け入れ口になる():
+		var chest = load("res://scenes/components/piece/chest_in.tscn").instantiate()
+		add_child_autofree(chest)
+		assert_eq(chest.get_acceptor(), chest.get_node("ChestInput"))
+		var hub = load("res://scenes/components/piece/hub.tscn").instantiate()
+		add_child_autofree(hub)
+		assert_eq(hub.get_acceptor(), hub.get_node("Hub"))
+
+	func test_搬出チェストは何も受け入れない():
+		var chest = load("res://scenes/components/piece/chest_out.tscn").instantiate()
+		add_child_autofree(chest)
+		assert_null(chest.get_acceptor())
+
+
+class TestPieceKind:
+	extends GutTest
+
+	func test_コンベアかどうかは種類で決まり見た目の部品の有無に左右されない():
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		p.get_node("ConveyorVisuals").free()
+		assert_true(p.is_conveyor())
+
+	func test_橋はベルトの動きの部品を持つがコンベアではない():
+		var p = BRIDGE_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_false(p.is_conveyor())
+
+	func test_機械はコンベアではない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_false(p.is_conveyor())
 
 
 class TestPieceRoles:

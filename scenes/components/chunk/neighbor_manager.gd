@@ -1,13 +1,14 @@
+class_name NeighborManager
 extends RefCounted
 
 # NeighborManager - ピース間の出力ポート接続解決を担当する
 # PieceRegistry と HexGrid への参照を受け取り、接続の計算・更新を行う
 
-var _registry
-var _hex_grid
+var _registry: PieceRegistry
+var _hex_grid: HexGrid
 
 
-func setup(registry, hex_grid) -> void:
+func setup(registry: PieceRegistry, hex_grid: HexGrid) -> void:
 	_registry = registry
 	_hex_grid = hex_grid
 
@@ -33,7 +34,7 @@ func update_connections_around(piece: Piece, precalculated_hexes = null) -> void
 func _update_piece_neighbors(piece: Piece) -> void:
 	if not is_instance_valid(piece):
 		return
-	# SENDER の出力はチャンク間配線（World が管理）専用。
+	# 橋の出力はチャンク間配線（World が管理）専用。
 	# チャンク内で配線すると World の配線を上書きしてしまうため対象外とする。
 	if piece.piece_type == PieceData.Type.BRIDGE:
 		return
@@ -52,29 +53,18 @@ func _update_piece_neighbors(piece: Piece) -> void:
 						current_directions.append(direction)
 
 	piece.set_connected_pieces(current_connections, current_directions)
-
-	_update_conveyor_input_direction(piece)
-	_update_conveyor_output_directions(piece, current_directions)
-
-
-func _update_conveyor_output_directions(piece: Piece, directions: Array[int]) -> void:
-	var visuals = piece.get_node_or_null("ConveyorVisuals")
-	if visuals == null:
-		return
-	# つながる先が無くなったら空にする（ConveyorVisuals は空なら自分の出口へ向けて描く）
-	visuals.set_output_directions(directions)
+	if piece.is_conveyor():
+		# つながる先が無くなったら出口は空で伝える（ベルトは自分の出口へ向けて描く）
+		piece.show_belt_directions(_belt_input_directions(piece), current_directions)
 
 
-func _update_conveyor_input_direction(piece: Piece) -> void:
-	var visuals = piece.get_node_or_null("ConveyorVisuals")
-	if visuals == null:
-		return
-	# 合流では入力元が複数になる。ドラッグで決まった入力方向がつながっていればそれを主入力にする。
+# 合流では入力元が複数になる。ドラッグで決まった入力方向がつながっていればそれを主入力（先頭）にする
+func _belt_input_directions(piece: Piece) -> Array:
 	var directions := feeding_directions(piece)
 	if piece.input_direction in directions:
 		directions.erase(piece.input_direction)
 		directions.push_front(piece.input_direction)
-	visuals.set_input_directions(directions)
+	return directions
 
 
 # 1マスのピースへ流し込んでくる入力元の方向（0-5）。出力の配線（_is_physically_connected）と同じ判定
@@ -138,7 +128,7 @@ func _outputs_toward(piece: Piece, direction: int) -> bool:
 
 
 func _is_conveyor(piece: Piece) -> bool:
-	return piece != null and piece.get_node_or_null("ConveyorVisuals") != null
+	return piece != null and piece.is_conveyor()
 
 
 func _get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
