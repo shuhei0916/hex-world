@@ -1,138 +1,175 @@
 class_name ResearchPanel
 extends PanelContainer
 
-## 研究の一覧。在庫を払って研究を進める画面。
-## 行は Research の定義から作り、在庫・レベル・研究の変化に合わせて表示を更新する。
-## 研究できるものを上に、研究済みのものを下に並べ替える。
+## 研究ツリーの画面。在庫を払って研究を進める。
+## 研究を六角形のノード（ResearchNode）で、行=系統・列=研究できるようになるハブのレベルに並べ
+## （配置は ResearchTreeLayout）、前提の研究と線でつなぐ。ノードを選ぶと、右の詳細に
+## 説明・価格・状態と「研究する」ボタンが出る。在庫・レベル・研究の変化に合わせて表示を更新する。
 
-const PANEL_SIZE := Vector2(560, 0)
-# 研究が増えても画面からはみ出さないよう、一覧はこの高さでスクロールさせる
-const LIST_HEIGHT := 420.0
 const TITLE_TEXT := "研究"
 const HINT_TEXT := "E キーで閉じる"
 const BUTTON_TEXT := "研究する"
-const DONE_ALPHA := 0.5
 
-# 後ろのマップが透けて読みにくくならないよう、背景はほぼ不透明にする
-const BACKGROUND_COLOR := Color(0.09, 0.1, 0.13, 0.98)
+# ツリーのマスの大きさ。ノードはマスの中央に置く
+const COLUMN_WIDTH := 104.0
+const ROW_HEIGHT := 96.0
+const HEADER_HEIGHT := 28.0
+const ROW_TITLE_WIDTH := 76.0
+# ツリーが大きくなっても画面からはみ出さないよう、この大きさを超えたらスクロールさせる
+const TREE_VIEW_MAX := Vector2(920, 430)
+const DETAIL_WIDTH := 250.0
+const LINK_WIDTH := 3.0
+
+# 後ろのマップが透けて読みにくくならないよう、背景は不透明にする
+const BACKGROUND_COLOR := Color(0.09, 0.1, 0.13, 1.0)
 const BORDER_COLOR := Color(0.45, 0.5, 0.6)
-const ROW_COLOR := Color(0.16, 0.18, 0.23)
+const DETAIL_COLOR := Color(0.13, 0.15, 0.19)
+const BAND_COLOR := Color(1, 1, 1, 0.03)
 const NAME_COLOR := Color(1, 1, 1)
 const DESCRIPTION_COLOR := Color(0.72, 0.75, 0.8)
+const TITLE_COLOR := Color(0.55, 0.6, 0.68)
 const AFFORDABLE_COLOR := Color(0.55, 0.9, 0.55)
 const UNAFFORDABLE_COLOR := Color(1.0, 0.55, 0.5)
 const STATUS_COLOR := Color(1.0, 0.82, 0.45)
-
-# 一覧に並べる順（小さいほど上）
-const STATE_ORDER = {
-	Research.State.AVAILABLE: 0,
-	Research.State.UNAFFORDABLE: 1,
-	Research.State.LOCKED_CONDITION: 2,
-	Research.State.LOCKED_PREREQUISITE: 3,
-	Research.State.LOCKED_LEVEL: 4,
-	Research.State.DONE: 5,
-}
+const LINK_COLOR := Color("#3c4452")
+const LINK_DONE_COLOR := Color("#4fa3d9")
 
 var close_button: Button
+var research_button: Button
 
-var _rows_container: VBoxContainer
-var _rows: Dictionary = {}  # research_id → 行の Control
-var _buttons: Dictionary = {}  # research_id → Button
-var _name_labels: Dictionary = {}  # research_id → Label
-var _description_labels: Dictionary = {}  # research_id → Label
-var _cost_labels: Dictionary = {}  # research_id → Label
-var _status_labels: Dictionary = {}  # research_id → Label
+var _canvas: Control
+var _nodes: Dictionary = {}  # research_id → ResearchNode
+var _links: Array = []  # [前提の id, 研究の id]
+var _column_titles: Array[String] = []
+var _row_titles: Array[String] = []
+var _selected := ""
+var _name_label: Label
+var _description_label: Label
+var _cost_label: Label
+var _status_label: Label
 
 
 func _ready() -> void:
 	visible = false
-	custom_minimum_size = PANEL_SIZE
 	add_theme_stylebox_override("panel", _make_box(BACKGROUND_COLOR, BORDER_COLOR, 2, 10))
 	_build()
 	HubGoals.research_changed.connect(refresh)
 	HubGoals.stock_changed.connect(refresh)
 	HubGoals.exploration_changed.connect(refresh)
 	HubGoals.level_up.connect(func(_level, _reward): refresh())
-	refresh()
+	select(_default_selection())
 
 
 func toggle() -> void:
 	visible = not visible
 	if visible:
-		refresh()
+		select(_default_selection())
 
 
 func close() -> void:
 	visible = false
 
 
-func get_button(id: String) -> Button:
-	return _buttons.get(id)
+func get_node_button(id: String) -> ResearchNode:
+	return _nodes.get(id)
 
 
-func get_row(id: String) -> Control:
-	return _rows.get(id)
+# ツリーの中でのノードの六角形の中心
+func get_node_center(id: String) -> Vector2:
+	return _nodes[id].position + ResearchNode.HEX_CENTER
 
 
-func get_status_text(id: String) -> String:
-	return _status_labels[id].text
+func get_links() -> Array:
+	return _links
 
 
-# その研究の行に表示されている文章（名前・説明・価格）
-func get_row_text(id: String) -> String:
-	return (
-		"%s\n%s\n%s" % [_name_labels[id].text, _description_labels[id].text, _cost_labels[id].text]
-	)
+func get_link_color(from_id: String, _to_id: String) -> Color:
+	return LINK_DONE_COLOR if HubGoals.is_researched(from_id) else LINK_COLOR
 
 
-# いま表示されている並び順の研究 id
-func get_row_order() -> Array:
-	var order := []
-	for row in _rows_container.get_children():
-		order.append(_rows.find_key(row))
-	return order
+func get_column_titles() -> Array[String]:
+	return _column_titles
+
+
+func get_row_titles() -> Array[String]:
+	return _row_titles
+
+
+func get_selected() -> String:
+	return _selected
+
+
+func select(id: String) -> void:
+	_selected = id
+	for node_id in _nodes:
+		_nodes[node_id].selected = node_id == id
+	refresh()
+
+
+# 詳細に表示している文章（名前・説明・価格）
+func get_detail_text() -> String:
+	return "%s\n%s\n%s" % [_name_label.text, _description_label.text, _cost_label.text]
+
+
+func get_status_text() -> String:
+	return _status_label.text
 
 
 func refresh() -> void:
-	for id in _buttons:
-		var state = HubGoals.research_state(id)
-		_buttons[id].disabled = state != Research.State.AVAILABLE
-		_status_labels[id].text = HubGoals.research_state_text(id)
-		_rows[id].modulate.a = DONE_ALPHA if state == Research.State.DONE else 1.0
-		_refresh_cost(id, state)
-	_sort_rows()
+	for id in _nodes:
+		_nodes[id].set_state(HubGoals.research_state(id))
+	if _canvas:
+		_canvas.queue_redraw()
+	_refresh_detail()
 
 
-# 価格は「手持ち/必要数」で示し、足りているかどうかで色を変える
-func _refresh_cost(id: String, state: Research.State) -> void:
-	var cost: Dictionary = Research.get_def(id)["cost"]
+# 研究できるもの（定義の順で最初）。無ければいま選んでいるもの、
+# 何も選んでいなければまだ済んでいない最初のもの、すべて済んでいれば先頭
+func _default_selection() -> String:
+	var ids = Research.all_ids()
+	for id in ids:
+		if HubGoals.research_state(id) == Research.State.AVAILABLE:
+			return id
+	if _selected != "":
+		return _selected
+	for id in ids:
+		if not HubGoals.is_researched(id):
+			return id
+	return ids[0]
+
+
+func _refresh_detail() -> void:
+	if _name_label == null or _selected == "":
+		return
+	var def = Research.get_def(_selected)
+	var state = HubGoals.research_state(_selected)
+	_name_label.text = def["name"]
+	_description_label.text = def["description"]
+	_cost_label.text = "価格: " + _cost_text(def["cost"])
+	var color = AFFORDABLE_COLOR if HubGoals.can_afford(def["cost"]) else UNAFFORDABLE_COLOR
+	if state == Research.State.DONE:
+		color = DESCRIPTION_COLOR
+	_cost_label.add_theme_color_override("font_color", color)
+	_status_label.text = HubGoals.research_state_text(_selected)
+	research_button.disabled = state != Research.State.AVAILABLE
+
+
+# 価格は「手持ち/必要数」で示す
+func _cost_text(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	for item_id in cost:
 		var item = ItemDB.get_item(item_id)
 		var item_name = item.display_name if item else item_id
 		parts.append("%s %d/%d" % [item_name, HubGoals.get_stock(item_id), cost[item_id]])
-	var label: Label = _cost_labels[id]
-	label.text = "価格: " + "、".join(parts)
-	var color = AFFORDABLE_COLOR if HubGoals.can_afford(cost) else UNAFFORDABLE_COLOR
-	if state == Research.State.DONE:
-		color = DESCRIPTION_COLOR
-	label.add_theme_color_override("font_color", color)
+	return "、".join(parts)
 
 
-# 研究できるものを上へ。同じ状態のものは定義の順を保つ
-func _sort_rows() -> void:
-	var ids = Research.all_ids()
-	var sorted_ids = ids.duplicate()
-	sorted_ids.sort_custom(
-		func(a, b):
-			var order_a = STATE_ORDER[HubGoals.research_state(a)]
-			var order_b = STATE_ORDER[HubGoals.research_state(b)]
-			if order_a != order_b:
-				return order_a < order_b
-			return ids.find(a) < ids.find(b)
-	)
-	for i in sorted_ids.size():
-		_rows_container.move_child(_rows[sorted_ids[i]], i)
+func _research_selected() -> void:
+	if _selected != "":
+		HubGoals.research(_selected)
+
+
+# ---- 組み立て ----------------------------------------------------------------
 
 
 func _build() -> void:
@@ -144,16 +181,11 @@ func _build() -> void:
 	layout.add_theme_constant_override("separation", 12)
 	margin.add_child(layout)
 	layout.add_child(_build_header())
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, LIST_HEIGHT)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	layout.add_child(scroll)
-	_rows_container = VBoxContainer.new()
-	_rows_container.add_theme_constant_override("separation", 8)
-	_rows_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_rows_container)
-	for id in Research.all_ids():
-		_rows_container.add_child(_build_row(id))
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 16)
+	layout.add_child(body)
+	body.add_child(_build_tree())
+	body.add_child(_build_detail())
 
 
 func _build_header() -> Control:
@@ -172,48 +204,118 @@ func _build_header() -> Control:
 	return header
 
 
-func _build_row(id: String) -> Control:
-	var def = Research.get_def(id)
+func _build_tree() -> Control:
+	var defs: Dictionary = Research.DEFS
+	var cells := ResearchTreeLayout.cells(defs)
+	var levels := ResearchTreeLayout.column_levels(defs)
+	var branch_rows := ResearchTreeLayout.branch_rows(defs)
+	var row_count := 0
+	for rows in branch_rows.values():
+		row_count += rows.size()
+
+	_canvas = Control.new()
+	_canvas.custom_minimum_size = Vector2(
+		ROW_TITLE_WIDTH + levels.size() * COLUMN_WIDTH, HEADER_HEIGHT + row_count * ROW_HEIGHT
+	)
+	_canvas.draw.connect(_draw_tree.bind(branch_rows))
+
+	for i in levels.size():
+		var title := _make_label("Lv%d" % levels[i], 13, TITLE_COLOR)
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title.position = Vector2(ROW_TITLE_WIDTH + i * COLUMN_WIDTH, 4)
+		title.size = Vector2(COLUMN_WIDTH, HEADER_HEIGHT - 4)
+		_canvas.add_child(title)
+		_column_titles.append(title.text)
+	for branch in Research.BRANCHES:
+		if not branch_rows.has(branch):
+			continue
+		var rows: Array = branch_rows[branch]
+		var title := _make_label(Research.branch_name(branch), 14, TITLE_COLOR)
+		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		title.position = Vector2(8, HEADER_HEIGHT + rows[0] * ROW_HEIGHT)
+		title.size = Vector2(ROW_TITLE_WIDTH - 8, rows.size() * ROW_HEIGHT)
+		_canvas.add_child(title)
+		_row_titles.append(title.text)
+
+	for id in Research.all_ids():
+		var node := ResearchNode.new(id)
+		var cell: Vector2i = cells[id]
+		var cell_origin := Vector2(
+			ROW_TITLE_WIDTH + cell.x * COLUMN_WIDTH, HEADER_HEIGHT + cell.y * ROW_HEIGHT
+		)
+		node.position = (
+			cell_origin + (Vector2(COLUMN_WIDTH, ROW_HEIGHT) - ResearchNode.NODE_SIZE) * 0.5
+		)
+		node.pressed.connect(select.bind(id))
+		_canvas.add_child(node)
+		_nodes[id] = node
+		for required in Research.get_def(id)["requires"]:
+			_links.append([required, id])
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(
+		minf(_canvas.custom_minimum_size.x, TREE_VIEW_MAX.x),
+		minf(_canvas.custom_minimum_size.y, TREE_VIEW_MAX.y)
+	)
+	scroll.add_child(_canvas)
+	return scroll
+
+
+# 系統ごとの帯（1つおきに薄く塗る）と、前提をつなぐ線
+func _draw_tree(branch_rows: Dictionary) -> void:
+	var stripe := false
+	for branch in Research.BRANCHES:
+		if not branch_rows.has(branch):
+			continue
+		var rows: Array = branch_rows[branch]
+		if stripe:
+			_canvas.draw_rect(
+				Rect2(
+					0,
+					HEADER_HEIGHT + rows[0] * ROW_HEIGHT,
+					_canvas.custom_minimum_size.x,
+					rows.size() * ROW_HEIGHT
+				),
+				BAND_COLOR
+			)
+		stripe = not stripe
+	for link in _links:
+		var from := get_node_center(link[0]) + Vector2(ResearchNode.HEX_RADIUS, 0)
+		var to := get_node_center(link[1]) - Vector2(ResearchNode.HEX_RADIUS, 0)
+		_canvas.draw_line(from, to, get_link_color(link[0], link[1]), LINK_WIDTH, true)
+
+
+func _build_detail() -> Control:
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _make_box(ROW_COLOR, ROW_COLOR, 0, 6))
-	_rows[id] = card
+	card.custom_minimum_size = Vector2(DETAIL_WIDTH, 0)
+	card.add_theme_stylebox_override("panel", _make_box(DETAIL_COLOR, DETAIL_COLOR, 0, 8))
 	var margin := MarginContainer.new()
-	for side in ["left", "right"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
-	for side in ["top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 8)
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
 	card.add_child(margin)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	margin.add_child(row)
-
-	var info := VBoxContainer.new()
-	info.add_theme_constant_override("separation", 2)
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(info)
-	_name_labels[id] = _make_label(def["name"], 17, NAME_COLOR)
-	_description_labels[id] = _make_label(def["description"], 13, DESCRIPTION_COLOR)
-	_description_labels[id].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_cost_labels[id] = _make_label("", 13, AFFORDABLE_COLOR)
-	for label in [_name_labels[id], _description_labels[id], _cost_labels[id]]:
-		info.add_child(label)
-
-	var side_box := VBoxContainer.new()
-	side_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	side_box.custom_minimum_size = Vector2(150, 0)
-	row.add_child(side_box)
-	var button := Button.new()
-	button.text = BUTTON_TEXT
-	button.custom_minimum_size = Vector2(120, 36)
-	button.focus_mode = Control.FOCUS_NONE
-	button.pressed.connect(func(): HubGoals.research(id))
-	side_box.add_child(button)
-	_buttons[id] = button
-	var status := _make_label("", 12, STATUS_COLOR)
-	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	side_box.add_child(status)
-	_status_labels[id] = status
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	margin.add_child(box)
+	_name_label = _make_label("", 18, NAME_COLOR)
+	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_description_label = _make_label("", 13, DESCRIPTION_COLOR)
+	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_cost_label = _make_label("", 13, AFFORDABLE_COLOR)
+	_cost_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for label in [_name_label, _description_label, _cost_label]:
+		box.add_child(label)
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(spacer)
+	_status_label = _make_label("", 12, STATUS_COLOR)
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_status_label)
+	research_button = Button.new()
+	research_button.text = BUTTON_TEXT
+	research_button.custom_minimum_size = Vector2(0, 38)
+	research_button.focus_mode = Control.FOCUS_NONE
+	research_button.pressed.connect(_research_selected)
+	box.add_child(research_button)
 	return card
 
 

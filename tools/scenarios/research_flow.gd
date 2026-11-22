@@ -1,6 +1,7 @@
 extends RefCounted
 ## 研究の流れを出力する: ハブに納品してレベルを上げる（機械はレベルで自動解放）→
-## コンベア高速化を研究して、実ゲームの tick でコンベアが速くなることを確かめる（等速 0.5秒 → 1.5倍で約0.33秒）。
+## 研究ツリーでコンベア高速化のノードを選んで研究し、実ゲームの tick でコンベアが速くなることを確かめる
+## （1マス 2.0秒 → 2倍で 1.0秒）。
 
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const ASSEMBLER_SLOT := 3
@@ -16,15 +17,18 @@ func run(scene: Node) -> void:
 	_report("鉄鉱石10・鉄インゴット20を納品", scene)
 
 	scene._handle_key_input(_key(KEY_E))
-	print("E キー → 研究パネル visible=%s" % scene.hud.research_panel.visible)
+	var panel: ResearchPanel = scene.hud.research_panel
+	print("E キー → 研究パネル visible=%s / 選ばれている研究=%s" % [panel.visible, panel.get_selected()])
 
 	var before = await _measure_belt_seconds(scene, chunk, Vector2i(3, -3))
-	scene.hud.research_panel.get_button("belt_speed_1").pressed.emit()
+	panel.get_node_button("belt_speed_1").pressed.emit()
+	panel.research_button.pressed.emit()
 	var after = await _measure_belt_seconds(scene, chunk, Vector2i(3, -2))
 	_report("コンベア高速化 I を研究", scene)
 	print("コンベア1マスを運び切る時間: 研究前 %.2f秒 → 研究後 %.2f秒" % [before, after])
 	for id in Research.all_ids():
-		print("  %s: %s" % [id, scene.hud.research_panel.get_status_text(id)])
+		var state = HubGoals.research_state_text(id)
+		print("  %s: %s" % [id, state if state != "" else "研究できる"])
 
 
 # コンベアを1本置いてアイテムを載せ、端まで運び切るのにかかるゲーム内時間を求める。
