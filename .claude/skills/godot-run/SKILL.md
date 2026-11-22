@@ -92,7 +92,8 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `biome_production.gd`: 山岳・森林 chunk の鉱床に Miner を置いて新資源の採掘を確かめ、銅インゴット・鋼材が実際の tick で加工されるかを出力する（約9秒待つ）
 
 - `build_cost.gd`: 在庫不足で置けない → ハブに納品 → 設置で在庫が減る → 撤去で全額戻る、の流れを出力する
-- `research_flow.gd`: ハブに納品してレベルを上げ、研究でピースを解放し、コンベア高速化が実際の速さに効くかを出力する
+- `research_flow.gd`: ハブに納品してレベルを上げ、研究ツリーでコンベア高速化を選んで研究し、実際の速さに効くかを出力する
+- `visual_research_tree.gd`: 見た目確認用。研究済み・研究できる・在庫不足・未解放が混ざった状態で研究ツリーの画面を開いて映す
 - `chunk_chest.gd`: 離れた搬入チェストから搬出チェストへ、コンベア無しでアイテムが渡ってハブに届くかを出力する（搬出側はクリック→選択パネルで選ぶ）
 - `planet_chest.gd`: 離れた山岳の chunk の planet 搬入チェストから、原点の chunk の搬出チェスト経由でハブに届くかを出力する
 - `biome_chest.gd`: バイオームチェストが同じ地域の chunk からは届き、別の地域の chunk からは届かないことを出力する
