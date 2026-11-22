@@ -70,6 +70,9 @@ class TestOutputs:
 		assert_lt(position.length() + PortVisuals.MARKER_SIZE, PortVisuals.TILE_INRADIUS)
 		assert_gt(position.length(), PortVisuals.TILE_INRADIUS * 0.5, "中心ではなく縁の近く")
 
-	func test_出口の印を描く施設では従来の出力矢印を隠す():
+	func test_出口は印で示し矢印の画像は作らない():
 		var smelter = _place(SMELTER, Vector2i(0, 0))
-		assert_false(smelter._output_arrow.visible)
+		var arrows = smelter.get_children().filter(
+			func(c): return c is Sprite2D and c.texture == Piece.FORWARD_TEXTURE
+		)
+		assert_eq(arrows, [])

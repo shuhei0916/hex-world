@@ -41,12 +41,6 @@ func set_color(color: Color):
 	queue_redraw()
 
 
-# 色をリセット
-func reset_color():
-	_current_color = normal_color
-	queue_redraw()
-
-
 # 現在のピースの色を取得
 func get_color() -> Color:
 	return _current_color

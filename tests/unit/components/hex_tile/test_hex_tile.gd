@@ -20,14 +20,6 @@ func test_色を設定するとその色で塗る():
 	assert_eq(hex_tile.get_fill_color(), Color.RED)
 
 
-func test_色をリセットすると床の色に戻る():
-	hex_tile.set_color(Color.RED)
-
-	hex_tile.reset_color()
-
-	assert_eq(hex_tile.get_fill_color(), HexStyle.FLOOR_COLOR)
-
-
 func test_透明度を設定できる():
 	hex_tile.set_color(Color.RED)
 

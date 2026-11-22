@@ -1,3 +1,4 @@
+@tool
 class_name PortVisuals
 extends Node2D
 

@@ -18,9 +18,7 @@ const BODY_Z_INDEX := 10
 @export var piece_type: PieceData.Type = PieceData.Type.CONVEYOR
 @export var piece_shape: Array[Vector2i] = []
 @export var port_hex: Vector2i = Vector2i.ZERO
-@export var port_hex2: Vector2i = Vector2i.ZERO
 @export var port_direction: int = -1  # -1 = 出力ポートなし
-@export var port_direction2: int = -1  # -1 = 第2出力なし
 @export var piece_color: Color
 
 # 回転状態 (0-5)
@@ -33,8 +31,6 @@ var current_recipe: Recipe:
 	get:
 		return crafter.current_recipe if crafter else null
 
-var _output_arrow: Sprite2D = null
-var _output_arrow2: Sprite2D = null
 var _connection_direction: int = -1
 
 # 部品。ピースの種類ごとに、シーンにこの名前で子として置く（無いものは null）。
@@ -49,7 +45,8 @@ var _connection_direction: int = -1
 
 func _ready():
 	if Engine.is_editor_hint():
-		_refresh_output_arrow()
+		# エディタでも、置いたときと同じ本体と出口の印を見せる
+		_ensure_port_visuals()
 		_create_hex_tiles()
 		return
 	if crafter and ejector:
@@ -107,14 +104,13 @@ func setup(rotation: int = 0):
 	if not recipes.is_empty():
 		set_recipe(recipes[0])
 	_ensure_port_visuals()
-	_refresh_output_arrow()
 	_create_hex_tiles()
 	shape_changed.emit()
 
 
-# 施設（ベルト以外）には、出入口を描く PortVisuals を付ける
+# 施設（ベルト以外）には、出口の印を描く PortVisuals を付ける
 func _ensure_port_visuals() -> void:
-	if Engine.is_editor_hint() or is_conveyor() or has_node("PortVisuals"):
+	if is_conveyor() or has_node("PortVisuals"):
 		return
 	var ports := PortVisuals.new()
 	ports.name = "PortVisuals"
@@ -174,7 +170,6 @@ func get_hex_shape() -> Array[Vector2i]:
 
 func set_rotation_state(rotation: int) -> void:
 	rotation_state = rotation
-	_refresh_output_arrow()
 	_create_hex_tiles()
 	shape_changed.emit()
 
@@ -183,8 +178,6 @@ func get_output_ports() -> Array:
 	var ports = []
 	if port_direction >= 0:
 		ports.append(_make_port(port_hex, port_direction))
-	if port_direction2 >= 0:
-		ports.append(_make_port(port_hex2, port_direction2))
 	return ports
 
 
@@ -198,31 +191,6 @@ func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 # 橋もベルトと同じ動きの部品（ConveyorLogic）を持つが、コンベアではない
 func is_conveyor() -> bool:
 	return piece_type == PieceData.Type.CONVEYOR
-
-
-func _refresh_output_arrow():
-	if _output_arrow:
-		_output_arrow.queue_free()
-		_output_arrow = null
-	if _output_arrow2:
-		_output_arrow2.queue_free()
-		_output_arrow2 = null
-	# ベルト画像自体が方向を示すので、コンベアには矢印を出さない。
-	if is_conveyor():
-		return
-	var ports = get_output_ports()
-	if ports.is_empty():
-		return
-	_output_arrow = make_output_arrow(ports[0])
-	add_child(_output_arrow)
-	if ports.size() > 1:
-		_output_arrow2 = make_output_arrow(ports[1])
-		add_child(_output_arrow2)
-	# 出入口を PortVisuals が描く施設では、従来の矢印は重なるので隠す
-	if has_node("PortVisuals"):
-		_output_arrow.visible = false
-		if _output_arrow2:
-			_output_arrow2.visible = false
 
 
 # アイテムの受け入れ口になる部品（shapez の ItemAcceptor 相当）。受け入れないピースは null。

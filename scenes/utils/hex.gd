@@ -4,8 +4,6 @@ class_name Hex
 ## 足し算・引き算・比較・辞書のキーには Vector2i をそのまま使う。
 ## 3つ目の座標 s は -q - r で決まるので持たず、必要なときに s() で求める。
 
-const DIR_NAME_TO_INDEX = {"E": 0, "NE": 1, "NW": 2, "W": 3, "SW": 4, "SE": 5}
-
 ## 隣のマスへの6方向。東から反時計回り。
 const DIRECTIONS: Array[Vector2i] = [
 	Vector2i(1, 0),  # 東 (E)
@@ -67,10 +65,6 @@ static func neighbors(hex: Vector2i) -> Array[Vector2i]:
 ## a から見て b がどの方向の隣か。隣でなければ -1。
 static func get_direction_to(a: Vector2i, b: Vector2i) -> int:
 	return DIRECTIONS.find(b - a)
-
-
-static func diagonal_neighbor(hex: Vector2i, direction_index: int) -> Vector2i:
-	return hex + DIAGONALS[direction_index]
 
 
 ## 原点からの距離。

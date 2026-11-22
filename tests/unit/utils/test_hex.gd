@@ -37,19 +37,19 @@ class TestDirections:
 		assert_eq(Hex.direction(2), Vector2i(0, -1))
 
 	func test_方向は東から反時計回りに6つ並ぶ():
-		var names = Hex.DIR_NAME_TO_INDEX
-		assert_eq(Hex.direction(names["E"]), Vector2i(1, 0))
-		assert_eq(Hex.direction(names["NE"]), Vector2i(1, -1))
-		assert_eq(Hex.direction(names["NW"]), Vector2i(0, -1))
-		assert_eq(Hex.direction(names["W"]), Vector2i(-1, 0))
-		assert_eq(Hex.direction(names["SW"]), Vector2i(-1, 1))
-		assert_eq(Hex.direction(names["SE"]), Vector2i(0, 1))
+		assert_eq(Hex.direction(0), Vector2i(1, 0), "E")
+		assert_eq(Hex.direction(1), Vector2i(1, -1), "NE")
+		assert_eq(Hex.direction(2), Vector2i(0, -1), "NW")
+		assert_eq(Hex.direction(3), Vector2i(-1, 0), "W")
+		assert_eq(Hex.direction(4), Vector2i(-1, 1), "SW")
+		assert_eq(Hex.direction(5), Vector2i(0, 1), "SE")
 
 	func test_指定方向の隣のマスを取得できる():
 		assert_eq(Hex.neighbor(Vector2i(1, -2), 2), Vector2i(1, -3))
 
-	func test_指定方向の対角の隣のマスを取得できる():
-		assert_eq(Hex.diagonal_neighbor(Vector2i(1, -2), 3), Vector2i(-1, -1))
+	func test_対角の6方向は隣2つの方向の和():
+		for i in 6:
+			assert_eq(Hex.DIAGONALS[i], Hex.DIRECTIONS[i] + Hex.DIRECTIONS[(i + 1) % 6], "%d" % i)
 
 	func test_隣接する6マスを返す():
 		var neighbors := Hex.neighbors(Vector2i(0, 0))

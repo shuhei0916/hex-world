@@ -56,26 +56,18 @@ class TestPieceVisuals:
 		piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_出力ポートが存在する場合に矢印が表示される():
+	func test_出力ポートのある施設には出口の印が付く():
 		piece.port_direction = 0
 		piece.port_hex = Vector2i(0, 0)
 		piece.setup()
 
-		assert_not_null(piece._output_arrow, "出力ポートがある場合、矢印Sprite2Dが生成されるべき")
+		assert_not_null(piece.get_node_or_null("PortVisuals"))
 
 
 class TestPieceOutputPorts:
 	extends GutTest
 
-	func test_port_direction2が設定されるとget_output_portsが2ポートを返す():
-		var piece = SMELTER_SCENE.instantiate()
-		add_child_autofree(piece)
-		piece.port_direction = 0
-		piece.port_direction2 = 1
-		piece.setup()
-		assert_eq(piece.get_output_ports().size(), 2)
-
-	func test_port_direction2がデフォルトならget_output_portsは1ポートのまま():
+	func test_出力ポートは1つ():
 		var piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 		piece.port_direction = 0

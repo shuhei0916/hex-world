@@ -91,7 +91,11 @@ func test_CONVEYORは出力方向矢印を表示しない():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_null(conveyor._output_arrow, "コンベアは矢印を表示しないべき")
+	assert_null(conveyor.get_node_or_null("PortVisuals"), "出口の印も付けない")
+	var arrows = conveyor.get_children().filter(
+		func(c): return c is Sprite2D and c.texture == Piece.FORWARD_TEXTURE
+	)
+	assert_eq(arrows, [], "コンベアは矢印を表示しないべき")
 
 
 func test_コンベア上のアイテムはコンベアのラインより手前に描画される():
