@@ -12,9 +12,9 @@ func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
 	var placer: PiecePlacer = scene.piece_placer
 	placer.select_piece(CONVEYOR)
-	_drag(chunk, placer, [Hex.new(-3, 1), Hex.new(-2, 1), Hex.new(-1, 1), Hex.new(0, 1)])
+	_drag(chunk, placer, [Vector2i(-3, 1), Vector2i(-2, 1), Vector2i(-1, 1), Vector2i(0, 1)])
 	_report(chunk, "本線を引いた直後")
-	_drag(chunk, placer, [Hex.new(-1, 4), Hex.new(-1, 3), Hex.new(-1, 2)])
+	_drag(chunk, placer, [Vector2i(-1, 4), Vector2i(-1, 3), Vector2i(-1, 2)])
 	_report(chunk, "合流ラインを引いた後")
 
 
@@ -26,9 +26,9 @@ func _drag(chunk: Chunk, placer: PiecePlacer, path: Array) -> void:
 
 
 func _report(chunk: Chunk, label: String) -> void:
-	var merge: Piece = chunk.get_piece_at_hex(Hex.new(-1, 1))
+	var merge: Piece = chunk.get_piece_at_hex(Vector2i(-1, 1))
 	var visuals = merge.get_node("ConveyorVisuals")
-	var feeder: Piece = chunk.get_piece_at_hex(Hex.new(-1, 2))
+	var feeder: Piece = chunk.get_piece_at_hex(Vector2i(-1, 2))
 	var feeder_connected = feeder != null and merge in feeder.get_connected_pieces()
 	print(
 		(

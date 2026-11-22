@@ -19,15 +19,10 @@ func _init(
 	craft_time = craft_time_val
 
 
-# 基準生産速度（個/分）。output_multiplier は加味しない（配置場所に依存しない base speed）。
-func items_per_minute() -> float:
-	if craft_time <= 0.0:
-		return 0.0
-	return 60.0 / craft_time
-
-
 class RecipeDB:
-	static var _recipes = {}
+	# 登録順のすべてのレシピ
+	static var _recipes: Array[Recipe] = []
+	# 機械の種類 → その機械のレシピ
 	static var _recipes_by_type: Dictionary = {}
 
 	static func _static_init():
@@ -36,10 +31,8 @@ class RecipeDB:
 
 	static func _register_defaults():
 		# Miner: 足元の鉱床の資源を採掘する (1.0s)。先頭の iron_ore が配置直後の既定レシピ
-		for resource_type in ["iron_ore", "copper_ore", "coal", "sand"]:
-			register_recipe(
-				Recipe.new(resource_type, {}, {resource_type: 1}, 1.0), PieceData.Type.MINER
-			)
+		for resource_type in ["iron_ore", "copper_ore", "coal", "sand", "limestone"]:
+			_register(Recipe.new(resource_type, {}, {resource_type: 1}, 1.0), PieceData.Type.MINER)
 
 		# docs/recipe_plan.md のレシピ表。[機械, 材料, 出力, 秒]
 		# 機械は届いた材料からレシピを選ぶので、同じ機械のレシピ同士で材料が重ならないように配る
@@ -59,6 +52,9 @@ class RecipeDB:
 			[PieceData.Type.MIXER, {"copper_wire": 2, "iron_plate": 1}, {"circuit": 1}, 6.0],
 			[PieceData.Type.MIXER, {"steel_beam": 2, "screw": 2}, {"frame": 1}, 6.0],
 			[PieceData.Type.MIXER, {"lens": 1, "circuit": 1}, {"sensor": 1}, 8.0],
+			[PieceData.Type.MIXER, {"quicklime": 1, "sand": 2}, {"concrete": 1}, 4.0],
+			# Kiln（1入力）: 焼く
+			[PieceData.Type.KILN, {"limestone": 1}, {"quicklime": 1}, 3.0],
 			# Assembler（2入力）: 部品を組み立てる
 			[PieceData.Type.ASSEMBLER, {"iron_plate": 1, "screw": 2}, {"gear": 1}, 4.0],
 			[PieceData.Type.ASSEMBLER, {"gear": 1, "copper_wire": 2}, {"motor": 1}, 6.0],
@@ -66,19 +62,19 @@ class RecipeDB:
 			[PieceData.Type.ASSEMBLER, {"sensor": 1, "engine": 1}, {"probe": 1}, 12.0],
 		]:
 			var output: String = row[2].keys()[0]
-			register_recipe(Recipe.new(output, row[1], row[2], row[3]), row[0])
+			_register(Recipe.new(output, row[1], row[2], row[3]), row[0])
 
-	static func register_recipe(
-		recipe: Recipe, piece_type: PieceData.Type = PieceData.Type.CONVEYOR
-	):
-		_recipes[recipe.id] = recipe
+	# piece_type はそのレシピを扱う機械（採掘機も含む）
+	static func _register(recipe: Recipe, piece_type: PieceData.Type):
+		_recipes.append(recipe)
 		if not _recipes_by_type.has(piece_type):
 			_recipes_by_type[piece_type] = []
 		_recipes_by_type[piece_type].append(recipe)
 
-	static func get_recipe(id: String) -> Recipe:
+	# item を作るレシピ（採掘で手に入る資源なら採掘機のレシピ）。無ければ空
+	static func get_recipes_producing(item: String) -> Array[Recipe]:
 		_static_init()
-		return _recipes.get(id)
+		return _recipes.filter(func(r): return r.outputs.has(item))
 
 	# 指定した資源を採掘する Miner のレシピ。採掘できない資源なら null。
 	static func get_mining_recipe(resource_type: String) -> Recipe:

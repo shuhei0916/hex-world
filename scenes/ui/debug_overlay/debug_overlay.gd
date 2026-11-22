@@ -20,7 +20,7 @@ func refresh(chunk) -> void:
 	_clear_labels()
 	for hex in chunk.get_all_hexes():
 		var label := Label.new()
-		label.name = "hex_%d_%d" % [hex.q, hex.r]
+		label.name = "hex_%d_%d" % [hex.x, hex.y]
 		label.size = _LABEL_SIZE
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -39,7 +39,7 @@ func refresh_world_map(view, chunk_hexes) -> void:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.position = view.position + view.get_tile_position(hex) - _LABEL_SIZE / 2
-		label.text = "%d, %d" % [hex.q, hex.r]
+		label.text = "%d, %d" % [hex.x, hex.y]
 		add_child(label)
 
 
@@ -58,20 +58,20 @@ func _process(_delta: float) -> void:
 
 func _update_labels() -> void:
 	for hex in _chunk.get_all_hexes():
-		var node = get_node_or_null("hex_%d_%d" % [hex.q, hex.r])
+		var node = get_node_or_null("hex_%d_%d" % [hex.x, hex.y])
 		if node == null:
 			continue
 		var piece = _chunk.get_piece_at_hex(hex)
 		if piece:
-			node.text = "%d, %d\n%s" % [hex.q, hex.r, piece.piece_name]
+			node.text = "%d, %d\n%s" % [hex.x, hex.y, piece.piece_name]
 		else:
-			node.text = "%d, %d" % [hex.q, hex.r]
+			node.text = "%d, %d" % [hex.x, hex.y]
 
 
 func get_label_count() -> int:
 	return get_child_count()
 
 
-func get_label_text_at(hex: Hex) -> String:
-	var node = get_node_or_null("hex_%d_%d" % [hex.q, hex.r])
+func get_label_text_at(hex: Vector2i) -> String:
+	var node = get_node_or_null("hex_%d_%d" % [hex.x, hex.y])
 	return node.text if node else ""

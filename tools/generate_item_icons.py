@@ -24,6 +24,9 @@ STEEL = ("#73879b", "#232d38")
 SAND = ("#e4c57f", "#7a5a1e")
 GLASS = ("#9fd8e4", "#2f6874")
 CIRCUIT = ("#68b884", "#1f4d30")
+LIMESTONE = ("#d3cdb4", "#5e5940")
+QUICKLIME = ("#f1efe6", "#6b6858")
+CONCRETE = ("#a4a6a8", "#3e4144")
 
 
 def _style(color, width=STROKE):
@@ -156,6 +159,26 @@ def lens(color):
     ]
 
 
+def powder(color):
+    # 袋に入った粉（口を縛った袋と、こぼれた粉）
+    parts = [
+        _poly([(18, 24), (46, 24), (52, 52), (12, 52)], color),
+        _polyline([(22, 24), (26, 14), (38, 14), (42, 24)], color, 3),
+    ]
+    for x, y in [(56, 54), (8, 55), (60, 50)]:
+        parts.append(f'<circle cx="{x}" cy="{y}" r="1.8" fill="{color[1]}"/>')
+    return parts
+
+
+def block(color):
+    # 直方体のブロック（上面と前面・側面）
+    return [
+        _poly([(10, 26), (32, 16), (54, 26), (32, 36)], color),
+        _poly([(10, 26), (32, 36), (32, 54), (10, 44)], color),
+        _poly([(32, 36), (54, 26), (54, 44), (32, 54)], color),
+    ]
+
+
 def gear(color, cx=32, cy=32, r_out=24, r_in=18, teeth=8, hole=7):
     points = []
     for i in range(teeth * 4):
@@ -234,6 +257,9 @@ ICONS = {
     "copper_ore": lambda: ore(COPPER),
     "coal": lambda: ore(COAL),
     "sand": lambda: sand_pile(SAND),
+    "limestone": lambda: ore(LIMESTONE),
+    "quicklime": lambda: powder(QUICKLIME),
+    "concrete": lambda: block(CONCRETE),
     "iron_ingot": lambda: ingot(IRON),
     "copper_ingot": lambda: ingot(COPPER),
     "glass": lambda: glass(GLASS),

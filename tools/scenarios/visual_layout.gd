@@ -20,22 +20,22 @@ func run(scene: Node) -> void:
 	var ore_hex = _first_resource_hex(chunk)
 	print("鉱床: ", ore_hex)
 	# Smelter は (-3,3) を基点に (-4,3), (-3,4) を占め、(-3,3) の東の辺から出す
-	chunk.place_piece(SMELTER, Hex.new(-3, 3), 0)
+	chunk.place_piece(SMELTER, Vector2i(-3, 3), 0)
 	# 入口: 西から (-4,3) へ、北西から (-3,3) へ流し込む
-	chunk.place_piece(CONVEYOR, Hex.new(-6, 3), 0)
-	chunk.place_piece(CONVEYOR, Hex.new(-5, 3), 0)
-	chunk.place_piece(CONVEYOR, Hex.new(-3, 2), 5)
+	chunk.place_piece(CONVEYOR, Vector2i(-6, 3), 0)
+	chunk.place_piece(CONVEYOR, Vector2i(-5, 3), 0)
+	chunk.place_piece(CONVEYOR, Vector2i(-3, 2), 5)
 	# 出口: 東へ流してハブ(0,0)の南西の辺へ
-	chunk.place_piece(CONVEYOR, Hex.new(-2, 3), 0)
-	chunk.place_piece(CONVEYOR, Hex.new(-1, 3), 1)
-	chunk.place_piece(CONVEYOR, Hex.new(0, 2), 2)
-	chunk.place_piece(CONVEYOR, Hex.new(0, 1), 2)
-	print("Smelter の出力: ", chunk.get_piece_at_hex(Hex.new(-3, 3)).get_output_ports())
-	chunk.place_piece(SENDER, Hex.new(5, -2), 0)
-	var edge_dir = chunk.get_edge_direction(Hex.new(5, -2))
-	var target_hex = Hex.neighbor(Hex.new(0, 0), ChunkTopology.to_world_direction(edge_dir))
+	chunk.place_piece(CONVEYOR, Vector2i(-2, 3), 0)
+	chunk.place_piece(CONVEYOR, Vector2i(-1, 3), 1)
+	chunk.place_piece(CONVEYOR, Vector2i(0, 2), 2)
+	chunk.place_piece(CONVEYOR, Vector2i(0, 1), 2)
+	print("Smelter の出力: ", chunk.get_piece_at_hex(Vector2i(-3, 3)).get_output_ports())
+	chunk.place_piece(SENDER, Vector2i(Chunk.DEFAULT_RADIUS, -2), 0)
+	var edge_dir = chunk.get_edge_direction(Vector2i(Chunk.DEFAULT_RADIUS, -2))
+	var target_hex = Hex.neighbor(Vector2i(0, 0), ChunkTopology.to_world_direction(edge_dir))
 	world.get_chunk(target_hex).place_piece(
-		CONVEYOR, ChunkTopology.mirror_hex(Hex.new(5, -2), edge_dir), 0
+		CONVEYOR, ChunkTopology.mirror_hex(Vector2i(Chunk.DEFAULT_RADIUS, -2), edge_dir), 0
 	)
 	scene.camera.zoom = Vector2(CAMERA_ZOOM, CAMERA_ZOOM)
 	for i in 60:

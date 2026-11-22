@@ -5,7 +5,7 @@ extends RefCounted
 ## ConveyorLogic / ItemEjector が合成で利用する（接続＋出力方向スロットの巡回）。
 ## 各接続は「出力方向(0-5)」を伴うスロットとして保持する。これにより描画側は
 ## 「実際に排出される方向」を読めて、表示と実排出が食い違わない。
-## 受け入れ先の判定は can_accept_item / add_item のダックタイピングで行う。
+## 接続先はピース（Piece.can_accept_item / add_item で受け入れ口へ渡す）。
 
 var connected_pieces: Array = []
 var connected_directions: Array = []  # connected_pieces と並行。各接続の出力方向(0-5)
@@ -24,10 +24,8 @@ func _next_acceptable_index(item_name: String) -> int:
 		return -1
 	for i in range(n):
 		var idx = (_rr_index + i) % n
-		var target = connected_pieces[idx]
-		if target.has_method("can_accept_item") and target.has_method("add_item"):
-			if target.can_accept_item(item_name):
-				return idx
+		if connected_pieces[idx].can_accept_item(item_name):
+			return idx
 	return -1
 
 

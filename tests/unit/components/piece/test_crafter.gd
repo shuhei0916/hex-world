@@ -25,10 +25,11 @@ class TestCrafterLogic:
 		crafter.set_recipe(recipe)
 		assert_eq(crafter.current_recipe, recipe)
 
-	func test_設定後の進捗はゼロである():
+	func test_レシピを設定した直後は加工していない():
 		var recipe = Recipe.new("test", {}, {"out": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		assert_eq(crafter.processing_progress, 0.0)
+		assert_false(crafter.is_crafting())
+		assert_eq(crafter.get_progress(), 0.0)
 
 	func test_set_recipeで出力容量がレシピ出力量の合計になる():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
@@ -40,95 +41,75 @@ class TestCrafterLogic:
 		crafter.set_recipe(recipe)
 		assert_eq(crafter.input_capacity, 2)
 
-	func test_材料が足りていれば開始可能と判定される():
+	func test_材料が揃うとtickで加工を始め材料を使う():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		crafter.add_item("ore", 1)
-		assert_true(crafter._can_start_crafting(), "材料があれば開始できるべき")
+		crafter.tick(0.0)
+		assert_true(crafter.is_crafting())
+		assert_eq(crafter.get_item_count("ore"), 0, "開始時に材料が消費されるべき")
 
-	func test_材料が不足していれば開始不可と判定される():
+	func test_材料が足りなければ加工を始めない():
 		var recipe = Recipe.new("test", {"ore": 2}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		crafter.add_item("ore", 1)
-		assert_false(crafter._can_start_crafting(), "材料が足りなければ開始できないべき")
+		crafter.tick(0.1)
+		assert_false(crafter.is_crafting())
+		assert_eq(crafter.get_item_count("ore"), 1)
 
-	func test_加工開始時に材料が消費される():
+	func test_始めた直後の進捗は0():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		crafter.add_item("ore", 1)
-		crafter._start_crafting()
-		assert_eq(crafter.get_item_count("ore"), 0, "開始時に材料が消費されるべき")
-
-	func test_加工開始時に進捗が微増する():
-		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
-		crafter.set_recipe(recipe)
-		crafter.add_item("ore", 1)
-		crafter._start_crafting()
-		assert_gt(crafter.processing_progress, 0.0, "開始時に進捗が微増するべき")
+		crafter.tick(0.0)
+		assert_eq(crafter.get_progress(), 0.0)
 
 	func test_tickで加工進捗が進む():
 		var recipe = Recipe.new("test", {}, {"out": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		crafter.start_crafting()
+		crafter.tick(0.0)
 		crafter.tick(0.5)
-		assert_almost_eq(crafter.processing_progress, 0.5, 0.01)
+		assert_almost_eq(crafter.get_progress(), 0.5, 0.0001)
 
-	func test_加工完了時に成果物が生成される():
+	func test_加工時間に届くまでは完成しない():
 		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		crafter.processing_progress = 0.9
-		crafter.tick(0.2)
+		crafter.tick(0.0)
+		crafter.tick(0.999)
+		assert_eq(output_container.get_item_count("ingot"), 0)
+		assert_true(crafter.is_crafting())
+
+	func test_加工時間で完成し成果物が出て加工中でなくなる():
+		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
+		crafter.set_recipe(recipe)
+		crafter.tick(0.0)
+		crafter.tick(1.0)
 		assert_eq(output_container.get_item_count("ingot"), 1, "完了時に成果物が出るべき")
-
-	func test_加工完了時に進捗がリセットされる():
-		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
-		crafter.set_recipe(recipe)
-		crafter.processing_progress = 0.9
-		crafter.tick(0.2)
-		assert_eq(crafter.processing_progress, 0.0, "完了時に進捗がリセットされるべき")
+		assert_false(crafter.is_crafting())
+		assert_eq(crafter.get_progress(), 0.0)
 
 	func test_レシピがない場合はtickで何もしない():
 		crafter.tick(1.0)
-		assert_eq(crafter.processing_progress, 0.0)
+		assert_false(crafter.is_crafting())
 
-	func test_output_multiplier_3でも完成個数はレシピ通り1個():
+	func test_鉱床の濃さ3なら加工時間は3分の1で完成個数はレシピ通り1個():
 		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
-		crafter.output_multiplier = 3
-		crafter.start_crafting()
-		crafter.tick(0.4)  # 実効加工時間 1.0/3≈0.33 を超える
-		assert_eq(output_container.get_item_count("ingot"), 1)
-
-	func test_output_multiplier_3のとき実効加工時間3分の1で完成する():
-		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
-		crafter.set_recipe(recipe)
-		crafter.output_multiplier = 3
-		crafter.start_crafting()
+		crafter.speed_multiplier = 3
+		crafter.tick(0.0)
 		crafter.tick(0.34)  # 通常の1.0未満だが 1.0/3≈0.333 は超えるので完成するはず
-		assert_eq(crafter.processing_progress, 0.0, "実効時間を超えたら完成し進捗がリセットされる")
+		assert_eq(output_container.get_item_count("ingot"), 1)
+		assert_false(crafter.is_crafting())
 
 	func test_craft_time_multiplier_2のとき通常の2倍の時間がかかる():
 		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
 		crafter.set_recipe(recipe)
 		crafter.craft_time_multiplier = 2.0
-		crafter.start_crafting()
-		crafter.tick(1.0)  # 通常なら完成するが multiplier=2 なので未完成のはず
-		assert_gt(crafter.processing_progress, 0.0, "実効時間2.0秒に達していないので未完成のはず")
-
-	func test_craft_time_multiplier_2のとき2秒で完成する():
-		var recipe = Recipe.new("test", {}, {"ingot": 1}, 1.0)
-		crafter.set_recipe(recipe)
-		crafter.craft_time_multiplier = 2.0
-		crafter.start_crafting()
-		crafter.tick(2.1)
-		assert_eq(crafter.processing_progress, 0.0, "実効時間を超えたら完成し進捗がリセットされる")
-
-	func test_アウトプットが満杯の場合は開始不可と判定される():
-		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
-		crafter.set_recipe(recipe)
-		crafter.add_item("ore", 1)
-		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
-		assert_false(crafter._can_start_crafting(), "アウトプットが満杯なら開始できないべき")
+		crafter.tick(0.0)
+		crafter.tick(1.0)
+		assert_true(crafter.is_crafting(), "実効時間2.0秒に達していないので未完成のはず")
+		crafter.tick(1.0)
+		assert_eq(output_container.get_item_count("ingot"), 1)
 
 	func test_アウトプットが満杯の場合は加工が開始されない():
 		var recipe = Recipe.new("test", {"ore": 1}, {"ingot": 1}, 1.0)
@@ -136,7 +117,8 @@ class TestCrafterLogic:
 		crafter.add_item("ore", 1)
 		output_container.add_item("junk", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 		crafter.tick(0.1)
-		assert_eq(crafter.processing_progress, 0.0, "満杯時はtickを呼んでも進捗が0のままであるべき")
+		assert_false(crafter.is_crafting())
+		assert_eq(crafter.get_item_count("ore"), 1, "材料も使わない")
 
 
 class TestCrafterMultiInput:
@@ -162,19 +144,13 @@ class TestCrafterMultiInput:
 		assert_eq(crafter.get_item_count("ore"), 1, "ore が保持されているべき")
 		assert_eq(crafter.get_item_count("coal"), 1, "coal が保持されているべき")
 
-	func test_複数種別の材料が揃えば加工開始できる():
+	func test_複数種別の材料が揃えば加工を始めすべて使う():
 		var recipe = Recipe.new("test", {"ore": 1, "coal": 1}, {"ingot": 1}, 2.0)
 		crafter.set_recipe(recipe)
 		crafter.add_item("ore", 1)
 		crafter.add_item("coal", 1)
-		assert_true(crafter._can_start_crafting(), "複数材料が揃えば開始できるべき")
-
-	func test_複数種別の材料は加工開始時に全て消費される():
-		var recipe = Recipe.new("test", {"ore": 1, "coal": 1}, {"ingot": 1}, 2.0)
-		crafter.set_recipe(recipe)
-		crafter.add_item("ore", 1)
-		crafter.add_item("coal", 1)
-		crafter._start_crafting()
+		crafter.tick(0.0)
+		assert_true(crafter.is_crafting(), "複数材料が揃えば開始できるべき")
 		assert_eq(crafter.get_item_count("ore"), 0, "開始時に ore が消費されるべき")
 		assert_eq(crafter.get_item_count("coal"), 0, "開始時に coal が消費されるべき")
 

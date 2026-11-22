@@ -4,6 +4,7 @@ signal level_up(new_level: int, reward: String)
 signal unlocks_changed
 signal stock_changed
 signal research_changed
+signal exploration_changed
 
 const LEVELS = [
 	# 本筋に必須の機械は、目標を納めると自動で解放する。
@@ -16,7 +17,9 @@ const LEVELS = [
 	# 段階2: 2つのバイオームの資源を組み合わせる
 	{"goal_item": "copper_wire", "required": 40, "reward": ""},
 	{"goal_item": "steel", "required": 20, "reward": ""},
-	{"goal_item": "circuit", "required": 30, "reward": ""},
+	{"goal_item": "circuit", "required": 30, "reward": "unlock_kiln"},
+	# 石灰岩の台地の石灰石を窯で焼き、砂と混ぜる。上位のチェストの材料になる
+	{"goal_item": "concrete", "required": 30, "reward": ""},
 	{"goal_item": "motor", "required": 20, "reward": ""},
 	{"goal_item": "glass", "required": 30, "reward": ""},
 	# 段階3: 3〜4つのバイオームの資源を組み合わせる。最終目標は探査機
@@ -32,6 +35,9 @@ var creative_mode: bool = false
 var stock: Dictionary = {}
 # 研究済みの研究 {research_id: true}
 var researched: Dictionary = {}
+# 所有している chunk の数をバイオームごとに {biome_id: 数}。研究の条件に使う。
+# 正は World の Territory で、Main が変わるたびに伝える（セーブには入れない）
+var owned_chunks: Dictionary = {}
 
 
 func get_current_goal() -> Dictionary:
@@ -61,9 +67,23 @@ func reset():
 	creative_mode = false
 	stock = {}
 	researched = {}
+	owned_chunks = {}
 	unlocks_changed.emit()
 	stock_changed.emit()
 	research_changed.emit()
+	exploration_changed.emit()
+
+
+func set_owned_chunks(counts: Dictionary) -> void:
+	owned_chunks = counts.duplicate()
+	exploration_changed.emit()
+
+
+func owned_chunk_count() -> int:
+	var total := 0
+	for count in owned_chunks.values():
+		total += count
+	return total
 
 
 func get_stock(item_id: String) -> int:
@@ -136,6 +156,8 @@ func research_state(id: String) -> Research.State:
 	for required in def.get("requires", []):
 		if not is_researched(required):
 			return Research.State.LOCKED_PREREQUISITE
+	if not _meets_conditions(def.get("conditions", {})):
+		return Research.State.LOCKED_CONDITION
 	if not can_afford(def.get("cost", {})):
 		return Research.State.UNAFFORDABLE
 	return Research.State.AVAILABLE
@@ -153,9 +175,30 @@ func research_state_text(id: String) -> String:
 			for required in def["requires"]:
 				if not is_researched(required):
 					return "先に「%s」が必要" % Research.get_def(required)["name"]
+		Research.State.LOCKED_CONDITION:
+			return _condition_text(def["conditions"])
 		Research.State.UNAFFORDABLE:
 			return "在庫不足"
 	return ""
+
+
+func _meets_conditions(conditions: Dictionary) -> bool:
+	if owned_chunk_count() < conditions.get(Research.CHUNKS, 0):
+		return false
+	var biome_id: String = conditions.get(Research.BIOME, "")
+	return biome_id == "" or owned_chunks.get(biome_id, 0) > 0
+
+
+# 満たしていない条件を文章にする（複数あれば「、」でつなぐ）
+func _condition_text(conditions: Dictionary) -> String:
+	var parts: Array[String] = []
+	var needed: int = conditions.get(Research.CHUNKS, 0)
+	if owned_chunk_count() < needed:
+		parts.append("chunk を %d 個持つと研究できる（%d/%d）" % [needed, owned_chunk_count(), needed])
+	var biome_id: String = conditions.get(Research.BIOME, "")
+	if biome_id != "" and owned_chunks.get(biome_id, 0) == 0:
+		parts.append("%s の chunk を持つと研究できる" % Biome.get_biome(biome_id).display_name)
+	return "、".join(parts)
 
 
 # 在庫から価格を払って研究する。条件を満たさなければ何もせず false。
@@ -169,6 +212,15 @@ func research(id: String) -> bool:
 	if def["effect"].has(Research.UNLOCK):
 		unlocks_changed.emit()
 	return true
+
+
+# 研究で解放した戦闘スキルの id（研究の定義の順）
+func unlocked_skill_ids() -> Array:
+	var ids := []
+	for id in Research.all_ids():
+		if is_researched(id) and Research.get_def(id)["effect"].has(Research.SKILL):
+			ids.append(Research.get_def(id)["effect"][Research.SKILL])
+	return ids
 
 
 func get_belt_speed() -> float:

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## ゲームの進行状況を Dictionary（JSON にできる形）へ取り出し、そこから復元する。
 ## 保存するのは「配置」と「進行度」: 惑星のシード、訪れた chunk の鉱床とピース、
-## ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
+## 所有している chunk、キャラクターの立っている場所、ハブ目標の進み具合、ハブに貯めた在庫、研究、チェストの共有倉庫の中身。
 ## ベルト上や機械の中にあるアイテムは保存しない（ロード後は空の状態から動き出す）。
 
 const VERSION := 1
@@ -22,7 +22,7 @@ const RETIRED_SCENES := [
 static var path: String = DEFAULT_PATH
 
 
-static func capture(world: World, goals: Node) -> Dictionary:
+static func capture(world: World, goals: Node, active_hex = null) -> Dictionary:
 	var data := {
 		"version": VERSION,
 		"hub_goals":
@@ -39,11 +39,18 @@ static func capture(world: World, goals: Node) -> Dictionary:
 	var planet = world.get_planet()
 	if planet:
 		data["planet"] = {"radius": planet.radius, "seed": planet.seed_value}
-	var active = world.get_active_hex()
+	var active = active_hex if active_hex != null else world.get_active_hex()
 	if active != null:
 		data["active_chunk"] = _hex_to_array(active)
 	for chunk_hex in world.get_chunk_hexes():
 		data["chunks"].append(_capture_chunk(chunk_hex, world.get_chunk(chunk_hex)))
+	data["owned_chunks"] = world.territory.get_owned_hexes().map(_hex_to_array)
+	if world.player:
+		data["player"] = {
+			"chunk": _hex_to_array(world.player.chunk_hex),
+			"hex": _hex_to_array(world.player.hex),
+			"position": [world.player.position.x, world.player.position.y],
+		}
 	return data
 
 
@@ -77,8 +84,20 @@ static func apply(world: World, data: Dictionary, goals: Node) -> void:
 		world.get_region_storage(int(region_id)).load_contents(region_storages[region_id])
 	for chunk_data in data.get("chunks", []):
 		_apply_chunk(world, chunk_data, goals)
+	# 所有の仕組みが無かった頃のセーブでは、それまでに見えていた chunk をすべて所有とする
+	var owned: Array = data.get("owned_chunks", world.get_chunk_hexes().map(_hex_to_array))
+	for values in owned:
+		world.territory.claim(_array_to_hex(values))
 	if data.has("active_chunk"):
 		world.set_active_chunk(_array_to_hex(data["active_chunk"]))
+	# キャラクターの記録が無い旧セーブでは置かない（呼び出し側がハブの隣に立たせる）
+	if data.has("player"):
+		var player: Dictionary = data["player"]
+		world.place_player(_array_to_hex(player["chunk"]), _array_to_hex(player["hex"]))
+		# マスの中の細かい位置（無い旧セーブではマスの中心）
+		if player.has("position"):
+			var values: Array = player["position"]
+			world.move_player_to(Vector2(float(values[0]), float(values[1])))
 
 
 static func exists(file_path: String = path) -> bool:
@@ -109,12 +128,12 @@ static func delete(file_path: String = path) -> void:
 		DirAccess.remove_absolute(file_path)
 
 
-static func _capture_chunk(chunk_hex: Hex, chunk: Chunk) -> Dictionary:
+static func _capture_chunk(chunk_hex: Vector2i, chunk: Chunk) -> Dictionary:
 	var resources := []
 	for hex in chunk.get_all_hexes():
 		var resource_type = chunk.get_hex_resource(hex)
 		if resource_type != "":
-			resources.append([hex.q, hex.r, resource_type])
+			resources.append([hex.x, hex.y, resource_type])
 	var pieces := []
 	for piece in chunk.get_all_pieces():
 		pieces.append(_capture_piece(chunk, piece))
@@ -134,10 +153,10 @@ static func _capture_piece(chunk: Chunk, piece: Piece) -> Dictionary:
 		"rotation": piece.rotation_state,
 		"input_direction": piece.input_direction,
 	}
-	var hub = piece.get_node_or_null("Hub")
+	var hub = piece.hub
 	if hub:
 		result["received"] = hub.received_count
-	var chest_output = piece.get_node_or_null("ChestOutput")
+	var chest_output = piece.chest_output
 	if chest_output:
 		result["chest_item"] = chest_output.selected_item
 	return result
@@ -152,7 +171,7 @@ static func _apply_chunk(world: World, chunk_data: Dictionary, goals: Node) -> v
 	chunk.storage.load_contents(chunk_data.get("storage", {}))
 	# Miner は設置時に足元の鉱床を見るため、ピースより先に鉱床を戻す
 	for entry in chunk_data.get("resources", []):
-		chunk.mark_resource_hex(Hex.new(int(entry[0]), int(entry[1])), entry[2])
+		chunk.mark_resource_hex(Vector2i(int(entry[0]), int(entry[1])), entry[2])
 	for piece_data in chunk_data.get("pieces", []):
 		_apply_piece(chunk, piece_data, goals)
 
@@ -169,10 +188,10 @@ static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> v
 		scene, hex, int(piece_data.get("rotation", 0)), int(piece_data.get("input_direction", -1))
 	)
 	var piece = chunk.get_piece_at_hex(hex)
-	var chest_output = piece.get_node_or_null("ChestOutput")
+	var chest_output = piece.chest_output
 	if chest_output:
 		chest_output.selected_item = piece_data.get("chest_item", "")
-	var hub = piece.get_node_or_null("Hub")
+	var hub = piece.hub
 	if hub:
 		var goal = goals.get_current_goal()
 		hub.setup(goal["goal_item"], goal["required"])
@@ -180,9 +199,9 @@ static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> v
 		hub.refresh_display()
 
 
-static func _hex_to_array(hex: Hex) -> Array:
-	return [hex.q, hex.r]
+static func _hex_to_array(hex: Vector2i) -> Array:
+	return [hex.x, hex.y]
 
 
-static func _array_to_hex(values: Array) -> Hex:
-	return Hex.new(int(values[0]), int(values[1]))
+static func _array_to_hex(values: Array) -> Vector2i:
+	return Vector2i(int(values[0]), int(values[1]))

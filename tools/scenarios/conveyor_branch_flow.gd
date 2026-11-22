@@ -18,12 +18,12 @@ const OVERLAP_THRESHOLD = 8.0  # 表示中のアイコン同士がこれより�
 func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
 	for q in [-1, 0, 1, 2]:
-		chunk.place_piece(CONVEYOR, Hex.new(q, 0), 0)
-	chunk.place_piece(CONVEYOR, Hex.new(1, -1), 5)
-	chunk.place_piece(CONVEYOR, Hex.new(2, -2), 5)
+		chunk.place_piece(CONVEYOR, Vector2i(q, 0), 0)
+	chunk.place_piece(CONVEYOR, Vector2i(1, -1), 5)
+	chunk.place_piece(CONVEYOR, Vector2i(2, -2), 5)
 
-	var feeder: Piece = chunk.get_piece_at_hex(Hex.new(-1, 0))
-	var origin: Piece = chunk.get_piece_at_hex(Hex.new(0, 0))
+	var feeder: Piece = chunk.get_piece_at_hex(Vector2i(-1, 0))
+	var origin: Piece = chunk.get_piece_at_hex(Vector2i(0, 0))
 	var logic: ConveyorLogic = origin.get_node("ConveyorLogic")
 	var icon: Sprite2D = origin.get_node("ConveyorVisuals/ItemIcon")
 	var watched_icons: Array = []
@@ -39,7 +39,7 @@ func run(scene: Node) -> void:
 	var prev_target := -2
 	for frame in FRAMES:
 		if frame == EXTEND_FRAME:
-			chunk.place_piece(CONVEYOR, Hex.new(3, -3), 5)
+			chunk.place_piece(CONVEYOR, Vector2i(3, -3), 5)
 			print("f%03d [extend] NE 側の分岐を (3,-3) へ延長" % frame)
 		if feeder.get_node("ConveyorLogic").can_accept_item("iron_ore"):
 			feeder.add_item("iron_ore", 1)

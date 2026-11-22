@@ -13,8 +13,8 @@ class TestWorldMapView:
 	func before_each():
 		world = World.new()
 		add_child_autofree(world)
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(1, 0))
 		view = WorldMapView.new()
 		add_child_autofree(view)
 
@@ -24,25 +24,25 @@ class TestWorldMapView:
 
 	func test_異なるhexのタイルは異なる位置に配置される():
 		view.setup(world)
-		var pos0 = view.get_tile_position(Hex.new(0, 0))
-		var pos1 = view.get_tile_position(Hex.new(1, 0))
+		var pos0 = view.get_tile_position(Vector2i(0, 0))
+		var pos1 = view.get_tile_position(Vector2i(1, 0))
 		assert_ne(pos0, pos1)
 
 	func test_set_active_chunkでそのタイルがアクティブになる():
 		view.setup(world)
-		view.set_active_chunk(Hex.new(0, 0))
-		assert_true(view.get_tile_active(Hex.new(0, 0)))
+		view.set_active_chunk(Vector2i(0, 0))
+		assert_true(view.get_tile_active(Vector2i(0, 0)))
 
 	func test_set_active_chunk切り替えで前のタイルが非アクティブになる():
 		view.setup(world)
-		view.set_active_chunk(Hex.new(0, 0))
-		view.set_active_chunk(Hex.new(1, 0))
-		assert_false(view.get_tile_active(Hex.new(0, 0)))
+		view.set_active_chunk(Vector2i(0, 0))
+		view.set_active_chunk(Vector2i(1, 0))
+		assert_false(view.get_tile_active(Vector2i(0, 0)))
 
 	func test_タイル中心位置を渡すと対応するhexを返す():
 		view.setup(world)
-		var center = view.get_tile_position(Hex.new(0, 0))
-		assert_true(Hex.equals(view.chunk_at_local_pos(center), Hex.new(0, 0)))
+		var center = view.get_tile_position(Vector2i(0, 0))
+		assert_true(view.chunk_at_local_pos(center) == Vector2i(0, 0))
 
 	func test_タイルが存在しない位置ではnullを返す():
 		view.setup(world)
@@ -50,7 +50,7 @@ class TestWorldMapView:
 
 	func test_refresh_connectionsで接続ペア数分の矢印が境目に生成される():
 		view.setup(world)
-		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
 		assert_eq(view.get_connection_arrow_count(), 1)
 
 	func test_接続ペアがなければ矢印は生成されない():
@@ -60,32 +60,32 @@ class TestWorldMapView:
 
 	func test_再表示のたびに前回分の矢印がクリアされる():
 		view.setup(world)
-		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
-		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
+		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
+		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
 		assert_eq(view.get_connection_arrow_count(), 1)
 
 	func test_set_hovered_chunkでそのタイルがホバー状態になる():
 		view.setup(world)
-		view.set_hovered_chunk(Hex.new(0, 0))
-		assert_true(view.get_tile_hovered(Hex.new(0, 0)))
+		view.set_hovered_chunk(Vector2i(0, 0))
+		assert_true(view.get_tile_hovered(Vector2i(0, 0)))
 
 	func test_set_hovered_chunk切り替えで前のタイルのホバーが解除される():
 		view.setup(world)
-		view.set_hovered_chunk(Hex.new(0, 0))
-		view.set_hovered_chunk(Hex.new(1, 0))
-		assert_false(view.get_tile_hovered(Hex.new(0, 0)))
+		view.set_hovered_chunk(Vector2i(0, 0))
+		view.set_hovered_chunk(Vector2i(1, 0))
+		assert_false(view.get_tile_hovered(Vector2i(0, 0)))
 
 	func test_set_hovered_chunkにnullを渡すとホバーが解除される():
 		view.setup(world)
-		view.set_hovered_chunk(Hex.new(0, 0))
+		view.set_hovered_chunk(Vector2i(0, 0))
 		view.set_hovered_chunk(null)
-		assert_false(view.get_tile_hovered(Hex.new(0, 0)))
+		assert_false(view.get_tile_hovered(Vector2i(0, 0)))
 
 	func test_矢印は2つのタイルの中間の境目に配置される():
 		view.setup(world)
-		view.refresh_connections([[Hex.new(0, 0), Hex.new(1, 0)]])
-		var pos0 = view.get_tile_position(Hex.new(0, 0))
-		var pos1 = view.get_tile_position(Hex.new(1, 0))
+		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
+		var pos0 = view.get_tile_position(Vector2i(0, 0))
+		var pos1 = view.get_tile_position(Vector2i(1, 0))
 		var expected_midpoint = (pos0 + pos1) / 2.0
 		assert_eq(view.get_connection_arrow_position(0), expected_midpoint)
 
@@ -102,6 +102,9 @@ class TestPlanetMap:
 		add_child_autofree(world)
 		planet = Planet.new(2, 1)
 		world.setup_planet(planet)
+		# 所有している chunk の見え方を確かめる（所有していない chunk は TestFog）
+		for hex in planet.get_chunk_hexes():
+			world.territory.claim(hex)
 		view = WorldMapView.new()
 		add_child_autofree(view)
 		view.setup(world)
@@ -114,23 +117,83 @@ class TestPlanetMap:
 			assert_eq(view.get_tile_color(hex), planet.get_biome(hex).map_color, str(hex))
 
 	func test_ホバー中のchunkのバイオーム名と資源名が表示される():
-		var hex = Hex.new(1, 0)
+		var hex = Vector2i(1, 0)
 		view.set_hovered_chunk(hex)
 		var biome = planet.get_biome(hex)
 		var text = view.get_hover_info_text()
 		assert_string_contains(text, biome.display_name)
 		assert_string_contains(text, ItemDB.get_item(biome.resource_type).display_name)
 
+	func test_原点のchunkにホバーしても情報が表示される():
+		view.set_hovered_chunk(Vector2i(0, 0))
+		assert_string_contains(
+			view.get_hover_info_text(), planet.get_biome(Vector2i(0, 0)).display_name
+		)
+
 	func test_ホバー解除で情報表示が消える():
-		view.set_hovered_chunk(Hex.new(1, 0))
+		view.set_hovered_chunk(Vector2i(1, 0))
 		view.set_hovered_chunk(null)
 		assert_eq(view.get_hover_info_text(), "")
 
 	func test_再setupしても情報表示は1つだけ():
 		view.setup(world)
-		view.set_hovered_chunk(Hex.new(1, 0))
+		view.set_hovered_chunk(Vector2i(1, 0))
 		assert_ne(view.get_hover_info_text(), "")
 		assert_eq(view.get_tile_count(), planet.get_chunk_hexes().size())
+
+
+class TestFog:
+	extends GutTest
+
+	## 所有していない chunk は霧に隠す。所有している chunk の隣だけは、
+	## 何が採れるかを見せて、戦って解放できることを示す
+
+	var owned := Vector2i(0, 0)
+	var frontier := Vector2i(1, 0)
+	var far := Vector2i(2, 0)
+	var view
+	var world
+	var planet: Planet
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		planet = Planet.new(2, 1)
+		world.setup_planet(planet)
+		world.territory.claim(owned)
+		view = WorldMapView.new()
+		add_child_autofree(view)
+		view.setup(world)
+
+	func test_所有しているchunkはバイオーム色で塗られる():
+		assert_eq(view.get_tile_color(owned), planet.get_biome(owned).map_color)
+
+	func test_挑戦できるchunkはバイオーム色を暗くした色で塗られる():
+		var biome_color = planet.get_biome(frontier).map_color
+		assert_eq(view.get_tile_color(frontier), biome_color.darkened(WorldMapView.FRONTIER_DARKEN))
+
+	func test_離れたchunkはバイオームに関係なく霧の色で塗られる():
+		assert_eq(view.get_tile_color(far), WorldMapView.FOG_COLOR)
+
+	func test_挑戦できるchunkにホバーすると採れる資源と戦って解放できることを表示する():
+		view.set_hovered_chunk(frontier)
+		var text = view.get_hover_info_text()
+		assert_string_contains(text, planet.get_biome(frontier).display_name)
+		assert_string_contains(text, "戦って解放")
+
+	func test_所有しているchunkのホバーには戦って解放と出さない():
+		view.set_hovered_chunk(owned)
+		assert_false(view.get_hover_info_text().contains("戦って解放"))
+
+	func test_霧のchunkにホバーしてもバイオームは明かさない():
+		view.set_hovered_chunk(far)
+		assert_eq(view.get_hover_info_text(), "未踏")
+
+	func test_解放したあとsetupし直すと霧が晴れる():
+		world.territory.claim(frontier)
+		view.setup(world)
+		assert_eq(view.get_tile_color(frontier), planet.get_biome(frontier).map_color)
+		assert_ne(view.get_tile_color(far), WorldMapView.FOG_COLOR, "隣になった chunk が見える")
 
 
 class TestTileMatchesChunkSize:
@@ -147,9 +210,9 @@ class TestTileMatchesChunkSize:
 		saved_gap_steps = World.gap_steps
 		world = World.new()
 		add_child_autofree(world)
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
-		world.set_active_chunk(Hex.new(0, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
 		view = WorldMapView.new()
 		add_child_autofree(view)
 
@@ -158,14 +221,14 @@ class TestTileMatchesChunkSize:
 
 	func test_タイルの大きさと間隔の比はchunkの大きさと間隔の比と同じ():
 		view.setup(world)
-		var map_ratio = view.get_tile_inradius(Hex.new(1, 0)) / view.get_tile_spacing()
+		var map_ratio = view.get_tile_inradius(Vector2i(1, 0)) / view.get_tile_spacing()
 		var local_ratio = world.get_chunk_inradius() / world.get_chunk_spacing()
 		assert_almost_eq(map_ratio, local_ratio, 0.0001)
 
 	func test_溝を広げるとタイルが小さくなる():
 		World.gap_steps = 1
 		view.setup(world)
-		var narrow = view.get_tile_inradius(Hex.new(0, 0))
+		var narrow = view.get_tile_inradius(Vector2i(0, 0))
 		World.gap_steps = 3
 		view.setup(world)
-		assert_lt(view.get_tile_inradius(Hex.new(0, 0)), narrow)
+		assert_lt(view.get_tile_inradius(Vector2i(0, 0)), narrow)

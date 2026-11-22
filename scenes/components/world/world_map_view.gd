@@ -7,13 +7,20 @@ const TILE_SIZE := 80.0
 const CONNECTION_ARROW_TEXTURE = preload("res://scenes/components/piece/forward.png")
 const CONNECTION_ARROW_COLOR = Color(0.5, 1.0, 0.5, 1)
 const INFO_LABEL_SIZE := Vector2(120, 48)
+# まだ所有していない chunk の色。所有している chunk の隣（戦って解放できる）はバイオーム色を
+# 暗くして何が採れるかを見せ、それより遠くは霧で隠す
+const FRONTIER_DARKEN := 0.55
+const FOG_COLOR := Color("#1d2026")
+const FOG_TEXT := "未踏"
+const CHALLENGE_TEXT := "戦って解放"
 
-var _tiles: Dictionary = {}  # Hex.to_key → ChunkTile
+var _tiles: Dictionary = {}  # chunk の座標 → ChunkTile
 var _active_hex = null
 var _hovered_hex = null
 var _map_layout: Layout
 var _connection_arrows: Array = []
 var _planet: Planet = null
+var _world: World = null
 var _info_label: Label = null
 
 
@@ -28,6 +35,7 @@ func setup(world: World) -> void:
 	_connection_arrows.clear()
 	_active_hex = null
 	_hovered_hex = null
+	_world = world
 	_planet = world.get_planet()
 
 	# ローカル画面の chunk と同じ縮尺にして、溝も同じ割合で見せる
@@ -38,7 +46,7 @@ func setup(world: World) -> void:
 		tile.set_inradius(tile_inradius)
 		tile.position = Layout.hex_to_pixel(_map_layout, hex)
 		add_child(tile)
-		_tiles[Hex.to_key(hex)] = tile
+		_tiles[hex] = tile
 
 	_info_label = Label.new()
 	_info_label.size = INFO_LABEL_SIZE
@@ -49,32 +57,47 @@ func setup(world: World) -> void:
 	add_child(_info_label)
 
 
-func _tile_color(hex: Hex) -> Color:
+func _tile_color(hex: Vector2i) -> Color:
 	var biome = _planet.get_biome(hex) if _planet else null
-	return biome.map_color if biome else ChunkTileScript.NORMAL_COLOR
+	if biome == null:
+		return ChunkTileScript.NORMAL_COLOR
+	if _world.territory.is_owned(hex):
+		return biome.map_color
+	if _world.territory.can_challenge(hex):
+		return biome.map_color.darkened(FRONTIER_DARKEN)
+	return FOG_COLOR
 
 
-func set_active_chunk(chunk_hex: Hex) -> void:
+# 霧に隠れている chunk（所有しておらず、所有している chunk の隣でもない）
+func _is_fogged(hex: Vector2i) -> bool:
+	return (
+		_planet != null
+		and not _world.territory.is_owned(hex)
+		and not _world.territory.can_challenge(hex)
+	)
+
+
+func set_active_chunk(chunk_hex: Vector2i) -> void:
 	if _active_hex != null:
-		var prev = _tiles.get(Hex.to_key(_active_hex))
+		var prev = _tiles.get(_active_hex)
 		if prev:
 			prev.set_active(false)
 	_active_hex = chunk_hex
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	var tile = _tiles.get(chunk_hex)
 	if tile:
 		tile.set_active(true)
 
 
 func set_hovered_chunk(chunk_hex) -> void:
 	if _hovered_hex != null:
-		var prev = _tiles.get(Hex.to_key(_hovered_hex))
+		var prev = _tiles.get(_hovered_hex)
 		if prev:
 			prev.set_hovered(false)
 	_hovered_hex = chunk_hex
 	_update_info_label()
 	if chunk_hex == null:
 		return
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+	var tile = _tiles.get(chunk_hex)
 	if tile:
 		tile.set_hovered(true)
 
@@ -83,29 +106,37 @@ func set_hovered_chunk(chunk_hex) -> void:
 func _update_info_label() -> void:
 	if _info_label == null:
 		return
-	var biome = _planet.get_biome(_hovered_hex) if _planet and _hovered_hex else null
+	_info_label.text = _info_text(_hovered_hex)
+	_info_label.visible = _info_label.text != ""
+	if _info_label.visible:
+		_info_label.position = get_tile_position(_hovered_hex) - INFO_LABEL_SIZE / 2
+
+
+func _info_text(hex) -> String:
+	var biome = _planet.get_biome(hex) if _planet and hex != null else null
 	if biome == null:
-		_info_label.text = ""
-		_info_label.visible = false
-		return
+		return ""
+	if _is_fogged(hex):
+		return FOG_TEXT
 	var item = ItemDB.get_item(biome.resource_type)
 	var resource_name = item.display_name if item else biome.resource_type
-	_info_label.text = "%s\n%s" % [biome.display_name, resource_name]
-	_info_label.position = get_tile_position(_hovered_hex) - INFO_LABEL_SIZE / 2
-	_info_label.visible = true
+	var text = "%s\n%s" % [biome.display_name, resource_name]
+	if _world.territory.can_challenge(hex):
+		text += "\n" + CHALLENGE_TEXT
+	return text
 
 
 func get_hover_info_text() -> String:
 	return _info_label.text if _info_label else ""
 
 
-func get_tile_color(chunk_hex: Hex) -> Color:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_color(chunk_hex: Vector2i) -> Color:
+	var tile = _tiles.get(chunk_hex)
 	return tile.get_current_color() if tile else Color.TRANSPARENT
 
 
-func get_tile_hovered(chunk_hex: Hex) -> bool:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_hovered(chunk_hex: Vector2i) -> bool:
+	var tile = _tiles.get(chunk_hex)
 	return tile.is_hovered if tile else false
 
 
@@ -118,18 +149,18 @@ func get_tile_spacing() -> float:
 	return Layout.hex_to_pixel(_map_layout, Hex.direction(0)).length()
 
 
-func get_tile_inradius(chunk_hex: Hex) -> float:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_inradius(chunk_hex: Vector2i) -> float:
+	var tile = _tiles.get(chunk_hex)
 	return tile.get_inradius() if tile else 0.0
 
 
-func get_tile_position(chunk_hex: Hex) -> Vector2:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_position(chunk_hex: Vector2i) -> Vector2:
+	var tile = _tiles.get(chunk_hex)
 	return tile.position if tile else Vector2.ZERO
 
 
-func get_tile_active(chunk_hex: Hex) -> bool:
-	var tile = _tiles.get(Hex.to_key(chunk_hex))
+func get_tile_active(chunk_hex: Vector2i) -> bool:
+	var tile = _tiles.get(chunk_hex)
 	return tile.is_active if tile else false
 
 
@@ -147,8 +178,8 @@ func refresh_connections(pairs: Array) -> void:
 		arrow.queue_free()
 	_connection_arrows.clear()
 	for pair in pairs:
-		var from_tile = _tiles.get(Hex.to_key(pair[0]))
-		var to_tile = _tiles.get(Hex.to_key(pair[1]))
+		var from_tile = _tiles.get(pair[0])
+		var to_tile = _tiles.get(pair[1])
 		if from_tile == null or to_tile == null:
 			continue
 		var arrow = Sprite2D.new()
@@ -162,7 +193,7 @@ func refresh_connections(pairs: Array) -> void:
 
 func chunk_at_local_pos(local_pos: Vector2):
 	var hex = Layout.pixel_to_hex_rounded(_map_layout, local_pos)
-	var key = Hex.to_key(hex)
+	var key = hex
 	if key in _tiles:
 		return hex
 	return null

@@ -42,8 +42,8 @@ class TestRefresh:
 	func test_refresh_world_map後にチャンク数分の座標ラベルが生成される():
 		var world = load("res://scenes/components/world/world.gd").new()
 		add_child_autofree(world)
-		world.create_chunk(Hex.new(0, 0))
-		world.create_chunk(Hex.new(1, 0))
+		world.create_chunk(Vector2i(0, 0))
+		world.create_chunk(Vector2i(1, 0))
 		var view = WorldMapView.new()
 		add_child_autofree(view)
 		view.setup(world)
@@ -52,9 +52,9 @@ class TestRefresh:
 
 	func test_ピース配置済みヘックスのラベルにはピース名が含まれる():
 		var conveyor_scene = load("res://scenes/components/piece/conveyor.tscn")
-		chunk.place_piece(conveyor_scene, Hex.new(0, 0))
+		chunk.place_piece(conveyor_scene, Vector2i(0, 0))
 		overlay.refresh(chunk)
-		var label_text = overlay.get_label_text_at(Hex.new(0, 0))
+		var label_text = overlay.get_label_text_at(Vector2i(0, 0))
 		assert_true(
 			label_text.contains("Conveyor") or label_text.contains("conveyor"),
 			"Expected piece name in label, got: %s" % label_text

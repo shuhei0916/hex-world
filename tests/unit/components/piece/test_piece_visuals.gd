@@ -1,4 +1,4 @@
-# gdlint:disable=duplicated-load
+# gdlint:disable=duplicated-load,max-public-methods
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
@@ -13,7 +13,7 @@ func before_each():
 
 
 func test_make_output_arrowがSprite2Dを返す():
-	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var port = {"hex": Vector2i(0, 0), "direction": 0}
 	var arrow = Piece.make_output_arrow(port)
 	assert_is(arrow, Sprite2D)
 	arrow.free()
@@ -21,7 +21,7 @@ func test_make_output_arrowがSprite2Dを返す():
 
 func test_make_output_arrowのrotationが進行方向の角度になる():
 	# direction=0 (East): 隣接ヘックスはEast方向 → angle=0
-	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var port = {"hex": Vector2i(0, 0), "direction": 0}
 	var arrow = Piece.make_output_arrow(port)
 	var layout = Layout.make_default()
 	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
@@ -32,7 +32,7 @@ func test_make_output_arrowのrotationが進行方向の角度になる():
 
 
 func test_make_output_arrowのpositionがPORT_OFFSETの距離になる():
-	var port = {"hex": Hex.new(0, 0, 0), "direction": 0}
+	var port = {"hex": Vector2i(0, 0), "direction": 0}
 	var arrow = Piece.make_output_arrow(port)
 	var layout = Layout.make_default()
 	var center_pos = Layout.hex_to_pixel(layout, port["hex"])
@@ -60,7 +60,7 @@ func test_rotate_cw後に出力エッジ点が更新される():
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
 	var out_before = conveyor.get_node("ConveyorVisuals")._path[2]
-	conveyor.rotate_cw()
+	conveyor.set_rotation_state((conveyor.rotation_state + 1) % 6)
 	var out_after = conveyor.get_node("ConveyorVisuals")._path[2]
 	assert_ne(out_after, out_before)
 
@@ -91,7 +91,11 @@ func test_CONVEYORは出力方向矢印を表示しない():
 	var conveyor = CONVEYOR_SCENE.instantiate()
 	add_child_autofree(conveyor)
 	conveyor.setup(0)
-	assert_null(conveyor._output_arrow, "コンベアは矢印を表示しないべき")
+	assert_null(conveyor.get_node_or_null("PortVisuals"), "出口の印も付けない")
+	var arrows = conveyor.get_children().filter(
+		func(c): return c is Sprite2D and c.texture == Piece.FORWARD_TEXTURE
+	)
+	assert_eq(arrows, [], "コンベアは矢印を表示しないべき")
 
 
 func test_コンベア上のアイテムはコンベアのラインより手前に描画される():
@@ -127,7 +131,7 @@ func test_コンベアは基礎タイルを持たない():
 	conveyor.setup(0)
 	var tile_count = 0
 	for child in conveyor.get_children():
-		if child is HexTile:
+		if child is HexTile or child is PieceBody:
 			tile_count += 1
 	assert_eq(tile_count, 0)
 
@@ -137,10 +141,10 @@ func test_分岐コンベアでアイテムが2番目の出力方向に向かう
 	var gm = load("res://scenes/components/chunk/chunk.gd").new()
 	add_child_autofree(gm)
 	gm.create_hex_grid(3)
-	gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A
-	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East（1番目の出力先）
-	gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（2番目の出力先）
-	var a = gm.get_piece_at_hex(Hex.new(0, 0))
+	gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))  # A
+	gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))  # B: East（1番目の出力先）
+	gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)  # C: NE（2番目の出力先）
+	var a = gm.get_piece_at_hex(Vector2i(0, 0))
 	var logic = a.get_node("ConveyorLogic")
 	var visuals = a.get_node("ConveyorVisuals")
 	# 1個目を排出して round-robin を NE 側へ進める
@@ -172,13 +176,29 @@ func test_分岐コンベアのベルトは入口の辺から中心を通って�
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	visuals.set_output_directions([0, 1])
 	var layout = Layout.make_default()
-	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[3]) * 0.5
-	var ne_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[1]) * 0.5
+	var in_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[3]) * 0.5
+	var ne_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[1]) * 0.5
 	assert_eq(
 		visuals._paths[1],
 		PackedVector2Array([in_edge, Vector2.ZERO, ne_edge]),
 		"NEへの分岐は入口→中心→出口の直線"
 	)
+
+
+func test_分岐先と本線の先をどちらも撤去するとベルトは自分の出口へ戻る():
+	# 東 (1,0) が本線、北東 (1,-1) が分岐先（北東を出口とするコンベア）
+	var chunk := Chunk.new()
+	add_child_autofree(chunk)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)
+	var visuals = chunk.get_piece_at_hex(Vector2i(0, 0)).get_node("ConveyorVisuals")
+	assert_eq(visuals._paths.size(), 2, "前提: 分岐している")
+	chunk.remove_piece_at(Vector2i(1, 0))
+	chunk.remove_piece_at(Vector2i(1, -1))
+	var east_edge = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[0]) * 0.5
+	assert_eq(visuals._paths.size(), 1, "分岐のベルトは消える")
+	assert_eq(visuals._paths[0][-1], east_edge, "残るベルトは自分の出口（東）へ向かう")
 
 
 func test_合流コンベアは主入力以外の入力の辺から中心へ合流用のベルトを描く():
@@ -189,7 +209,7 @@ func test_合流コンベアは主入力以外の入力の辺から中心へ合�
 	var visuals = conveyor.get_node("ConveyorVisuals")
 	visuals.set_input_directions([3, 5])
 	var layout = Layout.make_default()
-	var se_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[5]) * 0.5
+	var se_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[5]) * 0.5
 	assert_eq(visuals._paths.size(), 1, "出口へのパスは主入力からの1本のまま")
 	assert_eq(visuals._merge_paths, [PackedVector2Array([se_edge, Vector2.ZERO])])
 
@@ -282,19 +302,17 @@ class TestBeltArrowContinuity:
 
 	func _inside_cell(point: Vector2) -> bool:
 		# pointy-top の六角形のマス。辺の中点までの距離（内接円の半径）を超えない
-		var inradius = (
-			Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[0]).length() * 0.5
-		)
+		var inradius = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[0]).length() * 0.5
 		for dir in 6:
 			var normal = (
-				Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[dir]).normalized()
+				Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[dir]).normalized()
 			)
 			if point.dot(normal) > inradius + 0.01:
 				return false
 		return true
 
 	func test_出口の辺にかかった矢印はマスの外へはみ出さない():
-		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[0]) * 0.5
+		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[0]) * 0.5
 		var polygons = ConveyorVisuals.chevron_polygons(edge_mid, Vector2(1, 0))
 		assert_gt(polygons.size(), 0, "マスの中にある部分は描く")
 		for polygon in polygons:
@@ -302,7 +320,7 @@ class TestBeltArrowContinuity:
 				assert_true(_inside_cell(point), str(point))
 
 	func test_入口の辺にかかった矢印もマスの外へはみ出さない():
-		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.hex_directions[3]) * 0.5
+		var edge_mid = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[3]) * 0.5
 		for polygon in ConveyorVisuals.chevron_polygons(edge_mid, Vector2(1, 0)):
 			for point in polygon:
 				assert_true(_inside_cell(point), str(point))

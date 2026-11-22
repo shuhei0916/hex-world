@@ -9,7 +9,6 @@ var b0: float
 var b1: float
 var b2: float
 var b3: float
-var start_angle: float
 
 
 func _init(
@@ -21,7 +20,6 @@ func _init(
 	b1_val: float,
 	b2_val: float,
 	b3_val: float,
-	start_angle_val: float
 ):
 	f0 = f0_val
 	f1 = f1_val
@@ -31,4 +29,3 @@ func _init(
 	b1 = b1_val
 	b2 = b2_val
 	b3 = b3_val
-	start_angle = start_angle_val

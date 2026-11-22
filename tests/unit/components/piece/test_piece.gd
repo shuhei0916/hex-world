@@ -4,6 +4,9 @@ extends GutTest
 const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
 const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
+const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 
 
 class TestMachineCapacity:
@@ -54,26 +57,18 @@ class TestPieceVisuals:
 		piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 
-	func test_出力ポートが存在する場合に矢印が表示される():
+	func test_出力ポートのある施設には出口の印が付く():
 		piece.port_direction = 0
 		piece.port_hex = Vector2i(0, 0)
 		piece.setup()
 
-		assert_not_null(piece._output_arrow, "出力ポートがある場合、矢印Sprite2Dが生成されるべき")
+		assert_not_null(piece.get_node_or_null("PortVisuals"))
 
 
 class TestPieceOutputPorts:
 	extends GutTest
 
-	func test_port_direction2が設定されるとget_output_portsが2ポートを返す():
-		var piece = SMELTER_SCENE.instantiate()
-		add_child_autofree(piece)
-		piece.port_direction = 0
-		piece.port_direction2 = 1
-		piece.setup()
-		assert_eq(piece.get_output_ports().size(), 2)
-
-	func test_port_direction2がデフォルトならget_output_portsは1ポートのまま():
+	func test_出力ポートは1つ():
 		var piece = SMELTER_SCENE.instantiate()
 		add_child_autofree(piece)
 		piece.port_direction = 0
@@ -92,25 +87,33 @@ class TestPieceTransformation:
 
 	func test_ピースの回転に合わせてポートの向きも変更される():
 		assert_eq(p.get_output_ports()[0].direction, 2)
-		p.rotate_cw()
+		p.set_rotation_state((p.rotation_state + 1) % 6)
 		assert_eq(p.get_output_ports()[0].direction, 1)
+
+	func test_回転すると本体の形も回転後のマスに合わせて描き直す():
+		p.set_rotation_state((p.rotation_state + 1) % 6)
+		var outline: PackedVector2Array = p.get_node("Body").get_outline()
+		for hex in p.get_hex_shape():
+			var center := Layout.hex_to_pixel(Layout.make_default(), hex)
+			assert_true(Geometry2D.is_point_in_polygon(center, outline))
+		assert_eq(p.get_children().filter(func(c): return c is PieceBody).size(), 1)
 
 	func test_回転前のピースの形状を取得できる():
 		var result = p.get_hex_shape()
 		assert_eq(result.size(), 4)
-		assert_true(Hex.equals(result[0], Hex.new(-1, 0, 1)))
-		assert_true(Hex.equals(result[1], Hex.new(0, 0, 0)))
+		assert_true(result[0] == Vector2i(-1, 0))
+		assert_true(result[1] == Vector2i(0, 0))
 
 	func test_回転後のピースの形状を取得できる():
-		p.rotate_cw()
+		p.set_rotation_state((p.rotation_state + 1) % 6)
 		var result = p.get_hex_shape()
-		assert_true(Hex.equals(result[0], Hex.new(0, -1, 1)))
+		assert_true(result[0] == Vector2i(0, -1))
 
 	func test_機械の出力アイテムは出力ポート端に表示される():
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		s.add_to_output("iron_ingot", 1)
+		s.ejector.add_item("iron_ingot", 1)
 		s.ejector.tick(1.0)  # スライド完了させてポート端へ
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
@@ -118,7 +121,7 @@ class TestPieceTransformation:
 		var layout = Layout.make_default()
 		var expected = (
 			Layout.hex_to_pixel(layout, port.hex)
-			+ Layout.hex_to_pixel(layout, Hex.hex_directions[port.direction]) * 0.5
+			+ Layout.hex_to_pixel(layout, Hex.DIRECTIONS[port.direction]) * 0.5
 		)
 		assert_eq(visual.get_node("ItemIcon").position, expected)
 
@@ -126,12 +129,12 @@ class TestPieceTransformation:
 		var s = SMELTER_SCENE.instantiate()
 		add_child_autofree(s)
 		s.setup(0)
-		s.add_to_output("iron_ingot", 1)
+		s.ejector.add_item("iron_ingot", 1)
 		s.ejector.tick(1.0)
 		var visual = s.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var before = visual.get_node("ItemIcon").position
-		s.rotate_cw()
+		s.set_rotation_state((s.rotation_state + 1) % 6)
 		visual.update_item_icon()
 		assert_ne(visual.get_node("ItemIcon").position, before)
 
@@ -140,7 +143,7 @@ class TestPieceTransformation:
 		var m = MINER_SCENE.instantiate()
 		add_child_autofree(m)
 		m.setup(0)
-		m.add_to_output("iron_ore", 1)  # progress 0（スライド開始前）
+		m.ejector.add_item("iron_ore", 1)  # progress 0（スライド開始前）
 		var visual = m.get_node("ItemEjectorVisual")
 		visual.update_item_icon()
 		var port = m.get_output_ports()[0]
@@ -153,7 +156,7 @@ class TestPieceTransformation:
 		s.setup(0)
 		var tile = null
 		for child in s.get_children():
-			if child is HexTile:
+			if child is PieceBody:
 				tile = child
 				break
 		assert_lt(s.get_node("ItemEjectorVisual/ItemIcon").z_index, tile.z_index)
@@ -161,8 +164,6 @@ class TestPieceTransformation:
 
 class TestPieceAcceptor:
 	extends GutTest
-
-	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 
 	func test_機械ピースのget_acceptorはCrafterを返す():
 		var p = SMELTER_SCENE.instantiate()
@@ -180,6 +181,65 @@ class TestPieceAcceptor:
 		add_child_autofree(p)
 		p.setup()
 		assert_false(p.can_accept_item("iron_ore"))
+
+	func test_搬入チェストとハブはそれぞれの部品が受け入れ口になる():
+		var chest = CHEST_IN_SCENE.instantiate()
+		add_child_autofree(chest)
+		assert_eq(chest.get_acceptor(), chest.get_node("ChestInput"))
+		var hub = load("res://scenes/components/piece/hub.tscn").instantiate()
+		add_child_autofree(hub)
+		assert_eq(hub.get_acceptor(), hub.get_node("Hub"))
+
+	func test_搬出チェストは何も受け入れない():
+		var chest = load("res://scenes/components/piece/chest_out.tscn").instantiate()
+		add_child_autofree(chest)
+		assert_null(chest.get_acceptor())
+
+
+class TestPieceKind:
+	extends GutTest
+
+	func test_コンベアかどうかは種類で決まり見た目の部品の有無に左右されない():
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		p.get_node("ConveyorVisuals").free()
+		assert_true(p.is_conveyor())
+
+	func test_橋はベルトの動きの部品を持つがコンベアではない():
+		var p = BRIDGE_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_false(p.is_conveyor())
+
+	func test_機械はコンベアではない():
+		var p = SMELTER_SCENE.instantiate()
+		add_child_autofree(p)
+		assert_false(p.is_conveyor())
+
+
+class TestBeltDirections:
+	extends GutTest
+
+	func _conveyor(rotation: int, input_direction := -1) -> Piece:
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup(rotation)
+		p.input_direction = input_direction
+		return p
+
+	func test_出口の向きは回転に従う():
+		assert_eq(_conveyor(0).output_direction(), 0)
+		assert_eq(_conveyor(1).output_direction(), 5)
+
+	func test_入力側を決めていないベルトは真後ろから受け取る():
+		assert_eq(_conveyor(0).belt_input_side(), 3)
+
+	func test_入力側を決めたベルトはその側から受け取る():
+		assert_eq(_conveyor(0, 5).belt_input_side(), 5)
+
+	func test_出口の無いピースの出口の向きは無い():
+		var chest = CHEST_IN_SCENE.instantiate()
+		add_child_autofree(chest)
+		assert_eq(chest.output_direction(), -1)
 
 
 class TestPieceRoles:

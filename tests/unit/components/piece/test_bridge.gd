@@ -46,11 +46,8 @@ func test_接続先がなければhas_connected_pieceはfalse():
 	assert_false(bridge.has_connected_piece())
 
 
-func _get_hex_tile(piece: Piece) -> HexTile:
-	for child in piece.get_children():
-		if child is HexTile:
-			return child
-	return null
+func _get_hex_tile(piece: Piece) -> PieceBody:
+	return piece.get_node_or_null("Body")
 
 
 func test_接続時にヘックスタイルのmodulateが変わる():
@@ -84,7 +81,7 @@ func test_チャンク内の隣接ピースへは自動配線されない():
 	var chunk = Chunk.new()
 	add_child_autofree(chunk)
 	chunk.create_hex_grid(2)
-	chunk.place_piece(BRIDGE_SCENE, Hex.new(-2, 1, 1), 0)
-	chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(-1, 1, 0), 0)
-	var placed_bridge = chunk.get_piece_at_hex(Hex.new(-2, 1, 1))
+	chunk.place_piece(BRIDGE_SCENE, Vector2i(-2, 1), 0)
+	chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Vector2i(-1, 1), 0)
+	var placed_bridge = chunk.get_piece_at_hex(Vector2i(-2, 1))
 	assert_eq(placed_bridge.get_connected_pieces(), [])

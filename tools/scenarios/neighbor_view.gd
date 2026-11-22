@@ -13,9 +13,9 @@ func run(scene: Node) -> void:
 	var world: World = scene.world
 	var origin = world.get_active_chunk()
 	print("隣の chunk: ", world.get_neighbor_hexes())
-	var bridge_hex = Hex.new(5, -2)
+	var bridge_hex = Vector2i(Chunk.DEFAULT_RADIUS, -2)
 	var edge_dir = origin.get_edge_direction(bridge_hex)
-	var target_chunk_hex = Hex.neighbor(Hex.new(0, 0), ChunkTopology.to_world_direction(edge_dir))
+	var target_chunk_hex = Hex.neighbor(Vector2i(0, 0), ChunkTopology.to_world_direction(edge_dir))
 	var target = world.get_chunk(target_chunk_hex)
 	var landing_hex = ChunkTopology.mirror_hex(bridge_hex, edge_dir)
 	origin.place_piece(BRIDGE, bridge_hex, 0)
@@ -34,9 +34,12 @@ func run(scene: Node) -> void:
 	bridge.add_item("iron_ore", 1)
 	for i in 120:
 		await scene.get_tree().process_frame
-	print("しばらく後、向かいのコンベアに届いた: ", target.get_piece_at_hex(landing_hex).get_node("ConveyorLogic").get_held_item())
+	print(
+		"しばらく後、向かいのコンベアに届いた: ",
+		target.get_piece_at_hex(landing_hex).get_node("ConveyorLogic").get_held_item()
+	)
 
 	scene._hover_local(landing_pos)
 	await scene.get_tree().process_frame
 	print("隣のコンベアにホバー → 情報: ", scene.hud.info_panel.name_label.text)
-	print("隣の chunk の中には置けない: ", not scene.piece_placer.place_piece_at_hex(Hex.new(-2, 8)))
+	print("隣の chunk の中には置けない: ", not scene.piece_placer.place_piece_at_hex(Vector2i(-2, 8)))

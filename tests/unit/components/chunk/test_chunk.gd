@@ -15,20 +15,26 @@ class TestGridLogic:
 	func before_each():
 		gm = Chunk.new()
 		add_child_autofree(gm)
-		gm.clear_grid()
+
+	func test_新しいchunkは半径8で217マス():
+		var chunk = Chunk.new()
+		add_child_autofree(chunk)
+		assert_eq(chunk.grid_radius, 8)
+		assert_eq(chunk.get_grid_hex_count(), 217)
 
 	func test_指定した範囲のグリッドを生成できる():
 		gm.create_hex_grid(2)
 		assert_eq(gm.get_grid_hex_count(), 19, "半径2のグリッドは19マスであるべき")
-		assert_true(gm.is_inside_grid(Hex.new(0, 0)))
-		assert_false(gm.is_inside_grid(Hex.new(3, 0)), "範囲外は登録されていないべき")
+		assert_true(gm.is_inside_grid(Vector2i(0, 0)))
+		assert_false(gm.is_inside_grid(Vector2i(3, 0)), "範囲外は登録されていないべき")
 
-	func test_グリッド状態を完全にクリアできる():
-		gm.register_grid_hex(Hex.new(0, 0))
-		gm.occupy(Hex.new(0, 0))
-		gm.clear_grid()
-		assert_false(gm.is_inside_grid(Hex.new(0, 0)))
-		assert_false(gm.is_occupied(Hex.new(0, 0)))
+	func test_半径を小さく作り直すと外側のマスはグリッドから外れる():
+		var chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(2)
+		assert_false(chunk.is_inside_grid(Vector2i(5, 0)))
+		var shape: Array[Vector2i] = [Vector2i(0, 0)]
+		assert_false(chunk.can_place(shape, Vector2i(5, 0)), "外れたマスには置けない")
 
 
 class TestPiecePlacement:
@@ -43,65 +49,104 @@ class TestPiecePlacement:
 
 	func test_place_pieceするとpiece_placedシグナルが発火する():
 		watch_signals(gm)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		assert_signal_emitted(gm, "piece_placed")
 
 	func test_remove_piece_atが成功するとpiece_removedシグナルが発火する():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		watch_signals(gm)
-		gm.remove_piece_at(Hex.new(0, 0))
+		gm.remove_piece_at(Vector2i(0, 0))
 		assert_signal_emitted(gm, "piece_removed")
 
 	func test_remove_piece_atが失敗したときはpiece_removedは発火しない():
 		watch_signals(gm)
-		gm.remove_piece_at(Hex.new(0, 0))  # 何も置かれていない
+		gm.remove_piece_at(Vector2i(0, 0))  # 何も置かれていない
 		assert_signal_not_emitted(gm, "piece_removed")
 
 	func test_MINERシーンを使うとInputノードがない():
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		assert_null(piece.get_node_or_null("ItemAcceptor"), "MINERはInputノードを持たないはず")
 
 	func test_有効な場所にピースを配置できる():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		assert_true(gm.is_occupied(Hex.new(0, 0)))
-		assert_not_null(gm.get_piece_at_hex(Hex.new(0, 0)))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		assert_true(gm.is_occupied(Vector2i(0, 0)))
+		assert_not_null(gm.get_piece_at_hex(Vector2i(0, 0)))
 
 	func test_占有済みまたは範囲外には配置できない():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		var shape: Array[Hex] = [Hex.new(0, 0)]
-		assert_false(gm.can_place(shape, Hex.new(0, 0)), "占有済み")
-		assert_false(gm.can_place(shape, Hex.new(5, 5)), "範囲外")
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		var shape: Array[Vector2i] = [Vector2i(0, 0)]
+		assert_false(gm.can_place(shape, Vector2i(0, 0)), "占有済み")
+		assert_false(gm.can_place(shape, Vector2i(5, 5)), "範囲外")
 
 	func test_ピースを削除すると占有が解除されノードも解放される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		gm.remove_piece_at(Hex.new(0, 0))
-		assert_false(gm.is_occupied(Hex.new(0, 0)))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		gm.remove_piece_at(Vector2i(0, 0))
+		assert_false(gm.is_occupied(Vector2i(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
 
-	func test_配置時にピースの色でHexTileが生成される():
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		for child in piece.get_children():
-			if child is HexTile:
-				assert_eq((child as HexTile).get_color(), piece.piece_color)
-				return
-		fail_test("ピースにHexTileが存在しない")
+	func test_置いた後で形が変わっても撤去すると置いたときのマスが空く():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var placed_hexes: Array[Vector2i] = piece.get_hex_shape()
+		piece.set_rotation_state(2)
+		gm.remove_piece_at(Vector2i(0, 0))
+		for hex in placed_hexes:
+			assert_false(gm.is_occupied(hex), "置いたときに占めた %s" % hex)
+			assert_null(gm.get_piece_at_hex(hex))
+
+	func test_配置するとピースの色で本体が1つ生成される():
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var bodies = piece.get_children().filter(func(c): return c is PieceBody)
+		assert_eq(bodies.size(), 1)
+		assert_eq(bodies[0].get_fill_color(), piece.piece_color)
+
+	func test_機械の本体には作っている品物のアイコンが出る():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var output: String = piece.current_recipe.outputs.keys()[0]
+		assert_eq(piece.get_node("Body").get_icon(), ItemDB.get_item(output).icon)
 
 	func test_機械の出力アイテムは地面タイルより手前に描画される():
-		gm.place_piece(SMELTER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
-		var ground = gm.find_hex_tile(Hex.new(0, 0))
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var ground = gm.find_hex_tile(Vector2i(0, 0))
 		var icon = piece.get_node("ItemEjectorVisual/ItemIcon")
 		assert_lt(ground.z_index, icon.z_index)
 
 	func test_コンベアのベルトは地面タイルより手前に描画される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var view = piece.get_node("ConveyorVisuals")
-		var ground = gm.find_hex_tile(Hex.new(0, 0))
+		var ground = gm.find_hex_tile(Vector2i(0, 0))
 		assert_lt(ground.z_index, view.z_index)
+
+
+class TestPiecePositions:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_出口の位置を盤面のマスで返す():
+		gm.place_piece(SMELTER_SCENE, Vector2i(1, -1))
+		var piece = gm.get_piece_at_hex(Vector2i(1, -1))
+		var local = piece.get_output_ports()[0]
+		var ports = gm.get_output_ports_on_grid(piece)
+		assert_eq(ports, [{"hex": Vector2i(1, -1) + local["hex"], "direction": local["direction"]}])
+
+	func test_占めるマスは置いたときのマス():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var placed: Array[Vector2i] = piece.get_hex_shape()
+		piece.set_rotation_state(3)
+		assert_eq(gm.get_occupied_hexes(piece), placed)
 
 
 class TestNeighbors:
@@ -114,51 +159,59 @@ class TestNeighbors:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
-	func test_指定した方向の隣接ピースを取得できる():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1))
-		var piece_b = gm.get_piece_at_hex(Hex.new(1, -1))
-		assert_eq(gm.get_neighbor_piece(Hex.new(0, 0), 1), piece_b)
-		assert_null(gm.get_neighbor_piece(Hex.new(0, 0), 3), "存在しない方向はnull")
-
 	func test_出力ポートの先にピースがある場合は搬送先として登録される():
 		# CONVEYOR at (0,0): 1ヘックス、port_direction=0(East) → neighbor (1,0)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var source = gm.get_piece_at_hex(Hex.new(0, 0))
-		var target = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var source = gm.get_piece_at_hex(Vector2i(0, 0))
+		var target = gm.get_piece_at_hex(Vector2i(1, 0))
 		assert_true(target in source.get_connected_pieces())
 
 	func test_ポートが向いていない隣接ピースは搬送先に登録されない():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, -1))
-		var source = gm.get_piece_at_hex(Hex.new(0, 0))
-		var target = gm.get_piece_at_hex(Hex.new(0, -1))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, -1))
+		var source = gm.get_piece_at_hex(Vector2i(0, 0))
+		var target = gm.get_piece_at_hex(Vector2i(0, -1))
 		assert_false(target in source.get_connected_pieces())
 
 	func test_ピース削除時に周囲の搬送先リストが自動更新される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var source = gm.get_piece_at_hex(Hex.new(0, 0))
-		gm.remove_piece_at(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var source = gm.get_piece_at_hex(Vector2i(0, 0))
+		gm.remove_piece_at(Vector2i(1, 0))
 		assert_eq(source.get_connected_pieces().size(), 0, "削除後は接続が切れているべき")
 
+	# C(1,0) は北東から受けて東へ曲がるベルト。その真後ろ(0,0)を南西へ流れるコンベア A がある
+	func _place_curve_with_line_behind() -> Array:
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0, 1)  # C: East、入力は NE
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 2)  # A: SW
+		return [gm.get_piece_at_hex(Vector2i(0, 0)), gm.get_piece_at_hex(Vector2i(1, 0))]
+
+	func test_曲がったベルトの真後ろを通るコンベアはそのベルトへ分岐しない():
+		var pieces = _place_curve_with_line_behind()
+		assert_false(pieces[1] in pieces[0].get_connected_pieces())
+
+	func test_曲がったベルトは真後ろを通るコンベアを入力として描かない():
+		var pieces = _place_curve_with_line_behind()
+		var inputs = pieces[1].get_node("ConveyorVisuals").get_input_directions()
+		assert_false(3 in inputs, "真後ろ(West)は入力ではない: %s" % [inputs])
+
 	func test_自然な分岐後コンベアAのConveyorVisualsは2本のパスを持つ():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE
-		var a = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))  # B: East
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)  # C: NE
+		var a = gm.get_piece_at_hex(Vector2i(0, 0))
 		var visuals = a.get_node("ConveyorVisuals")
 		assert_eq(visuals._paths.size(), 2, "Aの分岐後はベジェパスが2本あるべき")
 
 	func test_コンベアBの入力方向がAを向くときAはBを出力先に自動追加する():
 		# A at (0,0) East(dir=0)、B at (1,0) East、C at (1,-1) NE(dir=1) は自然な分岐
 		# CONVEYOR のデフォルト port_direction=0(East)。rotation=5 → (0-5+6)%6=1(NE)
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))  # A: East
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))  # B: East
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, -1), 5)  # C: NE（Aから見てNE方向にあり、NE向き）
-		var a = gm.get_piece_at_hex(Hex.new(0, 0))
-		var c = gm.get_piece_at_hex(Hex.new(1, -1))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))  # A: East
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))  # B: East
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)  # C: NE（Aから見てNE方向にあり、NE向き）
+		var a = gm.get_piece_at_hex(Vector2i(0, 0))
+		var c = gm.get_piece_at_hex(Vector2i(1, -1))
 		assert_true(c in a.get_connected_pieces(), "AはCを出力先として持つべき（自然な分岐）")
 
 
@@ -175,10 +228,10 @@ class TestConveyorMerge:
 		gm.create_hex_grid(3)
 
 	func _place_merge(c_input_direction: int):
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0), 0, c_input_direction)  # C: East へ
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)  # A: East へ（C の West 側から）
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 1), 4)  # B: NW へ（C の SE 側から）
-		visuals = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("ConveyorVisuals")
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0, c_input_direction)  # C: East へ
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(-1, 0), 0)  # A: East へ（C の West 側から）
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 1), 4)  # B: NW へ（C の SE 側から）
+		visuals = gm.get_piece_at_hex(Vector2i(0, 0)).get_node("ConveyorVisuals")
 
 	func test_合流先のベルトは接続しているすべての入力方向を持つ():
 		_place_merge(-1)
@@ -193,7 +246,7 @@ class TestConveyorMerge:
 
 	func test_合流元を撤去すると合流用のベルトが消える():
 		_place_merge(3)
-		gm.remove_piece_at(Hex.new(0, 1))
+		gm.remove_piece_at(Vector2i(0, 1))
 		assert_eq(visuals.get_input_directions(), [3])
 		assert_eq(visuals._merge_paths, [])
 
@@ -211,25 +264,25 @@ class TestItemTransfer:
 	func test_出力インベントリが満杯の状態で接続するとアイテムが転送される():
 		# 機械を設置し、出力を満杯にしてから受け取り先を接続する
 		# SMELTER at (-1,2): port at (0,0) → absolute (-1,2), direction E → neighbor (0,2)
-		gm.place_piece(SMELTER_SCENE, Hex.new(-1, 2))
-		var source = gm.get_piece_at_hex(Hex.new(-1, 2))
-		source.add_to_output("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
+		gm.place_piece(SMELTER_SCENE, Vector2i(-1, 2))
+		var source = gm.get_piece_at_hex(Vector2i(-1, 2))
+		source.ejector.add_item("iron_plate", 1)  # 出力容量はレシピ1回分(1)なので1個で満杯
 
 		# 接続先を後から設置 → この時点で _push_items() が呼ばれないのがバグ
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 2))
-		var chest = gm.get_piece_at_hex(Hex.new(0, 2))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 2))
+		var chest = gm.get_piece_at_hex(Vector2i(0, 2))
 
 		source.tick(1.0)  # スライド完了→排出
 		assert_gt(chest.get_item_count("iron_plate"), 0, "満杯状態で接続してもアイテムが転送されるべき")
 
 	func test_搬送完了済みのコンベアに後から接続先を置くと次のtickで転送される():
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		var source = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		var source = gm.get_piece_at_hex(Vector2i(0, 0))
 		source.add_item("iron_plate", 1)
 		source.get_node("ConveyorLogic").tick(0.5)  # 接続先がないので保持したまま
 
-		gm.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
-		var chest = gm.get_piece_at_hex(Hex.new(1, 0))
+		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		source.get_node("ConveyorLogic").tick(0.1)  # 搬送済みなので追加の待ち時間は不要
 
 		assert_eq(chest.get_item_count("iron_plate"), 1)
@@ -248,13 +301,13 @@ class TestOuterHexes:
 	func test_get_outer_hexesは外縁ヘックスのみを返す():
 		var outer = gm.get_outer_hexes()
 		for hex in outer:
-			var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+			var max_coord = max(abs(hex.x), abs(hex.y), abs(Hex.s(hex)))
 			assert_eq(max_coord, 2, "外縁ヘックスは max(|q|,|r|,|s|)==radius であるべき")
 
 	func test_get_outer_hexesは内側のヘックスを含まない():
 		var outer = gm.get_outer_hexes()
 		for hex in outer:
-			var max_coord = max(abs(hex.q), abs(hex.r), abs(hex.s))
+			var max_coord = max(abs(hex.x), abs(hex.y), abs(Hex.s(hex)))
 			assert_true(max_coord >= 2, "内側ヘックスが含まれていてはならない")
 
 
@@ -270,34 +323,34 @@ class TestEdgeDirection:
 
 	func test_辺ヘックスは属する辺の方向を返す():
 		# q=+R の辺（角以外）は東(0)の辺に属する
-		assert_eq(gm.get_edge_direction(Hex.new(2, -1, -1)), 0)
+		assert_eq(gm.get_edge_direction(Vector2i(2, -1)), 0)
 
 	func test_対辺の点対称位置は逆方向を返す():
 		# q=-R の辺（東の辺の点対称）は西(3)の辺に属する
-		assert_eq(gm.get_edge_direction(Hex.new(-2, 1, 1)), 3)
+		assert_eq(gm.get_edge_direction(Vector2i(-2, 1)), 3)
 
 	func test_角ヘックスはマイナス1を返す():
 		# 座標2つが±R に達する角はどの辺にも属さない
-		assert_eq(gm.get_edge_direction(Hex.new(2, -2, 0)), -1)
+		assert_eq(gm.get_edge_direction(Vector2i(2, -2)), -1)
 
 	func test_内側ヘックスはマイナス1を返す():
-		assert_eq(gm.get_edge_direction(Hex.new(0, 0, 0)), -1)
+		assert_eq(gm.get_edge_direction(Vector2i(0, 0)), -1)
 
 	func test_橋は内側ヘックスに設置できない():
-		var shape: Array = [Hex.new(0, 0, 0)]
-		assert_false(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.BRIDGE))
+		var shape: Array = [Vector2i(0, 0)]
+		assert_false(gm.can_place(shape, Vector2i(0, 0), PieceData.Type.BRIDGE))
 
 	func test_橋は辺ヘックスに設置できる():
-		var shape: Array = [Hex.new(0, 0, 0)]
-		assert_true(gm.can_place(shape, Hex.new(2, -1, -1), PieceData.Type.BRIDGE))
+		var shape: Array = [Vector2i(0, 0)]
+		assert_true(gm.can_place(shape, Vector2i(2, -1), PieceData.Type.BRIDGE))
 
 	func test_橋は角ヘックスに設置できない():
-		var shape: Array = [Hex.new(0, 0, 0)]
-		assert_false(gm.can_place(shape, Hex.new(2, -2, 0), PieceData.Type.BRIDGE))
+		var shape: Array = [Vector2i(0, 0)]
+		assert_false(gm.can_place(shape, Vector2i(2, -2), PieceData.Type.BRIDGE))
 
 	func test_通常ピースは内側ヘックスに設置できる():
-		var shape: Array = [Hex.new(0, 0, 0)]
-		assert_true(gm.can_place(shape, Hex.new(0, 0, 0), PieceData.Type.CONVEYOR))
+		var shape: Array = [Vector2i(0, 0)]
+		assert_true(gm.can_place(shape, Vector2i(0, 0), PieceData.Type.CONVEYOR))
 
 
 class TestLandingHints:
@@ -311,13 +364,13 @@ class TestLandingHints:
 		gm.create_hex_grid(2)
 
 	func test_show_landing_hintsで指定タイルがハイライトされる():
-		gm.show_landing_hints([Hex.new(-2, 1, 1)])
-		assert_true(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+		gm.show_landing_hints([Vector2i(-2, 1)])
+		assert_true(gm.find_hex_tile(Vector2i(-2, 1)).is_highlighted)
 
 	func test_再表示で前回のハイライトはクリアされる():
-		gm.show_landing_hints([Hex.new(-2, 1, 1)])
+		gm.show_landing_hints([Vector2i(-2, 1)])
 		gm.show_landing_hints([])
-		assert_false(gm.find_hex_tile(Hex.new(-2, 1, 1)).is_highlighted)
+		assert_false(gm.find_hex_tile(Vector2i(-2, 1)).is_highlighted)
 
 
 class TestOreDeposits:
@@ -331,11 +384,11 @@ class TestOreDeposits:
 		gm.create_hex_grid(2)
 
 	func test_get_hex_resourceが登録済みヘックスのリソース名を返す():
-		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
-		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "iron_ore")
+		gm.mark_resource_hex(Vector2i(0, 0), "iron_ore")
+		assert_eq(gm.get_hex_resource(Vector2i(0, 0)), "iron_ore")
 
 	func test_get_hex_resourceが未登録ヘックスに空文字を返す():
-		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+		assert_eq(gm.get_hex_resource(Vector2i(0, 0)), "")
 
 	func test_generate_ore_depositsがN個をiron_oreとして登録する():
 		gm.generate_ore_deposits(3)
@@ -352,7 +405,17 @@ class TestOreDeposits:
 
 	func test_generate_ore_depositsはハブを置くchunk中心に鉱床を作らない():
 		gm.generate_ore_deposits(100)
-		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+		assert_eq(gm.get_hex_resource(Vector2i(0, 0)), "")
+
+	func test_generate_ore_depositsはすでにある別の鉱床を上書きしない():
+		# 半径2の内側（中心を除く6マス）のうち5マスを銅にしておく。起点も含めて銅は残る
+		var inner = gm.get_inner_hexes().filter(func(h): return h != Vector2i(0, 0))
+		for hex in inner.slice(0, 5):
+			gm.mark_resource_hex(hex, "copper_ore")
+		for _i in 20:
+			gm.generate_ore_deposits(1, "coal")
+		for hex in inner.slice(0, 5):
+			assert_eq(gm.get_hex_resource(hex), "copper_ore", "%s" % hex)
 
 	func test_generate_ore_depositsで資源の種類を指定できる():
 		gm.generate_ore_deposits(3, "copper_ore")
@@ -364,15 +427,32 @@ class TestOreDeposits:
 
 	func test_鉱床タイルは資源の種類ごとに異なる色になる():
 		var colors = {}
-		var hexes = [Hex.new(0, 0), Hex.new(1, 0), Hex.new(0, 1), Hex.new(-1, 0)]
+		var hexes = [
+			Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1)
+		]
 		var biome_ids = Biome.all_ids()
 		for i in range(biome_ids.size()):
 			var resource_type = Biome.get_biome(biome_ids[i]).resource_type
 			gm.mark_resource_hex(hexes[i], resource_type)
 			var color = gm.find_hex_tile(hexes[i]).get_color()
-			assert_ne(color, Color("#3D3D3D"), "%s の鉱床に色が付くべき" % resource_type)
+			assert_ne(color, HexStyle.FLOOR_COLOR, "%s の鉱床に色が付くべき" % resource_type)
 			colors[color] = true
 		assert_eq(colors.size(), biome_ids.size())
+
+	func test_鉱床のマスの中央には資源のアイコンが出て_床には出ない():
+		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
+		var tile: HexTile = gm.find_hex_tile(Vector2i(1, 0))
+		assert_eq(tile.get_icon(), ItemDB.get_item("copper_ore").icon)
+		assert_null(gm.find_hex_tile(Vector2i(0, 1)).get_icon())
+
+	func test_鉱床の色は床に薄く混ぜる程度():
+		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
+		var color: Color = gm.find_hex_tile(Vector2i(1, 0)).get_color()
+		var ore: Color = ChunkResources.RESOURCE_COLORS["copper_ore"]
+		assert_lt(_distance(color, HexStyle.FLOOR_COLOR), _distance(color, ore))
+
+	func _distance(a: Color, b: Color) -> float:
+		return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
 
 
 class TestMinerConstraint:
@@ -386,43 +466,43 @@ class TestMinerConstraint:
 		gm.create_hex_grid(3)
 
 	func test_MINER_を非鉱床ヘックスに設置するとレシピがnull():
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
 		assert_null(crafter.current_recipe)
 
-	func test_MINER_を2鉱床ヘックス上に設置するとoutput_multiplierが2():
-		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
-		gm.mark_resource_hex(Hex.new(0, 1), "iron_ore")
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+	func test_MINER_を2鉱床ヘックス上に設置すると鉱床の濃さが2():
+		gm.mark_resource_hex(Vector2i(0, 0), "iron_ore")
+		gm.mark_resource_hex(Vector2i(0, 1), "iron_ore")
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
-		assert_eq(crafter.output_multiplier, 2)
+		assert_eq(crafter.speed_multiplier, 2)
 
-	func test_MINER_を4鉱床ヘックス上に設置するとoutput_multiplierが4():
-		gm.mark_resource_hex(Hex.new(0, 0), "iron_ore")
-		gm.mark_resource_hex(Hex.new(0, 1), "iron_ore")
-		gm.mark_resource_hex(Hex.new(1, 0), "iron_ore")
-		gm.mark_resource_hex(Hex.new(1, 1), "iron_ore")
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var piece = gm.get_piece_at_hex(Hex.new(0, 0))
+	func test_MINER_を4鉱床ヘックス上に設置すると鉱床の濃さが4():
+		gm.mark_resource_hex(Vector2i(0, 0), "iron_ore")
+		gm.mark_resource_hex(Vector2i(0, 1), "iron_ore")
+		gm.mark_resource_hex(Vector2i(1, 0), "iron_ore")
+		gm.mark_resource_hex(Vector2i(1, 1), "iron_ore")
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
-		assert_eq(crafter.output_multiplier, 4)
+		assert_eq(crafter.speed_multiplier, 4)
 
 	func test_MINER_は足元の鉱床の資源を採掘する():
-		gm.mark_resource_hex(Hex.new(0, 0), "copper_ore")
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var crafter = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("Crafter")
+		gm.mark_resource_hex(Vector2i(0, 0), "copper_ore")
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var crafter = gm.get_piece_at_hex(Vector2i(0, 0)).get_node("Crafter")
 		assert_eq(crafter.current_recipe.outputs, {"copper_ore": 1})
 
 	func test_MINER_は複数種の鉱床にまたがると最も多い資源だけをその数ぶん採掘する():
-		gm.mark_resource_hex(Hex.new(0, 0), "copper_ore")
-		gm.mark_resource_hex(Hex.new(0, 1), "coal")
-		gm.mark_resource_hex(Hex.new(1, 0), "coal")
-		gm.place_piece(MINER_SCENE, Hex.new(0, 0))
-		var crafter = gm.get_piece_at_hex(Hex.new(0, 0)).get_node("Crafter")
+		gm.mark_resource_hex(Vector2i(0, 0), "copper_ore")
+		gm.mark_resource_hex(Vector2i(0, 1), "coal")
+		gm.mark_resource_hex(Vector2i(1, 0), "coal")
+		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
+		var crafter = gm.get_piece_at_hex(Vector2i(0, 0)).get_node("Crafter")
 		assert_eq(crafter.current_recipe.outputs, {"coal": 1})
-		assert_eq(crafter.output_multiplier, 2)
+		assert_eq(crafter.speed_multiplier, 2)
 
 
 class TestHubProtection:
@@ -438,8 +518,8 @@ class TestHubProtection:
 		gm.create_hex_grid(2)
 
 	func test_HUBピースはremove_piece_atで削除できない():
-		gm.place_piece(HUB_SCENE, Hex.new(0, 0))
-		var result = gm.remove_piece_at(Hex.new(0, 0))
+		gm.place_piece(HUB_SCENE, Vector2i(0, 0))
+		var result = gm.remove_piece_at(Vector2i(0, 0))
 		assert_false(result)
 
 
@@ -455,9 +535,9 @@ class TestHubPlacement:
 
 	func test_place_hubはHex_0_0にハブを配置する():
 		gm.place_hub("iron_plate", 10)
-		assert_eq(gm.get_piece_at_hex(Hex.new(0, 0)).piece_type, PieceData.Type.HUB)
+		assert_eq(gm.get_piece_at_hex(Vector2i(0, 0)).piece_type, PieceData.Type.HUB)
 
 	func test_generate_ore_depositsはhub設置済みヘックスを鉱床として登録しない():
 		gm.place_hub("iron_plate", 10)
 		gm.generate_ore_deposits(100)
-		assert_eq(gm.get_hex_resource(Hex.new(0, 0)), "")
+		assert_eq(gm.get_hex_resource(Vector2i(0, 0)), "")

@@ -7,40 +7,58 @@ var hex_tile: HexTile
 func before_each():
 	hex_tile = HexTileScene.instantiate()
 	add_child_autofree(hex_tile)
+	hex_tile.setup_hex(Vector2i(0, 0))
+
+
+func test_床は戦闘の盤面と同じ色で塗る():
+	assert_eq(hex_tile.get_fill_color(), HexStyle.FLOOR_COLOR)
+
+
+func test_色を設定するとその色で塗る():
+	hex_tile.set_color(Color.RED)
+
+	assert_eq(hex_tile.get_fill_color(), Color.RED)
 
 
 func test_透明度を設定できる():
-	var initial_color = Color.RED
-	hex_tile.set_color(initial_color)
+	hex_tile.set_color(Color.RED)
 
-	# 透明度を0.5に設定
 	hex_tile.set_transparency(0.5)
 
-	# 期待される色：RGBはそのまま、Alphaが0.5
-	var expected_color = Color(initial_color.r, initial_color.g, initial_color.b, 0.5)
-
-	# 現在の色を取得して確認
-	assert_eq(hex_tile.get_color(), expected_color, "Alpha should be 0.5")
-
-	# スプライトのmodulateも確認
-	var sprite = hex_tile.get_node_or_null("Sprite2D")
-	if sprite:
-		assert_eq(sprite.modulate, expected_color, "Sprite modulate should reflect transparency")
+	assert_eq(hex_tile.get_color(), Color(1, 0, 0, 0.5))
+	assert_eq(hex_tile.get_fill_color(), Color(1, 0, 0, 0.5))
 
 
-class TestTileTexture:
-	extends GutTest
+func test_ハイライト中はハイライトの色で塗る():
+	hex_tile.set_color(Color.RED)
 
-	# マスの色は modulate だけで決まるよう、画像は陰影の無い白一色にする
-	func _assert_plain_white(texture: Texture2D) -> void:
-		var image = texture.get_image()
-		var center = Vector2i(image.get_width() / 2, image.get_height() / 2)
-		for y in [center.y - 80, center.y, center.y + 80]:
-			var pixel = image.get_pixel(center.x, y)
-			assert_almost_eq(pixel.v, 1.0, 0.01, "y=%d が白" % y)
+	hex_tile.set_highlight(true)
 
-	func test_床の画像は陰影の無い白一色():
-		_assert_plain_white(HexTile.TEXTURE)
+	assert_eq(hex_tile.get_fill_color(), hex_tile.highlight_color)
+	assert_eq(hex_tile.get_color(), Color.RED, "元の色は覚えている")
 
-	func test_ワールドマップの画像も陰影の無い白一色():
-		_assert_plain_white(HexTile.FLAT_TEXTURE)
+
+func test_画像を使わずに描く():
+	assert_null(hex_tile.get_node_or_null("Sprite2D"))
+
+
+func test_マスはすき間なく並ぶ大きさで描く():
+	assert_eq(HexTile.visual_circumradius(), Layout.make_default().size.x)
+
+
+func test_頂点が上を向く六角形で描く():
+	var outline := hex_tile.get_outline()
+
+	assert_eq(outline, HexShape.outline(Vector2.ZERO, HexTile.visual_circumradius(), true))
+
+
+func test_ふだんのマスにはアイコンが無い():
+	assert_null(hex_tile.get_icon())
+
+
+func test_アイコンを付けられる():
+	var icon: Texture2D = load("res://assets/items/iron_ore.svg")
+
+	hex_tile.set_icon(icon)
+
+	assert_eq(hex_tile.get_icon(), icon)

@@ -6,6 +6,7 @@ const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 # ドラッグ操作のテストがコストの有無に左右されないよう、無料の t1 を使う
 const MINER_SCENE = preload("res://scenes/components/piece/miner_t1.tscn")
 const HUB_SCENE = preload("res://scenes/components/piece/hub.tscn")
+const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
 
 
 class TestPiecePlacement:
@@ -13,14 +14,6 @@ class TestPiecePlacement:
 
 	var piece_placer: PiecePlacer
 	var chunk: Chunk
-	var shape_arch: Array[Hex]
-	var shape_arch_rotated: Array[Hex]
-
-	func before_all():
-		shape_arch = [Hex.new(0, -1, 1), Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1)]
-		shape_arch_rotated = [
-			Hex.new(1, -1, 0), Hex.new(1, 0, -1), Hex.new(0, 1, -1), Hex.new(-1, 1, 0)
-		]
 
 	func before_each():
 		chunk = Chunk.new()
@@ -35,32 +28,21 @@ class TestPiecePlacement:
 
 	func test_指定したHexに選択中のピースを配置できる():
 		piece_placer.select_piece(CONVEYOR_SCENE)
-		var target_hex = Hex.new(0, 0)
+		var target_hex = Vector2i(0, 0)
 		var result = piece_placer.place_piece_at_hex(target_hex)
 		assert_true(result, "Should return true on success")
 		for offset in piece_placer.current_piece_shape:
-			var h = Hex.add(target_hex, offset)
+			var h = target_hex + offset
 			assert_true(chunk.is_occupied(h))
 
-	func test_回転メソッドを呼ぶと現在の形状が更新される():
-		piece_placer.current_piece_shape = shape_arch
-		piece_placer.rotate_current_piece()
-		var current_shape = piece_placer.current_piece_shape
-		assert_eq(current_shape.size(), shape_arch_rotated.size())
-		for i in range(shape_arch_rotated.size()):
-			assert_true(
-				Hex.equals(current_shape[i], shape_arch_rotated[i]),
-				"Rotated hex at index %d should be correct" % i
-			)
-
 	func test_橋は内側ヘックスに配置できない():
-		piece_placer.select_piece(preload("res://scenes/components/piece/bridge.tscn"))
-		var placed = piece_placer.place_piece_at_hex(Hex.new(0, 0, 0))
+		piece_placer.select_piece(BRIDGE_SCENE)
+		var placed = piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_false(placed, "辺ヘックス以外への橋の設置は拒否されるべき")
 
 	func test_select_pieceでシーンを外部からセットして配置できる():
 		piece_placer.select_piece(CONVEYOR_SCENE)
-		var target_hex = Hex.new(1, 1)
+		var target_hex = Vector2i(1, 1)
 		var result = piece_placer.place_piece_at_hex(target_hex)
 		assert_true(result, "シーンをセットすれば配置できるべき")
 		assert_true(chunk.is_occupied(target_hex), "指定した座標が占有されているべき")
@@ -123,6 +105,16 @@ class TestPreview:
 		var arrow_after = piece_placer.cursor_preview.get_child(shape_size)
 		assert_ne(arrow_after.rotation, rotation_before)
 
+	func test_施設のカーソルプレビューは置いたときと同じ1つの本体で描く():
+		piece_placer.select_piece(MINER_SCENE)
+		var bodies = piece_placer.cursor_preview.get_children().filter(
+			func(c): return c is PieceBody
+		)
+		assert_eq(bodies.size(), 1)
+		assert_eq(
+			piece_placer.cursor_preview.get_children().filter(func(c): return c is HexTile), []
+		)
+
 	func test_コンベアのカーソルプレビューはHexTileを使わない():
 		# ベルト画像でプレビューするため、旧来の色付き HexTile は使わない。
 		piece_placer.select_piece(CONVEYOR_SCENE)
@@ -162,39 +154,39 @@ class TestDragBehavior:
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
 		watch_signals(piece_placer)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_signal_emitted(piece_placer, "conveyor_path_extended")
 
 	func test_コンベアドラッグのstop_drag後snap_previewはホバー位置にある():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
-		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(2, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Vector2i(1, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Vector2i(2, 0)))
 		piece_placer.stop_drag()
-		var expected = Layout.hex_to_pixel(chunk.layout, Hex.new(2, 0))
+		var expected = Layout.hex_to_pixel(chunk.layout, Vector2i(2, 0))
 		assert_eq(piece_placer.snap_preview.position, expected)
 
 	func test_削除ドラッグ中にhoverしたヘックスのピースが削除される():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
 		piece_placer.start_delete_drag()
-		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
-		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(1, 0)))
-		assert_false(chunk.is_occupied(Hex.new(0, 0)) or chunk.is_occupied(Hex.new(1, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Vector2i(0, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Vector2i(1, 0)))
+		assert_false(chunk.is_occupied(Vector2i(0, 0)) or chunk.is_occupied(Vector2i(1, 0)))
 
 	func test_stop_delete_drag後はhoverしてもピースが削除されない():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		piece_placer.start_delete_drag()
 		piece_placer.stop_delete_drag()
-		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Hex.new(0, 0)))
-		assert_true(chunk.is_occupied(Hex.new(0, 0)))
+		piece_placer.update_hover(Layout.hex_to_pixel(chunk.layout, Vector2i(0, 0)))
+		assert_true(chunk.is_occupied(Vector2i(0, 0)))
 
 	func test_重複ヘックスへのパス追加ではシグナルが発火しない():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		watch_signals(piece_placer)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))  # 同じヘックスに再追加
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))  # 同じヘックスに再追加
 		assert_signal_not_emitted(piece_placer, "conveyor_path_extended")
 
 	func test_start_dragを呼ぶとis_draggingがtrueになる():
@@ -209,7 +201,7 @@ class TestDragBehavior:
 	func test_ドラッグ中にupdate_hoverで新しいヘックスに移動するとピースが設置される():
 		piece_placer.select_piece(MINER_SCENE)
 		piece_placer.start_drag()
-		var target_hex = Hex.new(0, 0)
+		var target_hex = Vector2i(0, 0)
 		var target_pos = chunk.hex_to_pixel(target_hex)
 		piece_placer.update_hover(target_pos)
 		assert_true(chunk.is_occupied(target_hex))
@@ -217,7 +209,7 @@ class TestDragBehavior:
 	func test_ドラッグ中に同じヘックスにhoverしても2回設置されない():
 		piece_placer.select_piece(MINER_SCENE)
 		piece_placer.start_drag()
-		var target_pos = chunk.hex_to_pixel(Hex.new(0, 0))
+		var target_pos = chunk.hex_to_pixel(Vector2i(0, 0))
 		piece_placer.update_hover(target_pos)
 		var placed_count_before = chunk.get_piece_count()
 		piece_placer.update_hover(target_pos)
@@ -228,64 +220,64 @@ class TestDragBehavior:
 		piece_placer.start_drag()
 		piece_placer.stop_drag()
 		var count_before = chunk.get_piece_count()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
 		assert_eq(chunk.get_piece_count(), count_before)
 
 	func test_ピースが未選択の状態でドラッグしても設置されない():
 		piece_placer.start_drag()
 		var count_before = chunk.get_piece_count()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
 		assert_eq(chunk.get_piece_count(), count_before)
 
 	func test_コンベア選択時はドラッグ中にhoverしてもピースが設置されない():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		assert_false(chunk.is_occupied(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		assert_false(chunk.is_occupied(Vector2i(0, 0)))
 
 	func test_コンベアドラッグでstop_dragするとパス上のヘックスにコンベアが設置される():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		assert_true(chunk.is_occupied(Hex.new(0, 0)))
+		assert_true(chunk.is_occupied(Vector2i(0, 0)))
 
 	func test_コンベアチェーンで最初のコンベアは次のヘックスへの方向を向く():
 		# (0,0)→(1,0) のチェーン: 方向0(East)なのでrotation_state=0
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
+		var first = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(first.rotation_state, 0)
 
 	func test_コンベアチェーンで最後のコンベアは最後の移動方向を向く():
 		# (0,0)→(1,0)→(1,-1) のチェーン: 最後のステップはNW=方向2 → rotation=(0-2+6)%6=4
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, -1)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, -1)))
 		piece_placer.stop_drag()
-		var last = chunk.get_piece_at_hex(Hex.new(1, -1))
+		var last = chunk.get_piece_at_hex(Vector2i(1, -1))
 		assert_eq(last.rotation_state, 4)
 
 	func test_コンベアドラッグ中のsnap_previewはパス上のヘックス数のタイルを表示する():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		assert_eq(piece_placer.snap_preview.get_child_count(), 2)
 
 	func test_stop_drag後にhoverするとsnap_previewが通常の1ピースゴーストに戻る():
 		piece_placer.select_piece(CONVEYOR_SCENE)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(-1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(-1, 0)))
 		assert_eq(piece_placer.snap_preview.get_child_count(), 1)
 
 
@@ -307,103 +299,204 @@ class TestOptimalConveyorDirection:
 	func after_each():
 		await get_tree().process_frame
 
-	func test_隣接ピースが出力を向けているとき直進方向を返す():
-		# (1,0) に方向3(West)向きのコンベアを置くと (0,0) に向かって出力する
-		# → (0,0) での最適出力方向は (0+3)%6=3 (West、直進)
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)
-		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 0)
-		assert_eq(result, 3, "Westからの入力に対し直進(West=3)を返すべき")
-
-	func test_隣接ピースが出力を向けていないときfallbackを返す():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 0)  # East向き＝(0,0)には向いていない
-		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 2)
-		assert_eq(result, 2, "出力が向いていないとき fallback_direction を返すべき")
-
-	func test_複数の隣接ピースが出力を向けているときfallbackを返す():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)  # (0,0)へ向けて出力
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)  # (0,0)へ向けて出力
-		var result = piece_placer._compute_optimal_conveyor_direction(Hex.new(0, 0), 1)
-		assert_eq(result, 1, "複数入力が競合するとき fallback_direction を返すべき")
-
 	func test_単一クリック配置で隣接ピースの出力に合わせた向きになる():
 		# (1,0) にWest(3)向きコンベアを設置 → (0,0)へ向けて出力
 		# (0,0) をクリック配置するとき、最適方向3(West)で設置されるべき
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 3)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
-		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 3)
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
+		var placed = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(placed.rotation_state, 3, "隣接出力に合わせてWest(3)向きで設置されるべき")
 
 	func test_単一クリック配置で隣接ピースがなければcurrent_rotationで設置される():
 		piece_placer.current_rotation = 2
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
-		var placed = chunk.get_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
+		var placed = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(placed.rotation_state, 2, "隣接出力がないとき current_rotation で設置されるべき")
 
 	func test_ドラッグパス先頭で隣接ピースの出力に合わせた向きになる():
 		# (-1,0) にEast(0)向きコンベアを設置 → (0,0)へ向けて出力
 		# ドラッグ: (0,0)→(1,0) のとき先頭(0,0)は隣接入力に関係なくパス方向(East=0)で設置される
 		# (shapez同様、パス方向が優先される)
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(-1, 0), 0)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(-1, 0), 0)
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		var first = chunk.get_piece_at_hex(Hex.new(0, 0))
+		var first = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(first.rotation_state, 0, "パス方向East(0)で設置されるべき")
+
+	func test_施設の排出口からドラッグを始めると先頭のベルトは排出口の側から受け取る():
+		# miner_t1 を (0,-1) に置く: (0,-1),(0,0) を占め、排出口は (0,0) から SW の (-1,1) へ
+		chunk.place_piece(MINER_SCENE, Vector2i(0, -1))
+		piece_placer.start_drag()
+		for hex in [Vector2i(0, 0), Vector2i(-1, 1), Vector2i(0, 1)]:
+			piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Vector2i(-1, 1))
+		assert_eq(first.input_direction, 1, "排出口のある NE(1) から受け取るべき")
+
+	func test_施設の排出口でないマスからドラッグを始めても先頭のベルトの入力は決めない():
+		# (0,-1) は Miner のマスだが排出口ではない。(-1,0) は排出口の先でもない
+		chunk.place_piece(MINER_SCENE, Vector2i(0, -1))
+		piece_placer.start_drag()
+		for hex in [Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-2, 0)]:
+			piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.stop_drag()
+		var first = chunk.get_piece_at_hex(Vector2i(-1, 0))
+		assert_eq(first.input_direction, -1)
 
 	func test_ドラッグパス中間はパス前後の方向が優先される():
 		# (0,0)→(1,0)→(2,0): 全てEast向きになる
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(2, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(2, 0)))
 		piece_placer.stop_drag()
-		var mid = chunk.get_piece_at_hex(Hex.new(1, 0))
+		var mid = chunk.get_piece_at_hex(Vector2i(1, 0))
 		assert_eq(mid.rotation_state, 0, "中間コンベアはパス方向East(0)で設置されるべき")
 
 	func test_ドラッグ終端のhexが占有済みピースのとき最後のコンベアはその方向を向く():
 		# (1,0) にHUB(1マス)を設置。ドラッグ (0,0) → hover(1,0) でstop_drag
 		# current_rotation=3 (West向き) だが、HUBはEast(direction=0)方向にあるので
 		# 最後のコンベアは rotation=0 (East) になるべき
-		chunk.place_piece(HUB_SCENE, Hex.new(1, 0))
+		chunk.place_piece(HUB_SCENE, Vector2i(1, 0))
 		piece_placer.current_rotation = 3
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		var last = chunk.get_piece_at_hex(Hex.new(0, 0))
+		var last = chunk.get_piece_at_hex(Vector2i(0, 0))
 		assert_eq(last.rotation_state, 0, "最後のコンベアはHUB方向East(rotation=0)を向くべき")
 
 	func test_ドラッグ終端のhexが空のとき最後のコンベアはパス進行方向を向く():
 		# (0,0)→(1,0) とドラッグし (2,0) は空。(1,0) が East(rotation=0) になるべき
 		piece_placer.current_rotation = 3
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		var last = chunk.get_piece_at_hex(Hex.new(1, 0))
+		var last = chunk.get_piece_at_hex(Vector2i(1, 0))
 		assert_eq(last.rotation_state, 0, "終端が空のとき進行方向East(rotation=0)を向くべき")
 
 	func test_ドラッグ終端のhexが占有済みコンベアのとき既存が上書きされてパス方向を向く():
 		# (1,0) にSouth(rotation=1)のコンベアを設置、その上で stop_drag
 		# → East(rotation=0)に上書きされるべき
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(1, 0), 1)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 1)
 		piece_placer.current_rotation = 3
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		piece_placer.stop_drag()
-		var updated = chunk.get_piece_at_hex(Hex.new(1, 0))
+		var updated = chunk.get_piece_at_hex(Vector2i(1, 0))
 		assert_eq(updated.rotation_state, 0, "既存コンベアがEast(rotation=0)に上書きされるべき")
 
 	func test_ドラッグ中に占有済みピースのhexはパスに追加されない():
 		const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
-		chunk.place_piece(SMELTER_SCENE, Hex.new(1, 0))
+		chunk.place_piece(SMELTER_SCENE, Vector2i(1, 0))
 		piece_placer.start_drag()
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
 		watch_signals(piece_placer)
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(1, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
 		assert_signal_not_emitted(piece_placer, "conveyor_path_extended")
+
+
+# shapez の computeOptimalDirectionAndRotationVariantAtTile / updateSurroundingBeltPlacement に
+# ならった、1つ置いたときの曲がりと、周りのベルトの向き直し。
+# 手持ちの向きは East（current_rotation=0）で、置く場所は (0,0)
+class TestConveyorAutoOrientation:
+	extends GutTest
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(3)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+
+	func after_each():
+		await get_tree().process_frame
+
+	# direction(0-5) 向きのコンベアを chunk に直接置く
+	func _put(hex: Vector2i, direction: int, input_direction: int = -1) -> Piece:
+		chunk.place_piece(CONVEYOR_SCENE, hex, (6 - direction) % 6, input_direction)
+		return chunk.get_piece_at_hex(hex)
+
+	func _click(hex: Vector2i, direction: int = 0) -> Piece:
+		piece_placer.current_rotation = (6 - direction) % 6
+		piece_placer.place_piece_at_hex(hex)
+		return chunk.get_piece_at_hex(hex)
+
+	func _out(piece: Piece) -> int:
+		return piece.get_output_ports()[0]["direction"]
+
+	func test_横から入れてくる相手がいると手持ちの向きのまま横から受ける曲がりになる():
+		_put(Vector2i(0, -1), 5)  # NW の隣から SE へ (0,0) に入れてくる
+		var placed = _click(Vector2i(0, 0))
+		assert_eq(_out(placed), 0, "出口は手持ちの East のまま")
+		assert_eq(placed.input_direction, 2, "NW から受け取る")
+
+	func test_真後ろから入れてくる相手がいれば直進になる():
+		_put(Vector2i(-1, 0), 0)
+		_put(Vector2i(0, -1), 5)  # 横からも入れてくるが、真後ろが優先
+		var placed = _click(Vector2i(0, 0))
+		assert_eq(_out(placed), 0)
+		assert_eq(placed.input_direction, -1)
+
+	func test_入れてくる相手がいなければ正面が空いていて横に受け取るベルトが1つあるときそちらへ曲がる():
+		_put(Vector2i(1, -1), 1)  # NE の隣。真後ろ(SW)が (0,0) を向いている
+		var placed = _click(Vector2i(0, 0))
+		assert_eq(_out(placed), 1, "受け取るベルトのある NE へ曲がる")
+		assert_eq(placed.input_direction, 3, "入力は元の真後ろ(West)のまま")
+
+	func test_正面がふさがっていれば横に受け取るベルトがあっても曲がらない():
+		_put(Vector2i(1, -1), 1)
+		_put(Vector2i(1, 0), 0)
+		var placed = _click(Vector2i(0, 0))
+		assert_eq(_out(placed), 0)
+		assert_eq(placed.input_direction, -1)
+
+	func test_入力のないベルトの横に入れてくる相手を置くとそのベルトは横から受ける曲がりになる():
+		var belt = _put(Vector2i(0, 0), 0)
+		var feeder = _click(Vector2i(0, -1), 5)
+		assert_eq(_out(belt), 0, "出口は変えない")
+		assert_eq(belt.input_direction, 2, "NW の新しい相手から受け取る")
+		assert_true(belt in feeder.get_connected_pieces())
+
+	func test_入力が生きているベルトは横に相手を置いても向きを変えない():
+		_put(Vector2i(-1, 0), 0)
+		var belt = _put(Vector2i(0, 0), 0)
+		_click(Vector2i(0, -1), 5)
+		assert_eq(belt.input_direction, -1, "真後ろから受けたまま（横からは合流）")
+
+	func test_行き止まりのベルトの横に受け取るベルトを置くとそちらへ曲がる():
+		var end = _put(Vector2i(0, 0), 0)
+		_click(Vector2i(1, -1), 1)
+		assert_eq(_out(end), 1, "NE の新しいベルトへ曲がる")
+		assert_eq(end.input_direction, 3)
+
+	func test_向きを変えてもベルトの上のアイテムは残る():
+		var end = _put(Vector2i(0, 0), 0)
+		end.add_item("iron_plate", 1)
+		_click(Vector2i(1, -1), 1)
+		assert_eq(end.get_item_count("iron_plate"), 1)
+
+	func test_正面のピースを撤去すると横に受け取るベルトがあればそちらへ曲がる():
+		var end = _put(Vector2i(0, 0), 0)
+		_put(Vector2i(1, 0), 0)
+		_put(Vector2i(1, -1), 1)
+		piece_placer._remove_piece_at(Vector2i(1, 0))
+		assert_eq(_out(end), 1)
+
+	func test_直接置いたときは周りのベルトの向きを変えない():
+		# セーブの読み込みなど、プレイヤーの操作でない設置では向き直さない
+		var end = _put(Vector2i(0, 0), 0)
+		_put(Vector2i(1, -1), 1)
+		assert_eq(_out(end), 0)
 
 
 # 既存ラインの途中（分岐元）から、ドラッグで複数の分岐を引くケース
@@ -422,7 +515,7 @@ class TestConveyorBranching:
 		add_child_autofree(piece_placer)
 		piece_placer.setup(chunk)
 		piece_placer.select_piece(CONVEYOR_SCENE)
-		_drag([Hex.new(0, -2), Hex.new(-1, -1), Hex.new(-2, 0), Hex.new(-3, 1)])
+		_drag([Vector2i(0, -2), Vector2i(-1, -1), Vector2i(-2, 0), Vector2i(-3, 1)])
 
 	func after_each():
 		await get_tree().process_frame
@@ -434,54 +527,54 @@ class TestConveyorBranching:
 		piece_placer.stop_drag()
 
 	func _draw_two_branches() -> void:
-		_drag([Hex.new(-2, 0), Hex.new(-2, 1), Hex.new(-3, 2)])  # 分岐①: 先頭で曲がる
-		_drag([Hex.new(-2, 0), Hex.new(-3, 0), Hex.new(-4, 0)])  # 分岐②: 直進
+		_drag([Vector2i(-2, 0), Vector2i(-2, 1), Vector2i(-3, 2)])  # 分岐①: 先頭で曲がる
+		_drag([Vector2i(-2, 0), Vector2i(-3, 0), Vector2i(-4, 0)])  # 分岐②: 直進
 
 	func test_分岐を2本引いたあとも1本目の分岐は分岐元とつながっている():
 		_draw_two_branches()
-		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
-		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
+		var origin = chunk.get_piece_at_hex(Vector2i(-2, 0))
+		var first_branch = chunk.get_piece_at_hex(Vector2i(-2, 1))
 		assert_true(first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は1本目の分岐(-2,1)へ出力するべき")
 
 	func test_分岐を2本引いたあとも分岐元は本線の下流とつながっている():
 		_draw_two_branches()
-		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
-		var downstream = chunk.get_piece_at_hex(Hex.new(-3, 1))
+		var origin = chunk.get_piece_at_hex(Vector2i(-2, 0))
+		var downstream = chunk.get_piece_at_hex(Vector2i(-3, 1))
 		assert_true(downstream in origin.get_connected_pieces(), "分岐元(-2,0)は本線の下流(-3,1)へ出力するべき")
 
 	func test_分岐を2本引いたあと2本目の分岐も分岐元とつながっている():
 		_draw_two_branches()
-		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
-		var second_branch = chunk.get_piece_at_hex(Hex.new(-3, 0))
+		var origin = chunk.get_piece_at_hex(Vector2i(-2, 0))
+		var second_branch = chunk.get_piece_at_hex(Vector2i(-3, 0))
 		assert_true(second_branch in origin.get_connected_pieces(), "分岐元(-2,0)は2本目の分岐(-3,0)へ出力するべき")
 
 	func test_分岐を2本引いたあと1本目の分岐の先頭は分岐元の方向から入力を受けて描かれる():
 		_draw_two_branches()
-		var visuals = chunk.get_piece_at_hex(Hex.new(-2, 1)).get_node("ConveyorVisuals")
+		var visuals = chunk.get_piece_at_hex(Vector2i(-2, 1)).get_node("ConveyorVisuals")
 		assert_eq(visuals._input_direction, 2, "(-2,1)のベルトは分岐元のあるNW(2)から入力を受けて描かれるべき")
 
 	func test_曲がった分岐の先頭からさらに分岐を引いても先頭は分岐元とつながったままになる():
 		_draw_two_branches()
-		_drag([Hex.new(-2, 1), Hex.new(-1, 1), Hex.new(0, 1)])  # 1本目の分岐の先頭(-2,1)から東へ
-		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
-		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
+		_drag([Vector2i(-2, 1), Vector2i(-1, 1), Vector2i(0, 1)])  # 1本目の分岐の先頭(-2,1)から東へ
+		var origin = chunk.get_piece_at_hex(Vector2i(-2, 0))
+		var first_branch = chunk.get_piece_at_hex(Vector2i(-2, 1))
 		assert_true(
 			first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は置き直された(-2,1)へ出力し続けるべき"
 		)
 
 	func test_曲がった分岐の先頭を1マスだけ置き直しても分岐元とつながったままになる():
 		_draw_two_branches()
-		_drag([Hex.new(-2, 1)])
-		var origin = chunk.get_piece_at_hex(Hex.new(-2, 0))
-		var first_branch = chunk.get_piece_at_hex(Hex.new(-2, 1))
+		_drag([Vector2i(-2, 1)])
+		var origin = chunk.get_piece_at_hex(Vector2i(-2, 0))
+		var first_branch = chunk.get_piece_at_hex(Vector2i(-2, 1))
 		assert_true(
 			first_branch in origin.get_connected_pieces(), "分岐元(-2,0)は1マス置き直した(-2,1)へ出力し続けるべき"
 		)
 
 	func test_曲がった分岐の先頭を1マスだけ置き直してもベルトは分岐元の方向から入力を受けて描かれる():
 		_draw_two_branches()
-		_drag([Hex.new(-2, 1)])
-		var visuals = chunk.get_piece_at_hex(Hex.new(-2, 1)).get_node("ConveyorVisuals")
+		_drag([Vector2i(-2, 1)])
+		var visuals = chunk.get_piece_at_hex(Vector2i(-2, 1)).get_node("ConveyorVisuals")
 		assert_eq(visuals._input_direction, 2, "1マス置き直した(-2,1)のベルトは分岐元のあるNW(2)から入力を受けて描かれるべき")
 
 
@@ -505,69 +598,64 @@ class TestBuildCost:
 	func after_each():
 		HubGoals.reset()
 
-	func _delete_at(hex: Hex) -> void:
+	func _delete_at(hex: Vector2i) -> void:
 		piece_placer.start_delete_drag()
 		piece_placer.update_hover(chunk.hex_to_pixel(hex))
 		piece_placer.stop_delete_drag()
 
 	func test_在庫が足りないと有料のピースは設置できない():
-		assert_false(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
-		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
 
 	func test_在庫が足りれば設置でき在庫からコストが引かれる():
 		HubGoals.add_stock("iron_ore", 7)
-		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 2)
 
 	func test_置けない場所では在庫が減らない():
 		HubGoals.add_stock("iron_ore", 7)
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
-		assert_false(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 7)
 
 	func test_無料のコンベアは在庫が無くても設置できる():
 		piece_placer.select_piece(CONVEYOR_SCENE)
-		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
 
 	func test_クリエイティブモードでは在庫が無くても設置できる():
 		HubGoals.creative_mode = true
-		assert_true(piece_placer.place_piece_at_hex(Hex.new(0, 0)))
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
 
 	func test_撤去するとコストが全額戻る():
 		HubGoals.add_stock("iron_ore", 5)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
-		_delete_at(Hex.new(0, 0))
-		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
+		_delete_at(Vector2i(0, 0))
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 5)
 
 	func test_何も無いマスを撤去しても在庫は増えない():
-		_delete_at(Hex.new(0, 0))
+		_delete_at(Vector2i(0, 0))
 		assert_eq(HubGoals.get_stock("iron_ore"), 0)
 
 	func test_ハブは撤去できず在庫も変わらない():
 		chunk.place_hub("iron_ore", 10)
-		_delete_at(Hex.new(0, 0))
-		assert_not_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		_delete_at(Vector2i(0, 0))
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 0)
-
-	func test_いま選んでいるピースを設置できるか分かる():
-		assert_false(piece_placer.can_afford_selected())
-		HubGoals.add_stock("iron_ore", 5)
-		assert_true(piece_placer.can_afford_selected())
 
 	func test_マウスを動かさずその場で右クリックして撤去してもコストが戻る():
 		HubGoals.add_stock("iron_ore", 5)
-		piece_placer.update_hover(chunk.hex_to_pixel(Hex.new(0, 0)))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
 		piece_placer.place_current_piece()
 		piece_placer.start_delete_drag()
 		piece_placer.stop_delete_drag()
-		assert_null(chunk.get_piece_at_hex(Hex.new(0, 0)))
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 5)
 
 	func test_在庫不足で置けなかったときは理由が通知される():
 		HubGoals.add_stock("iron_ore", 2)
 		watch_signals(piece_placer)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_signal_emitted_with_parameters(
 			piece_placer, "placement_denied", ["在庫不足: Iron Ore 2/5"]
 		)
@@ -575,11 +663,295 @@ class TestBuildCost:
 	func test_設置できたときは通知されない():
 		HubGoals.add_stock("iron_ore", 5)
 		watch_signals(piece_placer)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
 		assert_signal_not_emitted(piece_placer, "placement_denied")
 
-	func test_場所がふさがっていて置けないときは在庫不足とは通知されない():
-		chunk.place_piece(CONVEYOR_SCENE, Hex.new(0, 0))
+	func test_場所がふさがっていて置けないときは在庫不足ではなく重なっていると通知される():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		watch_signals(piece_placer)
-		piece_placer.place_piece_at_hex(Hex.new(0, 0))
+		piece_placer.place_piece_at_hex(Vector2i(0, 0))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+
+class TestDeniedFeedback:
+	extends GutTest
+
+	## 置けなかったときは、理由を placement_denied で伝える（カーソルの近くの表示と効果音に使う）。
+	## クリックした1回だけ伝え、ドラッグでなぞったマスが置けなくても伝えない（なぞるたびに鳴ると煩い）。
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		# 半径は既定の Chunk.DEFAULT_RADIUS(8)
+		add_child_autofree(chunk)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		watch_signals(piece_placer)
+
+	func after_each():
+		await get_tree().process_frame
+
+	# Main と同じ順に、マウスを合わせて押す
+	func _press_at(hex: Vector2i) -> void:
+		piece_placer.update_hover(chunk.hex_to_pixel(hex))
+		piece_placer.start_drag()
+		piece_placer.place_current_piece()
+
+	func test_chunkの外には置けないと通知される():
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(Chunk.DEFAULT_RADIUS + 4, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUTSIDE_TEXT]
+		)
+
+	func test_一部でも外にはみ出すときも外には置けないと通知される():
+		# Miner(t1) は base と、その南東のマスを占める
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, Chunk.DEFAULT_RADIUS)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUTSIDE_TEXT]
+		)
+
+	func test_橋を内側に置こうとすると辺にしか置けないと通知される():
+		piece_placer.select_piece(BRIDGE_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.BRIDGE_EDGE_TEXT]
+		)
+
+	func test_機械をクリックで置けなかったとき1回だけ通知される():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(0, 0))
+		# 同じマスの中で少し動かしても、もう一度は伝えない
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)) + Vector2(3, 2))
+		piece_placer.stop_drag()
+		assert_signal_emit_count(piece_placer, "placement_denied", 1)
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+	func test_ドラッグでなぞったマスが置けなくても通知されない():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(-2, 0))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		piece_placer.stop_drag()
 		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+	func test_クリックした場所が届かなければドラッグ中でも通知される():
+		piece_placer.reach_center = Vector2i(-6, 0)
+		piece_placer.select_piece(MINER_SCENE)
+		_press_at(Vector2i(2, 0))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_コンベアを施設の上でクリックして離すと重なっていると通知される():
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		assert_signal_not_emitted(
+			piece_placer, "placement_denied", "排出口から引き始めるかもしれないので、押した時点では伝えない"
+		)
+		piece_placer.stop_drag()
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OCCUPIED_TEXT]
+		)
+
+	func test_施設の上からコンベアを引き出したときは通知されない():
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(-1, 0)))
+		piece_placer.stop_drag()
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(-1, 0)))
+		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+	func test_コンベアを届かないマスでクリックして離すと届かないと通知される():
+		piece_placer.reach_center = Vector2i(-6, 0)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(3, 0))
+		piece_placer.stop_drag()
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_機械を置けないマスに合わせると_ゴーストもカーソルのプレビューも赤くなる():
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.DENIED_TINT)
+		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.DENIED_TINT)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(-2, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+
+	func test_コンベアは施設の上に合わせても赤くしない():
+		# 施設の排出口から引き始める場所なので
+		chunk.place_piece(MINER_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+
+	func test_既にあるコンベアの上でコンベアをクリックしても通知されない():
+		# 既存のコンベアは置き換えられる
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		_press_at(Vector2i(0, 0))
+		piece_placer.stop_drag()
+		assert_signal_not_emitted(piece_placer, "placement_denied")
+
+
+class TestReach:
+	extends GutTest
+
+	## 建築はキャラクターの近く（reach_center から PiecePlacer.REACH マス以内）だけ。
+	## 置けるのはピースのすべてのマスが届く範囲にあるときだけ。撤去は、届く範囲のマスからだけ。
+
+	var piece_placer: PiecePlacer
+	var chunk: Chunk
+
+	func before_each():
+		chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(PiecePlacer.REACH + 2)
+		piece_placer = PiecePlacerScene.instantiate()
+		add_child_autofree(piece_placer)
+		piece_placer.setup(chunk)
+		piece_placer.reach_center = Vector2i(0, 0)
+
+	func after_each():
+		await get_tree().process_frame
+
+	func _far_hex() -> Vector2i:
+		return Vector2i(PiecePlacer.REACH + 1, 0)
+
+	func test_キャラクターから6マスまで届く():
+		assert_eq(PiecePlacer.REACH, 6)
+
+	func test_届く範囲のマスには置ける():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))
+
+	func test_届かないマスには置けず_理由を伝える():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		watch_signals(piece_placer)
+		assert_false(piece_placer.place_piece_at_hex(_far_hex()))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.OUT_OF_REACH_TEXT]
+		)
+
+	func test_一部のマスでも届かなければ置けない():
+		# Miner(t1) は base と、その南東のマスを占める
+		piece_placer.select_piece(MINER_SCENE)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, PiecePlacer.REACH)))
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, PiecePlacer.REACH - 1)))
+
+	func test_届かないマスのピースは撤去できない():
+		piece_placer.reach_center = null
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.place_piece_at_hex(_far_hex())
+		piece_placer.reach_center = Vector2i(0, 0)
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		piece_placer.start_delete_drag()
+		assert_not_null(chunk.get_piece_at_hex(_far_hex()))
+
+	func test_コンベアのドラッグは届かないマスへは伸びない():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(PiecePlacer.REACH, 0)))
+		piece_placer.start_drag()
+		piece_placer.place_current_piece()
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		piece_placer.stop_drag()
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(PiecePlacer.REACH, 0)))
+		assert_null(chunk.get_piece_at_hex(_far_hex()))
+
+	# ---- キャラクターの押し出し ----
+	# 上を歩けないピースを置くときは、置くマスを push_player に渡してキャラクターを押し出してもらう
+
+	func _fake_pusher(result: bool, calls: Array) -> Callable:
+		return func(hexes: Array) -> bool:
+			calls.append(hexes.duplicate())
+			return result
+
+	func test_機械を置くときは置くマスを渡してキャラクターを押し出してから置く():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(true, calls)
+		piece_placer.select_piece(MINER_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, -1)), "南東のマスが足元")
+		assert_eq(calls, [[Vector2i(0, -1), Vector2i(0, 0)]])
+		assert_not_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+
+	func test_押し出せる場所が無ければ置かず_理由を伝える():
+		piece_placer.push_player = _fake_pusher(false, [])
+		piece_placer.select_piece(MINER_SCENE)
+		watch_signals(piece_placer)
+		assert_false(piece_placer.place_piece_at_hex(Vector2i(0, -1)))
+		assert_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
+		assert_signal_emitted_with_parameters(
+			piece_placer, "placement_denied", [PiecePlacer.NO_ROOM_TO_PUSH_TEXT]
+		)
+
+	func test_上を歩けるコンベアはキャラクターを押し出さずに置く():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(false, calls)
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, 0)))
+		assert_eq(calls, [])
+
+	func test_置けない場所ならキャラクターを押し出さない():
+		var calls := []
+		piece_placer.push_player = _fake_pusher(true, calls)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
+		piece_placer.select_piece(MINER_SCENE)
+		piece_placer.place_piece_at_hex(Vector2i(0, -1))
+		assert_eq(calls, [])
+
+	func test_押し出し役がいなければそのまま置く():
+		piece_placer.select_piece(MINER_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(Vector2i(0, -1)))
+
+	func test_届かないマスに合わせると_ゴーストもカーソルのプレビューも赤くなる():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.update_hover(chunk.hex_to_pixel(_far_hex()))
+		assert_eq(piece_placer.snap_preview.modulate, PiecePlacer.DENIED_TINT)
+		assert_eq(piece_placer.cursor_preview.modulate, PiecePlacer.DENIED_TINT)
+		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(1, 0)))
+		assert_eq(piece_placer.snap_preview.modulate, Color.WHITE)
+		assert_eq(piece_placer.cursor_preview.modulate, Color.WHITE)
+
+	func test_届く範囲を決めていなければどこにでも置ける():
+		piece_placer.reach_center = null
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.place_piece_at_hex(_far_hex()))
+
+	# ---- 届く範囲の表示 ----
+
+	func _reachable_count(center: Vector2i) -> int:
+		return (
+			chunk
+			. get_all_hexes()
+			. filter(func(hex): return Hex.distance(hex, center) <= PiecePlacer.REACH)
+			. size()
+		)
+
+	func test_ピースを選んでいる間は届く範囲のマスを示す():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		assert_true(piece_placer.reach_area.visible)
+		assert_eq(piece_placer.reach_area.hexes.size(), _reachable_count(Vector2i(0, 0)))
+
+	func test_ピースを選んでいなければ届く範囲は示さない():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.select_piece(null)
+		assert_false(piece_placer.reach_area.visible)
+
+	func test_キャラクターが動くと示す範囲も動く():
+		piece_placer.select_piece(CONVEYOR_SCENE)
+		piece_placer.reach_center = Vector2i(2, 0)
+		assert_true(Vector2i(2 + PiecePlacer.REACH, 0) in piece_placer.reach_area.hexes)
+		assert_false(Vector2i(-PiecePlacer.REACH, 0) in piece_placer.reach_area.hexes)

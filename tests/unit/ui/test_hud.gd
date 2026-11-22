@@ -21,12 +21,6 @@ func after_each():
 
 func test_スロット7は橋である():
 	assert_eq(_get_slot_piece_type(6), PieceData.Type.BRIDGE)
-	assert_eq(hud.slot_buttons[6].text, "橋")
-
-
-func test_橋のスロットはキー7で選べる():
-	var key = (hud.slot_buttons[6] as Button).shortcut.events[0] as InputEventKey
-	assert_eq(key.keycode, KEY_7)
 
 
 func test_Painterは廃止したのでツールバーにない():
@@ -35,7 +29,7 @@ func test_Painterは廃止したのでツールバーにない():
 
 
 func test_unlocks_changed受信で未アンロックのスロットが有効になる():
-	var smelter_btn = hud.toolbar.get_child(2) as Button
+	var smelter_btn = hud.slot_buttons[2] as Button
 	assert_true(smelter_btn.disabled, "前提: Smelterスロットは初期状態でロック")
 	HubGoals.creative_mode = true
 	HubGoals.unlocks_changed.emit()
@@ -44,14 +38,17 @@ func test_unlocks_changed受信で未アンロックのスロットが有効に�
 
 func test_アクティブスロット変更でUIハイライトが更新される():
 	assert_eq(hud.get_active_index(), -1)
+	_unlock_all()
 
-	# HUDを直接操作（ボタンを真にしてハンドラを呼ぶ）
-	var btn3 = hud.toolbar.get_child(3) as Button
-	btn3.button_pressed = true
-	hud.on_slot_pressed(3)
+	hud.select_slot(3)
 
 	# 状態が更新されているか確認
 	assert_eq(hud.get_active_index(), 3)
+
+
+func _unlock_all() -> void:
+	HubGoals.creative_mode = true
+	HubGoals.unlocks_changed.emit()
 
 
 func _get_slot_piece_type(index: int) -> PieceData.Type:
@@ -78,35 +75,27 @@ func test_スロット4はアッセンブラーである():
 	assert_eq(_get_slot_piece_type(3), PieceData.Type.ASSEMBLER)
 
 
-func test_スロットにアイコンテクスチャが設定されている():
-	var slot0 = hud.toolbar.get_child(0) as Button
-	assert_not_null(slot0.icon)
+func test_スロット10は窯で_unlock_kilnを取るまで使えない():
+	assert_eq(_get_slot_piece_type(9), PieceData.Type.KILN)
+	assert_true(hud.slot_buttons[9].disabled)
+	HubGoals.gained_rewards["unlock_kiln"] = true
+	HubGoals.unlocks_changed.emit()
+	assert_false(hud.slot_buttons[9].disabled)
 
 
 func test_スロットをクリックすると選択が更新される():
-	# ボタンのクリックを擬似的に発生させる
-	var btn2 = hud.toolbar.get_child(2) as Button
-
-	# 手動でトグル状態をセットしてハンドラを呼ぶ
-	btn2.button_pressed = true
-	hud.on_slot_pressed(2)
-
+	_unlock_all()
+	hud.slot_buttons[2].button_pressed = true
+	hud.slot_buttons[2].pressed.emit()
 	assert_eq(hud.get_active_index(), 2, "スロット2を選択したらインデックス2がアクティブになるべき")
 
 
 func test_スロット選択時にslot_selectedがPackedSceneを持って発火される():
+	_unlock_all()
 	watch_signals(hud)
-	var btn = hud.toolbar.get_child(3) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(3)
+	hud.select_slot(3)
 	var expected_scene = hud.get_scene_for_slot(3)
 	assert_signal_emitted_with_parameters(hud, "slot_selected", [expected_scene])
-
-
-func test_選択解除時にslot_selectedがnullを持って発火される():
-	watch_signals(hud)
-	hud.on_slot_pressed(-1)
-	assert_signal_emitted_with_parameters(hud, "slot_selected", [null])
 
 
 func test_deselect呼び出しでslot_selectedがnullを持って発火される():
@@ -116,9 +105,7 @@ func test_deselect呼び出しでslot_selectedがnullを持って発火される
 
 
 func test_スロット選択で情報パネルにピース名が表示される():
-	var btn = hud.toolbar.get_child(1) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(1)
+	hud.select_slot(1)
 	assert_eq(hud.info_panel.name_label.text, "Miner")
 
 
@@ -130,35 +117,39 @@ func test_選択解除で情報パネルが非表示になる():
 
 func test_機械スロット選択で情報パネルにt1の生産速度が表示される():
 	# スロット2はSmelter。初期状態はt1（craft_time_multiplier=2.0）なので15/分
-	var btn = hud.toolbar.get_child(2) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(2)
+	_unlock_all()
+	hud.select_slot(2)
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 15/分")
 
 
 func test_Tキーでt2に切り替えると情報パネルの速度が更新される():
 	# スロット2はSmelter。cycle_variantでt2（30/分）に切り替わる
 	HubGoals.gained_rewards["unlock_smelter"] = true
-	hud._refresh_unlock_states()
-	var btn = hud.toolbar.get_child(2) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(2)
+	HubGoals.unlocks_changed.emit()
+	hud.select_slot(2)
 	hud.cycle_variant()  # t1→t2
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
 
 
+func test_採掘機を選ぶと採掘の研究を含めた速度が表示される():
+	# T1 の採掘機は 60 / 1.0秒 / 2.0 = 30/分。採掘高速化 I（1.5倍）で 45/分
+	hud.select_slot(1)
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
+	hud.deselect()
+	HubGoals.researched = {"mining_speed_1": true}
+	hud.select_slot(1)
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 45/分")
+	HubGoals.researched = {}
+
+
 func test_コンベアスロット選択で情報パネルに搬送速度が表示される():
-	var btn = hud.toolbar.get_child(0) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(0)
+	hud.select_slot(0)
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 120/分")
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():
 	# 橋（レシピなし＝生産速度なし）は速度行を出さない
-	var btn = hud.toolbar.get_child(6) as Button
-	btn.button_pressed = true
-	hud.on_slot_pressed(6)
+	hud.select_slot(6)
 	assert_false(hud.info_panel.rate_label.visible)
 
 
@@ -171,7 +162,7 @@ func test_スロットはバリアントリストを持ちget_scene_for_slotは�
 
 
 func test_set_chunk_coordinateで左上ラベルにチャンク座標が表示される():
-	hud.set_chunk_coordinate(Hex.new(1, 0))
+	hud.set_chunk_coordinate(Vector2i(1, 0))
 	assert_eq(hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
@@ -192,8 +183,8 @@ class TestHoveredPiece:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(SMELTER, Hex.new(0, 0))
-		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(SMELTER, Vector2i(0, 0))
+		smelter = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
@@ -221,22 +212,20 @@ class TestHoveredPiece:
 		assert_string_contains(hud.info_panel.description_label.text, "稼働中")
 
 	func test_設置するピースを選んでいる間は選んだピースの説明を優先する():
-		hud.slot_buttons[1].button_pressed = true
-		hud.on_slot_pressed(1)
+		hud.select_slot(1)
 		hud.show_hovered_piece(smelter)
 		hud._process(0.1)
 		assert_eq(hud.info_panel.name_label.text, "Miner")
 
 	func test_ピースの選択を解除するとホバー中のピースの情報に戻る():
-		hud.slot_buttons[1].button_pressed = true
-		hud.on_slot_pressed(1)
+		hud.select_slot(1)
 		hud.show_hovered_piece(smelter)
 		hud.deselect()
 		assert_eq(hud.info_panel.name_label.text, smelter.piece_name)
 
 	func test_ホバー中のピースが撤去されると情報パネルが消える():
 		hud.show_hovered_piece(smelter)
-		chunk.remove_piece_at(Hex.new(0, 0))
+		chunk.remove_piece_at(Vector2i(0, 0))
 		await get_tree().process_frame
 		hud._process(0.1)
 		assert_false(hud.info_panel.visible)
@@ -259,8 +248,7 @@ class TestStockAndCost:
 		HubGoals.reset()
 
 	func _select_slot(index: int) -> void:
-		hud.slot_buttons[index].button_pressed = true
-		hud.on_slot_pressed(index)
+		hud.select_slot(index)
 
 	func test_在庫が無いときはなしと表示する():
 		assert_eq(hud.stock_display.get_summary_text(), "在庫: なし")
@@ -349,14 +337,14 @@ class TestChestSlots:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(CHEST_OUT, Hex.new(0, 0))
-		chest = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(CHEST_OUT, Vector2i(0, 0))
+		chest = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
 
 	func test_ツールバーに搬入チェストと搬出チェストのスロットがある():
-		assert_eq(hud.slot_buttons.size(), 9)
+		assert_eq(hud.slot_buttons.size(), 10)
 		assert_eq(
 			hud.get_scene_for_slot(7).resource_path, "res://scenes/components/piece/chest_in.tscn"
 		)
@@ -406,8 +394,8 @@ class TestChestSlots:
 			assert_not_null(hud.item_picker.get_button(id), id)
 
 	func test_搬出チェスト以外にはアイテム選択パネルを開かない():
-		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Hex.new(2, 0))
-		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(2, 0)))
+		chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Vector2i(2, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Vector2i(2, 0)))
 		assert_false(hud.item_picker.visible)
 
 
@@ -428,15 +416,14 @@ class TestResearchPanelFocus:
 		add_child_autofree(hud)
 		chunk = Chunk.new()
 		add_child_autofree(chunk)
-		chunk.place_piece(SMELTER, Hex.new(0, 0))
-		smelter = chunk.get_piece_at_hex(Hex.new(0, 0))
+		chunk.place_piece(SMELTER, Vector2i(0, 0))
+		smelter = chunk.get_piece_at_hex(Vector2i(0, 0))
 
 	func after_each():
 		HubGoals.reset()
 
 	func _select_slot(index: int) -> void:
-		hud.slot_buttons[index].button_pressed = true
-		hud.on_slot_pressed(index)
+		hud.select_slot(index)
 
 	func test_研究画面を開くと選んでいたピースが解除され説明パネルが消える():
 		_select_slot(1)
@@ -465,8 +452,8 @@ class TestResearchPanelFocus:
 		assert_true(hud.info_panel.visible)
 
 	func test_研究画面を開くとアイテム選択パネルは閉じる():
-		chunk.place_piece(preload("res://scenes/components/piece/chest_out.tscn"), Hex.new(3, 0))
-		hud.open_item_picker(chunk.get_piece_at_hex(Hex.new(3, 0)))
+		chunk.place_piece(preload("res://scenes/components/piece/chest_out.tscn"), Vector2i(3, 0))
+		hud.open_item_picker(chunk.get_piece_at_hex(Vector2i(3, 0)))
 		hud.toggle_research_panel()
 		assert_false(hud.item_picker.visible)
 

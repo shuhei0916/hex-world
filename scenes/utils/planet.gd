@@ -16,9 +16,9 @@ const MAX_REGION_ATTEMPTS := 20
 var radius: int
 var seed_value: int
 
-var _chunk_hexes: Array[Hex] = []
+var _chunk_hexes: Array[Vector2i] = []
 var _chunk_keys: Dictionary = {}
-var _region_ids: Dictionary = {}  # Hex.to_key → 地域番号
+var _region_ids: Dictionary = {}  # chunk の座標 → 地域番号
 var _region_biomes: Array[String] = []
 var _rng := RandomNumberGenerator.new()
 
@@ -29,36 +29,36 @@ func _init(radius_val: int, seed_val: int, region_count: int = DEFAULT_REGION_CO
 	_rng.seed = seed_val
 	for q in range(-radius, radius + 1):
 		for r in range(maxi(-radius, -q - radius), mini(radius, -q + radius) + 1):
-			var hex = Hex.new(q, r)
+			var hex = Vector2i(q, r)
 			_chunk_hexes.append(hex)
-			_chunk_keys[Hex.to_key(hex)] = true
+			_chunk_keys[hex] = true
 	_generate_regions(mini(region_count, _chunk_hexes.size()))
 
 
-func get_chunk_hexes() -> Array[Hex]:
+func get_chunk_hexes() -> Array[Vector2i]:
 	return _chunk_hexes.duplicate()
 
 
-func has_chunk(hex: Hex) -> bool:
-	return Hex.to_key(hex) in _chunk_keys
+func has_chunk(hex: Vector2i) -> bool:
+	return hex in _chunk_keys
 
 
 func get_region_count() -> int:
 	return _region_biomes.size()
 
 
-func get_region_id(hex: Hex) -> int:
-	return _region_ids.get(Hex.to_key(hex), -1)
+func get_region_id(hex: Vector2i) -> int:
+	return _region_ids.get(hex, -1)
 
 
-func get_biome_id(hex: Hex) -> String:
+func get_biome_id(hex: Vector2i) -> String:
 	var region = get_region_id(hex)
 	if region == -1:
 		return ""
 	return _region_biomes[region]
 
 
-func get_biome(hex: Hex) -> Biome:
+func get_biome(hex: Vector2i) -> Biome:
 	return Biome.get_biome(get_biome_id(hex))
 
 
@@ -77,7 +77,7 @@ func _grow_regions(region_count: int) -> void:
 	_region_ids.clear()
 	var frontiers: Array = []
 	for seed_hex in _pick_seed_hexes(region_count):
-		_region_ids[Hex.to_key(seed_hex)] = frontiers.size()
+		_region_ids[seed_hex] = frontiers.size()
 		frontiers.append([seed_hex])
 
 	var grew := true
@@ -149,20 +149,20 @@ func _grow_region(region: int, frontier: Array) -> bool:
 	var candidates = _unassigned_neighbors(frontier)
 	if candidates.is_empty():
 		return false
-	var hex: Hex = candidates[_rng.randi_range(0, candidates.size() - 1)]
-	_region_ids[Hex.to_key(hex)] = region
+	var hex: Vector2i = candidates[_rng.randi_range(0, candidates.size() - 1)]
+	_region_ids[hex] = region
 	frontier.append(hex)
 	return true
 
 
-func _unassigned_neighbors(frontier: Array) -> Array[Hex]:
-	var result: Array[Hex] = []
+func _unassigned_neighbors(frontier: Array) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
 	var seen = {}
 	for i in range(frontier.size() - 1, -1, -1):
 		var has_open_side := false
 		for dir in range(6):
 			var neighbor = Hex.neighbor(frontier[i], dir)
-			var key = Hex.to_key(neighbor)
+			var key = neighbor
 			if not has_chunk(neighbor) or key in _region_ids:
 				continue
 			has_open_side = true
@@ -174,8 +174,8 @@ func _unassigned_neighbors(frontier: Array) -> Array[Hex]:
 	return result
 
 
-func _pick_seed_hexes(region_count: int) -> Array[Hex]:
-	var seeds: Array[Hex] = [Hex.new(0, 0)]
+func _pick_seed_hexes(region_count: int) -> Array[Vector2i]:
+	var seeds: Array[Vector2i] = [Vector2i(0, 0)]
 	var candidates = _chunk_hexes.duplicate()
 	_shuffle(candidates)
 	for hex in candidates:
@@ -187,7 +187,7 @@ func _pick_seed_hexes(region_count: int) -> Array[Hex]:
 	for hex in candidates:
 		if seeds.size() >= region_count:
 			break
-		if not seeds.any(func(s): return Hex.equals(s, hex)):
+		if not seeds.any(func(s): return s == hex):
 			seeds.append(hex)
 	return seeds
 

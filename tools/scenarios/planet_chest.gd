@@ -15,20 +15,20 @@ const RUN_SECONDS := 8.0
 func run(scene: Node) -> void:
 	var world: World = scene.world
 	var home: Chunk = world.get_active_chunk()
-	home.place_piece(PLANET_OUT, Hex.new(-2, 0))
-	home.place_piece(CONVEYOR, Hex.new(-1, 0))
-	home.get_piece_at_hex(Hex.new(-2, 0)).get_node("ChestOutput").select_item("copper_ore")
+	home.place_piece(PLANET_OUT, Vector2i(-2, 0))
+	home.place_piece(CONVEYOR, Vector2i(-1, 0))
+	home.get_piece_at_hex(Vector2i(-2, 0)).get_node("ChestOutput").select_item("copper_ore")
 
 	var far_hex = _far_mountain_hex(world.get_planet())
 	scene._handle_world_map_chunk_selected(far_hex)
 	var far: Chunk = world.get_active_chunk()
-	far.place_piece(CONVEYOR, Hex.new(-4, 3))
-	far.place_piece(PLANET_IN, Hex.new(-3, 3))
-	var feeder: Piece = far.get_piece_at_hex(Hex.new(-4, 3))
+	far.place_piece(CONVEYOR, Vector2i(-4, 3))
+	far.place_piece(PLANET_IN, Vector2i(-3, 3))
+	var feeder: Piece = far.get_piece_at_hex(Vector2i(-4, 3))
 	print(
 		(
 			"山岳の chunk=%s（原点からの距離 %d） / いま見ている chunk=%s"
-			% [far_hex, Hex.distance(Hex.new(0, 0), far_hex), world.get_active_hex()]
+			% [far_hex, Hex.distance(Vector2i(0, 0), far_hex), world.get_active_hex()]
 		)
 	)
 
@@ -54,8 +54,8 @@ func run(scene: Node) -> void:
 
 
 # 原点と隣り合っていない山岳の chunk
-func _far_mountain_hex(planet: Planet) -> Hex:
+func _far_mountain_hex(planet: Planet) -> Variant:
 	for hex in planet.get_chunk_hexes():
-		if planet.get_biome_id(hex) == Biome.MOUNTAINS and Hex.distance(Hex.new(0, 0), hex) >= 2:
+		if planet.get_biome_id(hex) == Biome.MOUNTAINS and Hex.distance(Vector2i(0, 0), hex) >= 2:
 			return hex
 	return null

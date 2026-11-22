@@ -18,8 +18,15 @@ func test_砂丘バイオームでは砂が採れる():
 	assert_eq(Biome.get_biome(Biome.DESERT).display_name, "砂丘")
 
 
+func test_石灰岩の台地では石灰石が採れる():
+	assert_eq(Biome.get_biome(Biome.PLATEAU).resource_type, "limestone")
+	assert_eq(Biome.get_biome(Biome.PLATEAU).display_name, "石灰岩の台地")
+
+
 func test_全バイオームのidを列挙できる():
-	assert_eq(Biome.all_ids(), [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST, Biome.DESERT])
+	assert_eq(
+		Biome.all_ids(), [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST, Biome.DESERT, Biome.PLATEAU]
+	)
 
 
 func test_どのバイオームの資源もアイテムとして登録されている():

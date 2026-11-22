@@ -8,6 +8,7 @@ extends Node
 @onready var _place_belt: AudioStreamPlayer = $PlaceBelt
 @onready var _destroy_building: AudioStreamPlayer = $DestroyBuilding
 @onready var _ui_click: AudioStreamPlayer = $UiClick
+@onready var _placement_denied: AudioStreamPlayer = $PlacementDenied
 
 
 func on_piece_placed(piece: Piece):
@@ -29,3 +30,8 @@ func on_piece_removed():
 func on_slot_selected(scene: PackedScene):
 	if scene:
 		_ui_click.play()
+
+
+# 置けなかったとき（重なっている・届かない・在庫不足など）
+func on_placement_denied(_message: String):
+	_placement_denied.play()

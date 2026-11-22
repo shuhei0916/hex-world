@@ -285,8 +285,8 @@ func _fmt(v) -> String:
 		return "(%.1f,%.1f)" % [v.x, v.y]
 	if v is Color:
 		return "#" + v.to_html(v.a < 1.0)
-	if v is Hex:
-		return "Hex(%s)" % Hex.to_key(v)
+	if v is Vector2i:
+		return "Hex(%s)" % v
 	if v is Array:
 		return "[" + ", ".join(v.map(func(e): return _fmt(e))) + "]"
 	return str(v)

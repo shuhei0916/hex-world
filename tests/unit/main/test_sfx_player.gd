@@ -57,3 +57,8 @@ func test_ツールバーでピースを選択するとui_clickが再生され�
 func test_ツールバー選択解除では音が鳴らない():
 	sfx.on_slot_selected(null)
 	assert_false(sfx.get_node("UiClick").playing)
+
+
+func test_置けなかったときはエラー音が再生される():
+	sfx.on_placement_denied("ほかの設置物と重なっている")
+	assert_true(sfx.get_node("PlacementDenied").playing)

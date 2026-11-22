@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkphrisirjuvc"
-path="res://.godot/imported/HexagonRoundedFlat.png-8d24f9c48a77eafce7bef1a32998eff1.ctex"
+uid="uid://wvyy2gojexew"
+path="res://.godot/imported/category_extraction.svg-955391fa9b8eb14837731fa3710cbc58.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/HexagonRoundedFlat.png"
-dest_files=["res://.godot/imported/HexagonRoundedFlat.png-8d24f9c48a77eafce7bef1a32998eff1.ctex"]
+source_file="res://assets/pieces/category_extraction.svg"
+dest_files=["res://.godot/imported/category_extraction.svg-955391fa9b8eb14837731fa3710cbc58.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

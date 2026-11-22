@@ -11,9 +11,9 @@ const SMELTER = preload("res://scenes/components/piece/smelter_t1.tscn")
 
 func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
-	var targets := {"Hub": Hex.new(0, 0)}
+	var targets := {"Hub": Vector2i(0, 0)}
 	for hex in chunk.get_all_hexes():
-		if chunk.get_hex_resource(hex) != "" and chunk.can_place([Hex.new(0, 0)], hex):
+		if chunk.get_hex_resource(hex) != "" and chunk.can_place([Vector2i(0, 0)], hex):
 			chunk.place_piece(MINER, hex)
 			targets["Miner"] = hex
 			break

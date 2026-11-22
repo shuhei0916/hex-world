@@ -27,7 +27,8 @@ var _input_direction: int = -1  # 主入力。出口へのパスはここから�
 var _merge_input_directions: Array = []
 
 @onready var _piece: Piece = get_parent()
-@onready var _mover: Node = _find_mover()
+# ベルトの上のアイテムの動き。コンベアのシーンには必ずある
+@onready var _mover: ConveyorLogic = get_parent().get_node("ConveyorLogic")
 @onready var _item_icon: Sprite2D = $ItemIcon
 @onready var _item_icon_2: Sprite2D = $ItemIcon2
 
@@ -95,13 +96,6 @@ func _ready():
 	refresh_belt()
 
 
-func _find_mover() -> Node:
-	for sibling in get_parent().get_children():
-		if sibling.has_method("get_held_item"):
-			return sibling
-	return null
-
-
 func _process(delta: float):
 	var frame = Engine.get_process_frames()
 	if frame != _clock_frame:
@@ -109,10 +103,6 @@ func _process(delta: float):
 		_shared_clock += delta
 	queue_redraw()
 	update_item_icon()
-
-
-func set_input_direction(direction: int):
-	set_input_directions([] if direction < 0 else [direction])
 
 
 # 先頭を主入力、残りを合流してくる入力として描く
@@ -142,10 +132,13 @@ func refresh_belt():
 	var layout = Layout.make_default()
 	var primary_dir = ports[0]["direction"]
 	var dirs = _output_directions if not _output_directions.is_empty() else [primary_dir]
-	var input_dir = _input_direction if _input_direction >= 0 else (primary_dir + 3) % 6
-	var in_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[input_dir]) * 0.5
+	# 入れてくる相手がいなくても、記録された入力側（受け取る側）から描く。未指定なら真後ろ
+	var input_dir = _input_direction
+	if input_dir < 0:
+		input_dir = _piece.belt_input_side()
+	var in_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[input_dir]) * 0.5
 	for output_dir in dirs:
-		var out_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[output_dir]) * 0.5
+		var out_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[output_dir]) * 0.5
 		# 分岐は中心で行き先を決めるため、どの出口へも入口→中心の区間を共有する直線で描く
 		if dirs.size() >= 2:
 			_paths.append(PackedVector2Array([in_edge, Vector2.ZERO, out_edge]))
@@ -156,7 +149,7 @@ func refresh_belt():
 	_path = _paths[0]
 	# 合流: 主入力のパスは中心を通るので、辺から中心までの直線で継ぎ足せばつながって見える
 	for merge_dir in _merge_input_directions:
-		var merge_edge = Layout.hex_to_pixel(layout, Hex.hex_directions[merge_dir]) * 0.5
+		var merge_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[merge_dir]) * 0.5
 		_merge_paths.append(PackedVector2Array([merge_edge, Vector2.ZERO]))
 	queue_redraw()
 
@@ -233,10 +226,8 @@ func update_item_icon():
 		return
 	_update_slot_icon(_item_icon, _mover.get_held_item(), _mover.get_progress_ratio())
 	if _item_icon_2:
-		var held2 = _mover.get_held_item_2() if _mover.has_method("get_held_item_2") else ""
-		var ratio2 = (
-			_mover.get_progress_ratio_2() if _mover.has_method("get_progress_ratio_2") else 0.0
-		)
+		var held2 = _mover.get_held_item_2()
+		var ratio2 = _mover.get_progress_ratio_2()
 		_update_slot_icon(_item_icon_2, held2, ratio2)
 
 
@@ -268,7 +259,7 @@ func _position_on_path(t: float) -> Vector2:
 
 
 func _select_active_path() -> PackedVector2Array:
-	if _paths.size() <= 1 or not _mover.has_method("get_target_direction"):
+	if _paths.size() <= 1:
 		return _path
 	var target_dir = _mover.get_target_direction()
 	for i in range(_output_directions.size()):

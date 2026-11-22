@@ -14,6 +14,8 @@ const RECIPE_TABLE = [
 	[PieceData.Type.MIXER, {"copper_wire": 2, "iron_plate": 1}, {"circuit": 1}, 6.0],
 	[PieceData.Type.MIXER, {"steel_beam": 2, "screw": 2}, {"frame": 1}, 6.0],
 	[PieceData.Type.MIXER, {"lens": 1, "circuit": 1}, {"sensor": 1}, 8.0],
+	[PieceData.Type.MIXER, {"quicklime": 1, "sand": 2}, {"concrete": 1}, 4.0],
+	[PieceData.Type.KILN, {"limestone": 1}, {"quicklime": 1}, 3.0],
 	[PieceData.Type.ASSEMBLER, {"iron_plate": 1, "screw": 2}, {"gear": 1}, 4.0],
 	[PieceData.Type.ASSEMBLER, {"gear": 1, "copper_wire": 2}, {"motor": 1}, 6.0],
 	[PieceData.Type.ASSEMBLER, {"frame": 1, "motor": 1}, {"engine": 1}, 8.0],
@@ -30,12 +32,20 @@ func test_レシピデータを初期化できる():
 	assert_eq(recipe.craft_time, 2.0)
 
 
-func test_レシピデータベースからIDでレシピを取得できる():
-	# RecipeDB はシングルトンか静的クラスを想定
-	Recipe.RecipeDB._static_init()
-	var recipe = Recipe.RecipeDB.get_recipe("iron_ingot")
-	assert_not_null(recipe, "レシピが取得できるべき")
-	assert_eq(recipe.inputs.size(), 1, "入力アイテムは1つであるべき")
+func test_品目を作るレシピを引ける():
+	var recipes = Recipe.RecipeDB.get_recipes_producing("iron_ingot")
+	assert_eq(recipes.size(), 1)
+	assert_eq(recipes[0].inputs, {"iron_ore": 1})
+
+
+func test_作るレシピの無い品目では空():
+	assert_eq(Recipe.RecipeDB.get_recipes_producing("no_such_item"), [])
+
+
+func test_採掘で手に入る資源も採掘機のレシピとして引ける():
+	var recipes = Recipe.RecipeDB.get_recipes_producing("coal")
+	assert_eq(recipes.size(), 1)
+	assert_eq(recipes[0].inputs, {})
 
 
 func test_TypeでSmelterのレシピ一覧を取得できる():
@@ -75,11 +85,6 @@ func test_Recipeにはroleフィールドが存在しない():
 	assert_false("role" in recipe, "Recipe に role フィールドは不要")
 
 
-func test_items_per_minuteは60割るcraft_timeを返す():
-	var recipe = Recipe.new("test", {}, {"iron_ingot": 1}, 2.0)
-	assert_eq(recipe.items_per_minute(), 30.0)
-
-
 func test_全バイオームの資源に対応する採掘レシピがある():
 	for biome_id in Biome.all_ids():
 		var resource_type = Biome.get_biome(biome_id).resource_type
@@ -109,7 +114,8 @@ func test_加工機のレシピはレシピ表にあるものだけ():
 		PieceData.Type.SMELTER,
 		PieceData.Type.CUTTER,
 		PieceData.Type.MIXER,
-		PieceData.Type.ASSEMBLER
+		PieceData.Type.ASSEMBLER,
+		PieceData.Type.KILN,
 	]:
 		var expected = RECIPE_TABLE.filter(func(row): return row[0] == piece_type).size()
 		assert_eq(Recipe.RecipeDB.get_recipes_by_type(piece_type).size(), expected)
@@ -123,9 +129,10 @@ func test_材料は2種類まで_個数は2個まで_出力は1種類():
 		assert_eq(row[2].size(), 1)
 
 
-func test_最終目標の探査機は4つのバイオームの資源をすべて使う():
+func test_最終目標の探査機は本筋のバイオームの資源をすべて使う():
+	# 石灰岩の台地の石灰石は建物の材料（コンクリート）に使い、探査機には使わない
 	var raw = _raw_materials("probe")
-	for biome_id in Biome.all_ids():
+	for biome_id in [Biome.PLAINS, Biome.MOUNTAINS, Biome.FOREST, Biome.DESERT]:
 		var resource_type = Biome.get_biome(biome_id).resource_type
 		assert_true(raw.has(resource_type), "%s が要る" % resource_type)
 
@@ -154,7 +161,8 @@ func test_同じ機械のレシピ同士で材料が重ならない():
 		PieceData.Type.SMELTER,
 		PieceData.Type.ASSEMBLER,
 		PieceData.Type.CUTTER,
-		PieceData.Type.MIXER
+		PieceData.Type.MIXER,
+		PieceData.Type.KILN,
 	]:
 		var seen = {}
 		for recipe in Recipe.RecipeDB.get_recipes_by_type(piece_type):

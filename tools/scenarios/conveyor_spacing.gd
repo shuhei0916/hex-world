@@ -11,19 +11,21 @@ const FRAMES = 1500
 func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
 	for q in [-2, -1, 0, 1, 2]:
-		chunk.place_piece(CONVEYOR, Hex.new(q, 0), 0)
-	chunk.place_piece(CONVEYOR, Hex.new(1, -1), 5)
-	chunk.place_piece(CONVEYOR, Hex.new(2, -2), 5)
-	var feeder: Piece = chunk.get_piece_at_hex(Hex.new(-2, 0))
+		chunk.place_piece(CONVEYOR, Vector2i(q, 0), 0)
+	chunk.place_piece(CONVEYOR, Vector2i(1, -1), 5)
+	chunk.place_piece(CONVEYOR, Vector2i(2, -2), 5)
+	var feeder: Piece = chunk.get_piece_at_hex(Vector2i(-2, 0))
 	for frame in FRAMES:
 		if feeder.get_node("ConveyorLogic").can_accept_item("iron_ore"):
 			feeder.add_item("iron_ore", 1)
 		await scene.get_tree().process_frame
 
-	var hex_dist = chunk.hex_to_pixel(Hex.new(1, 0)).distance_to(chunk.hex_to_pixel(Hex.new(0, 0)))
-	var trunk = [Hex.new(-2, 0), Hex.new(-1, 0), Hex.new(0, 0)]
-	_report("E レーン", chunk, trunk + [Hex.new(1, 0), Hex.new(2, 0)], hex_dist)
-	_report("NE レーン", chunk, trunk + [Hex.new(1, -1), Hex.new(2, -2)], hex_dist)
+	var hex_dist = chunk.hex_to_pixel(Vector2i(1, 0)).distance_to(
+		chunk.hex_to_pixel(Vector2i(0, 0))
+	)
+	var trunk = [Vector2i(-2, 0), Vector2i(-1, 0), Vector2i(0, 0)]
+	_report("E レーン", chunk, trunk + [Vector2i(1, 0), Vector2i(2, 0)], hex_dist)
+	_report("NE レーン", chunk, trunk + [Vector2i(1, -1), Vector2i(2, -2)], hex_dist)
 
 
 func _report(label: String, chunk: Chunk, lane: Array, hex_dist: float) -> void:
@@ -43,5 +45,5 @@ func _report(label: String, chunk: Chunk, lane: Array, hex_dist: float) -> void:
 	for p in points:
 		# 分岐元以降で別レーンの出口側にいるアイコンは除外する
 		var gap = "" if prev == null else "  gap=%.2f" % (p[2].distance_to(prev) / hex_dist)
-		print("  (%d,%d) %s%s" % [p[0].q, p[0].r, p[1], gap])
+		print("  (%d,%d) %s%s" % [p[0].x, p[0].y, p[1], gap])
 		prev = p[2]

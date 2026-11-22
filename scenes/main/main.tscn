@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://ct8qltox54lyh" path="res://scenes/ui/debug_overlay/debug_overlay.gd" id="8_debug"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu/pause_menu.tscn" id="9_pause"]
+[ext_resource type="Script" path="res://scenes/ui/battle/battle_overlay.gd" id="10_battle"]
 
 [node name="Main" type="Node2D" unique_id=1442817315]
 script = ExtResource("1_l3cfh")
@@ -35,5 +36,8 @@ layer = 100
 script = ExtResource("8_debug")
 
 [node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
+
+[node name="BattleOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("10_battle")
 
 [connection signal="slot_selected" from="HUD" to="." method="_on_hud_slot_selected"]

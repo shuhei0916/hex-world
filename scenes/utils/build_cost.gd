@@ -12,13 +12,14 @@ const COSTS = {
 	PIECE_DIR + "assembler_t1.tscn": {"iron_plate": 5},
 	PIECE_DIR + "cutter_t1.tscn": {"iron_ingot": 5},
 	PIECE_DIR + "mixer_t1.tscn": {"gear": 5},
+	PIECE_DIR + "kiln_t1.tscn": {"steel": 10},
 	PIECE_DIR + "bridge.tscn": {"iron_ingot": 10},
 	# チェストはコンベア（無料）より高くして、何でもチェストで済ませられないようにする
 	PIECE_DIR + "chest_in.tscn": {"iron_plate": 10},
 	PIECE_DIR + "chest_out.tscn": {"iron_plate": 10},
 	# 共有範囲が広いチェストほど高い
-	PIECE_DIR + "biome_chest_in.tscn": {"screw": 10},
-	PIECE_DIR + "biome_chest_out.tscn": {"screw": 10},
+	PIECE_DIR + "biome_chest_in.tscn": {"concrete": 10},
+	PIECE_DIR + "biome_chest_out.tscn": {"concrete": 10},
 	PIECE_DIR + "planet_chest_in.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "planet_chest_out.tscn": {"steel": 10, "copper_ingot": 10},
 	PIECE_DIR + "miner_t2.tscn": {"iron_plate": 10},

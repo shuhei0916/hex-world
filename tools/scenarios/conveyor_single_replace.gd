@@ -11,11 +11,11 @@ func run(scene: Node) -> void:
 	var chunk: Chunk = scene.world.get_active_chunk()
 	var placer: PiecePlacer = scene.piece_placer
 	placer.select_piece(CONVEYOR)
-	_drag(chunk, placer, [Hex.new(0, -2), Hex.new(-1, -1), Hex.new(-2, 0), Hex.new(-3, 1)])
-	_drag(chunk, placer, [Hex.new(-2, 0), Hex.new(-2, 1), Hex.new(-3, 2)])
+	_drag(chunk, placer, [Vector2i(0, -2), Vector2i(-1, -1), Vector2i(-2, 0), Vector2i(-3, 1)])
+	_drag(chunk, placer, [Vector2i(-2, 0), Vector2i(-2, 1), Vector2i(-3, 2)])
 	_report(chunk, "分岐を引いた直後")
 	# 実際のクリックと同じ呼び出し順（main.gd: start_drag → place_current_piece → stop_drag）
-	placer.update_hover(chunk.hex_to_pixel(Hex.new(-2, 1)))
+	placer.update_hover(chunk.hex_to_pixel(Vector2i(-2, 1)))
 	placer.start_drag()
 	placer.place_current_piece()
 	placer.stop_drag()
@@ -33,8 +33,8 @@ func _drag(chunk: Chunk, placer: PiecePlacer, path: Array) -> void:
 
 
 func _report(chunk: Chunk, label: String) -> void:
-	var origin: Piece = chunk.get_piece_at_hex(Hex.new(-2, 0))
-	var head: Piece = chunk.get_piece_at_hex(Hex.new(-2, 1))
+	var origin: Piece = chunk.get_piece_at_hex(Vector2i(-2, 0))
+	var head: Piece = chunk.get_piece_at_hex(Vector2i(-2, 1))
 	var visuals = head.get_node("ConveyorVisuals")
 	print(
 		(

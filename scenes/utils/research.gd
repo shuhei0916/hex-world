@@ -11,13 +11,19 @@ extends RefCounted
 ##   level               研究できるようになるハブのレベル（HubGoals.level がこの値以上）
 ##   requires            先に済ませておく研究の id
 ##   effect              効果。{"unlock": 報酬id} / {"belt_speed": 倍率} / {"mining_speed": 倍率}
+##                       / {"skill": スキルid}（SkillLibrary.RESEARCH_SKILLS の戦闘スキル）
+##   conditions          探索の条件（省略可）。{"chunks": 所有している chunk の数}
+##                       / {"biome": そのバイオームの chunk を1つ以上持っていること}
 ## 価格は仮の値。
 
-enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL }
+enum State { DONE, AVAILABLE, UNAFFORDABLE, LOCKED_PREREQUISITE, LOCKED_LEVEL, LOCKED_CONDITION }
 
 const BELT_SPEED := "belt_speed"
 const MINING_SPEED := "mining_speed"
 const UNLOCK := "unlock"
+const SKILL := "skill"
+const CHUNKS := "chunks"
+const BIOME := "biome"
 
 # 一覧に表示する順（おおむね研究できるようになる順）
 const DEFS = {
@@ -57,6 +63,15 @@ const DEFS = {
 		"requires": ["mining_speed_1"],
 		"effect": {MINING_SPEED: 2.0},
 	},
+	"skill_iron_wall":
+	{
+		"name": "戦闘: 鉄壁",
+		"description": "戦闘で「鉄壁」（防御 8、2ターンに1回）が使えるようになる。",
+		"cost": {"iron_plate": 20},
+		"level": 4,
+		"requires": [],
+		"effect": {SKILL: "iron_wall"},
+	},
 	"belt_speed_2":
 	{
 		"name": "コンベア高速化 II",
@@ -70,17 +85,37 @@ const DEFS = {
 	{
 		"name": "Biome チェスト",
 		"description": "同じバイオームのひと続きの地域の中で中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
-		"cost": {"screw": 20},
-		"level": 6,
+		"cost": {"concrete": 20},
+		"level": 8,
 		"requires": ["unlock_chunk_chest"],
 		"effect": {UNLOCK: "unlock_biome_chest"},
+	},
+	"skill_steel_lance":
+	{
+		"name": "戦闘: 鋼の槍",
+		"description": "戦闘で「鋼の槍」（攻撃 6、毎ターン1回）が使えるようになる。",
+		"cost": {"steel": 20},
+		"level": 7,
+		"requires": [],
+		"conditions": {BIOME: Biome.FOREST},
+		"effect": {SKILL: "steel_lance"},
+	},
+	"skill_sprint":
+	{
+		"name": "戦闘: 疾走",
+		"description": "戦闘で「疾走」（6マス移動、2ターンに1回）が使えるようになる。",
+		"cost": {"motor": 10},
+		"level": 9,
+		"requires": [],
+		"conditions": {CHUNKS: 3},
+		"effect": {SKILL: "sprint"},
 	},
 	"unlock_planet_chest":
 	{
 		"name": "Planet チェスト",
 		"description": "惑星のどの chunk に置いても中身を共有するチェスト（搬入・搬出）を設置できるようになる。",
 		"cost": {"steel": 30, "copper_ingot": 30},
-		"level": 8,
+		"level": 10,
 		"requires": ["unlock_biome_chest"],
 		"effect": {UNLOCK: "unlock_planet_chest"},
 	},

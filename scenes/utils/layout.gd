@@ -2,18 +2,17 @@
 class_name Layout
 extends RefCounted
 
-# Layout - 「論理上のHex座標 (q, r)」と「画面上のピクセル座標 (x,　y)」を相互変換するための計算式と設定をまとめたクラス
+# Layout - 「論理上のHex座標 (q, r)」と「画面上のピクセル座標 (x, y)」を相互変換するための計算式と設定をまとめたクラス
+# 式は Red Blob Games の "Hexagonal Grids" による（f0〜f3: マス→画面、b0〜b3: 画面→マス）
 
-# layout_pointy = Orientation(math.sqrt(3.0), math.sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0,
-#                             math.sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5)
+# 頂点が上の向き（chunk の盤面）
 static var layout_pointy = Orientation.new(
-	sqrt(3.0), sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0, 0.5
+	sqrt(3.0), sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0, sqrt(3.0) / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0
 )
 
-# layout_flat = Orientation(3.0 / 2.0, 0.0, math.sqrt(3.0) / 2.0, math.sqrt(3.0),
-#                           2.0 / 3.0, 0.0, -1.0 / 3.0, math.sqrt(3.0) / 3.0, 0.0)
+# 辺が上の向き（ワールドマップ）
 static var layout_flat = Orientation.new(
-	3.0 / 2.0, 0.0, sqrt(3.0) / 2.0, sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, sqrt(3.0) / 3.0, 0.0
+	3.0 / 2.0, 0.0, sqrt(3.0) / 2.0, sqrt(3.0), 2.0 / 3.0, 0.0, -1.0 / 3.0, sqrt(3.0) / 3.0
 )
 
 var orientation: Orientation
@@ -27,51 +26,29 @@ func _init(orientation_val: Orientation, size_val: Vector2, origin_val: Vector2)
 	origin = origin_val
 
 
-# def hex_to_pixel(layout, h):
-#     M = layout.orientation
-#     size = layout.size
-#     origin = layout.origin
-#     x = (M.f0 * h.q + M.f1 * h.r) * size.x
-#     y = (M.f2 * h.q + M.f3 * h.r) * size.y
-#     return Point(x + origin.x, y + origin.y)
-
-
 static func make_default() -> Layout:
 	return Layout.new(layout_pointy, Vector2(42.0, 42.0), Vector2.ZERO)
 
 
-static func hex_to_pixel(layout: Layout, h: Hex) -> Vector2:
+static func hex_to_pixel(layout: Layout, h: Vector2i) -> Vector2:
 	var matrix = layout.orientation
 	var size = layout.size
 	var origin = layout.origin
-	var x = (matrix.f0 * h.q + matrix.f1 * h.r) * size.x
-	var y = (matrix.f2 * h.q + matrix.f3 * h.r) * size.y
+	var x = (matrix.f0 * h.x + matrix.f1 * h.y) * size.x
+	var y = (matrix.f2 * h.x + matrix.f3 * h.y) * size.y
 	return Vector2(x + origin.x, y + origin.y)
 
 
-# def pixel_to_hex_fractional(layout, p):
-#     M = layout.orientation
-#     size = layout.size
-#     origin = layout.origin
-#     pt = Point((p.x - origin.x) / size.x, (p.y - origin.y) / size.y)
-#     q = M.b0 * pt.x + M.b1 * pt.y
-#     r = M.b2 * pt.x + M.b3 * pt.y
-#     return Hex(q, r, -q - r)
-
-
-static func pixel_to_hex_fractional(layout: Layout, p: Vector2) -> Hex:
+# 小数の軸座標を Vector2(q, r) で返す
+static func pixel_to_hex_fractional(layout: Layout, p: Vector2) -> Vector2:
 	var matrix = layout.orientation
 	var size = layout.size
 	var origin = layout.origin
 	var pt = Vector2((p.x - origin.x) / size.x, (p.y - origin.y) / size.y)
 	var q = matrix.b0 * pt.x + matrix.b1 * pt.y
 	var r = matrix.b2 * pt.x + matrix.b3 * pt.y
-	return Hex.new(q, r, -q - r)
+	return Vector2(q, r)
 
 
-# def pixel_to_hex_rounded(layout, p):
-#     return hex_round(pixel_to_hex_fractional(layout, p))
-
-
-static func pixel_to_hex_rounded(layout: Layout, p: Vector2) -> Hex:
+static func pixel_to_hex_rounded(layout: Layout, p: Vector2) -> Vector2i:
 	return Hex.round(pixel_to_hex_fractional(layout, p))

@@ -13,7 +13,7 @@ func setup(layout: Layout):
 	_layout = layout
 
 
-func draw_grid(hexes: Array[Hex]):
+func draw_grid(hexes: Array[Vector2i]):
 	for child in get_children():
 		child.queue_free()
 	_hex_to_tile.clear()
@@ -26,12 +26,8 @@ func draw_grid(hexes: Array[Hex]):
 		tile.z_as_relative = false
 		add_child(tile)
 		tile.setup_hex(hex)
-		_hex_to_tile[_key(hex)] = tile
+		_hex_to_tile[hex] = tile
 
 
-func find_hex_tile(hex: Hex) -> HexTile:
-	return _hex_to_tile.get(_key(hex), null)
-
-
-func _key(hex: Hex) -> String:
-	return Hex.to_key(hex)
+func find_hex_tile(hex: Vector2i) -> HexTile:
+	return _hex_to_tile.get(hex, null)

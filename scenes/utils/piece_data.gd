@@ -18,6 +18,7 @@ enum Type {
 	PLANET_CHEST_OUT,
 	BIOME_CHEST,
 	BIOME_CHEST_OUT,
+	KILN,
 }
 
 # 各 Type に対応するアンロック報酬キー。"" は常時アンロック。
@@ -35,6 +36,7 @@ const UNLOCK_REWARDS: Dictionary = {
 	Type.ASSEMBLER: "unlock_assembler",
 	Type.CUTTER: "unlock_cutter_and_splitter",
 	Type.MIXER: "unlock_mixer",
+	Type.KILN: "unlock_kiln",
 	Type.BRIDGE: "",
 }
 

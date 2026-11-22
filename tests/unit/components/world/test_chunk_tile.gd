@@ -13,46 +13,46 @@ class TestChunkTile:
 		add_child_autofree(tile)
 
 	func test_setup後にchunk_hexが設定される():
-		tile.setup(Hex.new(1, 0))
-		assert_true(Hex.equals(tile.chunk_hex, Hex.new(1, 0)))
+		tile.setup(Vector2i(1, 0))
+		assert_true(tile.chunk_hex == Vector2i(1, 0))
 
 	func test_デフォルトでis_activeはfalse():
-		tile.setup(Hex.new(0, 0))
+		tile.setup(Vector2i(0, 0))
 		assert_false(tile.is_active)
 
 	func test_set_active_trueでis_activeがtrueになる():
-		tile.setup(Hex.new(0, 0))
+		tile.setup(Vector2i(0, 0))
 		tile.set_active(true)
 		assert_true(tile.is_active)
 
 	func test_set_active_falseでis_activeがfalseに戻る():
-		tile.setup(Hex.new(0, 0))
+		tile.setup(Vector2i(0, 0))
 		tile.set_active(true)
 		tile.set_active(false)
 		assert_false(tile.is_active)
 
 	func test_アクティブかつホバー中はアクティブ色が優先される():
-		tile.setup(Hex.new(0, 0))
+		tile.setup(Vector2i(0, 0))
 		tile.set_active(true)
 		var active_color = tile.get_current_color()
 		tile.set_hovered(true)
 		assert_eq(tile.get_current_color(), active_color)
 
 	func test_基本色を指定するとその色で塗られる():
-		tile.setup(Hex.new(0, 0), Color.RED)
+		tile.setup(Vector2i(0, 0), Color.RED)
 		assert_eq(tile.get_current_color(), Color.RED)
 
 	func test_基本色を省略すると既定色で塗られる():
-		tile.setup(Hex.new(0, 0))
+		tile.setup(Vector2i(0, 0))
 		assert_eq(tile.get_current_color(), ChunkTile.NORMAL_COLOR)
 
 	func test_ホバー中は基本色より明るくなる():
-		tile.setup(Hex.new(0, 0), Color("#404040"))
+		tile.setup(Vector2i(0, 0), Color("#404040"))
 		tile.set_hovered(true)
 		assert_gt(tile.get_current_color().v, Color("#404040").v)
 
 	func test_アクティブ時はホバー時よりさらに明るくなる():
-		tile.setup(Hex.new(0, 0), Color("#404040"))
+		tile.setup(Vector2i(0, 0), Color("#404040"))
 		tile.set_hovered(true)
 		var hovered = tile.get_current_color()
 		tile.set_hovered(false)
@@ -60,57 +60,31 @@ class TestChunkTile:
 		assert_gt(tile.get_current_color().v, hovered.v)
 
 
-class TestChunkTileSprite:
+class TestChunkTileShape:
 	extends GutTest
-
-	const HEX_TILE_SCENE = preload("res://scenes/components/hex_tile/hex_tile.tscn")
 
 	var tile
 
 	func before_each():
 		tile = ChunkTile.new()
 		add_child_autofree(tile)
-		tile.setup(Hex.new(0, 0), Color("#404040"))
+		tile.setup(Vector2i(0, 0), Color("#404040"))
 
-	func _local_sprite() -> Sprite2D:
-		var hex_tile = HEX_TILE_SCENE.instantiate()
-		autofree(hex_tile)
-		return hex_tile.get_node("Sprite2D")
+	func test_画像を使わずに描く():
+		assert_null(tile.get_node_or_null("Sprite2D"))
 
-	func test_ローカルの床のマスと同じデザインのflat_top版の画像で描く():
-		assert_eq(tile.get_sprite().texture, HexTile.FLAT_TEXTURE)
-
-	func test_床のマスの画像はHexTileの画像である():
-		assert_eq(_local_sprite().texture, HexTile.TEXTURE)
-
-	func test_画像は回さない_回すと上からの陰影が横向きになる():
-		assert_eq(tile.get_sprite().rotation, 0.0)
-
-	func test_床のマスの画像の倍率はHexTileの値と同じ():
-		assert_almost_eq(_local_sprite().scale.x, HexTile.SPRITE_SCALE, 0.0001)
-
-	func test_画像は今の色で塗られる():
+	func test_今の色で塗る():
 		tile.set_hovered(true)
-		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
+		assert_eq(tile.get_fill_color(), tile.get_current_color())
 		tile.set_active(true)
-		assert_eq(tile.get_sprite().modulate, tile.get_current_color())
-
-
-class TestChunkTileSize:
-	extends GutTest
-
-	var tile
-
-	func before_each():
-		tile = ChunkTile.new()
-		add_child_autofree(tile)
-		tile.setup(Hex.new(0, 0))
+		assert_eq(tile.get_fill_color(), tile.get_current_color())
 
 	func test_中心から辺までの距離を指定できる():
 		tile.set_inradius(50.0)
 		assert_almost_eq(tile.get_inradius(), 50.0, 0.001)
 
-	func test_画像の辺がその距離に来る大きさで描く():
+	func test_辺が上を向く六角形で_辺がその距離に来る大きさで描く():
 		tile.set_inradius(50.0)
-		var image_inradius = HexTile.TEXTURE_CIRCUMRADIUS * sqrt(3.0) * 0.5
-		assert_almost_eq(tile.get_sprite().scale.x * image_inradius, 50.0, 0.001)
+
+		var circumradius = 50.0 * 2.0 / sqrt(3.0)
+		assert_eq(tile.get_outline(), HexShape.outline(Vector2.ZERO, circumradius, false))
