@@ -224,6 +224,70 @@ func test_入力が1つなら合流用のベルトは描かない():
 	assert_eq(visuals._input_direction, 3)
 
 
+class TestBeltSeam:
+	extends GutTest
+
+	## 隣り合うベルトの境目に、端のアンチエイリアスで細い線が見えないようにする
+
+	const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
+
+	func _edge(dir: int) -> Vector2:
+		return Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[dir]) * 0.5
+
+	func test_パスの端を_その端の向きのまま外へ延ばせる():
+		var path = PackedVector2Array([Vector2(-10, 0), Vector2(0, 0), Vector2(0, 10)])
+		var extended = ConveyorVisuals.extend_path_ends(path, true, true, 2.0)
+		assert_eq(extended[0], Vector2(-12, 0), "入口側は入ってくる向きの逆へ")
+		assert_eq(extended[-1], Vector2(0, 12), "出口側は出ていく向きへ")
+		assert_eq(extended[1], Vector2(0, 0), "途中の点は動かさない")
+
+	func test_延ばさない側の端はそのまま():
+		var path = PackedVector2Array([Vector2(-10, 0), Vector2(10, 0)])
+		var extended = ConveyorVisuals.extend_path_ends(path, false, true, 2.0)
+		assert_eq(extended[0], Vector2(-10, 0))
+		assert_eq(extended[-1], Vector2(12, 0))
+
+	func test_前後がつながったベルトは両方の辺から少しはみ出して描き_隣と重なる():
+		var chunk := Chunk.new()
+		add_child_autofree(chunk)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(-1, 0), 0)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)
+		var visuals = chunk.get_piece_at_hex(Vector2i(0, 0)).get_node("ConveyorVisuals")
+		var drawn = visuals.drawn_belt_paths()[0]
+		assert_lt(drawn[0].x, _edge(3).x, "入口の辺より外から描く")
+		assert_gt(drawn[-1].x, _edge(0).x, "出口の辺より外まで描く")
+		assert_eq(visuals._paths[0][0], _edge(3), "アイテムの通り道は辺のまま")
+
+	func test_つながっていない端は辺で止める():
+		var chunk := Chunk.new()
+		add_child_autofree(chunk)
+		chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)
+		var visuals = chunk.get_piece_at_hex(Vector2i(0, 0)).get_node("ConveyorVisuals")
+		var drawn = visuals.drawn_belt_paths()[0]
+		assert_eq(drawn[0], _edge(3), "行き止まりの入口ははみ出さない")
+		assert_eq(drawn[-1], _edge(0), "行き止まりの出口ははみ出さない")
+
+	func test_縁取りは全コンベアの中の帯より奥の層に描く():
+		# 縁取りが同じ層にあると、隣に重ねた端で中の帯のぼかしから暗い縁取りが透けて線に見える
+		var conveyor = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(conveyor)
+		var visuals = conveyor.get_node("ConveyorVisuals")
+		var outline: Node2D = visuals.get_node("BeltOutline")
+		assert_false(outline.z_as_relative)
+		assert_lt(outline.z_index, ConveyorVisuals.Z_INDEX)
+
+	func test_合流のベルトは入ってくる辺の側だけ延ばす():
+		var conveyor = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(conveyor)
+		conveyor.setup(0)
+		var visuals = conveyor.get_node("ConveyorVisuals")
+		visuals.set_input_directions([3, 5])
+		var merge = visuals.drawn_merge_paths()[0]
+		assert_gt(merge[0].distance_to(Vector2.ZERO), _edge(5).length(), "辺より外から")
+		assert_eq(merge[-1], Vector2.ZERO, "中心はそのまま")
+
+
 class TestBeltArrowContinuity:
 	extends GutTest
 
