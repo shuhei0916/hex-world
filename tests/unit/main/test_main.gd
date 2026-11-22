@@ -422,7 +422,7 @@ func test_ワールドマップではEキーで研究パネルが開かない():
 func test_研究でコンベアを速くすると情報パネルのスピードに反映される():
 	HubGoals.researched = {"belt_speed_1": true}
 	main.hud.select_slot(0)
-	assert_eq(main.hud.info_panel.rate_label.text, "スピード: 180/分")
+	assert_eq(main.hud.info_panel.rate_label.text, "スピード: 120/分")
 
 
 func _left_click(pressed: bool) -> InputEventMouseButton:

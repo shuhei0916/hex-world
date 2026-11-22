@@ -24,13 +24,13 @@ func test_接続した相手へtickでアイテムを渡す():
 	target.setup()
 	bridge.set_connected_pieces([target])
 	bridge.add_item("iron_ore", 1)
-	bridge.tick(1.0)
+	bridge.tick(TransferBuffer.TRANSFER_TIME)
 	assert_eq(target.get_item_count("iron_ore"), 1)
 
 
 func test_接続先が不在ならアイテムを保持し続ける():
 	bridge.add_item("iron_ore", 1)
-	bridge.tick(1.0)
+	bridge.tick(TransferBuffer.TRANSFER_TIME)
 	assert_eq(bridge.get_item_count("iron_ore"), 1)
 
 

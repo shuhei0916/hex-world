@@ -97,7 +97,7 @@ class TestBridgeWiring:
 		chunk_a.place_piece(BRIDGE_SCENE, _bridge_hex())
 		chunk_b.place_piece(CONVEYOR, _landing_hex())
 		_bridge().add_item("iron_ore", 1)
-		_bridge().tick(1.0)
+		_bridge().tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(chunk_b.get_piece_at_hex(_landing_hex()).get_item_count("iron_ore"), 1)
 
 

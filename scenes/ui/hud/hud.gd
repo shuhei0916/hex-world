@@ -504,7 +504,7 @@ func _items_per_minute_for_piece(piece: Node) -> float:
 		crafter.set_recipe(recipes[0])
 		return crafter.get_max_items_per_minute()
 	if piece_type == PieceData.Type.CONVEYOR:
-		return 60.0 / TransferBuffer.TRANSFER_TIME * HubGoals.get_belt_speed()
+		return HubGoals.get_belt_items_per_minute()
 	return 0.0
 
 

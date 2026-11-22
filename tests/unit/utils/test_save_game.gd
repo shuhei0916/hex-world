@@ -235,7 +235,7 @@ class TestHubProgress:
 		_roundtrip()
 		assert_true(goals.is_researched("belt_speed_1"))
 		assert_true(goals.is_reward_unlocked("unlock_chunk_chest"))
-		assert_eq(goals.get_belt_speed(), 1.5)
+		assert_eq(goals.get_belt_speed(), 2.0)
 		assert_false(goals.is_researched("mining_speed_1"))
 
 	func test_在庫が復元される():

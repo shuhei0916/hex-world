@@ -31,7 +31,7 @@ func test_すべての研究が一覧に並ぶ():
 
 func test_研究の名前と説明と価格が表示される():
 	assert_string_contains(panel.get_row_text("belt_speed_1"), "コンベア高速化 I")
-	assert_string_contains(panel.get_row_text("belt_speed_1"), "1.5倍")
+	assert_string_contains(panel.get_row_text("belt_speed_1"), "2倍")
 	assert_string_contains(panel.get_row_text("belt_speed_1"), "価格: Iron Ingot 0/20")
 
 

@@ -335,7 +335,7 @@ class TestBeltArrowContinuity:
 
 	func test_コンベア高速化を研究すると矢印も速く流れる():
 		var normal = ConveyorVisuals.arrow_fractions(0.05)[0]
-		HubGoals.researched = {"belt_speed_1": true, "belt_speed_2": true}
+		HubGoals.researched = {"belt_speed_1": true}
 		var fast = ConveyorVisuals.arrow_fractions(0.05)[0]
 		assert_almost_eq(fast, normal * 2.0, 0.0001)
 

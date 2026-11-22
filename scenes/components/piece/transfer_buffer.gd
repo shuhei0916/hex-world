@@ -5,7 +5,9 @@ extends RefCounted
 ## slot1（先行）が後半（progress >= TRANSFER_TIME/2）に達したらslot2（後続）を受け入れ可能。
 ## slot1搬出後はslot2がslot1に昇格する。
 
-const TRANSFER_TIME = 0.5
+# 1マスを運ぶ時間（研究前）。1マスに SLOTS 個まで載るので、流量は毎分 60 * SLOTS / TRANSFER_TIME 個
+const TRANSFER_TIME = 2.0
+const SLOTS := 2
 
 var held_item: String = ""
 var progress: float = 0.0
