@@ -47,7 +47,7 @@ func _update_piece_neighbors(piece: Piece) -> void:
 		for direction in range(6):
 			var neighbor = _get_neighbor_piece(hex, direction)
 			if neighbor and neighbor != piece:
-				if _is_physically_connected(piece, hex, direction):
+				if _feeds_neighbor(piece, hex, direction):
 					if not neighbor in current_connections:
 						current_connections.append(neighbor)
 						current_directions.append(direction)
@@ -67,7 +67,7 @@ func _belt_input_directions(piece: Piece) -> Array:
 	return directions
 
 
-# 1マスのピースへ流し込んでくる入力元の方向（0-5）。出力の配線（_is_physically_connected）と同じ判定
+# 1マスのピースへ流し込んでくる入力元の方向（0-5）。送り出しの判定（_feeds_neighbor）を逆向きに使う
 func feeding_directions(piece: Piece) -> Array:
 	var directions: Array = []
 	var base_hex = _registry.get_base_hex(piece)
@@ -78,44 +78,42 @@ func feeding_directions(piece: Piece) -> Array:
 		var neighbor = _registry.get_piece_at_hex(input_hex)
 		if neighbor == null or neighbor == piece:
 			continue
-		if _is_physically_connected(neighbor, input_hex, (direction + 3) % 6):
+		if _feeds_neighbor(neighbor, input_hex, (direction + 3) % 6):
 			directions.append(direction)
 	return directions
 
 
-func _is_physically_connected(source: Piece, source_hex: Vector2i, direction: int) -> bool:
+# source が、自分の占めるマス from_hex から direction の隣のマスへアイテムを送り出すか。
+# from_hex を渡すのは、複数マスを占める施設では排出口のあるマスからしか出さないため
+# （1マスのコンベアでは起点のマスと同じ）。送り出すのは次のどれか:
+# - 排出口（出力ポート）がそのマスのその辺にある
+# - 送り手がコンベアで、隣のコンベアがこちら側から受け取る向きにある（分岐）
+# ただし、隣のベルトの出口がこちらを向いていれば送らない（向かい合わせのベルトは押し付け合わず止まる）
+func _feeds_neighbor(source: Piece, from_hex: Vector2i, direction: int) -> bool:
 	var base_hex = _registry.get_base_hex(source)
 	if base_hex == null:
 		return false
-	# ベルトは出口の側からは受け取らない（向かい合わせのベルトはアイテムを押し付け合わず止まる）
-	if _outputs_toward(_get_neighbor_piece(source_hex, direction), (direction + 3) % 6):
+	var neighbor = _get_neighbor_piece(from_hex, direction)
+	if _outputs_toward(neighbor, (direction + 3) % 6):
 		return false
 
 	for port in source.get_output_ports():
-		var absolute_port_hex = base_hex + port.hex
-		if absolute_port_hex == source_hex and port.direction == direction:
+		if base_hex + port.hex == from_hex and port.direction == direction:
 			return true
 
-	# コンベア同士の自然な分岐: 隣のコンベアの出力方向が A→C の向きと一致するとき接続。
-	# 施設は排出口（上のポート）からしか出さないので、送り手がコンベアのときだけ
-	if not _is_conveyor(source):
+	# 施設は排出口からしか出さないので、分岐は送り手がコンベアのときだけ
+	return _is_conveyor(source) and _conveyor_receives_from(neighbor, direction)
+
+
+# conveyor が、direction の向きに進んでくるアイテムを受け取る配置か。ベルトは自分の入力側からしか受け取らない。
+# - 入力側が決まっている: 入力側（input_direction）が送り手の方を向いている
+# - 入力側が未指定（直進）: 出口が同じ direction を向いている（真後ろが入力側）
+func _conveyor_receives_from(conveyor: Piece, direction: int) -> bool:
+	if not _is_conveyor(conveyor):
 		return false
-	var neighbor = _get_neighbor_piece(source_hex, direction)
-	if _is_downstream_conveyor(neighbor, direction):
-		return true
-
-	return false
-
-
-# 隣のコンベア C が source から受け取る配置かどうか。ベルトは自分の入力側からしか受け取らない。
-# - 入力側が決まっている: C の入力側（input_direction）が source を向いている
-# - 入力側が未指定（直進）: C の出力方向が source→C の向きと一致する（真後ろが入力側）
-func _is_downstream_conveyor(neighbor: Piece, direction: int) -> bool:
-	if not _is_conveyor(neighbor):
-		return false
-	if neighbor.input_direction >= 0:
-		return neighbor.input_direction == (direction + 3) % 6
-	var ports = neighbor.get_output_ports()
+	if conveyor.input_direction >= 0:
+		return conveyor.input_direction == (direction + 3) % 6
+	var ports = conveyor.get_output_ports()
 	return not ports.is_empty() and ports[0]["direction"] == direction
 
 

@@ -99,7 +99,6 @@ hex-rogue（ヘックス移動の戦闘デモ）の1戦ぶんを取り込んだ�
 - [ ] **`Piece` のビジュアル分離**: 本体（PieceBody）・出口の印（PortVisuals）・ベルトの描き直し（show_belt_directions）を Piece が直接扱っている。`PieceVisuals` にまとめるか検討（出力矢印は 2026-11-22 に廃止済み）
 - [ ] **座標変換が2系統ある**: 工場とワールドマップは `Layout`、戦闘は `Hex.to_pixel/from_pixel`。式は同じなので、戦闘も `Layout` に寄せるか検討
 - [ ] **`Main` の入力処理分離**: マウス・キーの入力ハンドラを `InputHandler` に切り出す。キャラクターの歩行とカメラの追従も `Main` に入っている
-- [ ] `_is_physically_connected(source, source_hex, direction)` の `source_hex` 引数の意図を明確にする（コンベアでは常にベース座標と同値）
 - [ ] 描画順を z_index ではなくツリー順で制御するか検討する
 
 ## テスト充実
