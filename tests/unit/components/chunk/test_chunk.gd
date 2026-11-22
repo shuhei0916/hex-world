@@ -15,7 +15,6 @@ class TestGridLogic:
 	func before_each():
 		gm = Chunk.new()
 		add_child_autofree(gm)
-		gm.clear_grid()
 
 	func test_新しいchunkは半径8で217マス():
 		var chunk = Chunk.new()
@@ -29,12 +28,13 @@ class TestGridLogic:
 		assert_true(gm.is_inside_grid(Vector2i(0, 0)))
 		assert_false(gm.is_inside_grid(Vector2i(3, 0)), "範囲外は登録されていないべき")
 
-	func test_グリッド状態を完全にクリアできる():
-		gm.register_grid_hex(Vector2i(0, 0))
-		gm.occupy(Vector2i(0, 0))
-		gm.clear_grid()
-		assert_false(gm.is_inside_grid(Vector2i(0, 0)))
-		assert_false(gm.is_occupied(Vector2i(0, 0)))
+	func test_半径を小さく作り直すと外側のマスはグリッドから外れる():
+		var chunk = Chunk.new()
+		add_child_autofree(chunk)
+		chunk.create_hex_grid(2)
+		assert_false(chunk.is_inside_grid(Vector2i(5, 0)))
+		var shape: Array[Vector2i] = [Vector2i(0, 0)]
+		assert_false(chunk.can_place(shape, Vector2i(5, 0)), "外れたマスには置けない")
 
 
 class TestPiecePlacement:
@@ -85,6 +85,16 @@ class TestPiecePlacement:
 		gm.remove_piece_at(Vector2i(0, 0))
 		assert_false(gm.is_occupied(Vector2i(0, 0)))
 		assert_true(piece.is_queued_for_deletion())
+
+	func test_置いた後で形が変わっても撤去すると置いたときのマスが空く():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var placed_hexes: Array[Vector2i] = piece.get_hex_shape()
+		piece.set_rotation_state(2)
+		gm.remove_piece_at(Vector2i(0, 0))
+		for hex in placed_hexes:
+			assert_false(gm.is_occupied(hex), "置いたときに占めた %s" % hex)
+			assert_null(gm.get_piece_at_hex(hex))
 
 	func test_配置するとピースの色で本体が1つ生成される():
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
@@ -378,6 +388,16 @@ class TestOreDeposits:
 	func test_generate_ore_depositsはハブを置くchunk中心に鉱床を作らない():
 		gm.generate_ore_deposits(100)
 		assert_eq(gm.get_hex_resource(Vector2i(0, 0)), "")
+
+	func test_generate_ore_depositsはすでにある別の鉱床を上書きしない():
+		# 半径2の内側（中心を除く6マス）のうち5マスを銅にしておく。起点も含めて銅は残る
+		var inner = gm.get_inner_hexes().filter(func(h): return h != Vector2i(0, 0))
+		for hex in inner.slice(0, 5):
+			gm.mark_resource_hex(hex, "copper_ore")
+		for _i in 20:
+			gm.generate_ore_deposits(1, "coal")
+		for hex in inner.slice(0, 5):
+			assert_eq(gm.get_hex_resource(hex), "copper_ore", "%s" % hex)
 
 	func test_generate_ore_depositsで資源の種類を指定できる():
 		gm.generate_ore_deposits(3, "copper_ore")

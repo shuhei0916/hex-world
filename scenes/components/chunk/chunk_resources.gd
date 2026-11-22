@@ -21,36 +21,33 @@ func get_hex_resource(hex: Vector2i) -> String:
 	return _resources.get(hex, "")
 
 
+# candidates（空いているマス）の中に、count マスがつながった鉱床を作る
 func generate_ore_deposits(
-	count: int, inner_hexes: Array[Vector2i], hex_grid, resource_type: String = "iron_ore"
+	count: int, candidates: Array, resource_type: String = "iron_ore"
 ) -> Array[Vector2i]:
-	if inner_hexes.is_empty():
+	# すでに鉱床のあるマスは、起点にも広げる先にもしない
+	var free: Dictionary = {}
+	for hex in candidates:
+		if not _resources.has(hex):
+			free[hex] = true
+	if free.is_empty():
 		return []
-	var inner_set: Dictionary = {}
-	for hex in inner_hexes:
-		if not hex_grid.is_occupied(hex):
-			inner_set[hex] = hex
-
-	var inner = inner_hexes.filter(func(h): return h in inner_set)
-	if inner.is_empty():
-		return []
-	inner.shuffle()
-	var cluster: Array[Vector2i] = [inner[0]]
-	var cluster_set: Dictionary = {inner[0]: true}
-	var frontier: Array[Vector2i] = [inner[0]]
+	var seed_hex: Vector2i = free.keys().pick_random()
+	var cluster: Array[Vector2i] = [seed_hex]
+	free.erase(seed_hex)
+	var frontier: Array[Vector2i] = [seed_hex]
 
 	while cluster.size() < count and not frontier.is_empty():
 		frontier.shuffle()
 		var current = frontier.pop_back()
-		for dir in range(6):
-			var neighbor = Hex.neighbor(current, dir)
-			var key = neighbor
-			if key in inner_set and not (key in cluster_set) and not (key in _resources):
-				cluster.append(neighbor)
-				cluster_set[key] = true
-				frontier.append(neighbor)
-				if cluster.size() >= count:
-					break
+		for neighbor in Hex.neighbors(current):
+			if not free.has(neighbor):
+				continue
+			cluster.append(neighbor)
+			free.erase(neighbor)
+			frontier.append(neighbor)
+			if cluster.size() >= count:
+				break
 
 	for hex in cluster:
 		mark_resource_hex(hex, resource_type)

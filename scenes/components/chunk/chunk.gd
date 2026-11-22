@@ -29,8 +29,8 @@ var storage := SharedStorage.new()
 # chunk より広い範囲の倉庫を返す関数 (scope) -> SharedStorage。World が設定する
 var storage_resolver: Callable
 
-var _hex_grid = preload("res://scenes/components/chunk/hex_grid.gd").new()
-var _registry = preload("res://scenes/components/chunk/piece_registry.gd").new()
+var _hex_grid := HexGrid.new()
+var _registry := PieceRegistry.new()
 var _neighbor_manager = preload("res://scenes/components/chunk/neighbor_manager.gd").new()
 var _renderer: GridRenderer
 var _drawn_hexes: Array[Vector2i] = []
@@ -50,26 +50,23 @@ func _ready():
 	_update_grid_visuals()
 
 
-func register_grid_hex(hex: Vector2i):
-	_hex_grid.register_grid_hex(hex)
-
-
 func is_inside_grid(hex: Vector2i) -> bool:
 	return _hex_grid.is_inside_grid(hex)
 
 
+# マスにピースが置かれているか（占有は PieceRegistry だけが持つ）
 func is_occupied(hex: Vector2i) -> bool:
-	return _hex_grid.is_occupied(hex)
-
-
-func occupy(hex: Vector2i):
-	_hex_grid.occupy(hex)
+	return _registry.has_piece_at(hex)
 
 
 func can_place(shape: Array, base_hex: Vector2i, piece_type: int = -1) -> bool:
 	if _requires_edge(piece_type) and get_edge_direction(base_hex) == -1:
 		return false
-	return _hex_grid.can_place(shape, base_hex)
+	for offset in shape:
+		var target: Vector2i = base_hex + offset
+		if not is_inside_grid(target) or is_occupied(target):
+			return false
+	return true
 
 
 func _requires_edge(piece_type: int) -> bool:
@@ -91,9 +88,7 @@ func place_piece(
 
 	var occupied_hexes: Array[Vector2i] = []
 	for offset in piece.get_hex_shape():
-		var target = base_hex + offset
-		occupy(target)
-		occupied_hexes.append(target)
+		occupied_hexes.append(base_hex + offset)
 
 	_registry.register(piece, base_hex, occupied_hexes)
 	_neighbor_manager.update_connections_around(piece)
@@ -133,17 +128,9 @@ func remove_piece_at(target_hex: Vector2i) -> bool:
 	if piece.piece_type == PieceData.Type.HUB:
 		return false
 
-	if not is_instance_valid(piece) or not piece is Node:
-		_registry.unregister(piece, [target_hex])
-		return false
-
-	var hexes_to_remove = _registry.get_occupied_hexes(piece)
-
-	for hex in hexes_to_remove:
-		_hex_grid.unoccupy(hex)
-
+	var hexes_to_remove := _registry.get_occupied_hexes(piece)
 	# 隣接更新の前にマップから削除する（削除済みピースが接続先として残らないようにするため）
-	_registry.unregister(piece, hexes_to_remove)
+	_registry.unregister(piece)
 	_neighbor_manager.update_connections_around(piece, hexes_to_remove)
 
 	# 手元にアイテムを持つ部品（搬出チェストなど）に、片付ける機会を与える
@@ -153,11 +140,6 @@ func remove_piece_at(target_hex: Vector2i) -> bool:
 	piece.queue_free()
 	piece_removed.emit()
 	return true
-
-
-func clear_grid():
-	_hex_grid.clear_grid()
-	_registry.clear()
 
 
 func get_piece_at_hex(hex: Vector2i) -> Piece:
@@ -201,8 +183,7 @@ func create_hex_grid(radius: int):
 			var hex = Vector2i(q, r)
 			_drawn_hexes.append(hex)
 
-	for hex in _drawn_hexes:
-		register_grid_hex(hex)
+	_hex_grid.set_hexes(_drawn_hexes)
 
 	grid_updated.emit(_drawn_hexes)
 
@@ -295,7 +276,8 @@ func get_inner_hexes() -> Array[Vector2i]:
 # 中心(0,0)はハブの設置位置なので鉱床にしない
 func generate_ore_deposits(count: int, resource_type: String = "iron_ore"):
 	var candidates = get_inner_hexes().filter(func(h): return h != Vector2i(0, 0))
-	var cluster = _resources.generate_ore_deposits(count, candidates, _hex_grid, resource_type)
+	var free_hexes = candidates.filter(func(h): return not is_occupied(h))
+	var cluster = _resources.generate_ore_deposits(count, free_hexes, resource_type)
 	for hex in cluster:
 		_paint_resource_tile(hex, resource_type)
 
