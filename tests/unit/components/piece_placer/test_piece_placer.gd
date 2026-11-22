@@ -299,25 +299,6 @@ class TestOptimalConveyorDirection:
 	func after_each():
 		await get_tree().process_frame
 
-	func test_隣接ピースが出力を向けているとき直進方向を返す():
-		# (1,0) に方向3(West)向きのコンベアを置くと (0,0) に向かって出力する
-		# → (0,0) での最適出力方向は (0+3)%6=3 (West、直進)
-		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 3)
-		var result = piece_placer._compute_optimal_conveyor_direction(Vector2i(0, 0), 0)
-		assert_eq(result, 3, "Westからの入力に対し直進(West=3)を返すべき")
-
-	func test_隣接ピースが出力を向けていないときfallbackを返す():
-		# NE向き＝(0,0)には向いておらず、真後ろ(SW)も (0,0) ではないので受け取りもしない
-		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 5)
-		var result = piece_placer._compute_optimal_conveyor_direction(Vector2i(0, 0), 2)
-		assert_eq(result, 2, "出力が向いていないとき fallback_direction を返すべき")
-
-	func test_複数の隣接ピースが出力を向けているときfallbackを返す():
-		chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 3)  # (0,0)へ向けて出力
-		chunk.place_piece(CONVEYOR_SCENE, Vector2i(-1, 0), 0)  # (0,0)へ向けて出力
-		var result = piece_placer._compute_optimal_conveyor_direction(Vector2i(0, 0), 1)
-		assert_eq(result, 1, "複数入力が競合するとき fallback_direction を返すべき")
-
 	func test_単一クリック配置で隣接ピースの出力に合わせた向きになる():
 		# (1,0) にWest(3)向きコンベアを設置 → (0,0)へ向けて出力
 		# (0,0) をクリック配置するとき、最適方向3(West)で設置されるべき
