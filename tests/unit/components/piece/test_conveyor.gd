@@ -145,8 +145,11 @@ class TestConveyorVisuals:
 	func test_直線ベルトのパスは3点():
 		assert_eq(conveyor.get_node("ConveyorVisuals")._path.size(), 3)
 
-	func test_直線ベルトもプロシージャル描画を使い子ノードはItemIconとItemIcon2のみ():
-		assert_eq(conveyor.get_node("ConveyorVisuals").get_child_count(), 2)
+	func test_直線ベルトもプロシージャル描画を使い子ノードはアイテムアイコン2つと縁取りのみ():
+		var names = conveyor.get_node("ConveyorVisuals").get_children().map(
+			func(child): return String(child.name)
+		)
+		assert_eq(names, ["ItemIcon", "ItemIcon2", "BeltOutline"])
 
 	func test_slot2保持中はItemIcon2が表示される():
 		conveyor.add_item("iron_plate", 1)

@@ -4,6 +4,9 @@ extends Node2D
 const BELT_WIDTH = 40.0
 # 地面(0)より手前、施設のタイル(10)より奥
 const Z_INDEX := 6
+# 縁取りは全コンベアの中の帯より奥に描く。同じ層だと、隣と重ねた端で
+# 中の帯のぼかしから暗い縁取りが透けて、境目が線に見える
+const OUTLINE_Z_INDEX := 5
 const CURVE_SEGMENTS = 12
 
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
@@ -13,6 +16,9 @@ const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
 # 隣のコンベアとの境目で矢印の間隔が変わらないようにする
 const ARROWS_PER_PIECE := 2
 const _ARROW_SIZE := 8.0
+# 隣とつながっている端を辺から外へ延ばす長さ。端のアンチエイリアスどうしが辺で重なると
+# 背景が透けて細い線に見えるので、隣のベルトと少し重ねて描く
+const SEAM_OVERLAP := 2.0
 
 # 矢印のアニメーション用の時計。全コンベアで共有する（コンベアごとに持つと、設置した時刻の
 # 違いで矢印の位置がずれ、つながって見えなくなる）。1フレームに1回だけ進める
@@ -25,6 +31,7 @@ var _merge_paths: Array[PackedVector2Array] = []  # 主入力以外の入力（�
 var _output_directions: Array = []
 var _input_direction: int = -1  # 主入力。出口へのパスはここから描く
 var _merge_input_directions: Array = []
+var _outline: Node2D
 
 @onready var _piece: Piece = get_parent()
 # ベルトの上のアイテムの動き。コンベアのシーンには必ずある
@@ -92,6 +99,12 @@ func _ready():
 	_item_icon.z_as_relative = false
 	_item_icon_2.z_index = 7
 	_item_icon_2.z_as_relative = false
+	_outline = Node2D.new()
+	_outline.name = "BeltOutline"
+	_outline.z_index = OUTLINE_Z_INDEX
+	_outline.z_as_relative = false
+	_outline.draw.connect(_draw_outline)
+	add_child(_outline)
 	_piece.shape_changed.connect(refresh_belt)
 	refresh_belt()
 
@@ -152,6 +165,8 @@ func refresh_belt():
 		var merge_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[merge_dir]) * 0.5
 		_merge_paths.append(PackedVector2Array([merge_edge, Vector2.ZERO]))
 	queue_redraw()
+	if _outline:
+		_outline.queue_redraw()
 
 
 # 全コンベア共有の矢印の時計（橋の帯も同じ時計で矢印を流す）
@@ -164,19 +179,63 @@ func current_arrow_fractions() -> Array:
 	return arrow_fractions(_shared_clock)
 
 
+# path の始点・終点を、それぞれの端の向きのまま amount だけ外へ延ばしたもの
+static func extend_path_ends(
+	path: PackedVector2Array, extend_start: bool, extend_end: bool, amount: float
+) -> PackedVector2Array:
+	var extended := path.duplicate()
+	if path.size() < 2:
+		return extended
+	if extend_start:
+		extended[0] = path[0] + (path[0] - path[1]).normalized() * amount
+	if extend_end:
+		var last = path.size() - 1
+		extended[last] = path[last] + (path[last] - path[last - 1]).normalized() * amount
+	return extended
+
+
+# 描くときの出口へのパス。入力元・出力先とつながっている端だけ隣と重なるように延ばす
+func drawn_belt_paths() -> Array[PackedVector2Array]:
+	var fed = _input_direction >= 0
+	var connected = not _output_directions.is_empty()
+	var drawn: Array[PackedVector2Array] = []
+	for path in _paths:
+		drawn.append(extend_path_ends(path, fed, connected, SEAM_OVERLAP))
+	return drawn
+
+
+# 描くときの合流のパス。合流元のある辺の側だけ延ばす（中心側は本線に重なっている）
+func drawn_merge_paths() -> Array[PackedVector2Array]:
+	var drawn: Array[PackedVector2Array] = []
+	for path in _merge_paths:
+		drawn.append(extend_path_ends(path, true, false, SEAM_OVERLAP))
+	return drawn
+
+
 func _draw():
 	var fractions = current_arrow_fractions()
-	for path in _merge_paths:
-		_draw_belt(path, fractions, 0.5)
-	for path in _paths:
-		_draw_belt(path, fractions, 1.0)
+	var merge_paths = drawn_merge_paths()
+	for i in merge_paths.size():
+		_draw_belt(merge_paths[i], _merge_paths[i], fractions, 0.5)
+	var belt_paths = drawn_belt_paths()
+	for i in belt_paths.size():
+		_draw_belt(belt_paths[i], _paths[i], fractions, 1.0)
 
 
-func _draw_belt(path: PackedVector2Array, fractions: Array, covered: float) -> void:
+# 縁取り（中の帯より太い帯）。矢印のように動かないので、ベルトの形が変わったときだけ描き直す
+func _draw_outline() -> void:
+	for path in drawn_merge_paths() + drawn_belt_paths():
+		if path.size() >= 2:
+			_outline.draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
+
+
+# 帯は延ばした drawn で描き、矢印は延ばす前の path の割合で置く（隣と矢印の間隔をそろえる）
+func _draw_belt(
+	drawn: PackedVector2Array, path: PackedVector2Array, fractions: Array, covered: float
+) -> void:
 	if path.size() < 2:
 		return
-	draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
-	draw_polyline(path, _BELT_FILL, BELT_WIDTH - 6.0, true)
+	draw_polyline(drawn, _BELT_FILL, BELT_WIDTH - 6.0, true)
 	for point in arrow_points(path, fractions, covered):
 		_draw_chevron(point["position"], point["tangent"])
 
