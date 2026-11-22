@@ -11,12 +11,15 @@ func run(scene: Node) -> void:
 	var world: World = scene.world
 	var chunk: Chunk = world.get_active_chunk()
 	var placer: PiecePlacer = scene.piece_placer
+	# ヘッドレスのウィンドウは 64×64 と小さく、開いたツールバーの段がクリック位置に重なってクリックを
+	# 受け取ってしまうので、実際の画面の大きさにしてから操作する
+	scene.get_window().size = Vector2i(1280, 720)
 	HubGoals.creative_mode = true
 	world.place_player(world.get_active_hex(), PLAYER_HEX)
 	await scene.get_tree().process_frame
 
 	var start_position := world.player.position
-	# ヘッドレスの画面は小さく、カメラをキャラクターに合わせるとクリック位置が HUD に重なるので動かさない
+	# カメラはキャラクターに合わせず、押し出したあとに追いかけることを確かめる
 	var camera_before: Vector2 = scene.camera.position
 	scene.hud.select_slot(2)
 	print("選んだピース: %s" % placer.selected_scene.resource_path)
