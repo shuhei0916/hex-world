@@ -38,10 +38,10 @@ static func missing_inputs(piece: Piece) -> Array:
 # ホバー表示の本文（複数行）
 static func describe(piece: Piece) -> String:
 	var lines: Array[String] = []
-	var hub = piece.get_node_or_null("Hub")
-	var conveyor = piece.get_node_or_null("ConveyorLogic")
-	var chest_input = piece.get_node_or_null("ChestInput")
-	var chest_output = piece.get_node_or_null("ChestOutput")
+	var hub := piece.hub
+	var conveyor := piece.conveyor_logic
+	var chest_input := piece.chest_input
+	var chest_output := piece.chest_output
 	if chest_input:
 		var storage_name = SharedStorage.SCOPE_NAMES.get(chest_input.scope, "倉庫")
 		lines.append("%s: %s" % [storage_name, _storage_text(chest_input.get_storage())])

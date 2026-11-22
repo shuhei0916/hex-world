@@ -153,10 +153,10 @@ static func _capture_piece(chunk: Chunk, piece: Piece) -> Dictionary:
 		"rotation": piece.rotation_state,
 		"input_direction": piece.input_direction,
 	}
-	var hub = piece.get_node_or_null("Hub")
+	var hub = piece.hub
 	if hub:
 		result["received"] = hub.received_count
-	var chest_output = piece.get_node_or_null("ChestOutput")
+	var chest_output = piece.chest_output
 	if chest_output:
 		result["chest_item"] = chest_output.selected_item
 	return result
@@ -188,10 +188,10 @@ static func _apply_piece(chunk: Chunk, piece_data: Dictionary, goals: Node) -> v
 		scene, hex, int(piece_data.get("rotation", 0)), int(piece_data.get("input_direction", -1))
 	)
 	var piece = chunk.get_piece_at_hex(hex)
-	var chest_output = piece.get_node_or_null("ChestOutput")
+	var chest_output = piece.chest_output
 	if chest_output:
 		chest_output.selected_item = piece_data.get("chest_item", "")
-	var hub = piece.get_node_or_null("Hub")
+	var hub = piece.hub
 	if hub:
 		var goal = goals.get_current_goal()
 		hub.setup(goal["goal_item"], goal["required"])

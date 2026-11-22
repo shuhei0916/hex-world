@@ -561,7 +561,7 @@ func _open_item_picker_at_cursor() -> bool:
 	if hud.get_active_index() != -1 or piece_placer.current_hovered_hex == null:
 		return false
 	var piece = world.get_active_chunk().get_piece_at_hex(piece_placer.current_hovered_hex)
-	if piece == null or piece.get_node_or_null("ChestOutput") == null:
+	if piece == null or piece.chest_output == null:
 		return false
 	hud.open_item_picker(piece)
 	return true

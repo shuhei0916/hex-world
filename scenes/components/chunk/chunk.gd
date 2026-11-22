@@ -297,4 +297,4 @@ func place_hub(item_name: String, goal_count: int):
 	var scene = load("res://scenes/components/piece/hub.tscn")
 	place_piece(scene, Vector2i(0, 0))
 	var piece = get_piece_at_hex(Vector2i(0, 0))
-	piece.get_node("Hub").setup(item_name, goal_count)
+	piece.hub.setup(item_name, goal_count)

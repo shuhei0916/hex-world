@@ -302,7 +302,7 @@ func get_bridge_spans() -> Array:
 			continue
 		var target_chunk = get_chunk(entry["target_chunk_hex"])
 		var piece: Piece = entry["piece"]
-		var logic = piece.get_node("ConveyorLogic")
+		var logic := piece.conveyor_logic
 		var from = entry["chunk"].position + entry["chunk"].hex_to_pixel(entry["base_hex"])
 		var to = target_chunk.position + target_chunk.hex_to_pixel(entry["landing_hex"])
 		var out = entry["chunk"].hex_to_pixel(Hex.direction(entry["edge_dir"])) * 0.5

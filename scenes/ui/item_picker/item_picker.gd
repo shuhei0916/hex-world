@@ -20,7 +20,7 @@ func _ready() -> void:
 
 # piece が搬出チェストなら、そのチェスト用にパネルを開く
 func open(piece: Piece) -> void:
-	var output = piece.get_node_or_null("ChestOutput") if piece else null
+	var output = piece.chest_output if piece else null
 	if output == null:
 		return
 	_target = output

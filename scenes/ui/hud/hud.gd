@@ -497,6 +497,7 @@ func _rate_text_for_piece(piece: Node) -> String:
 func _items_per_minute_for_piece(piece: Node) -> float:
 	var piece_type: PieceData.Type = piece.piece_type
 	var recipes = Recipe.RecipeDB.get_recipes_by_type(piece_type)
+	# piece は説明を出すためだけに作った木の外のピースで、型付きの部品の参照（@onready）はまだ空なので名前で取る
 	var crafter := piece.get_node_or_null("Crafter") as Crafter
 	if crafter and not recipes.is_empty():
 		crafter.is_miner = piece_type == PieceData.Type.MINER
