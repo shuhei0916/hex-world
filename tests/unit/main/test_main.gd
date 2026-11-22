@@ -704,21 +704,23 @@ func _chunk_bounds(chunk: Chunk) -> Rect2:
 
 func test_戦闘中は_chunk全体がスキルのボタンに隠れずに画面に収まる():
 	var hex = _start_battle_on_east()
-	var view = main.battle_camera_view(SCREEN_SIZE)
+	var view = BattleSession.camera_view(main.world.get_active_chunk(), SCREEN_SIZE)
 	var zoom: float = view["zoom"]
 	var half = SCREEN_SIZE / 2.0 / zoom
 	var visible = Rect2(view["position"] - half, half * 2.0)
-	visible.size.y -= Main.BATTLE_BOTTOM_RESERVED / zoom
+	visible.size.y -= BattleSession.BOTTOM_RESERVED / zoom
 	var chunk_bounds = _chunk_bounds(main.world.get_chunk(hex))
 	assert_true(visible.encloses(chunk_bounds), "%s に %s が収まる" % [visible, chunk_bounds])
 	assert_gt(
-		chunk_bounds.size.y * zoom, (SCREEN_SIZE.y - Main.BATTLE_BOTTOM_RESERVED) * 0.8, "小さすぎない"
+		chunk_bounds.size.y * zoom, (SCREEN_SIZE.y - BattleSession.BOTTOM_RESERVED) * 0.8, "小さすぎない"
 	)
 
 
 func test_戦闘を始めるとカメラを_画面の大きさに合わせた位置と倍率にする():
 	_start_battle_on_east()
-	var view = main.battle_camera_view(main.get_viewport().get_visible_rect().size)
+	var view = BattleSession.camera_view(
+		main.world.get_active_chunk(), main.get_viewport().get_visible_rect().size
+	)
 	assert_true(main.camera.position.is_equal_approx(view["position"]))
 	assert_true(main.camera.zoom.is_equal_approx(Vector2.ONE * view["zoom"]))
 

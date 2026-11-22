@@ -11,13 +11,6 @@ const PLANET_SEED := 2026
 # この倍率に相当するところまで寄せるとローカル画面へ入る（差をつけて行き来のちらつきを防ぐ）
 const LOCAL_TO_MAP_ZOOM := 0.45
 const MAP_TO_LOCAL_ZOOM := 0.6
-# 戦闘を始めたときのカメラは、chunk 全体が画面の下に並ぶスキルのボタンに隠れずに映る位置と倍率
-# （battle_camera_view）にする。そこからは建築のときと同じ操作で動かせる。
-# 画面の下でスキルのボタンが占める高さと、上下左右に空ける余白（画面のピクセル）
-const BATTLE_BOTTOM_RESERVED := 100.0
-const BATTLE_MARGIN := 16.0
-# 戦闘中に引ける限界（chunk 全体が収まる倍率の方が小さければ、そこまで）
-const BATTLE_MIN_ZOOM := 0.5
 # キャラクターの歩く速さ（ピクセル/秒）。マス3つ半ほど
 const WALK_SPEED := 260.0
 # カメラがキャラクターに追いつく速さ（1秒あたり、残りの距離の何割を詰めるかの目安）。
@@ -31,12 +24,8 @@ const UNREACHABLE_HEX := Vector2i(1 << 20, 1 << 20)
 var _mode := Mode.LOCAL
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
-# いま戦って解放しようとしている chunk。戦闘中でなければ null
-var _battle_chunk_hex = null
-# 戦闘を始める前の状態。負けたり撤退したりしたら、ここへ戻る
-var _pre_battle := {}
-# いまの戦闘。勝ったとき、主人公が戦い終えたマスにキャラクターを立たせるのに使う
-var _battle_turn: SkillTurn = null
+# いまの戦闘（戦っている chunk と、戦闘前に戻るための情報）。戦闘中でなければ null
+var _battle: BattleSession = null
 # 最後に受け取ったマウス入力の画面上の位置。置けなかった理由をカーソルの近くに出すのに使う
 var _mouse_screen_position := Vector2.ZERO
 # true の間、カメラはキャラクターへ少しずつ近づく（歩いたときや戦闘のあと）。追いついたら止まる
@@ -107,7 +96,7 @@ func _load_game() -> bool:
 
 func save_game() -> bool:
 	# 戦闘中は解放前の chunk に入っているので、今いる chunk は戦闘前のものとして保存する
-	var active_hex = _pre_battle.get("active_hex")
+	var active_hex = _battle.return_hex if _battle else null
 	return SaveGame.write(SaveGame.path, SaveGame.capture(world, HubGoals, active_hex))
 
 
@@ -456,69 +445,44 @@ func select_world_map_chunk(hex: Vector2i) -> void:
 
 # chunk を解放するための戦闘を始める。その chunk の画面に入り、chunk のマスの上でそのまま戦う。
 # 主人公は start_hex のマス（キャラクターが入ってきたマス）から始まる。戦闘中も工場は動き続ける
+# 戦闘を始めたときのカメラは、chunk 全体が画面の下に並ぶスキルのボタンに隠れずに映る位置と倍率
+# （BattleSession.camera_view）にする。そこからは建築のときと同じ操作で動かせる
 func start_battle(chunk_hex: Vector2i, start_hex = null) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	_battle_chunk_hex = chunk_hex
-	_pre_battle = {
-		"active_hex": world.get_active_hex(),
-		"camera_zoom": camera.zoom,
-		"camera_min_zoom": camera.min_zoom,
-	}
+	_battle = BattleSession.new(chunk_hex, world.get_active_hex(), camera.zoom.x, camera.min_zoom)
 	_handle_world_map_chunk_selected(chunk_hex)
 	_set_build_ui_visible(false)
-	var view = battle_camera_view(get_viewport().get_visible_rect().size)
+	var view = BattleSession.camera_view(
+		world.get_active_chunk(), get_viewport().get_visible_rect().size
+	)
 	camera.position = view["position"]
 	camera.zoom = Vector2.ONE * view["zoom"]
-	camera.min_zoom = minf(BATTLE_MIN_ZOOM, view["zoom"])
-	_battle_turn = ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng, start_hex)
-	battle_overlay.open(_battle_turn, world)
+	camera.min_zoom = BattleSession.min_zoom_for(view["zoom"])
+	_battle.turn = ChunkBattle.create(chunk_hex, world.get_active_chunk(), rng, start_hex)
+	battle_overlay.open(_battle.turn, world)
 	world.player_shown = false
 	_refresh_camera_keyboard()
-
-
-# 大きさ screen_size の画面で、今いる chunk 全体がスキルのボタンに隠れずに収まるカメラ
-# {position, zoom}。chunk の中心は、ボタンを除いた残りの領域の真ん中に来る
-func battle_camera_view(screen_size: Vector2) -> Dictionary:
-	var chunk = world.get_active_chunk()
-	var cell = HexTile.visual_circumradius()
-	var half_cell = Vector2(cell * sqrt(3.0) / 2.0, cell)
-	var bounds := Rect2(chunk.hex_to_pixel(Vector2i(0, 0)), Vector2.ZERO)
-	for hex in chunk.get_all_hexes():
-		var center = chunk.hex_to_pixel(hex)
-		bounds = bounds.merge(Rect2(center - half_cell, half_cell * 2.0))
-	var area = (
-		screen_size - Vector2(BATTLE_MARGIN * 2.0, BATTLE_MARGIN * 2.0 + BATTLE_BOTTOM_RESERVED)
-	)
-	# ボタンより小さい画面でも、倍率が 0 やマイナスにならないようにする
-	area = area.max(Vector2.ONE)
-	var zoom = minf(area.x / bounds.size.x, area.y / bounds.size.y)
-	# ボタンを除いた領域の真ん中は、画面の真ん中よりボタンの高さの半分だけ上にある
-	var shift = Vector2(0, BATTLE_BOTTOM_RESERVED / 2.0 / zoom)
-	return {"position": bounds.get_center() + shift, "zoom": zoom}
 
 
 # 勝ったらその chunk を所有し、キャラクターは主人公が戦い終えたマスに立って、そのまま建築に移る。
 # 負けたり撤退したりしたら、キャラクターは渡る前のマスに残り、戦闘前の建築の画面に戻る
 func _on_battle_closed(won: bool) -> void:
-	camera.min_zoom = _pre_battle["camera_min_zoom"]
+	camera.min_zoom = _battle.return_min_zoom
 	if won:
-		world.territory.claim(_battle_chunk_hex)
-		world.place_player(_battle_chunk_hex, _battle_turn.battle.player.position)
-		_camera_target_zoom = _pre_battle["camera_zoom"].x
+		world.territory.claim(_battle.chunk_hex)
+		world.place_player(_battle.chunk_hex, _battle.turn.battle.player.position)
 	else:
-		_activate_chunk(_pre_battle["active_hex"])
-		world_map_view.set_active_chunk(_pre_battle["active_hex"])
+		_activate_chunk(_battle.return_hex)
+		world_map_view.set_active_chunk(_battle.return_hex)
 		# 元の chunk が原点に戻り、戦った chunk は隣へずれる。見え方を保つようにカメラも同じだけずらす
-		camera.position += world.get_chunk(_battle_chunk_hex).position
-		_camera_target_zoom = _pre_battle["camera_zoom"].x
-	# 戦闘の視点から、一瞬で飛ばずにキャラクターへ戻る
+		camera.position += world.get_chunk(_battle.chunk_hex).position
+	# 戦闘の視点から、一瞬で飛ばずにキャラクターへ戻る（倍率も戦闘前へ）
+	_camera_target_zoom = _battle.return_zoom
 	_camera_following = true
 	_set_build_ui_visible(true)
 	world.player_shown = true
-	_battle_chunk_hex = null
-	_battle_turn = null
-	_pre_battle = {}
+	_battle = null
 	_refresh_camera_keyboard()
 
 
