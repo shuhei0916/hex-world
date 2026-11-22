@@ -105,10 +105,6 @@ func _process(delta: float):
 	update_item_icon()
 
 
-func set_input_direction(direction: int):
-	set_input_directions([] if direction < 0 else [direction])
-
-
 # 先頭を主入力、残りを合流してくる入力として描く
 func set_input_directions(dirs: Array):
 	_input_direction = dirs[0] if not dirs.is_empty() else -1

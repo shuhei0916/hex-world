@@ -662,11 +662,6 @@ class TestBuildCost:
 		assert_not_null(chunk.get_piece_at_hex(Vector2i(0, 0)))
 		assert_eq(HubGoals.get_stock("iron_ore"), 0)
 
-	func test_いま選んでいるピースを設置できるか分かる():
-		assert_false(piece_placer.can_afford_selected())
-		HubGoals.add_stock("iron_ore", 5)
-		assert_true(piece_placer.can_afford_selected())
-
 	func test_マウスを動かさずその場で右クリックして撤去してもコストが戻る():
 		HubGoals.add_stock("iron_ore", 5)
 		piece_placer.update_hover(chunk.hex_to_pixel(Vector2i(0, 0)))

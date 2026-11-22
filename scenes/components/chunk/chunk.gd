@@ -166,13 +166,6 @@ func get_output_ports_on_grid(piece: Piece) -> Array:
 	return _registry.get_output_ports_on_grid(piece)
 
 
-func get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
-	var neighbor_hex = Hex.neighbor(hex, direction)
-	if not is_inside_grid(neighbor_hex):
-		return null
-	return get_piece_at_hex(neighbor_hex)
-
-
 func _update_grid_visuals():
 	create_hex_grid(grid_radius)
 	if _renderer:

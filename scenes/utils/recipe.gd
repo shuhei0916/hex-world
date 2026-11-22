@@ -19,13 +19,6 @@ func _init(
 	craft_time = craft_time_val
 
 
-# 基準生産速度（個/分）。鉱床の濃さ（speed_multiplier）は加味しない（配置場所に依存しない base speed）。
-func items_per_minute() -> float:
-	if craft_time <= 0.0:
-		return 0.0
-	return 60.0 / craft_time
-
-
 class RecipeDB:
 	# 登録順のすべてのレシピ
 	static var _recipes: Array[Recipe] = []

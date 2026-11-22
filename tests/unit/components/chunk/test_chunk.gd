@@ -159,13 +159,6 @@ class TestNeighbors:
 		add_child_autofree(gm)
 		gm.create_hex_grid(2)
 
-	func test_指定した方向の隣接ピースを取得できる():
-		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
-		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, -1))
-		var piece_b = gm.get_piece_at_hex(Vector2i(1, -1))
-		assert_eq(gm.get_neighbor_piece(Vector2i(0, 0), 1), piece_b)
-		assert_null(gm.get_neighbor_piece(Vector2i(0, 0), 3), "存在しない方向はnull")
-
 	func test_出力ポートの先にピースがある場合は搬送先として登録される():
 		# CONVEYOR at (0,0): 1ヘックス、port_direction=0(East) → neighbor (1,0)
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))

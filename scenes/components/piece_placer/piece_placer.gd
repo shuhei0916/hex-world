@@ -351,11 +351,6 @@ func _is_within_reach(hexes: Array[Vector2i]) -> bool:
 	return true
 
 
-# いま選んでいるピースの設置コストを在庫から支払えるか
-func can_afford_selected() -> bool:
-	return HubGoals.can_afford(BuildCost.of_scene(selected_scene))
-
-
 # プレイヤーの操作による撤去。設置コストは全額戻す。
 func _remove_piece_at(hex: Vector2i) -> void:
 	if not _is_within_reach([hex]):

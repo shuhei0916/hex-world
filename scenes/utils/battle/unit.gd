@@ -33,10 +33,5 @@ func gain_block(amount: int) -> void:
 	block += amount
 
 
-## HPを回復する。最大HPは超えない。
-func heal(amount: int) -> void:
-	hp = mini(hp + amount, max_hp)
-
-
 func is_alive() -> bool:
 	return hp > 0
