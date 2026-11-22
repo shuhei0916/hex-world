@@ -19,7 +19,7 @@ func _init(
 	craft_time = craft_time_val
 
 
-# 基準生産速度（個/分）。output_multiplier は加味しない（配置場所に依存しない base speed）。
+# 基準生産速度（個/分）。鉱床の濃さ（speed_multiplier）は加味しない（配置場所に依存しない base speed）。
 func items_per_minute() -> float:
 	if craft_time <= 0.0:
 		return 0.0

@@ -21,7 +21,7 @@ static func state_of(piece: Piece) -> State:
 		return State.NONE
 	if crafter.current_recipe == null:
 		return State.NO_DEPOSIT if piece.piece_type == PieceData.Type.MINER else State.NONE
-	if crafter.processing_progress > 0.0:
+	if crafter.is_crafting():
 		return State.WORKING
 	# 完成品が残っていて次を作れない場合は、材料より搬出側が原因
 	if piece.ejector and piece.ejector.is_full():

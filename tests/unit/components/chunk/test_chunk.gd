@@ -453,15 +453,15 @@ class TestMinerConstraint:
 		var crafter = piece.get_node_or_null("Crafter")
 		assert_null(crafter.current_recipe)
 
-	func test_MINER_を2鉱床ヘックス上に設置するとoutput_multiplierが2():
+	func test_MINER_を2鉱床ヘックス上に設置すると鉱床の濃さが2():
 		gm.mark_resource_hex(Vector2i(0, 0), "iron_ore")
 		gm.mark_resource_hex(Vector2i(0, 1), "iron_ore")
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
-		assert_eq(crafter.output_multiplier, 2)
+		assert_eq(crafter.speed_multiplier, 2)
 
-	func test_MINER_を4鉱床ヘックス上に設置するとoutput_multiplierが4():
+	func test_MINER_を4鉱床ヘックス上に設置すると鉱床の濃さが4():
 		gm.mark_resource_hex(Vector2i(0, 0), "iron_ore")
 		gm.mark_resource_hex(Vector2i(0, 1), "iron_ore")
 		gm.mark_resource_hex(Vector2i(1, 0), "iron_ore")
@@ -469,7 +469,7 @@ class TestMinerConstraint:
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var piece = gm.get_piece_at_hex(Vector2i(0, 0))
 		var crafter = piece.get_node_or_null("Crafter")
-		assert_eq(crafter.output_multiplier, 4)
+		assert_eq(crafter.speed_multiplier, 4)
 
 	func test_MINER_は足元の鉱床の資源を採掘する():
 		gm.mark_resource_hex(Vector2i(0, 0), "copper_ore")
@@ -484,7 +484,7 @@ class TestMinerConstraint:
 		gm.place_piece(MINER_SCENE, Vector2i(0, 0))
 		var crafter = gm.get_piece_at_hex(Vector2i(0, 0)).get_node("Crafter")
 		assert_eq(crafter.current_recipe.outputs, {"coal": 1})
-		assert_eq(crafter.output_multiplier, 2)
+		assert_eq(crafter.speed_multiplier, 2)
 
 
 class TestHubProtection:

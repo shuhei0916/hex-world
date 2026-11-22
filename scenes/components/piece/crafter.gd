@@ -8,8 +8,6 @@ extends Node
 ## can_accept_item はレシピの inputs にない種別のアイテムを拒否する。
 ## 出力は ItemEjector のスロットへ。
 
-# 加工開始済みを示す番兵値（processing_progress == 0.0 を「未開始」として区別するため）
-const CRAFTING_START_PROGRESS = 0.001
 # 実績レートを数える時間幅（秒）。直近この時間内の完成数から 個/分 を出す
 const RATE_WINDOW := 30.0
 
@@ -17,8 +15,8 @@ const RATE_WINDOW := 30.0
 
 var current_recipe: Recipe
 var available_recipes: Array[Recipe] = []
-var processing_progress: float = 0.0
-var output_multiplier: int = 1
+# 鉱床の濃さ（足元の鉱床のマス数）。生産個数ではなく加工の速さに効く
+var speed_multiplier: int = 1
 var input_capacity: int = 0
 # 採掘機かどうか（研究の採掘高速化が効く）。Piece が設置時に設定する
 var is_miner: bool = false
@@ -27,6 +25,10 @@ var is_miner: bool = false
 var output_container: ItemEjector
 
 var _input_slots: Dictionary = {}  # {item_name: count}
+# 加工中か（材料を使って作り始めてから、できあがるまで）
+var _crafting := false
+# 作り始めてからの経過秒
+var _progress := 0.0
 var _clock: float = 0.0  # 設置からの経過時間（実績レートの計測用）
 var _completion_times: Array[float] = []
 
@@ -39,8 +41,18 @@ func setup(out_container: ItemEjector):
 
 func set_recipe(recipe: Recipe):
 	current_recipe = recipe
-	processing_progress = 0.0
+	_crafting = false
+	_progress = 0.0
 	_apply_io_capacities()
+
+
+func is_crafting() -> bool:
+	return _crafting
+
+
+# 作り始めてからの経過秒（加工していなければ 0）
+func get_progress() -> float:
+	return _progress
 
 
 # 入出力容量を「1クラフト分」に絞る。入力が無いピース(miner)は input_capacity=0（受け付けない）。
@@ -86,7 +98,7 @@ func add_item(item_name: String, amount: int):
 
 
 func _is_idle() -> bool:
-	return _input_slots.is_empty() and processing_progress == 0.0
+	return _input_slots.is_empty() and not _crafting
 
 
 # 現在のレシピを優先し、なければ候補から item を材料とする最初のレシピを返す
@@ -116,11 +128,6 @@ func is_full() -> bool:
 	for count in _input_slots.values():
 		total += count
 	return total >= input_capacity
-
-
-func start_crafting():
-	# 手動開始用（テストなどで使用）
-	processing_progress = CRAFTING_START_PROGRESS
 
 
 # レシピに対して足りていない材料の一覧
@@ -157,27 +164,25 @@ func tick(delta: float):
 			_progress_bar.visible = false
 		return
 
-	# 未開始なら開始を試みる
-	if processing_progress == 0.0:
-		if _can_start_crafting():
-			_start_crafting()
+	# 加工していなければ、始められるか試す（始めたフレームから時間を数える）
+	if not _crafting and _can_start_crafting():
+		_start_crafting()
 
-	# 加工中なら進捗を進める
-	if processing_progress > 0.0:
-		processing_progress += delta
-		if processing_progress >= _effective_craft_time():
+	if _crafting:
+		_progress += delta
+		if _progress >= _effective_craft_time():
 			_complete_crafting()
 
 	if _progress_bar:
-		_progress_bar.visible = processing_progress > 0
+		_progress_bar.visible = _crafting
 		_progress_bar.max_value = _effective_craft_time()
-		_progress_bar.value = processing_progress
+		_progress_bar.value = _progress
 
 
-# output_multiplier は生産個数ではなく速度に作用する（鉱床が濃いほど速く加工）。
+# 鉱床が濃いほど・採掘の研究が進むほど速く、craft_time_multiplier（T1 は 2.0）が大きいほど遅く加工する
 func _effective_craft_time() -> float:
 	var research_speed = HubGoals.get_mining_speed() if is_miner else 1.0
-	return current_recipe.craft_time / output_multiplier * craft_time_multiplier / research_speed
+	return current_recipe.craft_time / speed_multiplier * craft_time_multiplier / research_speed
 
 
 func _can_start_crafting() -> bool:
@@ -201,12 +206,14 @@ func _can_start_crafting() -> bool:
 func _start_crafting():
 	for item_name in current_recipe.inputs:
 		consume_item(item_name, current_recipe.inputs[item_name])
-	processing_progress = CRAFTING_START_PROGRESS
+	_crafting = true
+	_progress = 0.0
 
 
 func _complete_crafting():
 	if output_container:
 		for item_name in current_recipe.outputs:
 			output_container.add_item(item_name, current_recipe.outputs[item_name])
-	processing_progress = 0.0
+	_crafting = false
+	_progress = 0.0
 	_completion_times.append(_clock)

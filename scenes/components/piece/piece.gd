@@ -128,9 +128,10 @@ func set_recipe(recipe: Recipe):
 	recipe_changed.emit(recipe)
 
 
-func set_output_multiplier(n: int):
+# 鉱床の濃さ（加工の速さの倍率）
+func set_speed_multiplier(n: int):
 	if crafter:
-		crafter.output_multiplier = n
+		crafter.speed_multiplier = n
 
 
 func add_item(item_name: String, amount: int):

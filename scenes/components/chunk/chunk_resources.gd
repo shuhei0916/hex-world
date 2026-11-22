@@ -69,4 +69,4 @@ func apply_mining_constraint(piece: Piece, occupied_hexes: Array[Vector2i]) -> v
 		return
 	var best: String = counts.keys().reduce(func(a, b): return a if counts[a] >= counts[b] else b)
 	piece.set_recipe(Recipe.RecipeDB.get_mining_recipe(best))
-	piece.set_output_multiplier(counts[best])
+	piece.set_speed_multiplier(counts[best])

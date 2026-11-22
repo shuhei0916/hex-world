@@ -27,7 +27,7 @@ func run(scene: Node) -> void:
 					biome_id,
 					chunk_hex,
 					recipe.outputs if recipe else null,
-					miner.get_node("Crafter").output_multiplier
+					miner.get_node("Crafter").speed_multiplier
 				]
 			)
 		)
@@ -54,7 +54,7 @@ func run(scene: Node) -> void:
 					WAIT_SECONDS,
 					piece.piece_name,
 					crafter.current_recipe.id if crafter.current_recipe else null,
-					crafter.processing_progress,
+					crafter.get_progress(),
 					_output_of(piece)
 				]
 			)
