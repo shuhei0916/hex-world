@@ -1,8 +1,11 @@
 extends GutTest
 
+# スロットの切り替え先（T1/T2・チェストの共有範囲）を T キーで選ぶ
+
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
-const MINER_SCENE = preload("res://scenes/components/piece/miner_t2.tscn")
-const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
+const SMELTER_T1 = preload("res://scenes/components/piece/smelter_t1.tscn")
+const SMELTER_T2 = preload("res://scenes/components/piece/smelter_t2.tscn")
+const SMELTER_SLOT := 2
 
 var hud: HUD
 
@@ -20,48 +23,31 @@ func after_each():
 	HubGoals.gained_rewards.clear()
 
 
-func _select_slot(index: int) -> void:
-	hud.select_slot(index)
-
-
-func test_バリアントが1つのスロットではcycle_variantを呼んでも変化しない():
-	_select_slot(0)
+func test_切り替え先が1つのスロットではcycle_variantを呼んでも変化しない():
+	hud.select_slot(0)
 	var before = hud.get_scene_for_slot(0)
 	hud.cycle_variant()
 	assert_eq(hud.get_scene_for_slot(0), before)
 
 
-func test_cycle_variantでバリアントが循環しslot_selectedが再発火する():
-	hud._slot_variants[2] = [SMELTER_SCENE, MINER_SCENE]
-	hud._variant_indices[2] = 0
-	_select_slot(2)
-
+func test_cycle_variantでT2に切り替わりslot_selectedが再発火する():
+	hud.select_slot(SMELTER_SLOT)
+	assert_eq(hud.get_scene_for_slot(SMELTER_SLOT), SMELTER_T1, "最初は T1")
 	watch_signals(hud)
 	hud.cycle_variant()
+	assert_eq(hud.get_scene_for_slot(SMELTER_SLOT), SMELTER_T2)
+	assert_signal_emitted_with_parameters(hud, "slot_selected", [SMELTER_T2])
 
-	assert_eq(hud.get_scene_for_slot(2), MINER_SCENE)
-	assert_signal_emitted_with_parameters(hud, "slot_selected", [MINER_SCENE])
 
-
-func test_スロット切り替え時にバリアントインデックスが0にリセットされる():
-	# スロット2でバリアントをt2（インデックス1）に進める
-	hud._slot_variants[2] = [SMELTER_SCENE, MINER_SCENE]
-	_select_slot(2)
+func test_別のスロットに移ると切り替え先はT1に戻る():
+	hud.select_slot(SMELTER_SLOT)
 	hud.cycle_variant()
-	assert_eq(hud._variant_indices[2], 1)
-
-	# 別スロット（スロット1）に切り替えると、スロット2のインデックスがリセットされる
-	_select_slot(1)
-	assert_eq(hud._variant_indices[2], 0)
+	hud.select_slot(1)
+	assert_eq(hud.get_scene_for_slot(SMELTER_SLOT), SMELTER_T1)
 
 
-func test_最後のバリアントの次はインデックス0に戻る():
-	# 未解放の切り替え先は飛ばされるので、Smelter を解放済みにしておく
-	HubGoals.gained_rewards["unlock_smelter"] = true
-	hud._slot_variants[2] = [SMELTER_SCENE, MINER_SCENE]
-	hud._variant_indices[2] = 1
-	_select_slot(2)
-
+func test_最後の切り替え先の次は最初に戻る():
+	hud.select_slot(SMELTER_SLOT)
 	hud.cycle_variant()
-
-	assert_eq(hud.get_scene_for_slot(2), SMELTER_SCENE)
+	hud.cycle_variant()
+	assert_eq(hud.get_scene_for_slot(SMELTER_SLOT), SMELTER_T1)

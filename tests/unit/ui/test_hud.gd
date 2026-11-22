@@ -125,10 +125,21 @@ func test_機械スロット選択で情報パネルにt1の生産速度が表�
 func test_Tキーでt2に切り替えると情報パネルの速度が更新される():
 	# スロット2はSmelter。cycle_variantでt2（30/分）に切り替わる
 	HubGoals.gained_rewards["unlock_smelter"] = true
-	hud._refresh_unlock_states()
+	HubGoals.unlocks_changed.emit()
 	hud.select_slot(2)
 	hud.cycle_variant()  # t1→t2
 	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
+
+
+func test_採掘機を選ぶと採掘の研究を含めた速度が表示される():
+	# T1 の採掘機は 60 / 1.0秒 / 2.0 = 30/分。採掘高速化 I（1.5倍）で 45/分
+	hud.select_slot(1)
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 30/分")
+	hud.deselect()
+	HubGoals.researched = {"mining_speed_1": true}
+	hud.select_slot(1)
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 45/分")
+	HubGoals.researched = {}
 
 
 func test_コンベアスロット選択で情報パネルに搬送速度が表示される():

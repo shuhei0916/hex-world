@@ -5,6 +5,9 @@ extends GutTest
 const WorldScript = preload("res://scenes/components/world/world.gd")
 const HubGoalsScript = preload("res://scenes/utils/hub_goals.gd")
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+# ツールバーの搬入・搬出チェストのスロット（キー 8・9）
+const CHEST_IN_SLOT := 7
+const CHEST_OUT_SLOT := 8
 const CHEST_IN = preload("res://scenes/components/piece/chest_in.tscn")
 const BIOME_IN = preload("res://scenes/components/piece/biome_chest_in.tscn")
 const BIOME_OUT = preload("res://scenes/components/piece/biome_chest_out.tscn")
@@ -144,7 +147,7 @@ class TestToolbar:
 		HubGoals.researched = {"unlock_chunk_chest": true, "unlock_biome_chest": true}
 		hud = HUDScene.instantiate()
 		add_child_autofree(hud)
-		hud.select_slot(HUD.CHEST_SLOTS[0])
+		hud.select_slot(CHEST_IN_SLOT)
 
 	func test_切り替えボタンは共有範囲の狭い順に並ぶ():
 		var texts = hud.variant_panel.button_row.get_children().map(func(b): return b.text)
@@ -152,12 +155,12 @@ class TestToolbar:
 
 	func test_切り替えるとchunkチェストの次はバイオームチェストになる():
 		hud.cycle_variant()
-		assert_eq(hud.get_scene_for_slot(HUD.CHEST_SLOTS[0]), BIOME_IN)
+		assert_eq(hud.get_scene_for_slot(CHEST_IN_SLOT), BIOME_IN)
 
 	func test_未研究のplanetチェストは飛ばしてchunkチェストに戻る():
 		hud.cycle_variant()
 		hud.cycle_variant()
-		assert_eq(hud.get_scene_for_slot(HUD.CHEST_SLOTS[0]), CHEST_IN)
+		assert_eq(hud.get_scene_for_slot(CHEST_IN_SLOT), CHEST_IN)
 
 
 class TestSave:

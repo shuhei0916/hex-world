@@ -4,6 +4,9 @@ extends GutTest
 
 const WorldScript = preload("res://scenes/components/world/world.gd")
 const HUDScene = preload("res://scenes/ui/hud/hud.tscn")
+# ツールバーの搬入・搬出チェストのスロット（キー 8・9）
+const CHEST_IN_SLOT := 7
+const CHEST_OUT_SLOT := 8
 const CHEST_IN = preload("res://scenes/components/piece/chest_in.tscn")
 const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
 const PLANET_IN = preload("res://scenes/components/piece/planet_chest_in.tscn")
@@ -97,8 +100,8 @@ class TestDefinitions:
 class TestToolbarVariants:
 	extends "res://tests/unit/components/piece/test_planet_chest.gd"
 
-	const SLOT_IN := HUD.CHEST_SLOTS[0]
-	const SLOT_OUT := HUD.CHEST_SLOTS[1]
+	const SLOT_IN := CHEST_IN_SLOT
+	const SLOT_OUT := CHEST_OUT_SLOT
 
 	var hud: HUD
 
