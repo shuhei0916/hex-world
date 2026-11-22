@@ -36,14 +36,22 @@ var reach_area := ReachArea.new()
 var push_player := Callable()
 
 # 内部状態
-var current_piece_shape: Array[Vector2i] = []
 var current_rotation: int = 0
+# 選んでいるピースを current_rotation だけ回した形（回転から決まるので別には持たない）
+var current_piece_shape: Array[Vector2i]:
+	get:
+		var shape: Array[Vector2i] = []
+		for offset in _base_shape:
+			shape.append(Hex.from_offset_rotated(offset, current_rotation))
+		return shape
 # マウスが乗っているマス。マスの外なら null
 var current_hovered_hex = null
 var is_dragging: bool = false
 var is_delete_dragging: bool = false
 var selected_scene: PackedScene
 var _last_drag_hex = null
+# 選んでいるピースの回していない形
+var _base_shape: Array[Vector2i] = []
 var _selected_color: Color
 var _is_conveyor: bool = false
 var _selected_piece_type: int = -1
@@ -122,7 +130,7 @@ func select_piece(scene: PackedScene):
 	current_rotation = 0
 	if selected_scene:
 		var piece = selected_scene.instantiate()
-		current_piece_shape = piece.get_hex_shape()
+		_base_shape = piece.piece_shape.duplicate()
 		_selected_color = piece.piece_color
 		_is_conveyor = (piece.piece_type == PieceData.Type.CONVEYOR)
 		_selected_piece_type = piece.piece_type
@@ -130,7 +138,7 @@ func select_piece(scene: PackedScene):
 		_selected_port_hex = piece.port_hex
 		piece.free()
 	else:
-		current_piece_shape = []
+		_base_shape = []
 	_draw_preview()
 	_refresh_reach_area()
 
@@ -554,12 +562,4 @@ func rotate_current_piece():
 		return
 
 	current_rotation = (current_rotation + 1) % 6
-	current_piece_shape = _get_rotated_piece_shape(current_piece_shape)
 	_draw_preview()
-
-
-func _get_rotated_piece_shape(original_shape: Array[Vector2i]) -> Array[Vector2i]:
-	var rotated_shape: Array[Vector2i] = []
-	for hex_offset in original_shape:
-		rotated_shape.append(Hex.rotate_right(hex_offset))
-	return rotated_shape

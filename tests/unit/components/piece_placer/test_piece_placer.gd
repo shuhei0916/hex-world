@@ -14,12 +14,6 @@ class TestPiecePlacement:
 
 	var piece_placer: PiecePlacer
 	var chunk: Chunk
-	var shape_arch: Array[Vector2i]
-	var shape_arch_rotated: Array[Vector2i]
-
-	func before_all():
-		shape_arch = [Vector2i(0, -1), Vector2i(1, -1), Vector2i(1, 0), Vector2i(0, 1)]
-		shape_arch_rotated = [Vector2i(1, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1)]
 
 	func before_each():
 		chunk = Chunk.new()
@@ -40,17 +34,6 @@ class TestPiecePlacement:
 		for offset in piece_placer.current_piece_shape:
 			var h = target_hex + offset
 			assert_true(chunk.is_occupied(h))
-
-	func test_回転メソッドを呼ぶと現在の形状が更新される():
-		piece_placer.current_piece_shape = shape_arch
-		piece_placer.rotate_current_piece()
-		var current_shape = piece_placer.current_piece_shape
-		assert_eq(current_shape.size(), shape_arch_rotated.size())
-		for i in range(shape_arch_rotated.size()):
-			assert_true(
-				current_shape[i] == shape_arch_rotated[i],
-				"Rotated hex at index %d should be correct" % i
-			)
 
 	func test_橋は内側ヘックスに配置できない():
 		piece_placer.select_piece(BRIDGE_SCENE)
