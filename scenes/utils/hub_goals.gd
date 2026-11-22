@@ -227,6 +227,11 @@ func get_belt_speed() -> float:
 	return _best_effect(Research.BELT_SPEED)
 
 
+# コンベア1本が毎分運べる個数（研究の効果を含む）
+func get_belt_items_per_minute() -> float:
+	return 60.0 * TransferBuffer.SLOTS / TransferBuffer.TRANSFER_TIME * get_belt_speed()
+
+
 func get_mining_speed() -> float:
 	return _best_effect(Research.MINING_SPEED)
 

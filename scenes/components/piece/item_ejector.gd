@@ -7,8 +7,9 @@ extends Node2D
 ## 接続先への巡回搬出は EjectorRouter に委譲。描画は ItemEjectorVisual が
 ## get_held_item/get_progress_ratio/get_target_direction を読んで担う。
 
-# スライド時間。ベルト/スプリッターの搬送間隔と揃える（上限が転送レートと一致＝悪化させない）。
-const EJECT_TIME = TransferBuffer.TRANSFER_TIME
+# スライド時間。機械の排出はベルトの速さ（研究で変わる）とは別に、毎分120個までに固定する。
+# ベルトより遅いと、速い機械の出口が見えないボトルネックになるため
+const EJECT_TIME = 0.5
 
 var capacity: int = 1
 

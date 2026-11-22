@@ -171,11 +171,13 @@ class TestSpeedBonuses:
 
 	func test_コンベア高速化を研究すると速度の倍率が上がる():
 		_research_with_requirements("belt_speed_1")
-		assert_eq(goals.get_belt_speed(), 1.5)
+		assert_eq(goals.get_belt_speed(), 2.0)
 
 	func test_上位のコンベア高速化はさらに速い():
 		_research_with_requirements("belt_speed_2")
-		assert_eq(goals.get_belt_speed(), 2.0)
+		assert_eq(goals.get_belt_speed(), 4.0)
+		_research_with_requirements("belt_speed_3")
+		assert_eq(goals.get_belt_speed(), 8.0)
 
 	func test_採掘高速化を研究すると採掘の倍率が上がる():
 		_research_with_requirements("mining_speed_1")

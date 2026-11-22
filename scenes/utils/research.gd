@@ -39,11 +39,11 @@ const DEFS = {
 	"belt_speed_1":
 	{
 		"name": "コンベア高速化 I",
-		"description": "すべてのコンベアが1.5倍の速さで運ぶ。",
+		"description": "すべてのコンベアが2倍の速さで運ぶ（毎分120個）。",
 		"cost": {"iron_ingot": 20},
 		"level": 3,
 		"requires": [],
-		"effect": {BELT_SPEED: 1.5},
+		"effect": {BELT_SPEED: 2.0},
 	},
 	"unlock_chunk_chest":
 	{
@@ -75,11 +75,20 @@ const DEFS = {
 	"belt_speed_2":
 	{
 		"name": "コンベア高速化 II",
-		"description": "すべてのコンベアが2倍の速さで運ぶ。",
+		"description": "すべてのコンベアが4倍の速さで運ぶ（毎分240個）。",
 		"cost": {"screw": 20},
 		"level": 5,
 		"requires": ["belt_speed_1"],
-		"effect": {BELT_SPEED: 2.0},
+		"effect": {BELT_SPEED: 4.0},
+	},
+	"belt_speed_3":
+	{
+		"name": "コンベア高速化 III",
+		"description": "すべてのコンベアが8倍の速さで運ぶ（毎分480個）。",
+		"cost": {"circuit": 20},
+		"level": 8,
+		"requires": ["belt_speed_2"],
+		"effect": {BELT_SPEED: 8.0},
 	},
 	"unlock_biome_chest":
 	{

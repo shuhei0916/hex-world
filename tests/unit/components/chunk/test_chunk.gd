@@ -279,7 +279,7 @@ class TestItemTransfer:
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(0, 0))
 		var source = gm.get_piece_at_hex(Vector2i(0, 0))
 		source.add_item("iron_plate", 1)
-		source.get_node("ConveyorLogic").tick(0.5)  # 接続先がないので保持したまま
+		source.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # 接続先がないので保持したまま
 
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
 		var chest = gm.get_piece_at_hex(Vector2i(1, 0))

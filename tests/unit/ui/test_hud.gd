@@ -144,7 +144,7 @@ func test_採掘機を選ぶと採掘の研究を含めた速度が表示され�
 
 func test_コンベアスロット選択で情報パネルに搬送速度が表示される():
 	hud.select_slot(0)
-	assert_eq(hud.info_panel.rate_label.text, "スピード: 120/分")
+	assert_eq(hud.info_panel.rate_label.text, "スピード: 60/分")
 
 
 func test_速度を持たないピース選択で情報パネルのRateLabelが非表示():

@@ -42,26 +42,26 @@ class TestConveyorLogic:
 
 	func test_slot1がコンベア後半に達したとき2個目を受け入れられる():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.25)  # progress = 0.5 (後半に到達)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.5)  # 後半に到達
 		assert_true(conveyor.can_accept_item("iron_ore"))
 
 	func test_slot1がコンベア前半のとき2個目を受け入れられない():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.1)  # progress = 0.2 (前半)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.2)  # progress = 0.2 (前半)
 		assert_false(conveyor.can_accept_item("iron_ore"))
 
 	func test_slot2にアイテムを追加するとget_item_countに反映される():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.5)  # slot1が後半へ
 		conveyor.add_item("iron_ore", 1)
 		assert_eq(conveyor.get_item_count("iron_ore"), 1)
 
 	func test_slot1搬出後slot2がslot1に昇格しget_held_itemで取得できる():
 		var logic = conveyor.get_node("ConveyorLogic")
 		conveyor.add_item("iron_plate", 1)
-		logic.tick(0.25)  # slot1が後半へ
+		logic.tick(TransferBuffer.TRANSFER_TIME * 0.5)  # slot1が後半へ
 		conveyor.add_item("iron_ore", 1)
-		logic.tick(0.25)  # slot1が搬出完了（接続先なし→保持継続）→ここでは搬出されない
+		logic.tick(TransferBuffer.TRANSFER_TIME * 0.5)  # slot1が搬出完了（接続先なし→保持継続）→ここでは搬出されない
 		# 接続先のない状態では搬出されないので、clearを直接呼んでslot1搬出をシミュレート
 		logic._buffer.clear()
 		assert_eq(logic.get_held_item(), "iron_ore")
@@ -77,12 +77,12 @@ class TestConveyorLogic:
 
 	func test_接続先がない場合tick0_5でもアイテムは保持されたまま():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.5)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
 	func test_接続先がない場合tick0_4でもアイテムは保持されたまま():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.4)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.8)
 		assert_eq(conveyor.get_item_count("iron_plate"), 1)
 
 
@@ -124,7 +124,7 @@ class TestConveyorVisuals:
 
 	func test_進行度半分でアイコンはライン中央にある():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.25)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.5)
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		var center = conveyor.get_node("ConveyorVisuals")._path[1]
 		assert_almost_eq(
@@ -153,7 +153,7 @@ class TestConveyorVisuals:
 
 	func test_slot2保持中はItemIcon2が表示される():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.5)  # slot1が後半へ
 		conveyor.add_item("iron_ore", 1)
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		var icon2: Sprite2D = conveyor.get_node_or_null("ConveyorVisuals/ItemIcon2")
@@ -162,7 +162,7 @@ class TestConveyorVisuals:
 	func test_進行度1でアイコンは出口の端にある():
 		# 接続先が無い終端でも手前で止めない（詰まったときの間隔を0.5にそろえるため）
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.5)  # progress = 1.0（端まで到達）
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # progress = 1.0（端まで到達）
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
 		var path = conveyor.get_node("ConveyorVisuals")._path
 		var end_pos = path[path.size() - 1]
@@ -176,7 +176,7 @@ class TestConveyorVisuals:
 
 	func test_ItemIcon2の位置はslot2のprogress_ratioに従う():
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.25)  # slot1が後半へ
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.5)  # slot1が後半へ
 		conveyor.add_item("iron_ore", 1)
 		# slot2はprogress_2=0なので入力エッジにある
 		conveyor.get_node("ConveyorVisuals").update_item_icon()
@@ -188,7 +188,7 @@ class TestConveyorVisuals:
 	func test_slot1搬出後slot2がslot1に昇格しslot2は空になる():
 		var logic = conveyor.get_node("ConveyorLogic")
 		conveyor.add_item("iron_plate", 1)
-		logic.tick(0.25)
+		logic.tick(TransferBuffer.TRANSFER_TIME * 0.5)
 		conveyor.add_item("iron_ore", 1)
 		# slot1搬出をシミュレート
 		logic._buffer.clear()
@@ -219,7 +219,7 @@ class TestConveyorConnection:
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.5)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(chest.get_item_count("iron_plate"), 1)
 
 	func test_tick0_4では接続先にアイテムが渡らない():
@@ -228,7 +228,7 @@ class TestConveyorConnection:
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		var chest = gm.get_piece_at_hex(Vector2i(1, 0))
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.4)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME * 0.8)
 		assert_eq(chest.get_item_count("iron_plate"), 0)
 
 	func test_転送後コンベアは空になる():
@@ -236,7 +236,7 @@ class TestConveyorConnection:
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.5)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(conveyor.get_item_count("iron_plate"), 0)
 
 	func test_転送後コンベアは再び受け入れ可能になる():
@@ -244,7 +244,7 @@ class TestConveyorConnection:
 		gm.place_piece(CONVEYOR_SCENE, Vector2i(1, 0))
 		var conveyor = gm.get_piece_at_hex(Vector2i(0, 0))
 		conveyor.add_item("iron_plate", 1)
-		conveyor.get_node("ConveyorLogic").tick(0.5)
+		conveyor.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_true(conveyor.can_accept_item("iron_plate"))
 
 	func test_機械のOutputからコンベアへアイテムがpushされる():
@@ -263,7 +263,7 @@ class TestConveyorConnection:
 		var conv_a = gm.get_piece_at_hex(Vector2i(0, 0))
 		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_a.add_item("iron_plate", 1)
-		conv_a.get_node("ConveyorLogic").tick(0.5)
+		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(conv_b.get_item_count("iron_plate"), 1)
 
 	func test_接続先が受け入れ不可の間アイテムは保持されたまま消えない():
@@ -273,7 +273,7 @@ class TestConveyorConnection:
 		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_b.add_item("iron_plate", 1)
 		conv_a.add_item("iron_plate", 1)
-		conv_a.get_node("ConveyorLogic").tick(0.5)
+		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)
 		assert_eq(conv_a.get_item_count("iron_plate"), 1)
 
 	func test_出口が1本のコンベアは詰まっているとき出口の端まで進んで待つ():
@@ -293,9 +293,9 @@ class TestConveyorConnection:
 		var conv_b = gm.get_piece_at_hex(Vector2i(1, 0))
 		conv_b.add_item("iron_plate", 1)
 		conv_a.add_item("iron_plate", 1)
-		conv_a.get_node("ConveyorLogic").tick(0.5)  # B が保持中なので渡せない
-		conv_b.get_node("ConveyorLogic").tick(0.5)  # B が chest へ搬出し空になる
-		conv_a.get_node("ConveyorLogic").tick(0.5)  # A から B へ渡れるはず
+		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # B が保持中なので渡せない
+		conv_b.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # B が chest へ搬出し空になる
+		conv_a.get_node("ConveyorLogic").tick(TransferBuffer.TRANSFER_TIME)  # A から B へ渡れるはず
 		assert_eq(conv_b.get_item_count("iron_plate"), 1)
 
 	# smelter_t1 を (-1,0) に置く: (-2,0),(-1,0),(-1,1) を占め、排出口は (-1,0) から East (0,0)
