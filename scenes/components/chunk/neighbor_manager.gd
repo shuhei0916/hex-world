@@ -59,8 +59,9 @@ func _update_piece_neighbors(piece: Piece) -> void:
 
 func _update_conveyor_output_directions(piece: Piece, directions: Array[int]) -> void:
 	var visuals = piece.get_node_or_null("ConveyorVisuals")
-	if visuals == null or directions.is_empty():
+	if visuals == null:
 		return
+	# つながる先が無くなったら空にする（ConveyorVisuals は空なら自分の出口へ向けて描く）
 	visuals.set_output_directions(directions)
 
 

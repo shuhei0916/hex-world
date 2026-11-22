@@ -1,4 +1,4 @@
-# gdlint:disable=duplicated-load
+# gdlint:disable=duplicated-load,max-public-methods
 extends GutTest
 
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
@@ -179,6 +179,22 @@ func test_分岐コンベアのベルトは入口の辺から中心を通って�
 		PackedVector2Array([in_edge, Vector2.ZERO, ne_edge]),
 		"NEへの分岐は入口→中心→出口の直線"
 	)
+
+
+func test_分岐先と本線の先をどちらも撤去するとベルトは自分の出口へ戻る():
+	# 東 (1,0) が本線、北東 (1,-1) が分岐先（北東を出口とするコンベア）
+	var chunk := Chunk.new()
+	add_child_autofree(chunk)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(0, 0), 0)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, 0), 0)
+	chunk.place_piece(CONVEYOR_SCENE, Vector2i(1, -1), 5)
+	var visuals = chunk.get_piece_at_hex(Vector2i(0, 0)).get_node("ConveyorVisuals")
+	assert_eq(visuals._paths.size(), 2, "前提: 分岐している")
+	chunk.remove_piece_at(Vector2i(1, 0))
+	chunk.remove_piece_at(Vector2i(1, -1))
+	var east_edge = Layout.hex_to_pixel(Layout.make_default(), Hex.DIRECTIONS[0]) * 0.5
+	assert_eq(visuals._paths.size(), 1, "分岐のベルトは消える")
+	assert_eq(visuals._paths[0][-1], east_edge, "残るベルトは自分の出口（東）へ向かう")
 
 
 func test_合流コンベアは主入力以外の入力の辺から中心へ合流用のベルトを描く():
