@@ -96,7 +96,8 @@ hex-rogue（ヘックス移動の戦闘デモ）の1戦ぶんを取り込んだ�
 ## リファクタリング（必要になったら）
 - [ ] **`Chunk` の責務分割**: グリッド管理・ピース配置・タイル描画・受信候補ハイライトが混在
 - [ ] **`World` の責務分割**: chunk の管理・橋の配線・キャラクターの管理が同居している（公開メソッドが多い）
-- [ ] **`Piece` のビジュアル分離**: `_output_arrow` 生成・HexTile 生成を `PieceVisuals` に切り出す
+- [ ] **`Piece` のビジュアル分離**: 本体（PieceBody）・出口の印（PortVisuals）・ベルトの描き直し（show_belt_directions）を Piece が直接扱っている。`PieceVisuals` にまとめるか検討（出力矢印は 2026-11-22 に廃止済み）
+- [ ] **座標変換が2系統ある**: 工場とワールドマップは `Layout`、戦闘は `Hex.to_pixel/from_pixel`。式は同じなので、戦闘も `Layout` に寄せるか検討
 - [ ] **`Main` の入力処理分離**: マウス・キーの入力ハンドラを `InputHandler` に切り出す。キャラクターの歩行とカメラの追従も `Main` に入っている
 - [ ] `_is_physically_connected(source, source_hex, direction)` の `source_hex` 引数の意図を明確にする（コンベアでは常にベース座標と同値）
 - [ ] 描画順を z_index ではなくツリー順で制御するか検討する
