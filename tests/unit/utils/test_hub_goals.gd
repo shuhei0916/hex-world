@@ -148,7 +148,7 @@ class TestHubGoalsBiomeLevels:
 		for level in hub_goals.LEVELS:
 			var item = level["goal_item"]
 			assert_not_null(ItemDB.get_item(item), item)
-			assert_not_null(Recipe.RecipeDB.get_recipe(item), "%s のレシピ" % item)
+			assert_false(Recipe.RecipeDB.get_recipes_producing(item).is_empty(), "%s のレシピ" % item)
 
 
 class TestHubGoalsStock:

@@ -32,12 +32,20 @@ func test_レシピデータを初期化できる():
 	assert_eq(recipe.craft_time, 2.0)
 
 
-func test_レシピデータベースからIDでレシピを取得できる():
-	# RecipeDB はシングルトンか静的クラスを想定
-	Recipe.RecipeDB._static_init()
-	var recipe = Recipe.RecipeDB.get_recipe("iron_ingot")
-	assert_not_null(recipe, "レシピが取得できるべき")
-	assert_eq(recipe.inputs.size(), 1, "入力アイテムは1つであるべき")
+func test_品目を作るレシピを引ける():
+	var recipes = Recipe.RecipeDB.get_recipes_producing("iron_ingot")
+	assert_eq(recipes.size(), 1)
+	assert_eq(recipes[0].inputs, {"iron_ore": 1})
+
+
+func test_作るレシピの無い品目では空():
+	assert_eq(Recipe.RecipeDB.get_recipes_producing("no_such_item"), [])
+
+
+func test_採掘で手に入る資源も採掘機のレシピとして引ける():
+	var recipes = Recipe.RecipeDB.get_recipes_producing("coal")
+	assert_eq(recipes.size(), 1)
+	assert_eq(recipes[0].inputs, {})
 
 
 func test_TypeでSmelterのレシピ一覧を取得できる():
