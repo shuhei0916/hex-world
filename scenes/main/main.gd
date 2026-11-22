@@ -1,6 +1,9 @@
 class_name Main
 extends Node2D
 
+# 画面のモード。chunk の中で建築する画面か、ワールドマップか
+enum Mode { LOCAL, WORLD_MAP }
+
 const PLANET_RADIUS := 4
 # 新しいゲームは毎回同じ惑星で始める（シードの選択は未実装）
 const PLANET_SEED := 2026
@@ -25,6 +28,7 @@ const CROSS_KEY := KEY_F
 # どこからも届かないマス（キャラクターのいない chunk の建築できる範囲の中心にする）
 const UNREACHABLE_HEX := Vector2i(1 << 20, 1 << 20)
 
+var _mode := Mode.LOCAL
 # ワールドマップから戻ったときに復元する、ローカルモードでのカメラ位置
 var _local_camera_position := Vector2.ZERO
 # いま戦って解放しようとしている chunk。戦闘中でなければ null
@@ -296,7 +300,7 @@ func _zoom_in_to_local() -> void:
 
 
 func is_local_mode() -> bool:
-	return world.visible
+	return _mode == Mode.LOCAL
 
 
 func _on_hud_slot_selected(scene: PackedScene):
@@ -359,6 +363,7 @@ func _activate_chunk(chunk_hex: Vector2i) -> void:
 
 func _enter_world_map_mode():
 	hud.show_hovered_piece(null)
+	_mode = Mode.WORLD_MAP
 	world.visible = false
 	hud.visible = false
 	piece_placer.visible = false
@@ -381,6 +386,7 @@ func _refresh_world_map() -> void:
 
 
 func _enter_local_mode():
+	_mode = Mode.LOCAL
 	world.visible = true
 	hud.visible = true
 	piece_placer.visible = true

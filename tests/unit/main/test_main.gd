@@ -143,6 +143,13 @@ func test_再度SpaceでローカルモードにもどるWorldが表示される
 	assert_true(main.world.visible)
 
 
+func test_今のモードは表示の状態ではなくモードとして持つ():
+	# 表示を一時的に切り替える処理があっても、モードは変わらない
+	main.world.visible = false
+	assert_true(main.is_local_mode())
+	main.world.visible = true
+
+
 func _make_left_click_event(pos: Vector2) -> InputEventMouseButton:
 	var event = InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
