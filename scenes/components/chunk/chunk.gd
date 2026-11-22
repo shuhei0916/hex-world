@@ -156,6 +156,16 @@ func get_base_hex(piece: Piece) -> Variant:
 	return _registry.get_base_hex(piece)
 
 
+# ピースが占めるマス（置いたときのもの）。登録されていないピースなら空
+func get_occupied_hexes(piece: Piece) -> Array[Vector2i]:
+	return _registry.get_occupied_hexes(piece)
+
+
+# ピースの出口 [{hex, direction}] を、この chunk の盤面のマスで返す。登録されていないピースなら空
+func get_output_ports_on_grid(piece: Piece) -> Array:
+	return _registry.get_output_ports_on_grid(piece)
+
+
 func get_neighbor_piece(hex: Vector2i, direction: int) -> Piece:
 	var neighbor_hex = Hex.neighbor(hex, direction)
 	if not is_inside_grid(neighbor_hex):

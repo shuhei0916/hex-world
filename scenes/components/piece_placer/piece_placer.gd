@@ -164,7 +164,7 @@ func _draw_preview():
 func _add_belt_preview(hex_coord: Vector2i):
 	var direction = _selected_port_direction
 	if _selected_port_direction >= 0:
-		direction = (_selected_port_direction - current_rotation + 6) % 6
+		direction = Hex.rotated_direction(_selected_port_direction, current_rotation)
 	var travel = Layout.hex_to_pixel(chunk.layout, Hex.DIRECTIONS[direction])
 	var sprite = Sprite2D.new()
 	sprite.texture = BELT_PREVIEW_TEXTURE
@@ -182,7 +182,7 @@ func _get_current_output_ports() -> Array:
 	if _selected_port_direction < 0:
 		return []
 	var hex = Hex.from_offset_rotated(_selected_port_hex, current_rotation)
-	var direction = (_selected_port_direction - current_rotation + 6) % 6
+	var direction = Hex.rotated_direction(_selected_port_direction, current_rotation)
 	return [{"hex": hex, "direction": direction}]
 
 
@@ -280,9 +280,9 @@ func _place_piece_at(target_hex: Vector2i) -> bool:
 		var rotation := current_rotation
 		var input_direction := -1
 		if _is_conveyor:
-			var fallback_dir := (_selected_port_direction - current_rotation + 6) % 6
+			var fallback_dir := Hex.rotated_direction(_selected_port_direction, current_rotation)
 			var orientation := _compute_conveyor_orientation(target_hex, fallback_dir)
-			rotation = (_selected_port_direction - orientation[0] + 6) % 6
+			rotation = Hex.rotation_between(_selected_port_direction, orientation[0])
 			input_direction = orientation[1]
 		chunk.place_piece(selected_scene, target_hex, rotation, input_direction)
 		_reorient_belts_around(hexes)
@@ -356,10 +356,7 @@ func _remove_piece_at(hex: Vector2i) -> void:
 	if piece == null:
 		return
 	var cost = BuildCost.of_piece(piece)
-	var base = chunk.get_base_hex(piece)
-	var hexes: Array[Vector2i] = []
-	for offset in piece.get_hex_shape():
-		hexes.append(base + offset)
+	var hexes := chunk.get_occupied_hexes(piece)
 	if chunk.remove_piece_at(hex):
 		HubGoals.refund(cost)
 		_reorient_belts_around(hexes)
@@ -424,8 +421,8 @@ func _place_conveyor_chain(end_target = null):
 			direction = Hex.get_direction_to(_conveyor_drag_path[i - 1], hex)
 		else:
 			# 1マスだけのときは進行方向がないので、手持ちの向きで置く
-			direction = (_selected_port_direction - current_rotation + 6) % 6
-		var rotation = (_selected_port_direction - direction + 6) % 6
+			direction = Hex.rotated_direction(_selected_port_direction, current_rotation)
+		var rotation = Hex.rotation_between(_selected_port_direction, direction)
 		# 2マス目以降はパス上の1つ前から受け取る（先頭で曲がる分岐も入力側で接続を保つため）
 		# 始点の既存コンベアは元の入力方向を引き継ぐ（分岐元から引いた分岐でも上流との接続を保つため）
 		# 施設の排出口から引き始めた先頭は、その排出口の側から受け取る（真後ろのラインから分岐しないため）
@@ -450,10 +447,9 @@ func _input_from_drag_origin(first_hex: Vector2i) -> int:
 	var origin = chunk.get_piece_at_hex(_drag_origin_hex)
 	if origin == null:
 		return -1
-	var base = chunk.get_base_hex(origin)
-	for port in origin.get_output_ports():
-		var port_hex = base + port.hex
-		if port_hex == _drag_origin_hex and Hex.neighbor(port_hex, port.direction) == first_hex:
+	for port in chunk.get_output_ports_on_grid(origin):
+		var port_hex: Vector2i = port["hex"]
+		if port_hex == _drag_origin_hex and Hex.neighbor(port_hex, port["direction"]) == first_hex:
 			return Hex.get_direction_to(first_hex, port_hex)
 	return -1
 
@@ -493,9 +489,8 @@ func _port_feeders(hex: Vector2i) -> Array:
 		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
 		if neighbor == null or neighbor == chunk.get_piece_at_hex(hex):
 			continue
-		var base = chunk.get_base_hex(neighbor)
-		for port in neighbor.get_output_ports():
-			if Hex.neighbor(base + port.hex, port.direction) == hex:
+		for port in chunk.get_output_ports_on_grid(neighbor):
+			if Hex.neighbor(port["hex"], port["direction"]) == hex:
 				directions.append(direction)
 				break
 	return directions
@@ -512,20 +507,9 @@ func _turn_toward_taker(hex: Vector2i, out: int, input: int) -> int:
 			continue
 		var neighbor = chunk.get_piece_at_hex(Hex.neighbor(hex, direction))
 		if neighbor != null and neighbor.is_conveyor():
-			if _belt_input_side(neighbor) == (direction + 3) % 6:
+			if neighbor.belt_input_side() == (direction + 3) % 6:
 				takers.append(direction)
 	return takers[0] if takers.size() == 1 else -1
-
-
-# ベルトが受け取る側（入力側が未指定なら真後ろ）
-func _belt_input_side(belt: Piece) -> int:
-	if belt.input_direction >= 0:
-		return belt.input_direction
-	return (_belt_output(belt) + 3) % 6
-
-
-func _belt_output(belt: Piece) -> int:
-	return belt.get_output_ports()[0]["direction"]
 
 
 # プレイヤーが hexes に置いた／撤去したあと、その周りのベルトの向きを直す
@@ -547,8 +531,8 @@ func _reorient_belts_around(hexes: Array) -> void:
 # - 入力側に相手がいなくなっていて、入れてくる相手が（正面以外に）1つだけあれば、その側から受ける
 # - 正面が空いていて、横に受け取るベルトが1つだけあれば、そちらへ曲がる
 func _reorient_belt(hex: Vector2i, belt: Piece) -> void:
-	var out := _belt_output(belt)
-	var input := _belt_input_side(belt)
+	var out := belt.output_direction()
+	var input := belt.belt_input_side()
 	var new_input: int = belt.input_direction
 	if not input in chunk.get_feeding_directions(hex):
 		var feeders = _port_feeders(hex).filter(func(d): return d != out)
@@ -562,7 +546,7 @@ func _reorient_belt(hex: Vector2i, belt: Piece) -> void:
 		new_input = input
 	if new_out == out and new_input == belt.input_direction:
 		return
-	chunk.reorient_conveyor(hex, (belt.port_direction - new_out + 6) % 6, new_input)
+	chunk.reorient_conveyor(hex, Hex.rotation_between(belt.port_direction, new_out), new_input)
 
 
 func rotate_current_piece():

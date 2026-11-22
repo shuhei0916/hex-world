@@ -52,6 +52,16 @@ func get_occupied_hexes(piece: Node) -> Array[Vector2i]:
 	return result
 
 
+# ピースの出口 [{hex, direction}] を盤面のマスで返す。登録されていないピースなら空
+func get_output_ports_on_grid(piece: Node) -> Array:
+	var base_hex = get_base_hex(piece)
+	if base_hex == null:
+		return []
+	return piece.get_output_ports().map(
+		func(port): return {"hex": base_hex + port["hex"], "direction": port["direction"]}
+	)
+
+
 func get_all_pieces() -> Array:
 	var seen := {}
 	var result := []

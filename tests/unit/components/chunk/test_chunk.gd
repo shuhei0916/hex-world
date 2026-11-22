@@ -124,6 +124,31 @@ class TestPiecePlacement:
 		assert_lt(ground.z_index, view.z_index)
 
 
+class TestPiecePositions:
+	extends GutTest
+
+	var gm
+
+	func before_each():
+		gm = Chunk.new()
+		add_child_autofree(gm)
+		gm.create_hex_grid(3)
+
+	func test_出口の位置を盤面のマスで返す():
+		gm.place_piece(SMELTER_SCENE, Vector2i(1, -1))
+		var piece = gm.get_piece_at_hex(Vector2i(1, -1))
+		var local = piece.get_output_ports()[0]
+		var ports = gm.get_output_ports_on_grid(piece)
+		assert_eq(ports, [{"hex": Vector2i(1, -1) + local["hex"], "direction": local["direction"]}])
+
+	func test_占めるマスは置いたときのマス():
+		gm.place_piece(SMELTER_SCENE, Vector2i(0, 0))
+		var piece: Piece = gm.get_piece_at_hex(Vector2i(0, 0))
+		var placed: Array[Vector2i] = piece.get_hex_shape()
+		piece.set_rotation_state(3)
+		assert_eq(gm.get_occupied_hexes(piece), placed)
+
+
 class TestNeighbors:
 	extends GutTest
 

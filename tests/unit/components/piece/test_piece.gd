@@ -6,6 +6,7 @@ const SMELTER_SCENE = preload("res://scenes/components/piece/smelter_t2.tscn")
 const ASSEMBLER_SCENE = preload("res://scenes/components/piece/assembler_t2.tscn")
 const CONVEYOR_SCENE = preload("res://scenes/components/piece/conveyor.tscn")
 const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+const CHEST_IN_SCENE = preload("res://scenes/components/piece/chest_in.tscn")
 
 
 class TestMachineCapacity:
@@ -182,7 +183,7 @@ class TestPieceAcceptor:
 		assert_false(p.can_accept_item("iron_ore"))
 
 	func test_搬入チェストとハブはそれぞれの部品が受け入れ口になる():
-		var chest = load("res://scenes/components/piece/chest_in.tscn").instantiate()
+		var chest = CHEST_IN_SCENE.instantiate()
 		add_child_autofree(chest)
 		assert_eq(chest.get_acceptor(), chest.get_node("ChestInput"))
 		var hub = load("res://scenes/components/piece/hub.tscn").instantiate()
@@ -213,6 +214,32 @@ class TestPieceKind:
 		var p = SMELTER_SCENE.instantiate()
 		add_child_autofree(p)
 		assert_false(p.is_conveyor())
+
+
+class TestBeltDirections:
+	extends GutTest
+
+	func _conveyor(rotation: int, input_direction := -1) -> Piece:
+		var p = CONVEYOR_SCENE.instantiate()
+		add_child_autofree(p)
+		p.setup(rotation)
+		p.input_direction = input_direction
+		return p
+
+	func test_出口の向きは回転に従う():
+		assert_eq(_conveyor(0).output_direction(), 0)
+		assert_eq(_conveyor(1).output_direction(), 5)
+
+	func test_入力側を決めていないベルトは真後ろから受け取る():
+		assert_eq(_conveyor(0).belt_input_side(), 3)
+
+	func test_入力側を決めたベルトはその側から受け取る():
+		assert_eq(_conveyor(0, 5).belt_input_side(), 5)
+
+	func test_出口の無いピースの出口の向きは無い():
+		var chest = CHEST_IN_SCENE.instantiate()
+		add_child_autofree(chest)
+		assert_eq(chest.output_direction(), -1)
 
 
 class TestPieceRoles:

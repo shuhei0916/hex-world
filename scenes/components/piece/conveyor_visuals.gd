@@ -139,7 +139,7 @@ func refresh_belt():
 	# 入れてくる相手がいなくても、記録された入力側（受け取る側）から描く。未指定なら真後ろ
 	var input_dir = _input_direction
 	if input_dir < 0:
-		input_dir = _piece.input_direction if _piece.input_direction >= 0 else (primary_dir + 3) % 6
+		input_dir = _piece.belt_input_side()
 	var in_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[input_dir]) * 0.5
 	for output_dir in dirs:
 		var out_edge = Layout.hex_to_pixel(layout, Hex.DIRECTIONS[output_dir]) * 0.5

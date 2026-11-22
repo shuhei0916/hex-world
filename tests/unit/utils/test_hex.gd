@@ -215,3 +215,21 @@ class TestLayout:
 		var fractional: Vector2 = Layout.pixel_to_hex_fractional(layout, between)
 
 		assert_almost_eq(fractional, Vector2(0.5, 0.0), Vector2(0.001, 0.001))
+
+
+class TestDirectionRotation:
+	extends GutTest
+
+	func test_向きを右回りに回した向き():
+		# 東(0)を右回りに1回まわすと南東(5)
+		assert_eq(Hex.rotated_direction(0, 1), 5)
+		assert_eq(Hex.rotated_direction(2, 3), 5)
+
+	func test_ある向きを別の向きにするのに要る右回りの回数():
+		assert_eq(Hex.rotation_between(0, 5), 1)
+		assert_eq(Hex.rotation_between(4, 4), 0)
+
+	func test_回した向きと要る回数は逆の関係():
+		for from in 6:
+			for to in 6:
+				assert_eq(Hex.rotated_direction(from, Hex.rotation_between(from, to)), to)

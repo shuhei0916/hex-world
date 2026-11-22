@@ -90,16 +90,14 @@ func feeding_directions(piece: Piece) -> Array:
 # - 送り手がコンベアで、隣のコンベアがこちら側から受け取る向きにある（分岐）
 # ただし、隣のベルトの出口がこちらを向いていれば送らない（向かい合わせのベルトは押し付け合わず止まる）
 func _feeds_neighbor(source: Piece, from_hex: Vector2i, direction: int) -> bool:
-	var base_hex = _registry.get_base_hex(source)
-	if base_hex == null:
+	if _registry.get_base_hex(source) == null:
 		return false
 	var neighbor = _get_neighbor_piece(from_hex, direction)
 	if _outputs_toward(neighbor, (direction + 3) % 6):
 		return false
 
-	for port in source.get_output_ports():
-		if base_hex + port.hex == from_hex and port.direction == direction:
-			return true
+	if {"hex": from_hex, "direction": direction} in _registry.get_output_ports_on_grid(source):
+		return true
 
 	# 施設は排出口からしか出さないので、分岐は送り手がコンベアのときだけ
 	return _is_conveyor(source) and _conveyor_receives_from(neighbor, direction)
@@ -109,20 +107,12 @@ func _feeds_neighbor(source: Piece, from_hex: Vector2i, direction: int) -> bool:
 # - 入力側が決まっている: 入力側（input_direction）が送り手の方を向いている
 # - 入力側が未指定（直進）: 出口が同じ direction を向いている（真後ろが入力側）
 func _conveyor_receives_from(conveyor: Piece, direction: int) -> bool:
-	if not _is_conveyor(conveyor):
-		return false
-	if conveyor.input_direction >= 0:
-		return conveyor.input_direction == (direction + 3) % 6
-	var ports = conveyor.get_output_ports()
-	return not ports.is_empty() and ports[0]["direction"] == direction
+	return _is_conveyor(conveyor) and conveyor.belt_input_side() == (direction + 3) % 6
 
 
 # piece がコンベアで、出口が direction を向いているか
 func _outputs_toward(piece: Piece, direction: int) -> bool:
-	if not _is_conveyor(piece):
-		return false
-	var ports = piece.get_output_ports()
-	return not ports.is_empty() and ports[0]["direction"] == direction
+	return _is_conveyor(piece) and piece.output_direction() == direction
 
 
 func _is_conveyor(piece: Piece) -> bool:

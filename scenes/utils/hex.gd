@@ -38,6 +38,16 @@ static func rotate_right(hex: Vector2i) -> Vector2i:
 	return Vector2i(-hex.y, -s(hex))
 
 
+## 向き direction（0-5）を右回りに rotation 回まわした向き。
+static func rotated_direction(direction: int, rotation: int) -> int:
+	return posmod(direction - rotation, 6)
+
+
+## 向き from を向き to にするのに要る右回りの回数（rotated_direction の逆）。
+static func rotation_between(from: int, to: int) -> int:
+	return posmod(from - to, 6)
+
+
 ## offset を右回りに rotation 回だけ回転させて返す。
 ## ピースの形の定義を rotation_state に追従させるときに使う。
 static func from_offset_rotated(offset: Vector2i, rotation: int) -> Vector2i:

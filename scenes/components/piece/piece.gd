@@ -183,8 +183,19 @@ func get_output_ports() -> Array:
 
 func _make_port(offset: Vector2i, direction: int) -> Dictionary:
 	var hex = Hex.from_offset_rotated(offset, rotation_state)
-	var rotated_direction = (direction - rotation_state + 6) % 6
-	return {"hex": hex, "direction": rotated_direction}
+	return {"hex": hex, "direction": Hex.rotated_direction(direction, rotation_state)}
+
+
+# 出口の向き（0-5）。出口の無いピースは -1
+func output_direction() -> int:
+	return Hex.rotated_direction(port_direction, rotation_state) if port_direction >= 0 else -1
+
+
+# ベルトが受け取る側（0-5）。入力側を決めていなければ出口の真後ろ
+func belt_input_side() -> int:
+	if input_direction >= 0:
+		return input_direction
+	return (output_direction() + 3) % 6
 
 
 # コンベアか。種類で決める（見た目の部品の有無では判断しない）。
