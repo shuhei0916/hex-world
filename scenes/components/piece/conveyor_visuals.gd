@@ -8,6 +8,8 @@ const Z_INDEX := 6
 # 中の帯のぼかしから暗い縁取りが透けて、境目が線に見える
 const OUTLINE_Z_INDEX := 5
 const CURVE_SEGMENTS = 12
+# これより急に折れる角では、太い線を1本で描くと角が尖って突き出るので、線を分けて丸で継ぐ
+const SHARP_CORNER_ANGLE := deg_to_rad(45.0)
 
 const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
 const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
@@ -226,7 +228,7 @@ func _draw():
 func _draw_outline() -> void:
 	for path in drawn_merge_paths() + drawn_belt_paths():
 		if path.size() >= 2:
-			_outline.draw_polyline(path, _BELT_EDGE, BELT_WIDTH, true)
+			draw_band(_outline, path, _BELT_EDGE, BELT_WIDTH)
 
 
 # 帯は延ばした drawn で描き、矢印は延ばす前の path の割合で置く（隣と矢印の間隔をそろえる）
@@ -235,9 +237,38 @@ func _draw_belt(
 ) -> void:
 	if path.size() < 2:
 		return
-	draw_polyline(drawn, _BELT_FILL, BELT_WIDTH - 6.0, true)
+	draw_band(self, drawn, _BELT_FILL, BELT_WIDTH - 6.0)
 	for point in arrow_points(path, fractions, covered):
 		_draw_chevron(point["position"], point["tangent"])
+
+
+# 太さ width の帯を canvas に描く。急な角では分けて描き、角を丸で埋める（split_at_sharp_corners）
+static func draw_band(canvas: CanvasItem, path: PackedVector2Array, color: Color, width: float):
+	var strokes = split_at_sharp_corners(path)
+	for line in strokes["lines"]:
+		canvas.draw_polyline(line, color, width, true)
+	for joint in strokes["joints"]:
+		canvas.draw_circle(joint, width * 0.5, color, true, -1.0, true)
+
+
+# path を急に折れる角（SHARP_CORNER_ANGLE より大きく曲がる頂点）で分ける。
+# 分岐で隣の辺へ折り返すベルトは「入口の辺→中心→出口の辺」の折れ線で、太い線を1本で描くと
+# 中心の角が尖って大きく突き出る。{lines: 分けた折れ線, joints: 分けた角の位置}
+static func split_at_sharp_corners(path: PackedVector2Array) -> Dictionary:
+	var lines: Array[PackedVector2Array] = []
+	var joints := PackedVector2Array()
+	var current := PackedVector2Array()
+	for i in path.size():
+		current.append(path[i])
+		if i == 0 or i == path.size() - 1:
+			continue
+		var turn = absf((path[i] - path[i - 1]).angle_to(path[i + 1] - path[i]))
+		if turn > SHARP_CORNER_ANGLE:
+			lines.append(current)
+			joints.append(path[i])
+			current = PackedVector2Array([path[i]])
+	lines.append(current)
+	return {"lines": lines, "joints": joints}
 
 
 func _draw_chevron(pos: Vector2, tangent: Vector2):
