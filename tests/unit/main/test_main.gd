@@ -213,7 +213,7 @@ func test_チャンク切替でHUDの座標ラベルが更新される():
 	assert_eq(main.hud.get_node("ChunkCoordLabel").text, "Chunk: 1, 0")
 
 
-func test_ワールドマップ表示時に接続済みチャンクペアの矢印が表示される():
+func test_ワールドマップ表示時に橋でつながったchunkの間に輸送のカードが出る():
 	var bridge_scene = main.hud.get_scene_for_slot(6)
 	# 東隣 (1, 0) に面した辺（SE）の橋と、その向かいのマスのコンベア
 	var bridge_hex = Vector2i(Chunk.DEFAULT_RADIUS - 1, 1)
@@ -221,7 +221,7 @@ func test_ワールドマップ表示時に接続済みチャンクペアの矢�
 	var chunk_b = main.world.create_chunk(Vector2i(1, 0))
 	chunk_b.place_piece(CONVEYOR, ChunkTopology.mirror_hex(bridge_hex, 5))
 	main._handle_key_input(_make_space_event())
-	assert_eq(main.world_map_view.get_connection_arrow_count(), 1)
+	assert_eq(main.world_map_view.get_transfer_card_count(), 1)
 
 
 func test_ワールドマップでHex_0_0タイルをクリックするとローカルモードに戻る():

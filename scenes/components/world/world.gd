@@ -338,13 +338,24 @@ static func bridge_path(start: Vector2, end: Vector2, normal: Vector2) -> Packed
 	return points
 
 
-# 実際につながっている橋の chunk のペア(橋のある側, 向こう側)一覧を返す。
-func get_connected_chunk_pairs() -> Array:
+# ワールドマップに出す chunk から chunk への輸送。つながっている橋を「どこから・どこへ」ごとに
+# まとめ、渡した品目ごとの 個/分 を足し合わせる。まだ何も渡していない輸送路も items を空で返す。
+# 各要素: {from: 橋のある chunk, to: 向こうの chunk, items: {品目: 個/分}}
+func get_chunk_transfers() -> Array:
+	var by_route := {}
 	var result = []
 	for entry in _iter_bridges():
-		if entry["piece"].get_connected_pieces().is_empty():
+		var piece: Piece = entry["piece"]
+		if not piece.has_connected_piece():
 			continue
-		result.append([entry["chunk_hex"], entry["target_chunk_hex"]])
+		var route = [entry["chunk_hex"], entry["target_chunk_hex"]]
+		if not by_route.has(route):
+			by_route[route] = {"from": route[0], "to": route[1], "items": {}}
+			result.append(by_route[route])
+		var items: Dictionary = by_route[route]["items"]
+		var rates = piece.conveyor_logic.get_items_per_minute()
+		for item_name in rates:
+			items[item_name] = items.get(item_name, 0.0) + rates[item_name]
 	return result
 
 

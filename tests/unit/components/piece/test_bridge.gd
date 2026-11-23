@@ -85,3 +85,34 @@ func test_チャンク内の隣接ピースへは自動配線されない():
 	chunk.place_piece(preload("res://scenes/components/piece/conveyor.tscn"), Vector2i(-1, 1), 0)
 	var placed_bridge = chunk.get_piece_at_hex(Vector2i(-2, 1))
 	assert_eq(placed_bridge.get_connected_pieces(), [])
+
+
+func test_渡した品目を毎分の個数で数える():
+	var target = BRIDGE_SCENE.instantiate()
+	add_child_autofree(target)
+	target.setup()
+	bridge.set_connected_pieces([target])
+	bridge.add_item("iron_ore", 1)
+	bridge.tick(TransferBuffer.TRANSFER_TIME)
+	# 2 秒で 1 個 → 毎分 30 個
+	assert_eq(bridge.conveyor_logic.get_items_per_minute(), {"iron_ore": 30.0})
+
+
+func test_渡せなかった品目は数えない():
+	bridge.add_item("iron_ore", 1)
+	bridge.tick(TransferBuffer.TRANSFER_TIME)
+	assert_eq(bridge.conveyor_logic.get_items_per_minute(), {})
+
+
+func test_コンベア高速化の研究で時計は速まらない():
+	var target = BRIDGE_SCENE.instantiate()
+	add_child_autofree(target)
+	target.setup()
+	bridge.set_connected_pieces([target])
+	var saved = HubGoals.researched
+	HubGoals.researched = {"belt_speed_1": true}
+	bridge.add_item("iron_ore", 1)
+	bridge.tick(TransferBuffer.TRANSFER_TIME / HubGoals.get_belt_speed())
+	HubGoals.researched = saved
+	# 1 秒で 1 個 → 毎分 60 個（研究で速めた時間で数えると 30 個になってしまう）
+	assert_eq(bridge.conveyor_logic.get_items_per_minute(), {"iron_ore": 60.0})
