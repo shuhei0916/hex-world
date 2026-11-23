@@ -104,6 +104,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `visual_gap.gd`: 溝の幅の見比べ用。環境変数 `GAP_STEPS`（1〜3）で World.gap_steps を変えて引いて映す
 - `visual_belt_seam.gd`: コンベアのつなぎ目（直線どうし・直線と曲がり）を拡大して映す。環境変数 `SEAM_ZOOM` で倍率（既定 5）
 - `visual_bridge.gd`: 受け取り先のある橋（アイテムを流し続ける）と無い橋を並べて拡大する
+- `visual_map_transfer.gd`: 原点と東隣の間に橋を往復で架けて流し、ワールドマップの輸送のカード（矢印・品目・毎分の個数）を映す。環境変数 `MAP_ZOOM` でカメラの倍率
 - `camera_navigation.gd`: 東へ少しずつパンしても今いる chunk が切り替わらない様子と、ホイールで引いてワールドマップへ、寄せてキャラクターのいる chunk のローカル画面へ戻る様子を出力する
 - `player_walk.gd`: 実際のキー入力で WASD（斜めも）を押し続け、キャラクターがマスに縛られず自由に動く・chunk の端やハブでふさがれる・カメラが追う、を出力する
 - `visual_zoom_transition.gd`: 環境変数 `ZOOM` の倍率まで引いて撮る。Main.LOCAL_TO_MAP_ZOOM の上下で撮ってローカル画面とワールドマップの切り替わりを見比べる

@@ -366,12 +366,12 @@ func _enter_world_map_mode():
 	_refresh_debug_overlay()
 
 
-# ワールドマップのタイル（霧・今いる chunk の印）と接続の矢印を、いまの状態で作り直す
+# ワールドマップのタイル（霧・今いる chunk の印）と輸送のカードを、いまの状態で作り直す
 func _refresh_world_map() -> void:
 	world_map_view.setup(world)
 	if world.get_active_hex() != null:
 		world_map_view.set_active_chunk(world.get_active_hex())
-	world_map_view.refresh_connections(world.get_connected_chunk_pairs())
+	world_map_view.refresh_transfers(world.get_chunk_transfers())
 
 
 func _enter_local_mode():

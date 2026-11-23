@@ -4,9 +4,14 @@ extends Node2D
 const ChunkTileScript = preload("res://scenes/components/world/chunk_tile.gd")
 const TILE_SIZE := 80.0
 
-const CONNECTION_ARROW_TEXTURE = preload("res://scenes/components/piece/forward.png")
-const CONNECTION_ARROW_COLOR = Color(0.5, 1.0, 0.5, 1)
 const INFO_LABEL_SIZE := Vector2(120, 48)
+# 往復する輸送路のカードを、それぞれ進む向きの右側へずらす量（重ならないようにカードの幅より少し大きく）
+const LANE_OFFSET := TransferCard.WIDTH * 0.5 + 4.0
+# 表示中に World から輸送を読み直す間隔（秒）
+const REFRESH_INTERVAL := 1.0
+# 描く順: タイル(0) < 輸送のカード < ホバーの情報
+const TRANSFER_CARD_Z := 1
+const INFO_LABEL_Z := 2
 # まだ所有していない chunk の色。所有している chunk の隣（戦って解放できる）はバイオーム色を
 # 暗くして何が採れるかを見せ、それより遠くは霧で隠す
 const FRONTIER_DARKEN := 0.55
@@ -18,7 +23,8 @@ var _tiles: Dictionary = {}  # chunk の座標 → ChunkTile
 var _active_hex = null
 var _hovered_hex = null
 var _map_layout: Layout
-var _connection_arrows: Array = []
+var _transfer_cards: Array[TransferCard] = []
+var _refresh_timer := 0.0
 var _planet: Planet = null
 var _world: World = null
 var _info_label: Label = null
@@ -32,7 +38,7 @@ func setup(world: World) -> void:
 	for child in get_children():
 		child.queue_free()
 	_tiles.clear()
-	_connection_arrows.clear()
+	_transfer_cards.clear()
 	_active_hex = null
 	_hovered_hex = null
 	_world = world
@@ -52,7 +58,7 @@ func setup(world: World) -> void:
 	_info_label.size = INFO_LABEL_SIZE
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_info_label.z_index = 1  # 隣のタイルより手前に出す
+	_info_label.z_index = INFO_LABEL_Z  # 隣のタイルや輸送のカードより手前に出す
 	_info_label.visible = false
 	add_child(_info_label)
 
@@ -164,31 +170,49 @@ func get_tile_active(chunk_hex: Vector2i) -> bool:
 	return tile.is_active if tile else false
 
 
-func get_connection_arrow_count() -> int:
-	return _connection_arrows.size()
+func get_transfer_card_count() -> int:
+	return _transfer_cards.size()
 
 
-func get_connection_arrow_position(index: int) -> Vector2:
-	return _connection_arrows[index].position
+func get_transfer_card(index: int) -> TransferCard:
+	return _transfer_cards[index]
 
 
-func refresh_connections(pairs: Array) -> void:
-	for arrow in _connection_arrows:
-		remove_child(arrow)
-		arrow.queue_free()
-	_connection_arrows.clear()
-	for pair in pairs:
-		var from_tile = _tiles.get(pair[0])
-		var to_tile = _tiles.get(pair[1])
+# 工場はワールドマップ中も動き続けるので、表示中は輸送の数字を読み直す
+func _process(delta: float) -> void:
+	if not visible or _world == null:
+		return
+	_refresh_timer += delta
+	if _refresh_timer >= REFRESH_INTERVAL:
+		_refresh_timer = 0.0
+		refresh_transfers(_world.get_chunk_transfers())
+
+
+# 橋による輸送路（World.get_chunk_transfers の形）ごとに、2つのタイルの中間へカードを置く。
+# 往復があれば、それぞれ進む向きの右側へずらす
+func refresh_transfers(transfers: Array) -> void:
+	for card in _transfer_cards:
+		remove_child(card)
+		card.queue_free()
+	_transfer_cards.clear()
+	var routes := {}
+	for transfer in transfers:
+		routes[[transfer["from"], transfer["to"]]] = true
+	for transfer in transfers:
+		var from_tile = _tiles.get(transfer["from"])
+		var to_tile = _tiles.get(transfer["to"])
 		if from_tile == null or to_tile == null:
 			continue
-		var arrow = Sprite2D.new()
-		arrow.texture = CONNECTION_ARROW_TEXTURE
-		arrow.modulate = CONNECTION_ARROW_COLOR
-		arrow.position = (from_tile.position + to_tile.position) / 2.0
-		arrow.rotation = (to_tile.position - from_tile.position).angle()
-		add_child(arrow)
-		_connection_arrows.append(arrow)
+		var direction = (to_tile.position - from_tile.position).normalized()
+		var card := TransferCard.new()
+		card.setup(direction, transfer["items"])
+		card.position = (from_tile.position + to_tile.position) / 2.0
+		if routes.has([transfer["to"], transfer["from"]]):
+			# 画面は y が下向きなので、進む向きの右は orthogonal() の逆
+			card.position -= direction.orthogonal() * LANE_OFFSET
+		card.z_index = TRANSFER_CARD_Z
+		add_child(card)
+		_transfer_cards.append(card)
 
 
 func chunk_at_local_pos(local_pos: Vector2):

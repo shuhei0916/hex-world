@@ -7,6 +7,9 @@ const World = preload("res://scenes/components/world/world.gd")
 class TestWorldMapView:
 	extends GutTest
 
+	const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+	const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
+
 	var view
 	var world
 
@@ -48,21 +51,24 @@ class TestWorldMapView:
 		view.setup(world)
 		assert_null(view.chunk_at_local_pos(Vector2(9999, 9999)))
 
-	func test_refresh_connectionsで接続ペア数分の矢印が境目に生成される():
-		view.setup(world)
-		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
-		assert_eq(view.get_connection_arrow_count(), 1)
+	func _route(from: Vector2i, to: Vector2i, items: Dictionary = {}) -> Dictionary:
+		return {"from": from, "to": to, "items": items}
 
-	func test_接続ペアがなければ矢印は生成されない():
+	func test_輸送路の数だけカードが出る():
 		view.setup(world)
-		view.refresh_connections([])
-		assert_eq(view.get_connection_arrow_count(), 0)
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		assert_eq(view.get_transfer_card_count(), 1)
 
-	func test_再表示のたびに前回分の矢印がクリアされる():
+	func test_輸送路がなければカードは出ない():
 		view.setup(world)
-		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
-		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
-		assert_eq(view.get_connection_arrow_count(), 1)
+		view.refresh_transfers([])
+		assert_eq(view.get_transfer_card_count(), 0)
+
+	func test_出し直すたびに前回分のカードは消える():
+		view.setup(world)
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		assert_eq(view.get_transfer_card_count(), 1)
 
 	func test_set_hovered_chunkでそのタイルがホバー状態になる():
 		view.setup(world)
@@ -81,13 +87,65 @@ class TestWorldMapView:
 		view.set_hovered_chunk(null)
 		assert_false(view.get_tile_hovered(Vector2i(0, 0)))
 
-	func test_矢印は2つのタイルの中間の境目に配置される():
+	func test_片道のカードは2つのタイルの中間に置く():
 		view.setup(world)
-		view.refresh_connections([[Vector2i(0, 0), Vector2i(1, 0)]])
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
 		var pos0 = view.get_tile_position(Vector2i(0, 0))
 		var pos1 = view.get_tile_position(Vector2i(1, 0))
-		var expected_midpoint = (pos0 + pos1) / 2.0
-		assert_eq(view.get_connection_arrow_position(0), expected_midpoint)
+		assert_eq(view.get_transfer_card(0).position, (pos0 + pos1) / 2.0)
+
+	func test_カードの矢印は運ぶ向きを指す():
+		view.setup(world)
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		var pos0 = view.get_tile_position(Vector2i(0, 0))
+		var pos1 = view.get_tile_position(Vector2i(1, 0))
+		assert_almost_eq(view.get_transfer_card(0).direction.angle(), (pos1 - pos0).angle(), 0.001)
+
+	func test_往復するときは_それぞれ進む向きの右側へずらして重ならないようにする():
+		view.setup(world)
+		view.refresh_transfers(
+			[_route(Vector2i(0, 0), Vector2i(1, 0)), _route(Vector2i(1, 0), Vector2i(0, 0))]
+		)
+		var mid = (
+			(view.get_tile_position(Vector2i(0, 0)) + view.get_tile_position(Vector2i(1, 0))) / 2.0
+		)
+		var go = view.get_transfer_card(0)
+		var back = view.get_transfer_card(1)
+		var right_of_go = go.direction.orthogonal() * -1.0  # 画面は y が下向き
+		assert_gt((go.position - mid).dot(right_of_go), 0.0, "行きは行きの右")
+		assert_lt((back.position - mid).dot(right_of_go), 0.0, "帰りは反対側")
+		assert_gt(go.position.distance_to(back.position), WorldMapView.LANE_OFFSET)
+
+	func test_カードには品目と毎分の個数を多い順に並べる():
+		view.setup(world)
+		view.refresh_transfers(
+			[_route(Vector2i(0, 0), Vector2i(1, 0), {"copper_ore": 15.0, "iron_ore": 59.6})]
+		)
+		assert_eq(
+			view.get_transfer_card(0).get_rows(), [["iron_ore", "60/分"], ["copper_ore", "15/分"]]
+		)
+
+	func test_まだ何も運んでいない輸送路は矢印だけ():
+		view.setup(world)
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		assert_eq(view.get_transfer_card(0).get_rows(), [])
+
+	func test_表示中は一定時間ごとにWorldから輸送を読み直す():
+		view.setup(world)
+		view.visible = true
+		var chunk_b = world.get_chunk(Vector2i(1, 0))
+		world.get_chunk(Vector2i(0, 0)).create_hex_grid(2)
+		chunk_b.create_hex_grid(2)
+		world.get_chunk(Vector2i(0, 0)).place_piece(BRIDGE_SCENE, Vector2i(1, 1))
+		chunk_b.place_piece(CONVEYOR, Vector2i(-1, -1))
+		assert_eq(view.get_transfer_card_count(), 0, "置いた直後はまだ")
+		view._process(WorldMapView.REFRESH_INTERVAL)
+		assert_eq(view.get_transfer_card_count(), 1)
+
+	func test_カードはタイルより手前に描く():
+		view.setup(world)
+		view.refresh_transfers([_route(Vector2i(0, 0), Vector2i(1, 0))])
+		assert_gt(view.get_transfer_card(0).z_index, 0)
 
 
 class TestPlanetMap:

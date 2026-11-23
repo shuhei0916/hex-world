@@ -232,6 +232,82 @@ class TestBridgeSpans:
 		assert_gt(overlay.z_index, 0)
 
 
+class TestChunkTransfers:
+	extends GutTest
+
+	## ワールドマップに出す、chunk から chunk への輸送。つながっている橋を
+	## 「どこから・どこへ」ごとにまとめ、渡した品目ごとの 個/分 を合計する
+
+	const BRIDGE_SCENE = preload("res://scenes/components/piece/bridge.tscn")
+	const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
+
+	var world
+	var chunk_a: Chunk
+	var chunk_b: Chunk
+
+	func before_each():
+		world = World.new()
+		add_child_autofree(world)
+		chunk_a = world.create_chunk(Vector2i(0, 0))
+		chunk_b = world.create_chunk(Vector2i(1, 0))  # 東隣
+		# 半径3: 1つの辺に角でないマスが2つある
+		chunk_a.create_hex_grid(3)
+		chunk_b.create_hex_grid(3)
+
+	# chunk_a の SE(5) の辺に橋を置き、東隣の向かいのマスにコンベアを置く
+	func _connect_bridge(bridge_hex: Vector2i) -> Piece:
+		chunk_a.place_piece(BRIDGE_SCENE, bridge_hex)
+		var edge_dir = chunk_a.get_edge_direction(bridge_hex)
+		chunk_b.place_piece(CONVEYOR, ChunkTopology.mirror_hex(bridge_hex, edge_dir))
+		return chunk_a.get_piece_at_hex(bridge_hex)
+
+	# 橋に1個載せて渡しきる（2 秒で 1 個 → 毎分 30 個）
+	func _pass_item(bridge: Piece, item_name: String) -> void:
+		bridge.add_item(item_name, 1)
+		bridge.tick(TransferBuffer.TRANSFER_TIME)
+
+	func test_橋が無ければ輸送も無い():
+		assert_eq(world.get_chunk_transfers(), [])
+
+	func test_つながっていない橋は輸送に数えない():
+		chunk_a.place_piece(BRIDGE_SCENE, Vector2i(1, 2))
+		assert_eq(world.get_chunk_transfers(), [])
+
+	func test_つながった橋は_まだ何も渡していなくても輸送路として出す():
+		_connect_bridge(Vector2i(1, 2))
+		assert_eq(
+			world.get_chunk_transfers(),
+			[{"from": Vector2i(0, 0), "to": Vector2i(1, 0), "items": {}}]
+		)
+
+	func test_渡した品目ごとの毎分の個数が分かる():
+		_pass_item(_connect_bridge(Vector2i(1, 2)), "iron_ore")
+		assert_eq(world.get_chunk_transfers()[0]["items"], {"iron_ore": 30.0})
+
+	func test_同じ向きの橋は1つにまとめて個数を足す():
+		var first = _connect_bridge(Vector2i(1, 2))
+		var second = _connect_bridge(Vector2i(2, 1))
+		assert_eq(chunk_a.get_edge_direction(Vector2i(2, 1)), 5, "同じ辺の橋")
+		_pass_item(first, "iron_ore")
+		_pass_item(second, "iron_ore")
+		var transfers = world.get_chunk_transfers()
+		assert_eq(transfers.size(), 1)
+		assert_eq(transfers[0]["items"], {"iron_ore": 60.0})
+
+	func test_同じ向きの橋が別の品目を渡せば両方出す():
+		_pass_item(_connect_bridge(Vector2i(1, 2)), "iron_ore")
+		_pass_item(_connect_bridge(Vector2i(2, 1)), "copper_ore")
+		assert_eq(world.get_chunk_transfers()[0]["items"], {"iron_ore": 30.0, "copper_ore": 30.0})
+
+	func test_逆向きの橋は別の輸送路になる():
+		_connect_bridge(Vector2i(1, 2))
+		chunk_b.place_piece(BRIDGE_SCENE, Vector2i(-1, -2))
+		chunk_a.place_piece(CONVEYOR, ChunkTopology.mirror_hex(Vector2i(-1, -2), 2))
+		assert_eq(chunk_b.get_edge_direction(Vector2i(-1, -2)), 2, "東隣から見て西(NW)の辺")
+		var pairs = world.get_chunk_transfers().map(func(t): return [t["from"], t["to"]])
+		assert_eq(pairs, [[Vector2i(0, 0), Vector2i(1, 0)], [Vector2i(1, 0), Vector2i(0, 0)]])
+
+
 class TestWorldChunkManagement:
 	extends GutTest
 

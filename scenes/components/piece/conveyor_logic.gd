@@ -12,6 +12,8 @@ const CENTER_TIME = TransferBuffer.TRANSFER_TIME * 0.5
 var _buffer := TransferBuffer.new()
 var _ejector := EjectorRouter.new()
 var _locked_direction: int = -1  # 中心で確定した行き先。-1 は未確定
+# 渡した量（橋が隣の chunk へ渡した量をワールドマップに出すのに使う）
+var _meter := TransferMeter.new()
 
 
 func set_connected_pieces(pieces: Array, directions: Array = []) -> void:
@@ -62,7 +64,14 @@ func get_target_direction() -> int:
 	return _ejector.target_direction(_buffer.held_item)
 
 
+# 直近に渡した品目ごとの 個/分
+func get_items_per_minute() -> Dictionary:
+	return _meter.get_items_per_minute()
+
+
 func tick(delta: float):
+	# 計測は実時間で数える（研究で速めた時間ではない）
+	_meter.tick(delta)
 	# 研究のコンベア高速化は、時間の進みを速めることで反映する
 	delta *= HubGoals.get_belt_speed()
 	var limit = TransferBuffer.TRANSFER_TIME
@@ -73,6 +82,7 @@ func tick(delta: float):
 		if _locked_direction < 0:
 			limit = CENTER_TIME
 	if _buffer.advance(delta, limit) and _try_eject():
+		_meter.record(_buffer.held_item)
 		_buffer.clear()
 		_locked_direction = -1
 
