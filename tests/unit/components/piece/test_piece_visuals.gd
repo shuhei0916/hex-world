@@ -408,3 +408,36 @@ class TestBeltArrowContinuity:
 			assert_eq(along.count(front), 1, "先端は1点 (角度 %.2f)" % angle)
 			assert_eq(along.count(back), 2, "後ろは腕の端の2点 (角度 %.2f)" % angle)
 			assert_gt(front - back, 0.0)
+
+
+class TestSharpCorners:
+	extends GutTest
+
+	## 太い折れ線を1本で描くと、急に折れる角が尖って大きく突き出る（分岐で隣の辺へ折り返すとき）。
+	## 急な角では線を分け、継ぎ目は丸で埋める
+
+	const CENTER := Vector2.ZERO
+	const NE_EDGE := Vector2(18, -31)
+	const E_EDGE := Vector2(36, 0)
+	const W_EDGE := Vector2(-36, 0)
+
+	func test_急に折れる角では線を分け_角に丸い継ぎ目を置く():
+		var strokes = ConveyorVisuals.split_at_sharp_corners(
+			PackedVector2Array([NE_EDGE, CENTER, E_EDGE])
+		)
+		assert_eq(strokes["lines"].size(), 2)
+		assert_eq(strokes["lines"][0], PackedVector2Array([NE_EDGE, CENTER]))
+		assert_eq(strokes["lines"][1], PackedVector2Array([CENTER, E_EDGE]))
+		assert_eq(strokes["joints"], PackedVector2Array([CENTER]))
+
+	func test_まっすぐなら1本のまま():
+		var path = PackedVector2Array([W_EDGE, CENTER, E_EDGE])
+		var strokes = ConveyorVisuals.split_at_sharp_corners(path)
+		assert_eq(strokes["lines"], [path])
+		assert_eq(strokes["joints"], PackedVector2Array())
+
+	func test_細かく刻んだ曲線は1本のまま():
+		var curve = ConveyorVisuals.sample_bezier(
+			NE_EDGE, CENTER, E_EDGE, ConveyorVisuals.CURVE_SEGMENTS
+		)
+		assert_eq(ConveyorVisuals.split_at_sharp_corners(curve)["lines"].size(), 1)

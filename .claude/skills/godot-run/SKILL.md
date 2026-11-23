@@ -85,6 +85,7 @@ dump_tree.sh "--do=key:SPACE;clickon:WorldMapView/@Node2D@371;call:World/get_act
 - `conveyor_spacing.gd`: 分岐を含むラインを詰まらせ、レーンごとのアイテム間隔（ヘックス間距離=1.0）を出力する
 - `conveyor_merge.gd`: ドラッグで本線の途中へ合流させ、合流先のベルトの入力方向（主入力＋合流）と接続を出力する
 - `conveyor_from_smelter.gd`: Smelter の排出口からドラッグで斜めに曲がるコンベアを引き、ベルトの入力方向と、排出口のないマスの隣のコンベアに Smelter がつながらないことを出力する
+- `conveyor_branch_from_side.gd`: Miner の排出口の前のベルト（NE から受けて SE へ流す）から東へドラッグで分岐を引き、分岐元の状態を出力する。screenshot.sh で撮ると分岐元を拡大して映す（環境変数 `BRANCH_ZOOM` で倍率）。隣の辺へ折り返す分岐の角が尖って突き出ないかの確認用
 - `conveyor_from_miner.gd`: 別のラインが真後ろを通る場所で Miner の排出口からコンベアを引き、先頭のベルトの入力方向と、通りすがりのラインが分岐してこないことを出力する
 - `conveyor_auto_orient.gd`: shapez 風の向きの自動調整をクリック操作で確かめる（Miner の排出口の前に置くと曲がる・行き止まりのベルトが横の新しいベルトへ曲がる・入力のないベルトが横の相手から受ける）
 - `planet_overview.gd`: planet のバイオーム分布を文字で描き、ワールドマップのホバー表示と未生成 chunk への入場（遅延生成・鉱床）を出力する
