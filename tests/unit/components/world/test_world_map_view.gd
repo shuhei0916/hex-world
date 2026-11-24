@@ -254,11 +254,11 @@ class TestFog:
 		assert_ne(view.get_tile_color(far), WorldMapView.FOG_COLOR, "隣になった chunk が見える")
 
 
-class TestTileMatchesChunkSize:
+class TestTilesTouch:
 	extends GutTest
 
-	## ワールドマップのタイルは、ローカル画面の chunk と同じ縮尺の大きさにし、溝も同じ割合で見せる
-	## （ズームでローカル画面とワールドマップを行き来しても大きさが変わらない）
+	## ワールドマップは地続きの大地として見せるので、タイルは隣と隙間なく接する
+	## （ローカル画面の chunk 間の溝はワールドマップには持ち込まない）
 
 	var view
 	var world
@@ -277,16 +277,13 @@ class TestTileMatchesChunkSize:
 	func after_each():
 		World.gap_steps = saved_gap_steps
 
-	func test_タイルの大きさと間隔の比はchunkの大きさと間隔の比と同じ():
+	func test_タイルは隣のタイルと隙間なく接する():
 		view.setup(world)
-		var map_ratio = view.get_tile_inradius(Vector2i(1, 0)) / view.get_tile_spacing()
-		var local_ratio = world.get_chunk_inradius() / world.get_chunk_spacing()
-		assert_almost_eq(map_ratio, local_ratio, 0.0001)
+		var spacing = view.get_tile_spacing()
+		assert_almost_eq(view.get_tile_inradius(Vector2i(1, 0)) * 2.0, spacing, 0.0001)
 
-	func test_溝を広げるとタイルが小さくなる():
-		World.gap_steps = 1
-		view.setup(world)
-		var narrow = view.get_tile_inradius(Vector2i(0, 0))
+	func test_溝の幅を変えてもタイルは隙間なく接する():
 		World.gap_steps = 3
 		view.setup(world)
-		assert_lt(view.get_tile_inradius(Vector2i(0, 0)), narrow)
+		var spacing = view.get_tile_spacing()
+		assert_almost_eq(view.get_tile_inradius(Vector2i(0, 0)) * 2.0, spacing, 0.0001)

@@ -44,8 +44,9 @@ func setup(world: World) -> void:
 	_world = world
 	_planet = world.get_planet()
 
-	# ローカル画面の chunk と同じ縮尺にして、溝も同じ割合で見せる
-	var tile_inradius = get_tile_spacing() * world.get_chunk_inradius() / world.get_chunk_spacing()
+	# ワールドマップは地続きの大地として見せるので、タイルは隣と隙間なく接する大きさにする
+	# （ローカル画面の chunk 間の溝はここには持ち込まない）
+	var tile_inradius = get_tile_spacing() * 0.5
 	for hex in world.get_map_hexes():
 		var tile = ChunkTileScript.new()
 		tile.setup(hex, _tile_color(hex))
