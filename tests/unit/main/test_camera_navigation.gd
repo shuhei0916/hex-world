@@ -5,6 +5,8 @@ extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_camera_navigation_save.json"
+# 本物の設定（配色）も読み書きしない
+const SETTINGS_PATH := "user://test_camera_navigation_settings.cfg"
 
 var main: Main
 
@@ -12,6 +14,9 @@ var main: Main
 func before_each():
 	SaveGame.path = SAVE_PATH
 	SaveGame.delete()
+	ColorTheme.settings_path = SETTINGS_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 	main = MainScene.instantiate()
 	add_child_autofree(main)
@@ -23,6 +28,9 @@ func after_each():
 	await get_tree().process_frame
 	SaveGame.delete()
 	SaveGame.path = SaveGame.DEFAULT_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.settings_path = ColorTheme.DEFAULT_SETTINGS_PATH
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 
 

@@ -223,15 +223,37 @@ class TestFog:
 		add_child_autofree(view)
 		view.setup(world)
 
+	func after_each():
+		ColorTheme.set_mode(ColorTheme.Mode.DARK)
+
 	func test_所有しているchunkはバイオーム色で塗られる():
 		assert_eq(view.get_tile_color(owned), planet.get_biome(owned).map_color)
 
 	func test_挑戦できるchunkはバイオーム色を暗くした色で塗られる():
 		var biome_color = planet.get_biome(frontier).map_color
-		assert_eq(view.get_tile_color(frontier), biome_color.darkened(WorldMapView.FRONTIER_DARKEN))
+		var expected = biome_color.darkened(WorldMapView.FRONTIER_DARKEN)
+		assert_true(view.get_tile_color(frontier).is_equal_approx(expected))
 
 	func test_離れたchunkはバイオームに関係なく霧の色で塗られる():
-		assert_eq(view.get_tile_color(far), WorldMapView.FOG_COLOR)
+		assert_eq(view.get_tile_color(far), ColorTheme.color(&"fog"))
+
+	func test_配色を切り替えると紙に寄せた淡い色で塗り直す():
+		ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+		view.apply_color_theme()
+		var biome_color = planet.get_biome(owned).map_color
+		assert_eq(view.get_tile_color(owned), ColorTheme.map_color(biome_color))
+		assert_eq(view.get_tile_color(far), ColorTheme.LIGHT[&"fog"])
+
+	func test_ライトでは挑戦できるchunkは霧の色に寄せて沈める():
+		ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+		view.apply_color_theme()
+		var fog := ColorTheme.color(&"fog")
+		var biome_color := ColorTheme.map_color(planet.get_biome(frontier).map_color)
+		var shown: Color = view.get_tile_color(frontier)
+		assert_lt(_distance(shown, fog), _distance(biome_color, fog) * 0.6)
+
+	func _distance(a: Color, b: Color) -> float:
+		return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
 
 	func test_挑戦できるchunkにホバーすると採れる資源と戦って解放できることを表示する():
 		view.set_hovered_chunk(frontier)
@@ -251,7 +273,7 @@ class TestFog:
 		world.territory.claim(frontier)
 		view.setup(world)
 		assert_eq(view.get_tile_color(frontier), planet.get_biome(frontier).map_color)
-		assert_ne(view.get_tile_color(far), WorldMapView.FOG_COLOR, "隣になった chunk が見える")
+		assert_ne(view.get_tile_color(far), ColorTheme.color(&"fog"), "隣になった chunk が見える")
 
 
 class TestTilesTouch:

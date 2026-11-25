@@ -10,7 +10,6 @@ const PIECE_TILE_Z := 10
 const Z_INDEX := 11
 # 施設のタイル画像の内接円の半径。画像(256px×0.3)は辺のすき間ぶんマスより小さい
 const TILE_INRADIUS := 33.0
-const MARKER_COLOR := Color(0.12, 0.12, 0.14, 0.85)
 const MARKER_SIZE := 6.0
 # 印を置く位置。マスの中心(0)から辺の中点(1)までの割合（タイルの縁の少し内側）
 const MARKER_RATIO := 0.7
@@ -52,4 +51,4 @@ func _draw_marker(hex: Vector2i, direction: int) -> void:
 	var tip = pos + tangent * MARKER_SIZE
 	var left = pos - tangent * (MARKER_SIZE * 0.5) + perp * MARKER_SIZE
 	var right = pos - tangent * (MARKER_SIZE * 0.5) - perp * MARKER_SIZE
-	draw_colored_polygon(PackedVector2Array([tip, left, right]), MARKER_COLOR)
+	draw_colored_polygon(PackedVector2Array([tip, left, right]), ColorTheme.color(&"port_marker"))

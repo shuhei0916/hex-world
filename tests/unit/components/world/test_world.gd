@@ -459,7 +459,16 @@ class TestNeighborView:
 		world.set_active_chunk(Vector2i(0, 0))
 		assert_true(neighbor.visible)
 		assert_ne(neighbor.position, Vector2.ZERO)
-		assert_eq(neighbor.modulate, World.NEIGHBOR_MODULATE)
+		assert_eq(neighbor.modulate, ColorTheme.color(&"neighbor_modulate"))
+
+	func test_配色を切り替えると隣のchunkの薄め方も切り替わる():
+		world.create_chunk(Vector2i(0, 0))
+		var neighbor = world.create_chunk(Vector2i(1, 0))
+		world.set_active_chunk(Vector2i(0, 0))
+		ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+		world.apply_color_theme()
+		assert_eq(neighbor.modulate, ColorTheme.LIGHT[&"neighbor_modulate"])
+		ColorTheme.set_mode(ColorTheme.Mode.DARK)
 
 	func test_隣のchunkとは溝をはさんで辺の対応位置どうしが真正面に向かい合う():
 		world.setup_planet(Planet.new(2, 1))
@@ -477,11 +486,9 @@ class TestNeighborView:
 			assert_true(gap.is_equal_approx(step * World.gap_steps), str(edge_hex))
 
 	func test_隣のchunkの床は背景と見分けられ_アクティブな床よりは暗い():
-		var floor_color = HexStyle.FLOOR_COLOR
-		var dimmed = floor_color * World.NEIGHBOR_MODULATE
-		var background = ProjectSettings.get_setting(
-			"rendering/environment/defaults/default_clear_color"
-		)
+		var floor_color = HexStyle.floor_color()
+		var dimmed = floor_color * ColorTheme.color(&"neighbor_modulate")
+		var background = HexStyle.background_color()
 		assert_gt(dimmed.get_luminance() - background.get_luminance(), 0.04, "背景に溶けない")
 		assert_lt(dimmed.get_luminance(), floor_color.get_luminance() - 0.03, "アクティブと区別できる")
 
@@ -501,7 +508,7 @@ class TestNeighborView:
 		assert_eq(east.modulate, Color.WHITE)
 		assert_true(origin.visible)
 		assert_true(origin.position.is_equal_approx(-east_position), "向きが逆になる")
-		assert_eq(origin.modulate, World.NEIGHBOR_MODULATE)
+		assert_eq(origin.modulate, ColorTheme.color(&"neighbor_modulate"))
 
 	func test_隣のchunkの一覧を返す():
 		world.create_chunk(Vector2i(0, 0))

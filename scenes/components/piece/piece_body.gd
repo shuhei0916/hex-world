@@ -11,7 +11,6 @@ const INSET := 3.0
 ## 角の丸みの半径
 const CORNER_RADIUS := 9.0
 ## 縁取りの色と太さ。品目のアイコンの線と同じ色
-const OUTLINE_COLOR := Color("#3c4652")
 const OUTLINE_WIDTH := 3.5
 ## 中央のアイコンの大きさ（ピクセル）と濃さ
 const ICON_SIZE := 40.0
@@ -91,7 +90,7 @@ func _draw() -> void:
 	draw_colored_polygon(_outline, _fill_color)
 	var closed := _outline.duplicate()
 	closed.append(_outline[0])
-	draw_polyline(closed, OUTLINE_COLOR, OUTLINE_WIDTH, true)
+	draw_polyline(closed, ColorTheme.color(&"piece_outline"), OUTLINE_WIDTH, true)
 	if _icon:
 		var size := Vector2(ICON_SIZE, ICON_SIZE)
 		draw_texture_rect(

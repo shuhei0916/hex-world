@@ -435,7 +435,7 @@ class TestOreDeposits:
 			var resource_type = Biome.get_biome(biome_ids[i]).resource_type
 			gm.mark_resource_hex(hexes[i], resource_type)
 			var color = gm.find_hex_tile(hexes[i]).get_color()
-			assert_ne(color, HexStyle.FLOOR_COLOR, "%s の鉱床に色が付くべき" % resource_type)
+			assert_ne(color, HexStyle.floor_color(), "%s の鉱床に色が付くべき" % resource_type)
 			colors[color] = true
 		assert_eq(colors.size(), biome_ids.size())
 
@@ -449,7 +449,7 @@ class TestOreDeposits:
 		gm.mark_resource_hex(Vector2i(1, 0), "copper_ore")
 		var color: Color = gm.find_hex_tile(Vector2i(1, 0)).get_color()
 		var ore: Color = ChunkResources.RESOURCE_COLORS["copper_ore"]
-		assert_lt(_distance(color, HexStyle.FLOOR_COLOR), _distance(color, ore))
+		assert_lt(_distance(color, HexStyle.floor_color()), _distance(color, ore))
 
 	func _distance(a: Color, b: Color) -> float:
 		return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()

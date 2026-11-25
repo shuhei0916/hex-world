@@ -45,6 +45,8 @@ var _camera_target_zoom = null
 
 
 func _ready():
+	ColorTheme.load_settings()
+	ColorTheme.notifier.changed.connect(_apply_color_theme)
 	# 研究の条件（chunk の数・バイオーム）のため、所有している chunk を HubGoals に伝え続ける
 	world.territory.changed.connect(_sync_owned_chunks)
 	if not _load_game():
@@ -68,6 +70,32 @@ func _ready():
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	pause_menu.new_game_requested.connect(_on_pause_menu_new_game_requested)
 	battle_overlay.closed.connect(_on_battle_closed)
+	pause_menu.color_theme_toggle_requested.connect(_on_color_theme_toggle_requested)
+	# 戦闘の画面など、あとから加わる部品にも、いまの配色の見た目を当てる
+	get_tree().node_added.connect(_on_node_added)
+	_apply_color_theme()
+
+
+func _on_color_theme_toggle_requested() -> void:
+	ColorTheme.toggle()
+	ColorTheme.save_settings()
+
+
+# いまの配色を画面全体に行き渡らせる。背景の色と画面の部品の見た目を差し替え、
+# 色を覚えているノードには apply_color_theme で塗り直させ、すべてを描き直す
+func _apply_color_theme() -> void:
+	RenderingServer.set_default_clear_color(HexStyle.background_color())
+	_apply_color_theme_to(self)
+
+
+func _apply_color_theme_to(node: Node) -> void:
+	_apply_ui_theme(node)
+	if node != self and node.has_method("apply_color_theme"):
+		node.apply_color_theme()
+	if node is CanvasItem:
+		node.queue_redraw()
+	for child in node.get_children():
+		_apply_color_theme_to(child)
 
 
 func _start_new_game() -> void:
@@ -535,3 +563,15 @@ func _open_item_picker_at_cursor() -> bool:
 		return false
 	hud.open_item_picker(piece)
 	return true
+
+
+# 画面の部品の見た目は親の Control から受け継がれるので、CanvasLayer の直下などの
+# いちばん上の Control にだけ設定する
+func _apply_ui_theme(node: Node) -> void:
+	if node is Control and not node.get_parent() is Control:
+		node.theme = ColorTheme.ui_theme()
+
+
+func _on_node_added(node: Node) -> void:
+	if is_ancestor_of(node):
+		_apply_ui_theme(node)

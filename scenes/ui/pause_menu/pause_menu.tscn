@@ -54,6 +54,12 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 text = "セーブ"
 
+[node name="ColorThemeButton" type="Button" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+text = "ライトモードにする"
+
 [node name="NewGameButton" type="Button" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 44)

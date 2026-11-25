@@ -5,13 +5,36 @@ var hex_tile: HexTile
 
 
 func before_each():
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	hex_tile = HexTileScene.instantiate()
 	add_child_autofree(hex_tile)
 	hex_tile.setup_hex(Vector2i(0, 0))
 
 
+func after_each():
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+
+
 func test_床は戦闘の盤面と同じ色で塗る():
-	assert_eq(hex_tile.get_fill_color(), HexStyle.FLOOR_COLOR)
+	assert_eq(hex_tile.get_fill_color(), HexStyle.floor_color())
+
+
+func test_配色を切り替えると床の色も切り替わる():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(hex_tile.get_fill_color(), ColorTheme.LIGHT[&"floor"])
+
+
+func test_床に混ぜた色は配色を切り替えても床の色に混ぜ直す():
+	hex_tile.set_floor_tint(Color.RED, 0.25)
+	assert_eq(hex_tile.get_fill_color(), HexStyle.floor_color().lerp(Color.RED, 0.25))
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(hex_tile.get_fill_color(), ColorTheme.LIGHT[&"floor"].lerp(Color.RED, 0.25))
+
+
+func test_ハイライトの色も配色に合わせる():
+	hex_tile.set_highlight(true)
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(hex_tile.get_fill_color(), ColorTheme.LIGHT[&"landing_hint"])
 
 
 func test_色を設定するとその色で塗る():
@@ -34,7 +57,7 @@ func test_ハイライト中はハイライトの色で塗る():
 
 	hex_tile.set_highlight(true)
 
-	assert_eq(hex_tile.get_fill_color(), hex_tile.highlight_color)
+	assert_eq(hex_tile.get_fill_color(), ColorTheme.color(&"landing_hint"))
 	assert_eq(hex_tile.get_color(), Color.RED, "元の色は覚えている")
 
 

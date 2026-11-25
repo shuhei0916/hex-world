@@ -25,19 +25,7 @@ const TREE_VIEW_MIN_WIDTH := 240.0
 const DETAIL_WIDTH := 250.0
 const LINK_WIDTH := 3.0
 
-# 後ろのマップが透けて読みにくくならないよう、背景は不透明にする
-const BACKGROUND_COLOR := Color(0.09, 0.1, 0.13, 1.0)
-const BORDER_COLOR := Color(0.45, 0.5, 0.6)
-const DETAIL_COLOR := Color(0.13, 0.15, 0.19)
-const BAND_COLOR := Color(1, 1, 1, 0.03)
-const NAME_COLOR := Color(1, 1, 1)
-const DESCRIPTION_COLOR := Color(0.72, 0.75, 0.8)
-const TITLE_COLOR := Color(0.55, 0.6, 0.68)
-const AFFORDABLE_COLOR := Color(0.55, 0.9, 0.55)
-const UNAFFORDABLE_COLOR := Color(1.0, 0.55, 0.5)
-const STATUS_COLOR := Color(1.0, 0.82, 0.45)
-const LINK_COLOR := Color("#3c4452")
-const LINK_DONE_COLOR := Color("#4fa3d9")
+# 色は配色（ColorTheme）から引く。後ろのマップが透けて読みにくくならないよう、背景は不透明にする
 
 var close_button: Button
 var research_button: Button
@@ -55,12 +43,15 @@ var _name_label: Label
 var _description_label: Label
 var _cost_label: Label
 var _status_label: Label
+var _detail_card: PanelContainer
+# 配色を切り替えたときに塗り直すラベルと、その色の名前
+var _themed_labels: Array = []  # [Label, StringName]
 
 
 func _ready() -> void:
 	visible = false
-	add_theme_stylebox_override("panel", _make_box(BACKGROUND_COLOR, BORDER_COLOR, 2, 10))
 	_build()
+	apply_color_theme()
 	HubGoals.research_changed.connect(refresh)
 	HubGoals.stock_changed.connect(refresh)
 	HubGoals.exploration_changed.connect(refresh)
@@ -79,6 +70,18 @@ func toggle() -> void:
 
 func close() -> void:
 	visible = false
+
+
+# パネル・詳細の背景とラベルを、いまの配色で塗り直す
+func apply_color_theme() -> void:
+	add_theme_stylebox_override(
+		"panel", _make_box(ColorTheme.color(&"panel"), ColorTheme.color(&"panel_border"), 2, 10)
+	)
+	var inner := ColorTheme.color(&"panel_inner")
+	_detail_card.add_theme_stylebox_override("panel", _make_box(inner, inner, 0, 8))
+	for entry in _themed_labels:
+		entry[0].add_theme_color_override("font_color", ColorTheme.color(entry[1]))
+	refresh()
 
 
 func get_tree_scroll() -> ScrollContainer:
@@ -126,7 +129,7 @@ func get_links() -> Array:
 
 
 func get_link_color(from_id: String, _to_id: String) -> Color:
-	return LINK_DONE_COLOR if HubGoals.is_researched(from_id) else LINK_COLOR
+	return ColorTheme.color(&"link_done" if HubGoals.is_researched(from_id) else &"link")
 
 
 func get_column_titles() -> Array[String]:
@@ -188,10 +191,10 @@ func _refresh_detail() -> void:
 	_name_label.text = def["name"]
 	_description_label.text = def["description"]
 	_cost_label.text = "価格: " + _cost_text(def["cost"])
-	var color = AFFORDABLE_COLOR if HubGoals.can_afford(def["cost"]) else UNAFFORDABLE_COLOR
+	var color_key := &"text_good" if HubGoals.can_afford(def["cost"]) else &"text_bad"
 	if state == Research.State.DONE:
-		color = DESCRIPTION_COLOR
-	_cost_label.add_theme_color_override("font_color", color)
+		color_key = &"text_dim"
+	_cost_label.add_theme_color_override("font_color", ColorTheme.color(color_key))
 	_status_label.text = HubGoals.research_state_text(_selected)
 	research_button.disabled = state != Research.State.AVAILABLE
 
@@ -233,10 +236,10 @@ func _build() -> void:
 func _build_header() -> Control:
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
-	var title := _make_label(TITLE_TEXT, 24, NAME_COLOR)
+	var title := _make_label(TITLE_TEXT, 24, &"text_strong")
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
-	header.add_child(_make_label(HINT_TEXT, 13, DESCRIPTION_COLOR))
+	header.add_child(_make_label(HINT_TEXT, 13, &"text_dim"))
 	close_button = Button.new()
 	close_button.text = "×"
 	close_button.custom_minimum_size = Vector2(32, 32)
@@ -262,7 +265,7 @@ func _build_tree() -> Control:
 	_canvas.draw.connect(_draw_tree.bind(branch_rows))
 
 	for i in levels.size():
-		var title := _make_label("Lv%d" % levels[i], 13, TITLE_COLOR)
+		var title := _make_label("Lv%d" % levels[i], 13, &"text_title")
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.position = Vector2(ROW_TITLE_WIDTH + i * COLUMN_WIDTH, 4)
 		title.size = Vector2(COLUMN_WIDTH, HEADER_HEIGHT - 4)
@@ -272,7 +275,7 @@ func _build_tree() -> Control:
 		if not branch_rows.has(branch):
 			continue
 		var rows: Array = branch_rows[branch]
-		var title := _make_label(Research.branch_name(branch), 14, TITLE_COLOR)
+		var title := _make_label(Research.branch_name(branch), 14, &"text_title")
 		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.position = Vector2(8, HEADER_HEIGHT + rows[0] * ROW_HEIGHT)
 		title.size = Vector2(ROW_TITLE_WIDTH - 8, rows.size() * ROW_HEIGHT)
@@ -335,7 +338,7 @@ func _draw_tree(branch_rows: Dictionary) -> void:
 					_canvas.custom_minimum_size.x,
 					rows.size() * ROW_HEIGHT
 				),
-				BAND_COLOR
+				ColorTheme.color(&"panel_band")
 			)
 		stripe = not stripe
 	for link in _links:
@@ -346,8 +349,8 @@ func _draw_tree(branch_rows: Dictionary) -> void:
 
 func _build_detail() -> Control:
 	var card := PanelContainer.new()
+	_detail_card = card
 	card.custom_minimum_size = Vector2(DETAIL_WIDTH, 0)
-	card.add_theme_stylebox_override("panel", _make_box(DETAIL_COLOR, DETAIL_COLOR, 0, 8))
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 14)
@@ -355,18 +358,18 @@ func _build_detail() -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	margin.add_child(box)
-	_name_label = _make_label("", 18, NAME_COLOR)
+	_name_label = _make_label("", 18, &"text_strong")
 	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_description_label = _make_label("", 13, DESCRIPTION_COLOR)
+	_description_label = _make_label("", 13, &"text_dim")
 	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_cost_label = _make_label("", 13, AFFORDABLE_COLOR)
+	_cost_label = _make_label("", 13, &"text_good")
 	_cost_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for label in [_name_label, _description_label, _cost_label]:
 		box.add_child(label)
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(spacer)
-	_status_label = _make_label("", 12, STATUS_COLOR)
+	_status_label = _make_label("", 12, &"text_notice")
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_status_label)
 	research_button = Button.new()
@@ -378,11 +381,13 @@ func _build_detail() -> Control:
 	return card
 
 
-func _make_label(text: String, font_size: int, color: Color) -> Label:
+# color_key: 文字の色の配色の名前。配色を切り替えると塗り直す
+func _make_label(text: String, font_size: int, color_key: StringName) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_color", ColorTheme.color(color_key))
+	_themed_labels.append([label, color_key])
 	return label
 
 

@@ -31,3 +31,10 @@ func test_アイコンを持てる():
 	var tex := PlaceholderTexture2D.new()
 	button.hex_icon = tex
 	assert_eq(button.hex_icon, tex)
+
+
+func test_アイコンはダークでは白のまま_ライトではインクの色で描く():
+	assert_eq(button.get_icon_color(), Color.WHITE)
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(button.get_icon_color(), ColorTheme.LIGHT[&"button_icon"])
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)

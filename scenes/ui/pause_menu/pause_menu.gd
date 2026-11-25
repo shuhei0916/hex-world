@@ -8,9 +8,12 @@ extends CanvasLayer
 signal save_requested
 signal new_game_requested
 signal quit_requested
+signal color_theme_toggle_requested
 
 const NEW_GAME_TEXT := "最初からやり直す"
 const NEW_GAME_CONFIRM_TEXT := "本当にやり直す（もう一度押す）"
+const TO_LIGHT_TEXT := "ライトモードにする"
+const TO_DARK_TEXT := "ダークモードにする"
 
 # やり直しは取り消せないので、1回目の押下では確認だけを行う
 var _confirming_new_game := false
@@ -18,6 +21,7 @@ var _confirming_new_game := false
 @onready var resume_button: Button = %ResumeButton
 @onready var save_button: Button = %SaveButton
 @onready var new_game_button: Button = %NewGameButton
+@onready var color_theme_button: Button = %ColorThemeButton
 @onready var quit_button: Button = %QuitButton
 @onready var status_label: Label = %StatusLabel
 
@@ -28,6 +32,9 @@ func _ready() -> void:
 	save_button.pressed.connect(func(): save_requested.emit())
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	quit_button.pressed.connect(func(): quit_requested.emit())
+	color_theme_button.pressed.connect(func(): color_theme_toggle_requested.emit())
+	ColorTheme.notifier.changed.connect(_refresh_color_theme_button)
+	apply_color_theme()
 	_reset_transient_state()
 
 
@@ -59,6 +66,16 @@ func close() -> void:
 
 func show_status(text: String) -> void:
 	status_label.text = text
+
+
+func apply_color_theme() -> void:
+	$Dimmer.color = ColorTheme.color(&"dimmer")
+	_refresh_color_theme_button()
+
+
+# 押すと切り替わる先（いまと逆）の配色の名前を出す
+func _refresh_color_theme_button() -> void:
+	color_theme_button.text = TO_DARK_TEXT if ColorTheme.is_light() else TO_LIGHT_TEXT
 
 
 func _on_new_game_pressed() -> void:

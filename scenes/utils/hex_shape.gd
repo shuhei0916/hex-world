@@ -60,5 +60,6 @@ static func draw(
 	canvas: CanvasItem, center: Vector2, circumradius: float, pointy: bool, fill: Color
 ) -> void:
 	canvas.draw_colored_polygon(corners(center, circumradius, pointy), fill)
-	var border := Color(HexStyle.BORDER_COLOR, HexStyle.BORDER_COLOR.a * fill.a)
+	var line := HexStyle.border_color()
+	var border := Color(line, line.a * fill.a)
 	canvas.draw_polyline(outline(center, circumradius, pointy), border, HexStyle.BORDER_WIDTH)

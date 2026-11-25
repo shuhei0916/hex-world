@@ -15,7 +15,6 @@ const DEFEAT_CONFIRM_TEXT := "地図に戻る"
 const UI_LAYER_OFFSET := 2
 ## 戦闘画面を描く重なり順。床やピースより手前
 const BATTLE_Z_INDEX := 100
-const RESULT_PANEL_COLOR := Color("#1e222c")
 
 ## いま表示している戦闘の画面。閉じているあいだは null。
 var battle_scene: BattleScene
@@ -26,6 +25,7 @@ var _won := false
 var _ui := CanvasLayer.new()
 var _retreat_button := Button.new()
 var _result_panel := PanelContainer.new()
+var _result_style := StyleBoxFlat.new()
 var _result_label := Label.new()
 var _confirm_button := Button.new()
 
@@ -136,10 +136,9 @@ func _build_ui() -> void:
 	_result_panel.offset_right = 220.0
 	_result_panel.offset_top = -90.0
 	_result_panel.offset_bottom = 90.0
-	var style := StyleBoxFlat.new()
-	style.bg_color = RESULT_PANEL_COLOR
-	style.set_corner_radius_all(8)
-	_result_panel.add_theme_stylebox_override("panel", style)
+	_result_style.set_corner_radius_all(8)
+	apply_color_theme()
+	_result_panel.add_theme_stylebox_override("panel", _result_style)
 	_ui.add_child(_result_panel)
 	var box := VBoxContainer.new()
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -155,3 +154,8 @@ func _build_ui() -> void:
 	_confirm_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_confirm_button.pressed.connect(confirm_result)
 	box.add_child(_confirm_button)
+
+
+# 結果のパネルの背景を、いまの配色で塗り直す
+func apply_color_theme() -> void:
+	_result_style.bg_color = ColorTheme.color(&"panel_inner")
