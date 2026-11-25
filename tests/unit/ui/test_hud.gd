@@ -19,6 +19,16 @@ func after_each():
 	HubGoals.creative_mode = false
 
 
+func test_ライトでは解放していないボタンを暗くせず薄くする():
+	var smelter_btn = hud.slot_buttons[2] as Button
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	hud.apply_color_theme()
+	assert_eq(smelter_btn.modulate, ColorTheme.LIGHT[&"disabled_modulate"])
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+	hud.apply_color_theme()
+	assert_eq(smelter_btn.modulate, ColorTheme.DARK[&"disabled_modulate"])
+
+
 func test_スロット7は橋である():
 	assert_eq(_get_slot_piece_type(6), PieceData.Type.BRIDGE)
 

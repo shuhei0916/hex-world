@@ -44,7 +44,13 @@ func _ready() -> void:
 	battle.unit_moved.connect(_on_unit_moved)
 	battle.unit_attacked.connect(_on_unit_attacked)
 	battle.unit_died.connect(_on_unit_died)
+	apply_color_theme()
 	refresh()
+
+
+# 敵の予定の文字を、いまの配色の注意の色にする（ライトの紙の上でも読めるように）
+func apply_color_theme() -> void:
+	_intent_label.add_theme_color_override("font_color", ColorTheme.color(&"text_intent"))
 
 
 func _unhandled_input(event: InputEvent) -> void:

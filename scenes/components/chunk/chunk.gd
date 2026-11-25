@@ -255,7 +255,7 @@ func _paint_resource_tile(hex: Vector2i, resource_type: String):
 	if tile and resource_type in ChunkResources.RESOURCE_COLORS:
 		# 鉱床は地面の種類なので、床に資源の色を薄く混ぜ、中央に資源のアイコンを出す
 		var color: Color = ChunkResources.RESOURCE_COLORS[resource_type]
-		tile.set_color(HexStyle.FLOOR_COLOR.lerp(color, DEPOSIT_TINT))
+		tile.set_floor_tint(color, DEPOSIT_TINT)
 		var item = ItemDB.get_item(resource_type)
 		tile.set_icon(item.icon if item else null)
 

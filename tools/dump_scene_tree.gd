@@ -25,6 +25,7 @@ extends SceneTree
 ##   --frames=<n>            起動後、シナリオ開始前に待つフレーム数（既定: 2）
 
 const TOOL_SAVE_PATH := "user://tool_session_save.json"
+const TOOL_SETTINGS_PATH := "user://tool_session_settings.cfg"
 
 var _args := {}
 var _extra_props: PackedStringArray = []
@@ -46,6 +47,17 @@ func _run() -> void:
 	var save_game = load("res://scenes/utils/save_game.gd")
 	save_game.path = TOOL_SAVE_PATH
 	save_game.delete()
+	# 配色も本物の設定を使わない。環境変数 COLOR_THEME=light でライトの見た目で起動する
+	var color_theme = load("res://scenes/utils/color_theme.gd")
+	color_theme.settings_path = TOOL_SETTINGS_PATH
+	color_theme.set_mode(
+		(
+			color_theme.Mode.LIGHT
+			if OS.get_environment("COLOR_THEME") == "light"
+			else color_theme.Mode.DARK
+		)
+	)
+	color_theme.save_settings()
 	var packed: PackedScene = load(scene_path)
 	if packed == null:
 		printerr("シーンを読み込めません: %s" % scene_path)

@@ -5,6 +5,8 @@ extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_player_walk_save.json"
+# 本物の設定（配色）も読み書きしない
+const SETTINGS_PATH := "user://test_player_walk_settings.cfg"
 const RIGHT := Vector2(1, 0)
 # 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
 const EAST_EDGE_HEX := Vector2i(2, Chunk.DEFAULT_RADIUS - 2)
@@ -15,6 +17,9 @@ var main: Main
 func before_each():
 	SaveGame.path = SAVE_PATH
 	SaveGame.delete()
+	ColorTheme.settings_path = SETTINGS_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 	main = MainScene.instantiate()
 	add_child_autofree(main)
@@ -26,6 +31,9 @@ func after_each():
 	await get_tree().process_frame
 	SaveGame.delete()
 	SaveGame.path = SaveGame.DEFAULT_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.settings_path = ColorTheme.DEFAULT_SETTINGS_PATH
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 
 

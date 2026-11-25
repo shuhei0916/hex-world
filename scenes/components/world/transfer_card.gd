@@ -6,9 +6,6 @@ extends Node2D
 ## まだ何も運んでいなければ矢印だけを描く。大きさはワールドマップの座標（タイルの半径 ≒ 70）。
 
 const ARROW_SIZE := 20.0
-const ARROW_COLOR := Color("#7ee8a0")
-const BACKGROUND_COLOR := Color("#323848", 0.95)
-const TEXT_COLOR := Color("#e8eaf0")
 const CORNER_RADIUS := 6.0
 const PADDING := 5.0
 const ROW_HEIGHT := 20.0
@@ -66,13 +63,13 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1,
 			FONT_SIZE,
-			TEXT_COLOR
+			ColorTheme.color(&"card_text")
 		)
 		row_top += ROW_HEIGHT
 
 
 func _draw_arrow(center: Vector2, size: float) -> void:
-	draw_colored_polygon(arrow_shape(center, direction, size), ARROW_COLOR)
+	draw_colored_polygon(arrow_shape(center, direction, size), ColorTheme.color(&"card_arrow"))
 
 
 # 運ぶ向きを指す軸付きの矢印（→。先端が最初の点）。三角形だけだと、斜めのときにどの角が先端か
@@ -92,7 +89,7 @@ static func arrow_shape(center: Vector2, dir: Vector2, size: float) -> PackedVec
 # 角を丸めた背景
 func _draw_background(rect: Rect2) -> void:
 	var box := StyleBoxFlat.new()
-	box.bg_color = BACKGROUND_COLOR
+	box.bg_color = ColorTheme.color(&"card_background")
 	box.set_corner_radius_all(int(CORNER_RADIUS))
 	box.anti_aliasing = true
 	draw_style_box(box, rect)

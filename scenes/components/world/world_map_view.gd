@@ -13,9 +13,8 @@ const REFRESH_INTERVAL := 1.0
 const TRANSFER_CARD_Z := 1
 const INFO_LABEL_Z := 2
 # まだ所有していない chunk の色。所有している chunk の隣（戦って解放できる）はバイオーム色を
-# 暗くして何が採れるかを見せ、それより遠くは霧で隠す
+# 沈めて（ダークは暗く、ライトは霧の色に寄せて）何が採れるかを見せ、それより遠くは霧（配色の fog）で隠す
 const FRONTIER_DARKEN := 0.55
-const FOG_COLOR := Color("#1d2026")
 const FOG_TEXT := "未踏"
 const CHALLENGE_TEXT := "戦って解放"
 
@@ -68,11 +67,18 @@ func _tile_color(hex: Vector2i) -> Color:
 	var biome = _planet.get_biome(hex) if _planet else null
 	if biome == null:
 		return ChunkTileScript.NORMAL_COLOR
+	var biome_color := ColorTheme.map_color(biome.map_color)
 	if _world.territory.is_owned(hex):
-		return biome.map_color
+		return biome_color
 	if _world.territory.can_challenge(hex):
-		return biome.map_color.darkened(FRONTIER_DARKEN)
-	return FOG_COLOR
+		return biome_color.lerp(ColorTheme.color(&"frontier_veil"), FRONTIER_DARKEN)
+	return ColorTheme.color(&"fog")
+
+
+# 配色を切り替えたとき、タイルを新しい配色の色で塗り直す
+func apply_color_theme() -> void:
+	for hex in _tiles:
+		_tiles[hex].setup(hex, _tile_color(hex))
 
 
 # 霧に隠れている chunk（所有しておらず、所有している chunk の隣でもない）

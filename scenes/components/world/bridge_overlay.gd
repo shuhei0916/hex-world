@@ -11,10 +11,7 @@ extends Node2D
 const Z_INDEX := 8
 const ITEM_Z_INDEX := 12
 const BELT_WIDTH := ConveyorVisuals.BELT_WIDTH
-const FILL_COLOR := Color(0.77, 0.77, 0.77, 1.0)
-const EDGE_COLOR := Color(0.54, 0.54, 0.57, 1.0)
-const ARROW_COLOR := Color(0.62, 0.62, 0.62, 1.0)
-const UNCONNECTED_COLOR := Color(0.77, 0.77, 0.77, 0.3)
+# 帯の色はコンベアと同じ配色の色を、描くたびに引く
 # 矢印の間隔。コンベア1マス（辺から辺まで）に2本と同じ密度にする
 const ARROW_SPACING := 36.4
 const ITEM_SIZE := Vector2(28, 28)
@@ -43,11 +40,11 @@ func _draw() -> void:
 	for span in _world.get_bridge_spans():
 		var path: PackedVector2Array = span["path"]
 		if span["connected"]:
-			draw_polyline(path, EDGE_COLOR, BELT_WIDTH, true)
-			draw_polyline(path, FILL_COLOR, BELT_WIDTH - 6.0, true)
+			draw_polyline(path, ColorTheme.color(&"belt_edge"), BELT_WIDTH, true)
+			draw_polyline(path, ColorTheme.color(&"belt_fill"), BELT_WIDTH - 6.0, true)
 			_draw_arrows(path)
 		else:
-			draw_polyline(path, UNCONNECTED_COLOR, BELT_WIDTH - 6.0, true)
+			draw_polyline(path, ColorTheme.color(&"bridge_unconnected"), BELT_WIDTH - 6.0, true)
 
 
 # コンベアと同じ時計・同じ間隔で矢印を流す（橋の長さに応じて本数が増える）
@@ -65,7 +62,7 @@ func _draw_arrows(path: PackedVector2Array) -> void:
 		distance += ARROW_SPACING
 	for point in ConveyorVisuals.arrow_points(path, fractions):
 		var shape = ConveyorVisuals.chevron_shape(point["position"], point["tangent"])
-		draw_colored_polygon(shape, ARROW_COLOR)
+		draw_colored_polygon(shape, ColorTheme.color(&"belt_arrow"))
 
 
 # 渡している途中のアイテム。橋のマスの中心から帯をたどって着地点の辺まで進む

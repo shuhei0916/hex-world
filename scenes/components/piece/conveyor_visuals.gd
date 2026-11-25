@@ -11,9 +11,7 @@ const CURVE_SEGMENTS = 12
 # これより急に折れる角では、太い線を1本で描くと角が尖って突き出るので、線を分けて丸で継ぐ
 const SHARP_CORNER_ANGLE := deg_to_rad(45.0)
 
-const _BELT_FILL := Color(0.77, 0.77, 0.77, 1.0)
-const _BELT_EDGE := Color(0.54, 0.54, 0.57, 1.0)
-const _BELT_ARROW := Color(0.62, 0.62, 0.62, 1.0)
+# 帯の色は配色（belt_fill / belt_edge / belt_arrow）から描くたびに引く
 # 1マス（入口の辺から出口の辺まで）に並べる矢印の本数。どのコンベアでも同じ本数にして、
 # 隣のコンベアとの境目で矢印の間隔が変わらないようにする
 const ARROWS_PER_PIECE := 2
@@ -228,7 +226,7 @@ func _draw():
 func _draw_outline() -> void:
 	for path in drawn_merge_paths() + drawn_belt_paths():
 		if path.size() >= 2:
-			draw_band(_outline, path, _BELT_EDGE, BELT_WIDTH)
+			draw_band(_outline, path, ColorTheme.color(&"belt_edge"), BELT_WIDTH)
 
 
 # 帯は延ばした drawn で描き、矢印は延ばす前の path の割合で置く（隣と矢印の間隔をそろえる）
@@ -237,7 +235,7 @@ func _draw_belt(
 ) -> void:
 	if path.size() < 2:
 		return
-	draw_band(self, drawn, _BELT_FILL, BELT_WIDTH - 6.0)
+	draw_band(self, drawn, ColorTheme.color(&"belt_fill"), BELT_WIDTH - 6.0)
 	for point in arrow_points(path, fractions, covered):
 		_draw_chevron(point["position"], point["tangent"])
 
@@ -273,7 +271,7 @@ static func split_at_sharp_corners(path: PackedVector2Array) -> Dictionary:
 
 func _draw_chevron(pos: Vector2, tangent: Vector2):
 	for polygon in chevron_polygons(pos, tangent):
-		draw_colored_polygon(polygon, _BELT_ARROW)
+		draw_colored_polygon(polygon, ColorTheme.color(&"belt_arrow"))
 
 
 # 矢印の形（くの字）。正三角形に近い三角形は120度回すと同じ形になり、斜めに流れると

@@ -397,6 +397,11 @@ func _refresh_research_button() -> void:
 		research_button.text += " (%d)" % available
 
 
+# 解放していないボタンの薄め方を、いまの配色で塗り直す
+func apply_color_theme() -> void:
+	_refresh_unlock_states()
+
+
 func _refresh_unlock_states():
 	for i in slot_buttons.size():
 		var btn := slot_buttons[i] as Button
@@ -404,14 +409,16 @@ func _refresh_unlock_states():
 			continue
 		var unlocked := _is_slot_unlocked(i)
 		btn.disabled = not unlocked
-		btn.modulate = Color(1, 1, 1, 1) if unlocked else Color(0.4, 0.4, 0.4, 1)
+		btn.modulate = Color.WHITE if unlocked else ColorTheme.color(&"disabled_modulate")
 	# 中のピースがひとつも解放されていないジャンルは押せない
 	for c in category_buttons.size():
 		var any_unlocked := false
 		for i in _slots_in_category(c):
 			any_unlocked = any_unlocked or not slot_buttons[i].disabled
 		category_buttons[c].disabled = not any_unlocked
-		category_buttons[c].modulate = Color.WHITE if any_unlocked else Color(0.4, 0.4, 0.4, 1)
+		category_buttons[c].modulate = (
+			Color.WHITE if any_unlocked else ColorTheme.color(&"disabled_modulate")
+		)
 
 
 func _on_slot_selected_for_info(scene: PackedScene):

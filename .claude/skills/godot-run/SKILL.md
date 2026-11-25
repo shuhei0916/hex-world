@@ -137,6 +137,7 @@ dump_tree.sh "--do=script:res://tools/scenarios/conveyor_branch_flow.gd" --depth
 
 - 引数は dump_tree.sh と同じで、`shot:<絶対パス.png>` ステップで画面を保存する（Read で画像を見られる）。
 - Windows では見えない別のデスクトップで起動する（`scripts/run_hidden.ps1`）ので、ウィンドウは画面に出ず、フォーカスも奪わない。
+- 配色は環境変数 `COLOR_THEME=light` でライト（紙のボードゲーム風）、指定なしでダーク。本物の設定（`user://settings.cfg`）は読まない。
 - 解像度は環境変数 `RESOLUTION`（既定 1280x720）。環境変数 `TIMEOUT`（秒、既定 120）を過ぎたら強制終了する。
 - 出力（シーンツリーや `print`）はゲームの終了後にまとめて表示される。
 - 本物のセーブには触れない（dump_tree.sh と同じく、ツール用のセーブを使う）。

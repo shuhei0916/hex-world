@@ -11,19 +11,17 @@ const ICON_SIZE := 28.0
 const NAME_FONT_SIZE := 12
 # 名前はノードより少し広い幅で折り返す（「コンベア高速化 II」が1行に収まるように）
 const NAME_WIDTH := 116.0
-const SELECTED_OUTLINE := Color(1, 1, 1)
 const SELECTED_WIDTH := 3.0
 
+# 状態ごとの塗りの色（配色の名前）
 const _STATE_COLORS = {
-	Research.State.DONE: Color("#4fa3d9"),
-	Research.State.AVAILABLE: Color("#e0b44a"),
-	Research.State.UNAFFORDABLE: Color("#5a6478"),
-	Research.State.LOCKED_CONDITION: Color("#2c323d"),
-	Research.State.LOCKED_PREREQUISITE: Color("#2c323d"),
-	Research.State.LOCKED_LEVEL: Color("#2c323d"),
+	Research.State.DONE: &"research_done",
+	Research.State.AVAILABLE: &"research_available",
+	Research.State.UNAFFORDABLE: &"research_unaffordable",
+	Research.State.LOCKED_CONDITION: &"research_locked",
+	Research.State.LOCKED_PREREQUISITE: &"research_locked",
+	Research.State.LOCKED_LEVEL: &"research_locked",
 }
-const _NAME_COLOR := Color(0.9, 0.92, 0.96)
-const _LOCKED_NAME_COLOR := Color(0.55, 0.58, 0.64)
 
 var research_id: String
 var selected := false:
@@ -64,9 +62,13 @@ func set_state(state: Research.State) -> void:
 	_state = state
 	var locked := not state in [Research.State.DONE, Research.State.AVAILABLE]
 	_name_label.add_theme_color_override(
-		"font_color", _LOCKED_NAME_COLOR if locked else _NAME_COLOR
+		"font_color", ColorTheme.color(&"research_name_locked" if locked else &"research_name")
 	)
 	queue_redraw()
+
+
+func apply_color_theme() -> void:
+	set_state(_state)
 
 
 func get_state() -> Research.State:
@@ -74,7 +76,7 @@ func get_state() -> Research.State:
 
 
 func get_fill_color() -> Color:
-	return _STATE_COLORS[_state]
+	return ColorTheme.color(_STATE_COLORS[_state])
 
 
 static func hex_points(center: Vector2, radius: float) -> PackedVector2Array:
@@ -90,7 +92,7 @@ func _draw() -> void:
 	if selected:
 		var ring := hex_points(HEX_CENTER, HEX_RADIUS + SELECTED_WIDTH)
 		ring.append(ring[0])
-		draw_polyline(ring, SELECTED_OUTLINE, SELECTED_WIDTH, true)
+		draw_polyline(ring, ColorTheme.color(&"selected_outline"), SELECTED_WIDTH, true)
 	if _icon:
 		var alpha := 1.0 if _state in [Research.State.DONE, Research.State.AVAILABLE] else 0.45
 		var icon_size := Vector2(ICON_SIZE, ICON_SIZE)

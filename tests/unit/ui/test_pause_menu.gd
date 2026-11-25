@@ -12,6 +12,7 @@ func before_each():
 
 func after_each():
 	get_tree().paused = false
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 
 
 func _esc_event() -> InputEventKey:
@@ -93,3 +94,21 @@ func test_メニューを開き直すとやり直しの確認とメッセージ�
 	menu.open()
 	assert_eq(menu.new_game_button.text, "最初からやり直す")
 	assert_eq(menu.status_label.text, "")
+
+
+func test_配色の切り替えボタンを押すと切り替えを頼む():
+	watch_signals(menu)
+	menu.color_theme_button.pressed.emit()
+	assert_signal_emitted(menu, "color_theme_toggle_requested")
+
+
+func test_配色の切り替えボタンにはいまと逆の配色の名前が出る():
+	assert_eq(menu.color_theme_button.text, PauseMenu.TO_LIGHT_TEXT)
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(menu.color_theme_button.text, PauseMenu.TO_DARK_TEXT)
+
+
+func test_後ろを覆う幕も配色に合わせる():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	menu.apply_color_theme()
+	assert_eq(menu.get_node("Dimmer").color, ColorTheme.LIGHT[&"dimmer"])

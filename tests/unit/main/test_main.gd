@@ -3,6 +3,8 @@ extends GutTest
 
 const MainScene = preload("res://scenes/main/main.tscn")
 const SAVE_PATH := "user://test_main_save.json"
+# 本物の設定（配色）も読み書きしない
+const SETTINGS_PATH := "user://test_main_settings.cfg"
 const CONVEYOR = preload("res://scenes/components/piece/conveyor.tscn")
 const CHEST_OUT = preload("res://scenes/components/piece/chest_out.tscn")
 # 東隣 (1, 0) の chunk に面した辺（SE）の、角でないマス
@@ -17,6 +19,9 @@ func before_each():
 	# 本物のセーブデータを読み書きしないよう、テスト用のファイルに差し替える
 	SaveGame.path = SAVE_PATH
 	SaveGame.delete()
+	ColorTheme.settings_path = SETTINGS_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 	main = MainScene.instantiate()
 	add_child_autofree(main)
@@ -26,6 +31,9 @@ func after_each():
 	await get_tree().process_frame
 	SaveGame.delete()
 	SaveGame.path = SaveGame.DEFAULT_PATH
+	DirAccess.remove_absolute(SETTINGS_PATH)
+	ColorTheme.settings_path = ColorTheme.DEFAULT_SETTINGS_PATH
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
 	HubGoals.reset()
 
 
@@ -916,3 +924,50 @@ class TestPlayerSpawn:
 		var main = _start()
 		assert_eq(main.world.player.chunk_hex, main.world.get_active_hex())
 		assert_eq(Hex.distance(main.world.player.hex, Vector2i(0, 0)), 1)
+
+
+# ---- 配色（ダーク・ライト） ----------------------------------------------------
+
+
+func test_ポーズメニューから配色を切り替えるとライトになり_設定に残る():
+	main.pause_menu.color_theme_button.pressed.emit()
+	assert_true(ColorTheme.is_light())
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+	ColorTheme.load_settings()
+	assert_true(ColorTheme.is_light(), "次の起動でもライトで始まる")
+
+
+func test_起動すると設定に残した配色で始まる():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	ColorTheme.save_settings()
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+	_start_another_main()
+	assert_true(ColorTheme.is_light())
+
+
+func test_ライトにすると背景の色が紙の色になる():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	assert_eq(RenderingServer.get_default_clear_color(), ColorTheme.LIGHT[&"background"])
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+	assert_eq(RenderingServer.get_default_clear_color(), ColorTheme.DARK[&"background"])
+
+
+func test_ライトにすると画面の文字やボタンが明るい部品の見た目になり_ダークで元に戻る():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	var label: Label = main.hud.get_node("ChunkCoordLabel")
+	assert_eq(label.get_theme_color("font_color"), ColorTheme.LIGHT[&"text"])
+	ColorTheme.set_mode(ColorTheme.Mode.DARK)
+	assert_ne(label.get_theme_color("font_color"), ColorTheme.LIGHT[&"text"])
+
+
+func test_ライトにすると隣のchunkも紙の色の薄め方で描く():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	var neighbor = main.world.get_chunk(Vector2i(1, 0))
+	assert_eq(neighbor.modulate, ColorTheme.LIGHT[&"unowned_modulate"])
+
+
+func test_ライトのまま戦闘を始めると戦闘の画面の文字も明るい部品の見た目になる():
+	ColorTheme.set_mode(ColorTheme.Mode.LIGHT)
+	_start_battle_on_east()
+	var label: Label = main.battle_overlay.battle_scene.get_node("Hud/TurnLabel")
+	assert_eq(label.get_theme_color("font_color"), ColorTheme.LIGHT[&"text"])

@@ -4,11 +4,9 @@ extends Node2D
 
 # 1 chunk あたりの鉱床のマス数
 const DEPOSIT_SIZE := 5
-# ローカル画面で、アクティブな chunk の周りに描く隣の chunk の色（操作できないので暗くする）。
-# 暗くしすぎると床のタイルが背景(0.13)に溶けて見えなくなる
-const NEIGHBOR_MODULATE := Color(0.78, 0.78, 0.8, 1.0)
-# まだ所有していない隣の chunk の色。鉱床が見分けられる程度に、さらに暗くする
-const UNOWNED_MODULATE := Color(0.42, 0.42, 0.46, 1.0)
+# ローカル画面で、アクティブな chunk の周りに描く隣の chunk は、操作できないので薄めて描く。
+# 色は配色の neighbor_modulate（所有している隣）と unowned_modulate（所有していない隣）。
+# 暗くしすぎると床のタイルが背景に溶けて見えなくなる
 # キャラクターが壁に当たったとき、押した向きから何度傾けた向きへ滑るかを試す（近い順）
 const SLIDE_ANGLES := [30.0, 60.0]
 # 橋の帯の曲線を何本の線分で描くか
@@ -448,8 +446,16 @@ func _layout_visible_chunks() -> void:
 		var chunk = get_chunk(hex)
 		chunk.visible = true
 		chunk.position = _neighbor_position(active, hex - _active_hex)
-		chunk.modulate = NEIGHBOR_MODULATE if territory.is_owned(hex) else UNOWNED_MODULATE
+		chunk.modulate = ColorTheme.color(
+			&"neighbor_modulate" if territory.is_owned(hex) else &"unowned_modulate"
+		)
 	_update_player_view()
+
+
+# 配色を切り替えたとき、隣の chunk の薄め方を新しい配色で塗り直す
+func apply_color_theme() -> void:
+	if _active_hex != null:
+		_layout_visible_chunks()
 
 
 # 解放した隣の chunk を明るく描き直す
