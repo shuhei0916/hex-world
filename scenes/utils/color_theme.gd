@@ -46,8 +46,7 @@ const DARK := {
 	# ---- ワールドマップ ----
 	&"fog": Color("#1d2026"),
 	&"frontier_veil": Color.BLACK,  # 挑戦できる chunk のバイオーム色を沈める先
-	&"map_marker": Color("#f4f1ea"),  # 今いる chunk の印
-	&"map_hover": Color(1.0, 1.0, 1.0, 0.12),  # ホバー中の chunk に重ねる色
+	&"map_marker": Color("#f4f1ea"),  # 今いる chunk・ホバー中の chunk に描く輪
 	&"card_background": Color("#323848", 0.95),
 	&"card_text": Color("#e8eaf0"),
 	&"card_arrow": Color("#7ee8a0"),
@@ -107,7 +106,6 @@ const LIGHT := {
 	&"fog": Color("#cdbd9f"),
 	&"frontier_veil": Color("#cdbd9f"),  # 霧と同じ色に寄せる
 	&"map_marker": Color("#b0402c"),
-	&"map_hover": Color(_INK, 0.1),
 	&"card_background": Color("#fbf8f1", 0.95),
 	&"card_text": _INK,
 	&"card_arrow": Color("#2f8a52"),
