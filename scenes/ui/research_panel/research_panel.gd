@@ -15,8 +15,13 @@ const COLUMN_WIDTH := 104.0
 const ROW_HEIGHT := 96.0
 const HEADER_HEIGHT := 28.0
 const ROW_TITLE_WIDTH := 76.0
-# ツリーが大きくなっても画面からはみ出さないよう、この大きさを超えたらスクロールさせる
+# ツリーが大きくなっても画面からはみ出さないよう、この大きさを超えたらスクロールさせる。
+# 幅はさらに、パネル全体が画面の幅に収まるよう狭める（fit_to_width）
 const TREE_VIEW_MAX := Vector2(920, 430)
+# パネルの左右に残す画面の余白
+const SCREEN_MARGIN := 24.0
+# ツリーを狭めても、これより狭くはしない
+const TREE_VIEW_MIN_WIDTH := 240.0
 const DETAIL_WIDTH := 250.0
 const LINK_WIDTH := 3.0
 
@@ -38,6 +43,9 @@ var close_button: Button
 var research_button: Button
 
 var _canvas: Control
+var _tree_scroll: ScrollContainer
+# ドラッグでツリーをつかんで動かしている間 true
+var _dragging := false
 var _nodes: Dictionary = {}  # research_id → ResearchNode
 var _links: Array = []  # [前提の id, 研究の id]
 var _column_titles: Array[String] = []
@@ -58,6 +66,9 @@ func _ready() -> void:
 	HubGoals.exploration_changed.connect(refresh)
 	HubGoals.level_up.connect(func(_level, _reward): refresh())
 	select(_default_selection())
+	get_viewport().size_changed.connect(_fit_to_viewport)
+	minimum_size_changed.connect(_recenter)
+	_fit_to_viewport()
 
 
 func toggle() -> void:
@@ -68,6 +79,37 @@ func toggle() -> void:
 
 func close() -> void:
 	visible = false
+
+
+func get_tree_scroll() -> ScrollContainer:
+	return _tree_scroll
+
+
+## パネル全体が幅 screen_width の画面に収まるよう、ツリーの見える幅を決める。
+## 収まらない分は、ツリーを左右にスクロールして見る
+func fit_to_width(screen_width: float) -> void:
+	var canvas_width := _canvas.custom_minimum_size.x
+	# ツリー以外（詳細・余白・枠）が取る幅
+	var others := get_combined_minimum_size().x - _tree_scroll.custom_minimum_size.x
+	var available := screen_width - SCREEN_MARGIN * 2.0 - others
+	var view_width := clampf(minf(available, TREE_VIEW_MAX.x), TREE_VIEW_MIN_WIDTH, canvas_width)
+	var view_height := minf(_canvas.custom_minimum_size.y, TREE_VIEW_MAX.y)
+	if view_width < canvas_width:
+		# 横のスクロールバーがいちばん下の行に重ならないよう、その分だけ高くする
+		view_height += _tree_scroll.get_h_scroll_bar().get_combined_minimum_size().y
+	_tree_scroll.custom_minimum_size = Vector2(view_width, view_height)
+	_recenter()
+
+
+# 中身の大きさに詰めて、画面の中央に置き直す。詳細の文章は折り返すので、
+# レイアウトが決まるまで最小の大きさが変わる。そのたびに呼ぶ
+func _recenter() -> void:
+	reset_size()
+	position = ((get_viewport_rect().size - size) * 0.5).round()
+
+
+func _fit_to_viewport() -> void:
+	fit_to_width(get_viewport_rect().size.x)
 
 
 func get_node_button(id: String) -> ResearchNode:
@@ -247,18 +289,35 @@ func _build_tree() -> Control:
 			cell_origin + (Vector2(COLUMN_WIDTH, ROW_HEIGHT) - ResearchNode.NODE_SIZE) * 0.5
 		)
 		node.pressed.connect(select.bind(id))
+		# ノードの上でもホイール・ドラッグでツリーを動かせるよう、マウスの入力を親へ渡す
+		node.mouse_filter = Control.MOUSE_FILTER_PASS
 		_canvas.add_child(node)
 		_nodes[id] = node
 		for required in Research.get_def(id)["requires"]:
 			_links.append([required, id])
 
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(
+	_tree_scroll = ScrollContainer.new()
+	_tree_scroll.custom_minimum_size = Vector2(
 		minf(_canvas.custom_minimum_size.x, TREE_VIEW_MAX.x),
 		minf(_canvas.custom_minimum_size.y, TREE_VIEW_MAX.y)
 	)
-	scroll.add_child(_canvas)
-	return scroll
+	_tree_scroll.add_child(_canvas)
+	_canvas.gui_input.connect(_on_tree_gui_input)
+	return _tree_scroll
+
+
+# ツリーをつかんで（左か中ボタンでドラッグ）動かす。ホイールは ScrollContainer に任せる
+# （縦に収まっているときは横にスクロールする）
+func _on_tree_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE]:
+			_dragging = event.pressed
+	elif event is InputEventMouseMotion and _dragging:
+		if event.button_mask & (MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_MIDDLE) == 0:
+			_dragging = false
+			return
+		_tree_scroll.scroll_horizontal -= int(event.relative.x)
+		_tree_scroll.scroll_vertical -= int(event.relative.y)
 
 
 # 系統ごとの帯（1つおきに薄く塗る）と、前提をつなぐ線
